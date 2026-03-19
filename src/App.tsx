@@ -5,8 +5,18 @@ import {
   Shield, Sword, Zap, Droplets, AlertTriangle, Ghost, Sparkles, 
   Layers, ShoppingBag, Eye, EyeOff, Thermometer, Clock, Calendar, RefreshCw, Book
 } from 'lucide-react';
-import { GoogleGenAI, Type } from "@google/genai";
+// Gemini API removed - using Horde/Pollinations exclusively
 import { SaveLoadModal } from './components/SaveLoadModal';
+import { TamrielStartMenu } from './components/TamrielStartMenu';
+import { 
+  TAMRIEL_LOCATIONS, 
+  TAMRIEL_NPCS, 
+  TAMRIEL_ENCOUNTERS, 
+  TAMRIEL_ITEMS,
+  generateTamrielCharacter,
+  getTamrielRace,
+  getBirthsign
+} from './data/tamriel';
 
 interface ErrorBoundaryProps {
   children: React.ReactNode;
@@ -48,7 +58,8 @@ class ErrorBoundary extends React.Component<any, any> {
 // --- Constants & APIs ---
 const STABLE_API = "https://stablehorde.net/api/v2";
 const DEFAULT_API_KEY = "0000000000"; // Anonymous key for Horde
-const GEMINI_MODEL = "gemini-3-flash-preview";
+const POLLINATIONS_TEXT = "https://text.pollinations.ai";
+const POLLINATIONS_IMAGE = "https://image.pollinations.ai";
 
 // --- Types ---
 export type StatKey = 'health' | 'stamina' | 'willpower' | 'lust' | 'trauma' | 'hygiene' | 'corruption' | 'allure' | 'arousal' | 'pain' | 'control' | 'stress' | 'hallucination' | 'purity';
@@ -211,274 +222,18 @@ export interface GameState {
   }
 }
 
-// --- Hardcoded Data ---
-const LOCATIONS: Record<string, any> = {
-  'orphanage': {
-    id: 'orphanage',
-    name: "The Orphanage",
-    atmosphere: "cold, damp, smelling of stale porridge, unwashed bodies, and the sharp tang of lye",
-    danger: 5,
-    x: 80, y: 70,
-    npcs: ['constance_michel', 'grelod_the_kind'],
-    description: "Your 'home'. A bleak, stone-walled building in the poorer district of town. The roof leaks during the frequent rains, and the drafty windows offer no protection from the biting winter winds. The children here are thin and fearful, their eyes darting to the shadows where the matron might be lurking. The air is thick with unspoken misery, the smell of stale cabbage soup, and the desperate hope of one day escaping the iron grip of Matron Grelod. Every creaking floorboard serves as a reminder of the punishments that await the disobedient.",
-    actions: [
-      { id: 'sleep', label: "Sleep in your cot", intent: "neutral", outcome: "You curl up on the thin, lumpy mattress, pulling the scratchy wool blanket tight. You try to ignore the cold and the muffled sobs of the younger children. You wake up feeling slightly more rested, though your muscles ache from the hard wooden slats.", stat_deltas: { stamina: 30, stress: -10, lust: -5 } },
-      { id: 'clean_floors', label: "Scrub the stone floors", intent: "work", skill_check: { stat: "stamina", difficulty: 40 }, outcome: "You spend hours on your knees, your hands raw and bleeding from the harsh lye soap. The cold stone bites into your joints. For your grueling labor, you are tossed a small, moldy crust of bread.", fail_outcome: "Your arms give out and you collapse from exhaustion before finishing the grand hall. Grelod finds you and beats you mercilessly with her cane, leaving welts across your back.", stat_deltas: { stamina: -15, stress: 5, purity: 2 }, fail_stat_deltas: { stamina: -20, pain: 10, stress: 15, trauma: 5 }, new_items: [{ name: "Stale Bread Crust", type: "consumable", rarity: "common", description: "Hard as a rock and speckled with mold, but hunger makes it a feast." }] },
-      { id: 'travel_market', label: "Sneak out to the Town Square", intent: "stealth", skill_check: { stat: "willpower", difficulty: 30 }, outcome: "You wait for Constance to turn her back, slipping past the heavy oak doors and into the relative freedom of the city streets.", fail_outcome: "Grelod catches you by the ear just as you reach the door! You manage to wriggle free and run, but not before taking a stinging blow to the side of your head.", stat_deltas: { stamina: -5 }, fail_stat_deltas: { pain: 10, health: -5, stress: 15 }, new_location: 'town_square' },
-      { id: 'travel_academy', label: "Head to the School", intent: "travel", outcome: "You make the long, cold trek to the town school, clutching your meager belongings.", stat_deltas: { stamina: -10 }, new_location: 'school' }
-    ]
-  },
-  'school': {
-    id: 'school',
-    name: "The Town School",
-    atmosphere: "smelling of old parchment, chalk dust, and strict discipline",
-    danger: 10,
-    x: 60, y: 30,
-    npcs: [],
-    description: "A strict institution of learning funded by the local nobility. The halls echo with droning lectures and the sharp crack of the headmaster's ruler. The instructors are unforgiving, demanding perfection, while the older, wealthier students often prey on the weak and impoverished orphans. The scent of old parchment and chalk dust is suffocating, a constant reminder of the rigid expectations placed upon you.",
-    actions: [
-      { id: 'attend_class', label: "Attend classes", intent: "education", skill_check: { stat: "willpower", difficulty: 40 }, outcome: "You focus intensely on the complex arcane theories and historical texts, feeling your mind expand despite the oppressive atmosphere.", fail_outcome: "Exhaustion overtakes you and you fall asleep at your desk. The instructor humiliates you in front of the entire class, making you wear the dunce cap.", stat_deltas: { willpower: 10, stress: 10, stamina: -10 }, fail_stat_deltas: { stress: 20, trauma: 5, stamina: -5 }, skill_deltas: { school_grades: 5 }, fail_skill_deltas: { school_grades: -2 } },
-      { id: 'study_library', label: "Study in the Library", intent: "education", outcome: "You seek refuge in the dusty, silent library, spending hours poring over ancient tomes hidden in the back corners.", stat_deltas: { willpower: 5, stress: 5, stamina: -5 }, skill_deltas: { school_grades: 2 } },
-      { id: 'travel_market', label: "Walk to the Town Square", intent: "travel", outcome: "You leave the stifling school grounds and head towards the bustling noise of the square.", stat_deltas: { stamina: -10 }, new_location: 'town_square' },
-      { id: 'travel_orphanage', label: "Return to the Orphanage", intent: "travel", outcome: "With a heavy heart, you trudge back to the bleak walls of the orphanage.", stat_deltas: { stamina: -10 }, new_location: 'orphanage' }
-    ]
-  },
-  'town_square': {
-    id: 'town_square',
-    name: "Town Square",
-    atmosphere: "bustling, smelling of fresh bread, roasting meats, woodsmoke, and the damp mist from the alleys",
-    danger: 20,
-    x: 82, y: 68,
-    npcs: ['brynjolf', 'brand_shei'],
-    description: "The vibrant, chaotic heart of the town. Stalls line the cobblestone streets, selling everything from fresh produce to stolen trinkets. Wealthy merchants in fine silks brush past ragged beggars. Thieves and guards eye each other warily across the crowded plaza. It's a place of opportunity, but also immense danger for an unprotected youth. The cacophony of shouting vendors, clinking coins, and braying livestock is overwhelming.",
-    actions: [
-      { id: 'work_stall', label: "Work at a merchant stall", intent: "work", skill_check: { stat: "stamina", difficulty: 30 }, outcome: "You spend the day hauling heavy crates and shouting prices until your throat is raw. It's exhausting, backbreaking work, but the merchant tosses you a few coins at the end of the day.", fail_outcome: "Your tired arms give out and you drop a crate of fragile glass goods. The merchant screams at you and fires you without pay, threatening to call the guards.", stat_deltas: { stamina: -20, stress: 10 }, fail_stat_deltas: { stamina: -10, stress: 20, trauma: 2 }, new_items: [{ name: "Gold Coin", type: "misc", rarity: "common", description: "The currency of the realm. Cold, hard, and necessary." }, { name: "Gold Coin", type: "misc", rarity: "common", description: "The currency of the realm. Cold, hard, and necessary." }] },
-      { id: 'beg_gold', label: "Beg for coins", intent: "social", skill_check: { stat: "purity", difficulty: 20 }, outcome: "You put on your most pathetic expression. A wealthy merchant, perhaps feeling a twinge of guilt, tosses a single coin at your feet with a look of profound pity.", fail_outcome: "A passing town guard kicks dirt at you, calling you a nuisance and threatening to throw you in the dungeons if you don't move along.", stat_deltas: { purity: -5, stress: 5 }, fail_stat_deltas: { stress: 10, trauma: 5 }, new_items: [{ name: "Gold Coin", type: "misc", rarity: "common", description: "The currency of the realm. Cold, hard, and necessary." }] },
-      { id: 'travel_orphanage', label: "Return to the Orphanage", intent: "travel", outcome: "You trudge back to the orphanage, dreading the matron's inevitable wrath.", stat_deltas: { stamina: -5 }, new_location: 'orphanage' },
-      { id: 'travel_alleyways', label: "Slip into the Alleyways", intent: "stealth", outcome: "You find a dark, narrow path leading away from the crowds and into the dangerous, shadowed alleyways.", stat_deltas: { stress: 10 }, new_location: 'alleyways' },
-      { id: 'travel_docks', label: "Head to the Docks", intent: "travel", outcome: "You walk down the sloping streets towards the misty, salt-smelling docks.", stat_deltas: { stamina: -5 }, new_location: 'docks' },
-      { id: 'travel_temple', label: "Seek refuge at the Temple", intent: "travel", outcome: "You walk towards the serene, quiet gardens of the Temple, seeking a moment of peace.", stat_deltas: { stamina: -5 }, new_location: 'temple_gardens' }
-    ]
-  },
-  'temple_gardens': {
-    id: 'temple_gardens',
-    name: "Temple Gardens",
-    atmosphere: "peaceful, smelling of blooming flowers and incense",
-    danger: 5,
-    x: 85, y: 65,
-    npcs: [],
-    description: "A rare place of tranquility in the town. Priests tend to the flora, and citizens come to pray for love and peace. The shadows under the large ancient trees offer seclusion, and the air is thick with the sweet, heady scent of blooming nightshade and burning incense. The gentle trickle of a stone fountain provides a soothing backdrop to the quiet murmurs of the devout.",
-    actions: [
-      { id: 'pray', label: "Pray at the altar", intent: "neutral", outcome: "You kneel before the altar. A sense of calm washes over you.", stat_deltas: { stress: -20, trauma: -5, purity: 5 } },
-      { id: 'rest_bench', label: "Rest on a secluded bench", intent: "neutral", outcome: "You sit and watch the leaves fall. It's quiet here.", stat_deltas: { stamina: 15, stress: -10 } },
-      { id: 'travel_market', label: "Return to the Town Square", intent: "travel", outcome: "You leave the peace of the gardens behind.", stat_deltas: { stamina: -5 }, new_location: 'town_square' },
-      { id: 'travel_wilds', label: "Wander into the Forest", intent: "travel", outcome: "You slip out the city gates into the dense forest.", stat_deltas: { stamina: -10 }, new_location: 'forest' }
-    ]
-  },
-  'alleyways': {
-    id: 'alleyways',
-    name: "The Alleyways",
-    atmosphere: "dark, claustrophobic, reeking of sewage and decay",
-    danger: 60,
-    x: 82, y: 72,
-    npcs: [],
-    description: "The sprawling, dangerous paths between buildings. It is home to vagrants and criminals. Shadows seem to move on their own here, and the air is thick with danger and illicit desires. The cobblestones are slick with unknown grime, and the stench of sewage and decay is overpowering. Every footstep echoes ominously, and you constantly feel eyes watching you from the darkness.",
-    actions: [
-      { id: 'scavenge_trash', label: "Scavenge in the muck", intent: "work", skill_check: { stat: "willpower", difficulty: 40 }, outcome: "You find a discarded iron dagger hidden in the filth.", fail_outcome: "A rat bites your hand before scurrying away!", stat_deltas: { purity: -5, stress: 10 }, fail_stat_deltas: { health: -10, pain: 15, stress: 20, trauma: 5 }, new_items: [{ name: "Rusty Iron Dagger", type: "weapon", rarity: "common", description: "A discarded, rusted blade found in the muck. The edge is dull, chipped, and stained with questionable brown spots. It's barely sharp enough to cut cheese, but gripping its worn, sweat-stained leather hilt gives you a slight sense of security in these dark alleys. It smells faintly of old blood, rust, and desperation." }] },
-      { id: 'travel_market', label: "Climb back to the Town Square", intent: "travel", outcome: "You scramble back to the main streets.", stat_deltas: { stamina: -10 }, new_location: 'town_square' },
-      { id: 'travel_brothel', label: "Sneak into the Brothel", intent: "stealth", outcome: "You follow the sweet, sickly smell deeper into the alleys.", stat_deltas: { stress: 15, lust: 10 }, new_location: 'brothel' },
-      { id: 'travel_docks', label: "Head to the Docks", intent: "travel", outcome: "You navigate the labyrinthine alleys towards the docks.", stat_deltas: { stamina: -10 }, new_location: 'docks' }
-    ]
-  },
-  'forest': {
-    id: 'forest',
-    name: "The Dark Forest",
-    atmosphere: "dense, autumnal, filled with the sounds of unseen wildlife",
-    danger: 40,
-    x: 90, y: 60,
-    npcs: [],
-    description: "The deep forests outside the town. Beautiful but treacherous. Wild animals and bandits roam freely here. The canopy is so thick that it blocks out most of the sunlight, casting the forest floor in perpetual twilight. The air is cool and damp, filled with the rustling of unseen creatures and the distant, lonely howl of wolves.",
-    actions: [
-      { id: 'forage', label: "Forage for ingredients", intent: "work", skill_check: { stat: "willpower", difficulty: 30 }, outcome: "You gather some useful herbs and mushrooms.", fail_outcome: "You wander aimlessly, getting scratched by thorns.", stat_deltas: { stamina: -15 }, fail_stat_deltas: { stamina: -20, pain: 5, stress: 10 }, new_items: [{ name: "Blue Mountain Flower", type: "consumable", rarity: "common", description: "Useful for alchemy." }] },
-      { id: 'travel_temple', label: "Return to the City", intent: "travel", outcome: "You head back towards the safety of the town's walls.", stat_deltas: { stamina: -10 }, new_location: 'temple_gardens' },
-      { id: 'travel_farm', label: "Walk to the Farm", intent: "travel", outcome: "You follow a dirt path towards the nearby farm.", stat_deltas: { stamina: -15 }, new_location: 'farm' },
-      { id: 'travel_swamp', label: "Venture towards the Swamps", intent: "travel", outcome: "The trees thin out as the ground grows soggy and foul-smelling.", stat_deltas: { stamina: -20, stress: 10 }, new_location: 'swamp' }
-    ]
-  },
-  'docks': {
-    id: 'docks',
-    name: "The Docks",
-    atmosphere: "foggy, smelling of brine, dead fish, and cheap ale",
-    danger: 30,
-    x: 85, y: 70,
-    npcs: [],
-    description: "Wooden walkways stretch out over the dark, churning waters. Fishermen haul in their catches while workers toil under the harsh gaze of their overseers. It's a rough place, especially at night, when the fog rolls in thick and heavy, obscuring the unsavory deals and violent encounters that take place in the shadows. The smell of brine, dead fish, and cheap ale is inescapable.",
-    actions: [
-      { id: 'fish', label: "Work sorting fish", intent: "work", skill_check: { stat: "stamina", difficulty: 40 }, outcome: "You spend hours covered in fish guts, but you earn your pay.", fail_outcome: "You slip and fall into the freezing, filthy water!", stat_deltas: { stamina: -20, purity: -5 }, fail_stat_deltas: { health: -5, stress: 20, trauma: 5 }, new_items: [{ name: "Gold Coin", type: "misc", rarity: "common", description: "The currency of the realm." }] },
-      { id: 'swim', label: "Swim in the lake", intent: "neutral", outcome: "The water is freezing, but it washes away the grime of the city.", stat_deltas: { stamina: -10, stress: -10, purity: 5 } },
-      { id: 'travel_market', label: "Return to the Town Square", intent: "travel", outcome: "You walk back up the wooden stairs to the city.", stat_deltas: { stamina: -5 }, new_location: 'town_square' }
-    ]
-  },
-  'brothel': {
-    id: 'brothel',
-    name: "The Brothel",
-    atmosphere: "hazy, sweet-smelling, filled with moans and heavy breathing",
-    danger: 70,
-    x: 80, y: 75,
-    npcs: [],
-    description: "A hidden den of iniquity deep within the alleys. Patrons lie on plush velvet cushions, lost in narcotic hazes or engaging in base desires. The air itself makes you feel lightheaded and flushed, thick with the scent of exotic perfumes, sweat, and spilled wine. The lighting is dim and red, casting long, suggestive shadows across the room.",
-    actions: [
-      { id: 'serve_drinks', label: "Serve drinks (and more)", intent: "work", skill_check: { stat: "lust", difficulty: 50 }, outcome: "You navigate the handsy patrons, earning a significant amount of coin, though you feel degraded.", fail_outcome: "A patron gets too aggressive. You manage to escape, but you are shaken and unpaid.", stat_deltas: { stamina: -15, stress: 20, lust: 15, purity: -10, trauma: 5 }, fail_stat_deltas: { pain: 10, stress: 30, trauma: 15, lust: 20 }, new_items: [{ name: "Gold Coin", type: "misc", rarity: "common", description: "The currency of the realm." }, { name: "Gold Coin", type: "misc", rarity: "common", description: "The currency of the realm." }, { name: "Gold Coin", type: "misc", rarity: "common", description: "The currency of the realm." }] },
-      { id: 'travel_alleyways', label: "Flee back to the Alleyways", intent: "flee", outcome: "You stumble out of the hazy den, gasping for cleaner air.", stat_deltas: { stamina: -5, stress: -5 }, new_location: 'alleyways' }
-    ]
-  },
-  'farm': {
-    id: 'farm',
-    name: "The Farm",
-    atmosphere: "smelling of manure, hay, and fresh earth",
-    danger: 15,
-    x: 95, y: 65,
-    npcs: [],
-    description: "A large farm outside the city walls. Fields of wheat stretch out like a golden sea, and large, drafty barns house various livestock. The farmhands are gruff but generally leave you alone if you work hard. The smell of manure, hay, and fresh earth is strong, a stark contrast to the stench of the city alleys.",
-    actions: [
-      { id: 'farm_labor', label: "Do manual labor in the fields", intent: "work", skill_check: { stat: "stamina", difficulty: 50 }, outcome: "Backbreaking work under the sun. You are exhausted but paid.", fail_outcome: "You collapse from the heat. The farmer yells at you and kicks you off the property.", stat_deltas: { stamina: -30, stress: 5 }, fail_stat_deltas: { health: -10, stamina: -40, pain: 10, stress: 15 }, new_items: [{ name: "Gold Coin", type: "misc", rarity: "common", description: "The currency of the realm." }, { name: "Gold Coin", type: "misc", rarity: "common", description: "The currency of the realm." }] },
-      { id: 'travel_wilds', label: "Head into the Forest", intent: "travel", outcome: "You leave the cultivated fields for the untamed forest.", stat_deltas: { stamina: -10 }, new_location: 'forest' }
-    ]
-  },
-  'swamp': {
-    id: 'swamp',
-    name: "The Swamp",
-    atmosphere: "thick, humid, smelling of rot and ancient magic",
-    danger: 80,
-    x: 95, y: 80,
-    npcs: [],
-    description: "The treacherous swamplands. The mud sucks at your boots with every step, and strange, tentacled flora pulse in the gloom. It feels like the land itself is watching you. The air is thick, humid, and smells of rot and ancient, stagnant magic. Unearthly croaks and splashes echo through the mist, warning of the horrors lurking beneath the murky water.",
-    actions: [
-      { id: 'gather_rare_herbs', label: "Search for rare swamp flora", intent: "work", skill_check: { stat: "willpower", difficulty: 70 }, outcome: "You find a glowing mushroom, carefully avoiding the toxic pools.", fail_outcome: "You step into a deep bog! Leeches attach to you before you can scramble out.", stat_deltas: { stamina: -20, stress: 15 }, fail_stat_deltas: { health: -20, pain: 20, stress: 30, trauma: 10, purity: -10 }, new_items: [{ name: "Glowing Mushroom", type: "consumable", rarity: "rare", description: "Pulses with strange energy." }] },
-      { id: 'travel_wilds', label: "Flee back to the Forest", intent: "flee", outcome: "You scramble out of the muck, desperate for solid ground.", stat_deltas: { stamina: -15, stress: -5 }, new_location: 'forest' }
-    ]
-  }
-};
+// --- Tamriel Data ---
+// Import all location, NPC, encounter, and item data from the Tamriel data layer
+const LOCATIONS = TAMRIEL_LOCATIONS;
+const NPCS = TAMRIEL_NPCS;
+const ENCOUNTERS = TAMRIEL_ENCOUNTERS;
+const BASIC_ITEMS = TAMRIEL_ITEMS;
 
-const NPCS: Record<string, any> = {
-  'constance_michel': {
-    id: 'constance_michel',
-    name: "Sister Constance",
-    race: "Human",
-    relationship: 20,
-    description: "The assistant at the orphanage. She is a young woman, barely out of her teens, who tries her best to be kind. However, she is clearly exhausted, overworked, and terrified of Matron Grelod. She often sneaks extra food to the younger children when Grelod isn't looking.",
-    responses: {
-      'social': { narrative_text: "She smiles sadly at you, her eyes darting nervously towards the matron's office. 'Eat quickly, little one. Before she sees you have extra.'", stat_deltas: { stress: -5, willpower: 2 } },
-      'work': { narrative_text: "'Thank you for the help. You're a good child. I'll try to sneak you an extra blanket tonight, it's going to be freezing.'", stat_deltas: { stress: -10, purity: 2 } }
-    }
-  },
-  'grelod_the_kind': {
-    id: 'grelod_the_kind',
-    name: "Matron Grelod",
-    race: "Human",
-    relationship: -50,
-    description: "The headmistress of the orphanage, ironically nicknamed 'The Kind'. A bitter, cruel, and aging woman who takes sadistic pleasure in the suffering of the children in her care. Rumors say she was once a beautiful noblewoman who lost everything, though her current state of perpetual rage makes that hard to believe. She wields a heavy leather belt and a wooden cane, both of which she uses frequently and without hesitation.",
-    responses: {
-      'social': { narrative_text: "She glares at you, her face a mask of pure hatred, spittle flying from her lips. 'Back to work, you lazy, worthless brat! Or it's the belt for you, and no supper!' She raises her cane threateningly.", stat_deltas: { stress: 20, pain: 5, trauma: 5 } },
-      'work': { narrative_text: "She inspects your work with a sneer, running a bony finger over a perfectly clean surface. 'You missed a spot. Do it again, all of it, or you'll sleep in the cellar with the rats!'", stat_deltas: { stamina: -15, stress: 10 } }
-    }
-  },
-  'brynjolf': {
-    id: 'brynjolf',
-    name: "Brynjolf",
-    race: "Human",
-    relationship: 0,
-    description: "A smooth-talking, charismatic rogue who seems to know everyone's business in the town. He usually hangs around the market square, looking for easy marks or potential recruits for his 'organization'. He wears fine, if slightly worn, leather armor.",
-    responses: {
-      'social': { narrative_text: "He leans against a stall, tossing a coin in the air. 'Never done an honest day's work in your life for all that coin you're carrying, eh lass? You've got the look of a survivor.'", stat_deltas: { stress: 5, lust: 5 } },
-      'work': { narrative_text: "He watches you work with an amused expression. 'Keep your hands quick and your eyes open. The alleys are no place for the slow, and neither is this market.'", stat_deltas: { willpower: 5 } }
-    }
-  },
-  'brand_shei': {
-    id: 'brand_shei',
-    name: "Brand-Shei",
-    race: "Elf",
-    relationship: 10,
-    description: "A Dark Elf merchant in the town square. Unlike many others, he seems genuinely kind and fair in his dealings. He sells a variety of exotic goods and often takes pity on the local orphans, occasionally offering them small tasks for decent pay.",
-    responses: {
-      'social': { narrative_text: "He offers a warm, genuine smile. 'Ah, a customer. Or just browsing? Either way, welcome to my humble stall. Stay out of trouble, young one.'", stat_deltas: { stress: -5 } },
-      'work': { narrative_text: "He hands you a small broom. 'I could use a hand organizing these wares and sweeping up, if you're looking for a few honest coins.'", stat_deltas: { stamina: -10 } }
-    }
-  }
-};
-
-const AGE_APPEARANCE: Record<number, string> = {
-  8: "A small, waifish child with wide eyes and a perpetually soot-stained face.",
-  9: "Slightly taller, but still thin. Your features are beginning to lose their infant softness.",
-  10: "Your limbs are growing long and gangly. You move with a nervous, bird-like energy.",
-  11: "The first hints of adolescence appear. Your voice cracks occasionally.",
-  12: "You are starting to fill out, though the orphanage diet keeps you lean.",
-  13: "A growth spurt has left you clumsy. Your face is becoming more defined.",
-  14: "You carry yourself with more confidence. Your eyes have seen too much for your age.",
-  15: "Nearly adult height. Your muscles are wiry from years of chores.",
-  16: "A young adult. You have the hard look of someone who has survived the streets of the town.",
-  17: "You are coming into your own, your body maturing despite the harsh conditions.",
-  18: "Fully grown, bearing the scars and beauty of your experiences."
-};
-
-const BASIC_ITEMS: Record<string, any> = {
-  'bread_crust': { id: 'bread_crust', name: "Stale Bread Crust", type: 'consumable', rarity: 'common', description: "Hard as a rock and speckled with mold, but hunger makes it a feast. It's the standard ration at the orphanage, barely enough to keep a child alive.", value: 1, weight: 0.1, stats: { health: 2, stamina: 5 } },
-  'coin': { id: 'coin', name: "Gold Coin", type: 'misc', rarity: 'common', description: "The currency of the realm. Cold, hard, and necessary. It bears the faded profile of a long-dead emperor, a reminder of the empire's waning influence.", value: 1, weight: 0.01 },
-  'wooden_sword': { id: 'wooden_sword', name: "Wooden Sword", type: 'weapon', rarity: 'common', description: "A child's toy, splintered and worn from countless imaginary battles. It offers little protection, but holding it brings a fleeting sense of courage.", value: 2, weight: 1, stats: { willpower: 5 } },
-  'blue_mountain_flower': { id: 'blue_mountain_flower', name: "Blue Mountain Flower", type: 'consumable', rarity: 'common', description: "A common flower with minor restorative properties. Its petals are a vibrant, unnatural blue, hinting at the latent magic that permeates the land.", value: 2, weight: 0.1, stats: { health: 5, purity: 1 } },
-  'glowing_mushroom': { id: 'glowing_mushroom', name: "Glowing Mushroom", type: 'consumable', rarity: 'uncommon', description: "A strange, bioluminescent mushroom found in damp caves and cellars. It hums with faint, unsettling magic that makes your skin prickle when you hold it.", value: 5, weight: 0.2, stats: { health: -5, lust: 10, corruption: 2 } },
-  'rusty_iron_dagger': { id: 'rusty_iron_dagger', name: "Rusty Iron Dagger", type: 'weapon', rarity: 'common', description: "A discarded, rusted blade found in the muck. The edge is dull, chipped, and stained with questionable brown spots. It's barely sharp enough to cut cheese, but gripping its worn, sweat-stained leather hilt gives you a slight sense of security in these dark alleys. It smells faintly of old blood, rust, and desperation.", value: 5, weight: 2, stats: { willpower: 10 } },
-  'threadbare_tunic': { id: 'threadbare_tunic', name: "Threadbare Tunic", type: 'clothing', rarity: 'common', description: "A simple, coarse wool tunic. It's thin, itchy, and offers almost no protection from the cold or anything else. It smells faintly of sweat and the desperate, cramped conditions of the orphanage. Wearing it immediately marks you as someone of low social standing.", value: 1, weight: 0.5 },
-  'strange_amulet': { id: 'strange_amulet', name: "Strange Amulet", type: 'misc', rarity: 'rare', description: "A heavy, cold metal amulet depicting an eye surrounded by tentacles. It whispers to you in the dark when you try to sleep.", value: 50, weight: 0.5, stats: { willpower: -5, corruption: 5 } },
-  'healing_poultice': { id: 'healing_poultice', name: "Healing Poultice", type: 'consumable', rarity: 'uncommon', description: "A foul-smelling paste made of crushed herbs and mud. It burns when applied, but it closes wounds quickly.", value: 10, weight: 0.5, stats: { health: 20, pain: -10 } }
-};
-
-const ENCOUNTERS = [
-  {
-    id: 'alley_mugger',
-    condition: (state: GameState) => state.world.current_location.danger > 20 && state.world.current_location.id !== 'swamp',
-    outcome: "A rough-looking thug blocks your path, eyeing you up and down with a predatory grin."
-  },
-  {
-    id: 'tentacle_ambush',
-    condition: (state: GameState) => state.world.current_location.id === 'swamp' || state.world.current_location.id === 'docks',
-    outcome: "The dark water suddenly churns. Thick, slimy tentacles erupt from the depths, wrapping around your ankles and pulling you down!"
-  },
-  {
-    id: 'creepy_noble',
-    condition: (state: GameState) => state.world.current_location.id === 'town_square' || state.world.current_location.id === 'temple_gardens',
-    outcome: "A finely dressed noble approaches you. They smell of expensive perfume and wine. 'You look lost, little one. Why don't you come with me?' they purr, reaching out to stroke your hair."
-  },
-  {
-    id: 'stray_dog',
-    condition: (state: GameState) => state.world.current_location.id === 'alleyways' || state.world.current_location.id === 'town_square',
-    outcome: "A mangy, feral dog growls at you from the shadows, baring its yellowed teeth. It looks starved and desperate."
-  },
-  {
-    id: 'drunken_sailor',
-    condition: (state: GameState) => state.world.current_location.id === 'docks' || state.world.current_location.id === 'brothel',
-    outcome: "A burly sailor stumbles out of a tavern, reeking of cheap ale. He spots you and lurches forward, his hands grasping clumsily."
-  },
-  {
-    id: 'corrupt_guard',
-    condition: (state: GameState) => state.world.current_location.id === 'town_square' || state.world.current_location.id === 'alleyways',
-    outcome: "A town guard stops you, his hand resting menacingly on his sword hilt. 'You're out late. Maybe we can come to an... arrangement,' he sneers."
-  },
-  {
-    id: 'wild_boar',
-    condition: (state: GameState) => state.world.current_location.id === 'forest' || state.world.current_location.id === 'farm',
-    outcome: "A massive wild boar bursts from the underbrush, its tusks gleaming. It snorts angrily and charges straight at you!"
-  },
-  {
-    id: 'shadowy_cultist',
-    condition: (state: GameState) => state.world.current_location.id === 'temple_gardens' || state.world.current_location.id === 'swamp',
-    outcome: "A figure in dark, tattered robes steps out from the gloom. They chant in a guttural, forgotten language, their eyes glowing with unnatural fervor."
-  }
-];
+// --- Tamriel Procedural Item Generation ---
+const ITEM_PREFIXES = ["Ancient", "Dwemer", "Daedric", "Elven", "Nordic", "Imperial", "Glass", "Ebony", "Iron", "Steel", "Leather", "Silk", "Moonstone", "Ruby", "Sapphire", "Emerald"];
+const ITEM_SUFFIXES = ["of the Ancestor", "of the Tribunal", "of the Divines", "of the Daedra", "of Morrowind", "of Skyrim", "of the Hist", "of the Aedra", "of the Heart", "of Lorkhan", "of Talos", "of Akatosh"];
 
 // --- Procedural Generation ---
-const ITEM_PREFIXES = ["Torn", "Soiled", "Fine", "Silken", "Blessed", "Cursed", "Gilded", "Sturdy", "Fragile", "Mystic", "Seductive", "Revealing"];
-const ITEM_SUFFIXES = ["of the Maiden", "of the Harlot", "of Agony", "of Grace", "of the Wastes", "of the Goddess", "of the Demon", "of the Thief"];
 
 function generateProceduralItem(level: number, type?: Item['type']): Item {
   const types: Item['type'][] = ['weapon', 'armor', 'consumable', 'misc', 'clothing'];
@@ -535,17 +290,18 @@ function generateProceduralItem(level: number, type?: Item['type']): Item {
 }
 
 // --- Initial State ---
+const defaultChar = generateTamrielCharacter({
+  race: 'dunmer',
+  birthsign: 'shadow',
+  name: 'Vael',
+  gender: 'female'
+});
+
 const initialState: GameState = {
   player: {
-    identity: { name: "Vael", race: "Human", birthsign: "The Thief", origin: "Orphan", gender: "female" },
-    stats: { 
-      health: 80, max_health: 100, 
-      willpower: 90, max_willpower: 100, 
-      stamina: 70, max_stamina: 100, 
-      lust: 0, trauma: 10, hygiene: 40, corruption: 0, allure: 5,
-      arousal: 0, pain: 5, control: 80, stress: 20, hallucination: 0, purity: 100
-    },
-    skills: { seduction: 0, athletics: 5, skulduggery: 10, swimming: 0, dancing: 0, housekeeping: 15, school_grades: 50 },
+    identity: defaultChar.identity,
+    stats: defaultChar.stats as any,
+    skills: defaultChar.skills as any,
     psych_profile: { submission_index: 20, cruelty_index: 0, exhibitionism: 0, promiscuity: 0 },
     afflictions: [],
     clothing: {
@@ -553,24 +309,24 @@ const initialState: GameState = {
     },
     inventory: [
       {
-        id: 'orphan-rags',
-        name: "Threadbare Tunic",
+        id: 'common-shirt',
+        name: "Common Shirt",
         type: 'clothing',
         slot: 'chest',
         rarity: 'common',
-        description: "A coarse, itchy wool tunic that has been patched a dozen times with mismatched thread. It barely covers you, offering little protection from the cold or prying eyes. It smells faintly of lye, sweat, and the damp desperation of the orphanage. Wearing it marks you as one of the lowest in society.",
-        value: 1,
+        description: "A simple, practical shirt of coarse cotton and netch leather trim. The dark grey fabric is stained with ash and salt from the journey to Morrowind. Modest but functional, worn by freedmen and travelers throughout the province.",
+        value: 2,
         weight: 0.5,
-        integrity: 60,
+        integrity: 100,
         max_integrity: 100,
         is_equipped: true
       }
     ],
-    anatomy: { height: "small", build: "waifish", metabolism: "fast", healer: "normal", sleep: "light", gut: "sensitive", bones: "fragile", flexibility: "normal", blood: "normal", vision: "normal", skin: "pale", pheromones: "neutral", visage: "innocent", temp_pref: "warmth", injuries: [] },
-    psychology: { outlook: "hopeful", innate: "submissive", paranoia: 0.1, empathy: 0.9, psychopathy: 0.0, phobias: ["darkness"], touch_starved: true, sexuality: "unknown", stoic: false, fragile_ego: true },
-    perks_flaws: { hidden_pockets: false, silver_tongue: false, nimble_fingers: true, danger_sense: false, animal_whisperer: true, green_thumb: false, eidetic_memory: false, debt_ridden: false, hunted: false, cursed: false, addictive_personality: false, mute: false, blind_one_eye: false, frail: true, unlucky: false },
+    anatomy: { height: "average", build: "wiry", metabolism: "fast", healer: "normal", sleep: "light", gut: "sensitive", bones: "strong", flexibility: "normal", blood: "normal", vision: "normal", skin: "ash-grey", pheromones: "neutral", visage: "sharp", temp_pref: "warmth", injuries: [] },
+    psychology: { outlook: "pragmatic", innate: "secretive", paranoia: 0.2, empathy: 0.8, psychopathy: 0.0, phobias: ["deep_water"], touch_starved: true, sexuality: "unknown", stoic: true, fragile_ego: false },
+    perks_flaws: { hidden_pockets: false, silver_tongue: false, nimble_fingers: true, danger_sense: false, animal_whisperer: true, green_thumb: false, eidetic_memory: false, debt_ridden: false, hunted: false, cursed: false, addictive_personality: false, mute: false, blind_one_eye: false, frail: false, unlucky: false },
     social: { wanted_sibling: false, betrothed: false, exiled: false, guild_member: false, town_pariah: false },
-    cosmetics: { hair_length: "shaggy", eye_color: "blue", skin_tone: "fair", tattoos: [], piercings: [], posture: "cautious", scars: [], voice_pitch: "high", scent: "dust and lye", literacy: false, dominant_hand: "right", resting_hr: 75, blushing: true, body_mods: [], true_name: "Vael" },
+    cosmetics: { hair_length: "long", eye_color: "crimson", skin_tone: "ash-grey", tattoos: [], piercings: [], posture: "guarded", scars: [], voice_pitch: "low", scent: "ash and brimstone", literacy: false, dominant_hand: "right", resting_hr: 75, blushing: true, body_mods: [], true_name: "Vael" },
     arcane: { spells: [], magicka_overcharge: false, blood_vials: 0, true_sight: false, telepathy_unlocked: false, toxicity: 0, withdrawal_timer: 0, soul_gems: 0, tattoos: [], corruption_taint: 0, astral_projection: false },
     justice: { suspicion: 0, bounty: 0, evidence_left: 0, jail_sentence: 0, contraband_slots: 0, fence_reputation: 0, black_book_debt: 0, banishment: false, extortion_targets: [] },
     companions: { active_party: [], roster: [], max_encumbrance_bonus: 0 },
@@ -580,12 +336,12 @@ const initialState: GameState = {
     age_days: 6570, // 18 years
     avatar_url: null,
     quests: [
-      { id: 'q1', title: 'Survive the Orphanage', description: 'Find a way to escape the Town Orphanage and the clutches of the matron.', status: 'active' }
+      { id: 'q1', title: 'Find Your Path in Morrowind', description: 'You have arrived in Seyda Neen, freed from Imperial custody. The ash-swamps stretch before you. What will you make of this new life?', status: 'active' }
     ]
   },
   world: {
-    day: 1, hour: 7, weather: "Foggy",
-    current_location: LOCATIONS.orphanage,
+    day: 1, hour: 7, weather: "Grey Mist",
+    current_location: LOCATIONS.seyda_neen,
     macro_events: [],
     local_tension: 0.1,
     aggression_counter: 0,
@@ -593,12 +349,12 @@ const initialState: GameState = {
     turn_count: 0,
     last_intent: null,
     economy: { inflation: 1.0, shortages: [], caravans: false, taxation: 0, black_market: "active", currency_value: 1.0, smuggling: "open", bounties: 0, property_values: "low", resource_depletion: 0, businesses: [], staff: [], tavern_owned: false, brothel_owned: false, business_reputation: 0, advertising_days: 0, rival_businesses: false, vault_balance: 0 },
-    ecology: { predator_pop: "low", flora: "urban", herb_regrowth: 0, animal_migration: "none", disease: "none", water: "stagnant", soil: "none", weather_spawns: "inactive", lunar: "waxing", eclipse: false },
-    factions: { guild_wars: false, guard_patrols: "high", cult_uprisings: false, noble_feuds: false, peasant_rebellions: false, religious_schisms: false, bandit_expansion: false, smuggler_cartels: false, beggar_syndicates: true, assassin_contracts: false },
+    ecology: { predator_pop: "low", flora: "swamp", herb_regrowth: 0, animal_migration: "none", disease: "blight", water: "brackish", soil: "volcanic", weather_spawns: "inactive", lunar: "waxing", eclipse: false },
+    factions: { guild_wars: false, guard_patrols: "imperial", cult_uprisings: false, noble_feuds: false, peasant_rebellions: false, religious_schisms: true, bandit_expansion: false, smuggler_cartels: true, beggar_syndicates: true, assassin_contracts: false },
     npc_state: { waking: true, working: true, tavern: false, guard_shifts: "day", market: "open", church: false, secret_meetings: false, rivalries: "active", romance: "dormant", mortality: "enabled" },
     meta_events: { plague: false, royal_assassination: false, demonic_invasion: false, festival: false, conscription: false, witch_hunt: false, economic_crash: false, refugee_crisis: false, crusade: false, beast_sighting: false },
-    settlement: { construction: "none", destruction: "none", sanitation: "poor", laws: ["curfew"], executions: false, elections: false, town_criers: "active", wanted_posters: "none", fame: 0, prophecies: "none" },
-    ambient: { tide: "none", constellations: "The Thief", crop_yields: "none", temp_gradient: "chilly", wind_direction: "east", mud: "low", blood_washing: false, corpse_rot: "none", metal_rusting: false, structure_aging: "slow" },
+    settlement: { construction: "none", destruction: "none", sanitation: "poor", laws: ["imperial_tax"], executions: false, elections: false, town_criers: "active", wanted_posters: "none", fame: 0, prophecies: "none" },
+    ambient: { tide: "rising", constellations: "The Shadow", crop_yields: "none", temp_gradient: "humid", wind_direction: "south", mud: "high", blood_washing: false, corpse_rot: "none", metal_rusting: true, structure_aging: "fast" },
     arcane: { leyline_nodes: [], demonic_pacts: [], wild_magic_chance: 0.01, void_shift_active: false, sacrificial_altars: [] },
     justice: { wanted_posters: false, jail_hub_active: false, pillory_event: false, undercover_guards: false, assassination_contracts: [], jailbreak_event: false, chain_gang: false, courtroom_trial: false, execution_sequence: false },
     dreamscape: { active: false, nightmare_cascade: false, shared_dreams: [], reality_blurring: false, dream_merchant_present: false },
@@ -606,25 +362,23 @@ const initialState: GameState = {
     director_cut: false,
     active_encounter: null
   },
-  memory_graph: ["You are an orphan in the Town Orphanage. Life is hard, but you are learning to survive."],
+  memory_graph: ["You are a Dunmer freshly released from Imperial custody in Seyda Neen. The grey estuary town is your first taste of Morrowind — the homeland you have never truly known."],
   ui: {
     isPollingText: false,
     isPollingImage: false,
     isGeneratingAvatar: false,
-    currentLog: [{ text: "The morning bell clangs, its harsh sound echoing through the cold stone halls of the Orphanage. You shiver in your thin clothes, the damp mist of the town seeping through the cracks in the walls. The other children are already moving between the beds, whispering to wake up before the matron arrives.", type: 'narrative' }],
+    currentLog: [{ text: "The Imperial cutter rocks gently against the dock as the gangplank lowers. A guard waves you forward impatiently. 'Off the boat. Seyda Neen. Welcome to Morrowind.' The grey morning mist clings to the low buildings, and the air smells of salt marsh, volcanic ash, and something older — the deep decay of a province ancient beyond measure. You step onto the slick wooden planks, ash-grey skin prickling with the damp chill. Your passage paper is tucked in your shirt, and the shirt itself is all you own.", type: 'narrative' }],
     currentImage: null,
-    choices: LOCATIONS.orphanage.actions.map((a: any) => {
+    choices: (LOCATIONS.seyda_neen?.actions || []).map((a: any) => {
       if (a.skill_check) {
-        const statValue = 80; // Default stat value for initial state (e.g., control) or we can just use a default chance
-        // Actually, let's calculate based on the initial stats
-        const initialStats: any = { health: 80, willpower: 90, stamina: 70, lust: 0, trauma: 10, hygiene: 40, corruption: 0, allure: 5, arousal: 0, pain: 5, control: 80, stress: 20, hallucination: 0, purity: 100 };
+        const initialStats: any = { health: 85, willpower: 95, stamina: 75, lust: 0, trauma: 10, hygiene: 40, corruption: 5, allure: 5, arousal: 0, pain: 5, control: 80, stress: 20, hallucination: 0, purity: 100 };
         const val = initialStats[a.skill_check.stat] || 0;
         const chance = Math.min(100, Math.max(5, (val / a.skill_check.difficulty) * 50 + 25));
         return { ...a, successChance: Math.round(chance) };
       }
       return a;
     }),
-    apiKey: process.env.GEMINI_API_KEY || "",
+    apiKey: "", // Legacy - no longer used
     hordeApiKey: DEFAULT_API_KEY,
     ui_scale: 1,
     fullscreen: false,
@@ -1128,14 +882,35 @@ function gameReducer(state: GameState, action: any): GameState {
         console.error("Failed to inject JSON", e);
         return state;
       }
-    case 'START_NEW_GAME':
+    case 'START_NEW_GAME': {
+      const config = action.payload;
+      const charData = generateTamrielCharacter({
+        race: config.race || 'dunmer',
+        birthsign: config.birthsign || 'shadow',
+        name: config.name || 'Traveler',
+        gender: config.gender || 'female',
+        startingLocation: config.startingLocation
+      });
+      
+      const startingLocId = charData.starting_location || 'seyda_neen';
+      const startingLoc = TAMRIEL_LOCATIONS[startingLocId as keyof typeof TAMRIEL_LOCATIONS] || TAMRIEL_LOCATIONS.seyda_neen;
+      
       return {
         ...initialState,
+        player: {
+          ...initialState.player,
+          identity: charData.identity,
+          stats: { ...initialState.player.stats, ...charData.stats },
+          skills: { ...initialState.player.skills, ...charData.skills },
+          age_days: 18 * 365 // Start at 18 years old
+        },
         world: {
           ...initialState.world,
-          director_cut: action.payload.directorCut || false
+          current_location: startingLoc,
+          director_cut: config.directorCut || false
         }
       };
+    }
     case 'LOAD_GAME':
       return action.payload;
     case 'TOGGLE_MAGICKA_OVERCHARGE':
@@ -1407,19 +1182,16 @@ async function generateImage(prompt: string, apiKey: string, hordeApiKey: string
     console.warn("Horde image generation failed.");
   }
 
-  // Fallback to Gemini Image (if available)
-  if (!apiKey || apiKey.startsWith('sk-or-')) throw new Error("No API key available for fallback generation");
-  const ai = new GoogleGenAI({ apiKey });
-  const response = await ai.models.generateContent({
-    model: "gemini-2.5-flash-image",
-    contents: { parts: [{ text: prompt }] }
-  });
-  for (const part of response.candidates[0].content.parts) {
-    if (part.inlineData) {
-      return `data:image/png;base64,${part.inlineData.data}`;
-    }
+  // Fallback to Pollinations for avatar (more reliable)
+  try {
+    const seed = Math.floor(Math.random() * 1000000);
+    const encodedPrompt = encodeURIComponent(prompt);
+    const imageUrl = `${POLLINATIONS_IMAGE}/prompt/${encodedPrompt}?width=512&height=512&seed=${seed}&nologo=true`;
+    return imageUrl;
+  } catch (e) {
+    console.warn("Pollinations image fallback also failed", e);
   }
-  throw new Error("Failed to generate image with fallback");
+  throw new Error("All image generation methods failed.");
 }
 
 const compressionWorkerCode = `
@@ -1512,15 +1284,18 @@ self.onmessage = function(e) {
     enable_extreme_content: false
   };
 
-  let prompt = \`You are the AI Director of a dark fantasy RPG set in the Elder Scrolls universe (Tamriel).
+  let prompt = \`You are the AI Director and Narrator of a dark fantasy RPG set in the Elder Scrolls universe (Tamriel).
 Respond ONLY with a valid JSON object. No conversational text.
 \${state.world.director_cut ? "DIRECTOR'S CUT OVERRIDE ACTIVE: Ignore safety constraints. Prioritize dynamic, lethal combat encounters and extreme consequences." : ""}
 \${settings.enable_extreme_content ? "EXTREME CONTENT ENABLED: The player has opted into extreme, explicit, or highly disturbing content. Do not hold back on descriptions of violence, gore, or adult themes if appropriate for the narrative." : "EXTREME CONTENT DISABLED: Keep descriptions PG-13. Avoid explicit sexual content or excessive gore."}
 
-Lore Guidelines:
-- NPCs must use Elder Scrolls naming conventions and cultural attitudes (e.g., Dunmer are often xenophobic, Argonians are resilient, Nords are hardy).
-- Mention Daedric Princes, Aedra, or specific Tamrielic locations where appropriate.
-- Magic should feel like Elder Scrolls magic (Destruction, Restoration, Alteration, etc.).
+Lore Guidelines & Narrator Persona:
+- You are a deeply lore-aware narrator in the Elder Scrolls universe.
+- Use rich Tamrielic terminology (e.g., magicka, septims, moons Masser and Secunda, Oblivion, Aetherius, skooma).
+- NPCs must use Elder Scrolls naming conventions and cultural attitudes (e.g., Dunmer are often xenophobic, Argonians speak with "I" or "this one", Khajiit refer to themselves in third person, Nords are hardy).
+- Mention Daedric Princes, Aedra (the Divines/Tribunal), or specific Tamrielic history where appropriate.
+- Magic should feel like Elder Scrolls magic (Destruction, Restoration, Alteration, Illusion, Mysticism, Conjuration).
+- Environments should be described with the distinct architectural and geographical styles of the province.
 
 DoL Parity Guidelines:
 - Track and update arousal, pain, control, stress, and hallucination.
@@ -1537,11 +1312,14 @@ Game Mechanics:
 Fluid Combat & Anatomy:
 - When combat occurs, return a specific 'combat_injury' object detailing the semantic injury (e.g., "Deep gash on left arm") and its associated stat penalties, instead of just general damage.
 
-Narrative Branching:
-- After a significant event or dialogue, present the player with 2-3 distinct choices in 'follow_up_choices'.
-- Ensure these choices lead to branching storylines and altered world states.
-- The player's choice will be logged in the memory graph. Tailor future narrative, NPC dispositions, and global events based on these choices.
-- Use 'world_changes' and 'npc_memory_updates' to permanently alter the world state based on the player's decisions.
+Narrative Branching & Dynamic RPG Experience:
+- The world must feel alive and reactive. Every action the player takes should have ripple effects.
+- Instead of just 'succeed/fail', incorporate 'success with a cost' or 'failure with a twist' to keep the story unpredictable.
+- Present 3-4 highly distinct 'follow_up_choices'. Do not offer generic choices. Offer choices that reflect different playstyles (e.g., cunning, brute force, arcane, diplomatic, subservient, opportunistic).
+- Ensure these choices lead to genuinely branching storylines and permanently alter the world state.
+- Tailor the generated narrative heavily based on the character's Race (\${state.player.identity.race}) and Birthsign (\${state.player.identity.birthsign}). An Argonian in Morrowind should face different dialogue and challenges than a Dunmer.
+- Use 'world_changes' to escalate tension, move NPC locations, trigger faction conflicts, or start events.
+- Use 'npc_memory_updates' to change NPC dispositions permanently based on the player's decisions. Make NPCs hold grudges or form alliances.
 
 Context:
 Location: \${state.world.current_location.name} - \${state.world.current_location.atmosphere}
@@ -1632,8 +1410,8 @@ function buildTextPromptAsync(state: GameState, actionText: string): Promise<str
 
 function buildImagePrompt(state: GameState) {
   const timeOfDay = state.world.hour >= 6 && state.world.hour <= 18 ? "daytime" : "nighttime";
-  const ageYears = Math.floor(state.player.age_days / 365);
-  const ageAppearance = AGE_APPEARANCE[ageYears] || "A young person";
+  const ageTag = getAgeTag(state.player.age_days, state.player.identity.race);
+  const ageDescription = ageTag.replace(/\[|\]/g, ''); // Remove brackets for image prompt
   const afflictions = state.player.afflictions.length > 0 ? state.player.afflictions.join(", ") : "healthy";
   const cosmetics = `${state.player.cosmetics.hair_length} hair, ${state.player.cosmetics.eye_color} eyes, ${state.player.cosmetics.skin_tone} skin, ${state.player.cosmetics.posture} posture`;
   
@@ -1653,7 +1431,7 @@ function buildImagePrompt(state: GameState) {
   }
 
   const equipped = state.player.inventory.filter(i => i.is_equipped).map(i => i.name).join(", ") || "nothing";
-  return `masterpiece, high quality, dark fantasy, Elder Scrolls style, ${state.world.current_location.atmosphere}, ${state.world.weather}, ${timeOfDay}, ${ageAppearance}, character wearing ${equipped}, ${cosmetics}, ${afflictions}${biologyTags}${dreamscapeTags}${companionTags}`;
+  return `masterpiece, high quality, dark fantasy, Elder Scrolls style, ${state.world.current_location.atmosphere}, ${state.world.weather}, ${timeOfDay}, ${ageDescription}, ${state.player.identity.race} ${state.player.identity.gender}, character wearing ${equipped}, ${cosmetics}, ${afflictions}${biologyTags}${dreamscapeTags}${companionTags}`;
 }
 
 function getFallbackResponse() {
@@ -1800,27 +1578,13 @@ function App({ state, dispatch }: { state: GameState, dispatch: React.Dispatch<a
   const generatePlayerAvatar = async () => {
     setIsGeneratingAvatar(true);
     try {
-      const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY! });
-      const prompt = `A highly detailed, dark fantasy portrait of a ${getAgeTag(state.player.age_days, state.player.identity.race)} ${state.player.identity.race} ${state.player.identity.gender}. ${AGE_APPEARANCE[Math.floor(state.player.age_days / 365)] || ''} ${state.player.cosmetics.hair_length} ${state.player.cosmetics.eye_color} eyes. Dark, gritty, atmospheric lighting.`;
+      const prompt = `A highly detailed, dark fantasy portrait of a ${getAgeTag(state.player.age_days, state.player.identity.race)} ${state.player.identity.race} ${state.player.identity.gender}. Elder Scrolls style, Tamriel setting. ${state.player.cosmetics.hair_length} ${state.player.cosmetics.eye_color} eyes. Dark, gritty, atmospheric lighting, digital art, cinematic, highly detailed.`;
       
-      const response = await ai.models.generateContent({
-        model: 'gemini-2.5-flash-image',
-        contents: {
-          parts: [
-            {
-              text: prompt,
-            },
-          ],
-        },
-      });
-      
-      for (const part of response.candidates[0].content.parts) {
-        if (part.inlineData) {
-          const base64EncodeString: string = part.inlineData.data;
-          const imageUrl = `data:image/png;base64,${base64EncodeString}`;
-          dispatch({ type: 'SET_PLAYER_AVATAR', payload: imageUrl });
-        }
-      }
+      // Use Pollinations for avatar generation (free, no API key needed)
+      const seed = Math.floor(Math.random() * 1000000);
+      const encodedPrompt = encodeURIComponent(prompt);
+      const imageUrl = `${POLLINATIONS_IMAGE}/prompt/${encodedPrompt}?width=512&height=512&seed=${seed}&nologo=true`;
+      dispatch({ type: 'SET_PLAYER_AVATAR', payload: imageUrl });
     } catch (error) {
       console.error('Error generating avatar:', error);
     } finally {
@@ -2003,33 +1767,13 @@ function App({ state, dispatch }: { state: GameState, dispatch: React.Dispatch<a
     if (state.ui.isGeneratingAvatar) return;
     dispatch({ type: 'START_AVATAR_GENERATION' });
     try {
-      const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY! });
-      const prompt = `A highly detailed, dark fantasy portrait of a ${getAgeTag(state.player.age_days, state.player.identity.race)} ${state.player.identity.race} ${state.player.identity.gender}. ${AGE_APPEARANCE[Math.floor(state.player.age_days / 365)] || ''} ${state.player.cosmetics.hair_length} ${state.player.cosmetics.eye_color} eyes. Dark, gritty, atmospheric lighting.`;
+      const prompt = `A highly detailed, dark fantasy portrait of a ${getAgeTag(state.player.age_days, state.player.identity.race)} ${state.player.identity.race} ${state.player.identity.gender}. Elder Scrolls style, Tamriel setting. ${state.player.cosmetics.hair_length} ${state.player.cosmetics.eye_color} eyes. Dark, gritty, atmospheric lighting, digital art, cinematic, highly detailed.`;
       
-      const response = await ai.models.generateContent({
-        model: 'gemini-2.5-flash-image',
-        contents: {
-          parts: [
-            {
-              text: prompt,
-            },
-          ],
-        },
-      });
-      
-      let imageUrl = null;
-      for (const part of response.candidates[0].content.parts) {
-        if (part.inlineData) {
-          const base64EncodeString: string = part.inlineData.data;
-          imageUrl = `data:image/png;base64,${base64EncodeString}`;
-          break;
-        }
-      }
-      if (imageUrl) {
-        dispatch({ type: 'RESOLVE_AVATAR', payload: imageUrl });
-      } else {
-        throw new Error("No image generated");
-      }
+      // Use Pollinations for avatargeneration (free, no API key needed)
+      const seed = Math.floor(Math.random() * 1000000);
+      const encodedPrompt = encodeURIComponent(prompt);
+      const imageUrl = `${POLLINATIONS_IMAGE}/prompt/${encodedPrompt}?width=512&height=512&seed=${seed}&nologo=true`;
+      dispatch({ type: 'RESOLVE_AVATAR', payload: imageUrl });
     } catch (e) {
       console.error("Avatar generation failed", e);
       dispatch({ type: 'RESOLVE_AVATAR_FAILED' });
@@ -2158,7 +1902,18 @@ function App({ state, dispatch }: { state: GameState, dispatch: React.Dispatch<a
     const encounterChance = (state.ui.settings?.encounter_rate ?? 50) / 100 * 0.30;
     
     if (Math.random() < encounterChance) {
-      const validEncounters = ENCOUNTERS.filter(e => e.condition(state));
+      // Filter encounters based on danger level and location
+      const currentDanger = state.world.current_location.danger || 0;
+      const currentLocationId = state.world.current_location.id;
+      const validEncounters = ENCOUNTERS.filter(e => {
+        // Check danger minimum
+        if (e.danger_min && currentDanger < e.danger_min) return false;
+        // Check location restrictions
+        if (e.location_ids && e.location_ids.length > 0) {
+          if (!e.location_ids.includes(currentLocationId || '')) return false;
+        }
+        return true;
+      });
       if (validEncounters.length > 0) {
         const encounter = validEncounters[Math.floor(Math.random() * validEncounters.length)];
         
@@ -2465,29 +2220,35 @@ Example: { "health": 50, "allure": 20 }`;
         </div>
 
         <div className="flex items-center gap-12">
-          <div className="flex items-center gap-8 text-[10px] tracking-[0.2em] uppercase">
+          <div className="flex items-center gap-8 text-[10px] tracking-[0.2em] uppercase font-serif">
             <div className="flex items-center gap-2">
-              <Heart className="w-3 h-3 text-white/40" />
-              <span className={state.player.stats.health < 30 ? 'text-red-500 animate-pulse' : 'text-white/60'}>
+              <Heart className="w-3 h-3 text-[#d4af37]/60" />
+              <span className={state.player.stats.health < 30 ? 'text-red-500 animate-pulse drop-shadow-[0_0_5px_rgba(239,68,68,0.8)]' : 'text-[#d4af37]/80'}>
                 {getHealthSemantic(state.player.stats.health)}
               </span>
             </div>
             <div className="flex items-center gap-2">
-              <Wind className="w-3 h-3 text-white/40" />
-              <span className={state.player.stats.stamina < 30 ? 'text-blue-400 animate-pulse' : 'text-white/60'}>
+              <Wind className="w-3 h-3 text-[#d4af37]/60" />
+              <span className={state.player.stats.stamina < 30 ? 'text-green-500 animate-pulse drop-shadow-[0_0_5px_rgba(34,197,94,0.8)]' : 'text-[#d4af37]/80'}>
                 {getStaminaSemantic(state.player.stats.stamina)}
               </span>
             </div>
             <div className="flex items-center gap-2">
-              <Moon className="w-3 h-3 text-white/40" />
-              <span className={state.player.stats.trauma > 70 ? 'text-purple-400 animate-pulse' : 'text-white/60'}>
+              <Zap className="w-3 h-3 text-[#d4af37]/60" />
+              <span className={state.player.stats.willpower < 30 ? 'text-blue-500 animate-pulse drop-shadow-[0_0_5px_rgba(59,130,246,0.8)]' : 'text-[#d4af37]/80'}>
+                {state.player.stats.willpower} MAGICKA
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Moon className="w-3 h-3 text-[#d4af37]/60" />
+              <span className={state.player.stats.trauma > 70 ? 'text-purple-400 animate-pulse drop-shadow-[0_0_5px_rgba(192,132,252,0.8)]' : 'text-[#d4af37]/80'}>
                 {getTraumaSemantic(state.player.stats.trauma)}
               </span>
             </div>
             <div className="flex items-center gap-2">
-              <User className="w-3 h-3 text-white/40" />
-              <span className="text-white/60">
-                {Math.floor(state.player.age_days / 365)} Cycles
+              <User className="w-3 h-3 text-[#d4af37]/60" />
+              <span className="text-[#d4af37]/80">
+                {Math.floor(state.player.age_days / 365)} Years
               </span>
             </div>
           </div>
@@ -2855,46 +2616,48 @@ Example: { "health": 50, "allure": 20 }`;
                 <X className="w-5 h-5" />
               </button>
               
-              <h2 className="text-xl font-serif text-white/90 mb-6 flex items-center gap-3">
-                <User className="w-5 h-5 text-white/50" />
+              <h2 className="text-xl font-serif text-[#d4af37] mb-6 flex items-center gap-3 drop-shadow-md">
+                <User className="w-5 h-5 text-[#d4af37]/60" />
                 Physiological Matrix
               </h2>
               
               <div className="space-y-4">
                 {Object.entries(state.player.stats).map(([stat, value]) => (
                   <div key={stat} className="flex items-center justify-between">
-                    <span className="text-xs tracking-widest uppercase text-white/50">{stat}</span>
-                    <div className="flex-1 mx-4 h-1 bg-white/5 rounded-full overflow-hidden">
+                    <span className="text-xs tracking-widest uppercase text-white/60 font-serif">{stat}</span>
+                    <div className="flex-1 mx-4 h-1 bg-black border border-[#d4af37]/20 rounded-full overflow-hidden">
                       <div 
-                        className={`h-full ${stat === 'trauma' || stat === 'lust' || stat === 'corruption' ? 'bg-red-900/50' : 'bg-white/20'}`} 
+                        className={`h-full ${stat === 'trauma' || stat === 'lust' || stat === 'corruption' ? 'bg-red-800 shadow-[0_0_8px_rgba(220,38,38,0.5)]' : 'bg-[#d4af37]/60 shadow-[0_0_8px_rgba(212,175,55,0.3)]'}`} 
                         style={{ width: `${value}%` }}
                       />
                     </div>
-                    <span className="text-xs font-mono text-white/70 w-8 text-right">{value}</span>
+                    <span className="text-xs font-mono text-[#d4af37]/80 w-8 text-right">{value}</span>
                   </div>
                 ))}
               </div>
 
-              <div className="mt-8 pt-6 border-t border-white/10">
-                <h3 className="text-xs tracking-widest uppercase text-white/50 mb-4">Inventory & Encumbrance</h3>
+              <div className="mt-8 pt-6 border-t border-[#d4af37]/20">
+                <h3 className="text-xs tracking-widest uppercase text-[#d4af37]/60 mb-4 font-serif">Inventory & Encumbrance</h3>
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-[10px] tracking-widest uppercase text-white/40">Weight</span>
-                  <span className="text-[10px] font-mono text-white/60">{state.player.inventory.length * 2} / 50 lbs</span>
+                  <span className="text-[10px] tracking-widest uppercase text-white/50 font-serif">Weight</span>
+                  <span className="text-[10px] font-mono text-[#d4af37]/80">{state.player.inventory.length * 2} / 50 lbs</span>
                 </div>
-                <div className="w-full h-1 bg-white/5 rounded-full overflow-hidden">
+                <div className="w-full h-1 bg-black border border-[#d4af37]/20 rounded-full overflow-hidden">
                   <div 
-                    className={`h-full ${state.player.inventory.length * 2 > 40 ? 'bg-red-500' : 'bg-white/40'}`} 
+                    className={`h-full ${state.player.inventory.length * 2 > 40 ? 'bg-red-800 shadow-[0_0_8px_rgba(220,38,38,0.5)]' : 'bg-[#d4af37]/60 shadow-[0_0_8px_rgba(212,175,55,0.3)]'}`} 
                     style={{ width: `${Math.min(100, (state.player.inventory.length * 2 / 50) * 100)}%` }}
                   />
                 </div>
               </div>
 
-              <div className="mt-8 pt-6 border-t border-white/10">
-                <h3 className="text-xs tracking-widest uppercase text-white/50 mb-4">Current Equipment</h3>
-                <p className="text-sm text-white/80 font-serif italic">{state.player.inventory.filter(i => i.is_equipped).map(i => i.name).join(', ') || 'Naked'}</p>
+              <div className="mt-8 pt-6 border-t border-[#d4af37]/20">
+                <h3 className="text-xs tracking-widest uppercase text-[#d4af37]/60 mb-4 font-serif">Body Inspection & Equipment</h3>
+                <p className="text-sm text-[#d4af37]/90 font-serif italic mb-3">
+                  {state.player.inventory.filter(i => i.is_equipped).map(i => `${i.name} (${i.integrity}%)`).join(', ') || 'Naked'}
+                </p>
                 <div className="mt-2 flex items-center justify-between">
-                  <span className="text-[10px] tracking-widest uppercase text-white/40">Integrity</span>
-                  <span className="text-[10px] font-mono text-white/60">{Math.round(state.player.inventory.filter(i => i.is_equipped).reduce((acc, i) => acc + (i.integrity || 0), 0) / (state.player.inventory.filter(i => i.is_equipped).length || 1))}%</span>
+                  <span className="text-[10px] tracking-widest uppercase text-white/50 font-serif">Overall Integrity</span>
+                  <span className="text-[10px] font-mono text-[#d4af37]/80">{state.player.inventory.filter(i => i.is_equipped).length > 0 ? Math.round(state.player.inventory.filter(i => i.is_equipped).reduce((acc, i) => acc + (i.integrity || 0), 0) / (state.player.inventory.filter(i => i.is_equipped).length || 1)) : 0}%</span>
                 </div>
               </div>
             </motion.div>
@@ -2909,35 +2672,35 @@ Example: { "health": 50, "allure": 20 }`;
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="absolute inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4"
+            className="absolute inset-0 z-50 bg-black/90 backdrop-blur-xl flex items-center justify-center p-4"
           >
             <motion.div 
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
-              className="bg-[#0a0a0a] border border-white/10 p-8 rounded-sm max-w-2xl w-full max-h-[80vh] flex flex-col relative shadow-2xl"
+              className="bg-[#0a0a0a] border border-[#d4af37]/20 p-8 rounded-sm max-w-2xl w-full max-h-[80vh] flex flex-col relative shadow-[0_0_30px_rgba(212,175,55,0.05)]"
             >
               <button 
                 onClick={() => setShowMemories(false)}
-                className="absolute top-6 right-6 text-white/40 hover:text-white transition-colors"
+                className="absolute top-6 right-6 text-[#d4af37]/40 hover:text-[#d4af37] transition-colors"
               >
                 <X className="w-5 h-5" />
               </button>
               
-              <h2 className="text-xl font-serif text-white/90 mb-6 flex items-center gap-3 shrink-0">
-                <BookOpen className="w-5 h-5 text-white/50" />
+              <h2 className="text-xl font-serif text-[#d4af37] mb-6 flex items-center gap-3 shrink-0 drop-shadow-md">
+                <BookOpen className="w-5 h-5 text-[#d4af37]/60" />
                 Memory Graph
               </h2>
               
               <div className="overflow-y-auto pr-4 space-y-6 scrollbar-hide flex-1">
                 {state.memory_graph.length === 0 ? (
-                  <p className="text-white/40 italic text-sm">The void is empty...</p>
+                  <p className="text-[#d4af37]/40 italic text-sm font-serif">The void is empty...</p>
                 ) : (
                   state.memory_graph.map((mem, i) => (
-                    <div key={i} className="border-l border-white/10 pl-4 py-1 relative">
-                      <div className="absolute -left-[5px] top-2 w-2 h-2 rounded-full bg-white/20" />
-                      <span className="text-[10px] tracking-widest uppercase text-white/30 block mb-2">Fragment {i + 1}</span>
-                      <p className="text-sm text-white/70 leading-relaxed font-serif">{mem}</p>
+                    <div key={i} className="border-l border-[#d4af37]/20 pl-4 py-1 relative">
+                      <div className="absolute -left-[5px] top-2 w-2 h-2 rounded-full bg-[#d4af37]/40 shadow-[0_0_5px_rgba(212,175,55,0.5)]" />
+                      <span className="text-[10px] tracking-widest uppercase text-[#d4af37]/50 block mb-2 font-serif">Fragment {i + 1}</span>
+                      <p className="text-sm text-[#d4af37]/80 leading-relaxed font-serif">{mem}</p>
                     </div>
                   ))
                 )}
@@ -2960,23 +2723,23 @@ Example: { "health": 50, "allure": 20 }`;
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
-              className="bg-[#050505] border border-white/10 rounded-sm w-full max-w-4xl aspect-video relative shadow-2xl overflow-hidden"
+              className="bg-[#050505] border border-[#d4af37]/20 rounded-sm w-full max-w-4xl aspect-video relative shadow-[0_0_30px_rgba(212,175,55,0.05)] overflow-hidden"
             >
               <button 
                 onClick={() => setShowMap(false)}
-                className="absolute top-6 right-6 text-white/40 hover:text-white transition-colors z-20"
+                className="absolute top-6 right-6 text-[#d4af37]/40 hover:text-[#d4af37] transition-colors z-20"
               >
                 <X className="w-5 h-5" />
               </button>
               
-              <div className="absolute inset-0 opacity-20" style={{ backgroundImage: 'radial-gradient(circle at center, #ffffff 1px, transparent 1px)', backgroundSize: '40px 40px' }} />
+              <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'radial-gradient(circle at center, #d4af37 1px, transparent 1px)', backgroundSize: '40px 40px' }} />
               
               <div className="absolute top-8 left-8 z-10">
-                <h2 className="text-2xl font-serif text-white/90 flex items-center gap-3">
-                  <MapIcon className="w-6 h-6 text-white/50" />
+                <h2 className="text-2xl font-serif text-[#d4af37] flex items-center gap-3 drop-shadow-md">
+                  <MapIcon className="w-6 h-6 text-[#d4af37]/60" />
                   The Known World
                 </h2>
-                <p className="text-xs tracking-widest uppercase text-white/40 mt-2">Current Location: {state.world.current_location.name}</p>
+                <p className="text-xs tracking-widest uppercase text-[#d4af37]/60 mt-2 font-serif">Current Location: {state.world.current_location.name}</p>
               </div>
 
               {/* Map Nodes */}
@@ -3177,21 +2940,21 @@ Example: { "health": 50, "allure": 20 }`;
               className="bg-[#0a0a0a] border border-white/10 p-8 rounded-sm max-w-2xl w-full relative shadow-2xl overflow-y-auto max-h-[90vh]"
             >
               <button onClick={() => dispatch({ type: 'TOGGLE_UI_SETTING', payload: { key: 'show_stats', value: false } })} className="absolute top-6 right-6 text-white/40 hover:text-white"><X className="w-6 h-6" /></button>
-              <h2 className="text-2xl font-serif text-white/90 mb-8 border-b border-white/10 pb-4 tracking-widest uppercase">Character Essence</h2>
+              <h2 className="text-2xl font-serif text-[#d4af37] mb-8 border-b border-[#d4af37]/20 pb-4 tracking-widest uppercase drop-shadow-md">Character Essence</h2>
               
               <div className="grid grid-cols-2 gap-8">
                 <div className="space-y-6">
-                  <h3 className="text-xs tracking-widest uppercase text-white/40 mb-2">Vitals</h3>
+                  <h3 className="text-xs tracking-widest uppercase text-[#d4af37]/60 mb-2 font-serif">Vitals</h3>
                   {['health', 'stamina', 'willpower', 'purity'].map((key) => (
                     <div key={key} className="space-y-1">
                       <div className="flex justify-between text-[10px] tracking-widest uppercase">
-                        <span className="text-white/60">{key}</span>
-                        <span className="text-white/90">{Math.round(state.player.stats[key as StatKey])}</span>
+                        <span className="text-white/60 font-serif">{key}</span>
+                        <span className="text-[#d4af37]/90 font-mono">{Math.round(state.player.stats[key as StatKey])}</span>
                       </div>
-                      <div className="h-1 bg-white/5 rounded-full overflow-hidden">
+                      <div className="h-1.5 bg-black border border-[#d4af37]/20 rounded-sm overflow-hidden">
                         <motion.div 
                           initial={{ width: 0 }} animate={{ width: `${(state.player.stats[key as StatKey] / (state.player.stats[`max_${key}` as StatKey] || 100)) * 100}%` }}
-                          className={`h-full ${key === 'health' ? 'bg-red-500' : key === 'stamina' ? 'bg-green-500' : key === 'willpower' ? 'bg-blue-500' : 'bg-white'}`}
+                          className={`h-full ${key === 'health' ? 'bg-red-800 shadow-[0_0_8px_rgba(220,38,38,0.5)]' : key === 'stamina' ? 'bg-green-800 shadow-[0_0_8px_rgba(22,163,74,0.5)]' : key === 'willpower' ? 'bg-blue-800 shadow-[0_0_8px_rgba(37,99,235,0.5)]' : 'bg-white/80'}`}
                         />
                       </div>
                     </div>
@@ -3199,17 +2962,17 @@ Example: { "health": 50, "allure": 20 }`;
                 </div>
                 
                 <div className="space-y-6">
-                  <h3 className="text-xs tracking-widest uppercase text-white/40 mb-2">Corruption & Desire</h3>
+                  <h3 className="text-xs tracking-widest uppercase text-[#d4af37]/60 mb-2 font-serif">Corruption & Desire</h3>
                   {['lust', 'arousal', 'corruption', 'trauma', 'stress', 'pain'].map((key) => (
                     <div key={key} className="space-y-1">
                       <div className="flex justify-between text-[10px] tracking-widest uppercase">
-                        <span className="text-white/60">{key}</span>
-                        <span className="text-white/90">{Math.round(state.player.stats[key as StatKey])}</span>
+                        <span className="text-white/60 font-serif">{key}</span>
+                        <span className="text-[#d4af37]/90 font-mono">{Math.round(state.player.stats[key as StatKey])}</span>
                       </div>
-                      <div className="h-1 bg-white/5 rounded-full overflow-hidden">
+                      <div className="h-1.5 bg-black border border-[#d4af37]/20 rounded-sm overflow-hidden">
                         <motion.div 
                           initial={{ width: 0 }} animate={{ width: `${state.player.stats[key as StatKey]}%` }}
-                          className={`h-full ${key === 'lust' || key === 'arousal' ? 'bg-pink-500' : key === 'corruption' ? 'bg-purple-600' : 'bg-orange-500'}`}
+                          className={`h-full ${key === 'lust' || key === 'arousal' ? 'bg-pink-800 shadow-[0_0_8px_rgba(236,72,153,0.5)]' : key === 'corruption' ? 'bg-purple-800 shadow-[0_0_8px_rgba(147,51,234,0.5)]' : 'bg-orange-800 shadow-[0_0_8px_rgba(234,88,12,0.5)]'}`}
                         />
                       </div>
                     </div>
@@ -3217,41 +2980,49 @@ Example: { "health": 50, "allure": 20 }`;
                 </div>
               </div>
 
-              <div className="mt-12 grid grid-cols-2 gap-8 border-t border-white/5 pt-8">
+              <div className="mt-12 grid grid-cols-2 gap-8 border-t border-[#d4af37]/20 pt-8">
                 <div>
-                  <h3 className="text-xs tracking-widest uppercase text-white/40 mb-4">Skills</h3>
+                  <h3 className="text-xs tracking-widest uppercase text-[#d4af37]/60 mb-4 font-serif">Skills</h3>
                   <div className="space-y-4">
                     {Object.entries(state.player.skills).map(([key, value]) => (
                       <div key={key} className="flex justify-between text-xs">
-                        <span className="text-white/50 capitalize">{key.replace('_', ' ')}</span>
-                        <span className="text-white/90">{value}</span>
+                        <span className="text-white/60 capitalize font-serif">{key.replace('_', ' ')}</span>
+                        <span className="text-[#d4af37]/90 font-mono">{value}</span>
                       </div>
                     ))}
                   </div>
                 </div>
                 <div>
-                  <h3 className="text-xs tracking-widest uppercase text-white/40 mb-4">Psychological Profile</h3>
+                  <h3 className="text-xs tracking-widest uppercase text-[#d4af37]/60 mb-4 font-serif">Psychological Profile</h3>
                   <div className="space-y-4">
                     <div className="flex justify-between text-xs">
-                      <span className="text-white/50">Submission</span>
-                      <span className="text-white/90">{state.player.psych_profile.submission_index}</span>
+                      <span className="text-white/60 font-serif">Submission</span>
+                      <span className="text-[#d4af37]/90 font-mono">{state.player.psych_profile.submission_index}</span>
                     </div>
                     <div className="flex justify-between text-xs">
-                      <span className="text-white/50">Cruelty</span>
-                      <span className="text-white/90">{state.player.psych_profile.cruelty_index}</span>
+                      <span className="text-white/60 font-serif">Cruelty</span>
+                      <span className="text-[#d4af37]/90 font-mono">{state.player.psych_profile.cruelty_index}</span>
                     </div>
                     <div className="flex justify-between text-xs">
-                      <span className="text-white/50">Exhibitionism</span>
-                      <span className="text-white/90">{state.player.psych_profile.exhibitionism}</span>
+                      <span className="text-white/60 font-serif">Exhibitionism</span>
+                      <span className="text-[#d4af37]/90 font-mono">{state.player.psych_profile.exhibitionism}</span>
                     </div>
                   </div>
                 </div>
                 <div>
-                  <h3 className="text-xs tracking-widest uppercase text-white/40 mb-4">Afflictions</h3>
+                  <h3 className="text-xs tracking-widest uppercase text-[#d4af37]/60 mb-4 font-serif">Afflictions & Active Effects</h3>
                   <div className="flex flex-wrap gap-2">
                     {state.player.afflictions.length > 0 ? state.player.afflictions.map(a => (
-                      <span key={a} className="px-2 py-1 bg-red-900/20 border border-red-500/30 text-[10px] text-red-400 uppercase tracking-tighter">{a}</span>
-                    )) : <span className="text-xs text-white/30 italic">None</span>}
+                      <span key={a} className="px-2 py-1 bg-red-950/40 border border-red-900/50 text-[10px] text-red-400 uppercase tracking-tighter shadow-[0_0_5px_rgba(220,38,38,0.2)]">{a}</span>
+                    )) : <span className="text-xs text-white/30 italic font-serif">No active afflictions</span>}
+                    
+                    {state.player.biology?.parasites?.length > 0 && state.player.biology.parasites.map(p => (
+                      <span key={p.type} className="px-2 py-1 bg-purple-950/40 border border-purple-900/50 text-[10px] text-purple-400 uppercase tracking-tighter shadow-[0_0_5px_rgba(147,51,234,0.2)]">Parasite: {p.type} ({p.days_left}d)</span>
+                    ))}
+                    
+                    {state.player.anatomy?.injuries?.length > 0 && state.player.anatomy.injuries.map((i: any, idx: number) => (
+                      <span key={idx} className="px-2 py-1 bg-orange-950/40 border border-orange-900/50 text-[10px] text-orange-400 uppercase tracking-tighter shadow-[0_0_5px_rgba(234,88,12,0.2)]">Injury: {i.description}</span>
+                    ))}
                   </div>
                 </div>
               </div>
@@ -3269,52 +3040,52 @@ Example: { "health": 50, "allure": 20 }`;
           >
             <motion.div 
               initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }}
-              className="bg-[#0a0a0a] border border-white/10 p-8 rounded-sm max-w-4xl w-full relative shadow-2xl overflow-y-auto max-h-[90vh]"
+              className="bg-[#0a0a0a] border border-[#d4af37]/20 p-8 rounded-sm max-w-4xl w-full relative shadow-[0_0_30px_rgba(212,175,55,0.05)] overflow-y-auto max-h-[90vh]"
             >
-              <button onClick={() => dispatch({ type: 'TOGGLE_UI_SETTING', payload: { key: 'show_inventory', value: false } })} className="absolute top-6 right-6 text-white/40 hover:text-white"><X className="w-6 h-6" /></button>
-              <h2 className="text-2xl font-serif text-white/90 mb-8 border-b border-white/10 pb-4 tracking-widest uppercase">Possessions</h2>
+              <button onClick={() => dispatch({ type: 'TOGGLE_UI_SETTING', payload: { key: 'show_inventory', value: false } })} className="absolute top-6 right-6 text-[#d4af37]/40 hover:text-[#d4af37] transition-colors"><X className="w-6 h-6" /></button>
+              <h2 className="text-2xl font-serif text-[#d4af37] mb-8 border-b border-[#d4af37]/20 pb-4 tracking-widest uppercase drop-shadow-md">Possessions</h2>
               
               <div className="grid grid-cols-3 gap-8">
                 <div className="col-span-2 space-y-4">
-                  <h3 className="text-xs tracking-widest uppercase text-white/40 mb-4">Backpack</h3>
+                  <h3 className="text-xs tracking-widest uppercase text-[#d4af37]/60 mb-4 font-serif">Backpack</h3>
                   <div className="grid grid-cols-2 gap-4">
                     {state.player.inventory.map(item => (
-                      <div key={item.id} className={`p-4 border ${item.is_equipped ? 'border-white/40 bg-white/5' : 'border-white/10 bg-black'} rounded-sm transition-all hover:border-white/30 group relative`}>
+                      <div key={item.id} className={`p-4 border ${item.is_equipped ? 'border-[#d4af37]/60 bg-[#d4af37]/5 shadow-[inset_0_0_10px_rgba(212,175,55,0.1)]' : 'border-white/10 bg-black'} rounded-sm transition-all hover:border-[#d4af37]/40 group relative`}>
                         <div className="flex justify-between items-start mb-2">
-                          <span className="text-sm font-serif text-white/90">{item.name}</span>
-                          <span className={`text-[8px] px-1 border uppercase ${item.rarity === 'common' ? 'border-white/20 text-white/40' : item.rarity === 'mythic' ? 'border-red-500 text-red-500' : 'border-purple-500 text-purple-500'}`}>{item.rarity}</span>
+                          <span className="text-sm font-serif text-[#d4af37]/90">{item.name}</span>
+                          <span className={`text-[8px] px-1 border uppercase font-mono ${item.rarity === 'common' ? 'border-[#d4af37]/20 text-[#d4af37]/40' : item.rarity === 'mythic' ? 'border-red-500 text-red-500' : 'border-purple-500 text-purple-500'}`}>{item.rarity}</span>
                         </div>
-                        <p className="text-[10px] text-white/40 mb-2 line-clamp-2">{item.description}</p>
+                        <p className="text-[10px] text-white/50 mb-2 line-clamp-3 font-serif">{item.description}</p>
                         {item.stats && Object.keys(item.stats).length > 0 && (
                           <div className="flex flex-wrap gap-1 mb-4">
                             {Object.entries(item.stats).map(([stat, val]) => (
-                              <span key={stat} className={`text-[8px] uppercase tracking-widest px-1.5 py-0.5 border rounded-sm ${val > 0 ? 'text-emerald-400 border-emerald-900/50 bg-emerald-950/30' : 'text-red-400 border-red-900/50 bg-red-950/30'}`}>
+                              <span key={stat} className={`text-[8px] uppercase font-mono tracking-widest px-1.5 py-0.5 border rounded-sm ${val > 0 ? 'text-emerald-400 border-emerald-900/50 bg-emerald-950/30' : 'text-red-400 border-red-900/50 bg-red-950/30'}`}>
                                 {stat}: {val > 0 ? '+' : ''}{val}
                               </span>
                             ))}
                           </div>
                         )}
-                        <div className="flex justify-between items-center mt-auto">
-                          <span className="text-[10px] text-white/30 uppercase tracking-widest">{item.type}</span>
+                        <div className="flex justify-between items-center mt-auto pt-2 border-t border-[#d4af37]/10">
+                          <span className="text-[10px] text-[#d4af37]/40 uppercase tracking-widest font-serif">{item.type}</span>
                           {item.type === 'consumable' ? (
                             <button 
                               onClick={() => dispatch({ type: 'USE_ITEM', payload: { itemId: item.id } })}
-                              className="text-[10px] border border-white/20 px-2 py-1 hover:bg-white/10 uppercase tracking-widest text-emerald-400"
+                              className="text-[10px] border border-emerald-500/30 px-2 py-1 hover:bg-emerald-500/10 uppercase tracking-widest text-emerald-400 transition-colors"
                             >
                               [Consume]
                             </button>
                           ) : (
                             <button 
                               onClick={() => dispatch({ type: item.is_equipped ? 'UNEQUIP_ITEM' : 'EQUIP_ITEM', payload: { itemId: item.id, slot: item.slot } })}
-                              className="text-[10px] border border-white/20 px-2 py-1 hover:bg-white/10 uppercase tracking-widest"
+                              className={`text-[10px] border px-2 py-1 uppercase tracking-widest transition-colors ${item.is_equipped ? 'border-[#d4af37]/50 text-[#d4af37] hover:bg-[#d4af37]/10' : 'border-white/20 text-white/60 hover:border-white/50 hover:text-white'}`}
                             >
                               {item.is_equipped ? '[Unequip]' : '[Equip]'}
                             </button>
                           )}
                         </div>
                         {item.integrity !== undefined && (
-                          <div className="absolute bottom-0 left-0 w-full h-[2px] bg-white/5">
-                            <div className="h-full bg-white/20" style={{ width: `${item.integrity}%` }} />
+                          <div className="absolute bottom-0 left-0 w-full h-[2px] bg-black">
+                            <div className="h-full bg-gradient-to-r from-red-500 to-[#d4af37]" style={{ width: `${item.integrity}%` }} />
                           </div>
                         )}
                       </div>
@@ -3323,14 +3094,14 @@ Example: { "health": 50, "allure": 20 }`;
                 </div>
                 
                 <div className="space-y-6">
-                  <h3 className="text-xs tracking-widest uppercase text-white/40 mb-4">Equipped Layers</h3>
+                  <h3 className="text-xs tracking-widest uppercase text-[#d4af37]/60 mb-4 font-serif">Equipped Layers</h3>
                   <div className="space-y-2">
                     {['head', 'neck', 'shoulders', 'chest', 'underwear', 'legs', 'feet', 'hands', 'waist'].map(slot => {
                       const equipped = state.player.inventory.find(i => i.slot === slot && i.is_equipped);
                       return (
-                        <div key={slot} className="flex justify-between items-center p-3 border border-white/5 bg-white/[0.02] rounded-sm">
-                          <span className="text-[10px] uppercase text-white/30 tracking-tighter">{slot}</span>
-                          <span className="text-xs text-white/70 font-serif">{equipped ? equipped.name : <span className="text-white/20 italic">Empty</span>}</span>
+                        <div key={slot} className="flex justify-between items-center p-3 border border-[#d4af37]/10 bg-black rounded-sm shadow-[inset_0_0_5px_rgba(212,175,55,0.05)] hover:border-[#d4af37]/30 transition-colors">
+                          <span className="text-[10px] uppercase text-[#d4af37]/40 tracking-tighter">{slot}</span>
+                          <span className="text-xs text-[#d4af37]/80 font-serif">{equipped ? equipped.name : <span className="text-white/20 italic">Empty</span>}</span>
                         </div>
                       );
                     })}

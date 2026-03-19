@@ -8,7 +8,8 @@ export default defineConfig(({mode}) => {
   return {
     plugins: [react(), tailwindcss()],
     define: {
-      'process.env.GEMINI_API_KEY': JSON.stringify(env.GEMINI_API_KEY),
+      // Gemini API removed - using Horde/Pollinations exclusively
+      'process.env.GEMINI_API_KEY': JSON.stringify(''),
     },
     resolve: {
       alias: {
@@ -20,5 +21,8 @@ export default defineConfig(({mode}) => {
       // Do not modifyâfile watching is disabled to prevent flickering during agent edits.
       hmr: process.env.DISABLE_HMR !== 'true',
     },
+    build: {
+      minify: false
+    }
   };
 });

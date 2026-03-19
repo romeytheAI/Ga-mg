@@ -1,12 +1,74 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Cinzel:wght@400;600;700;900&family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=IM+Fell+English:ital@0;1&display=swap');
 @import "tailwindcss";
 
 @theme {
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
   --font-serif: "Cormorant Garamond", ui-serif, Georgia, serif;
+  --font-display: "Cinzel", "Trajan Pro", ui-serif, Georgia, serif;
+  --font-lore: "IM Fell English", "Palatino Linotype", ui-serif, Georgia, serif;
+
+  /* === Elder Scrolls / Tamriel Color Tokens === */
+
+  /* Skyrim UI gold — warm, polished amber */
+  --color-amber-glow: #C8A84B;
+
+  /* Dwemer bronze — aged mechanical metal */
+  --color-dwemer-bronze: #8B6914;
+
+  /* Daedric red — the crimson of Oblivion gates */
+  --color-daedric-red: #8B1A1A;
+
+  /* Hist green — the living sap of the Argonians */
+  --color-hist-green: #2D5016;
+
+  /* Void purple — the darkness between planes */
+  --color-void-purple: #1A0A2E;
+
+  /* Ash gray — volcanic ash of Red Mountain */
+  --color-ash-gray: #3A3030;
+
+  /* Snow white — the frost of Skyrim's peaks */
+  --color-snow-white: #E8E0D0;
+
+  /* Morrowind rust — the ruddy dust of Vvardenfell */
+  --color-morrowind-rust: #6B2D1A;
+}
+
+/* ============================================================
+   GLOBAL SCROLLBAR — dark parchment with amber thumb
+   ============================================================ */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #1a1410;
+  border-left: 1px solid #2e2218;
+}
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #C8A84B 0%, #8B6914 60%, #5a430d 100%);
+  border-radius: 2px;
+  border: 1px solid #3a2a10;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, #e0bb55 0%, #C8A84B 60%, #8B6914 100%);
+}
+::-webkit-scrollbar-corner {
+  background: #1a1410;
+}
+
+/* Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #8B6914 #1a1410;
 }
 
 @layer utilities {
+
+  /* ──────────────────────────────────────────────
+     LEGACY UTILITIES (preserved exactly)
+     ────────────────────────────────────────────── */
+
   .scrollbar-hide::-webkit-scrollbar {
     display: none;
   }
@@ -14,41 +76,47 @@
     -ms-overflow-style: none;
     scrollbar-width: none;
   }
+
   .chromatic-aberration {
     text-shadow: 2px 0 1px rgba(255,0,0,0.5), -2px 0 1px rgba(0,255,255,0.5);
     animation: chromatic-pulse 0.2s infinite alternate;
   }
   @keyframes chromatic-pulse {
-    0% { text-shadow: 1px 0 1px rgba(255,0,0,0.5), -1px 0 1px rgba(0,255,255,0.5); transform: translate(0, 0); }
+    0%   { text-shadow: 1px 0 1px rgba(255,0,0,0.5), -1px 0 1px rgba(0,255,255,0.5); transform: translate(0, 0); }
     100% { text-shadow: 3px 0 2px rgba(255,0,0,0.8), -3px 0 2px rgba(0,255,255,0.8); transform: translate(1px, -1px); }
   }
+
   .heartbeat-vignette {
     box-shadow: inset 0 0 100px rgba(255, 0, 0, 0.3);
     animation: heartbeat-pulse 1s infinite;
   }
   @keyframes heartbeat-pulse {
     0%, 100% { box-shadow: inset 0 0 50px rgba(255, 0, 0, 0.1); }
-    50% { box-shadow: inset 0 0 150px rgba(255, 0, 0, 0.5); }
+    50%       { box-shadow: inset 0 0 150px rgba(255, 0, 0, 0.5); }
   }
+
   .apathy-desaturation {
     filter: grayscale(100%);
   }
+
   .weather-fog {
     opacity: 0.8;
     filter: blur(1px);
   }
+
   .pitch-black {
     background-color: #000000 !important;
   }
+
   .desperation-glow {
     box-shadow: 0 0 15px rgba(255, 0, 0, 0.6);
     animation: desperation-pulse 1s infinite alternate;
   }
   @keyframes desperation-pulse {
-    0% { box-shadow: 0 0 5px rgba(255, 0, 0, 0.4); }
+    0%   { box-shadow: 0 0 5px rgba(255, 0, 0, 0.4); }
     100% { box-shadow: 0 0 20px rgba(255, 0, 0, 0.8); }
   }
-  
+
   .crt-scanlines::before {
     content: " ";
     display: block;
@@ -57,43 +125,285 @@
     left: 0;
     bottom: 0;
     right: 0;
-    background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+    background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%),
+                linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
     z-index: 2;
     background-size: 100% 2px, 3px 100%;
     pointer-events: none;
   }
-  
+
   @keyframes rain {
-    0% { transform: translateY(0) scaleY(1); opacity: 0; }
-    10% { opacity: 1; }
-    90% { opacity: 1; }
+    0%   { transform: translateY(0) scaleY(1);  opacity: 0; }
+    10%  { opacity: 1; }
+    90%  { opacity: 1; }
     100% { transform: translateY(100vh) scaleY(3); opacity: 0; }
   }
   .animate-rain {
     animation: rain linear infinite;
   }
-  
+
   @keyframes glitch {
-    0% { transform: translate(0) }
-    20% { transform: translate(-2px, 2px) }
-    40% { transform: translate(-2px, -2px) }
-    60% { transform: translate(2px, 2px) }
-    80% { transform: translate(2px, -2px) }
-    100% { transform: translate(0) }
+    0%   { transform: translate(0); }
+    20%  { transform: translate(-2px, 2px); }
+    40%  { transform: translate(-2px, -2px); }
+    60%  { transform: translate(2px, 2px); }
+    80%  { transform: translate(2px, -2px); }
+    100% { transform: translate(0); }
   }
   .animate-glitch {
     animation: glitch 0.2s cubic-bezier(.25, .46, .45, .94) both infinite;
   }
-  
+
   @keyframes glitch-2 {
-    0% { transform: translate(0) }
-    20% { transform: translate(2px, -2px) }
-    40% { transform: translate(2px, 2px) }
-    60% { transform: translate(-2px, -2px) }
-    80% { transform: translate(-2px, 2px) }
-    100% { transform: translate(0) }
+    0%   { transform: translate(0); }
+    20%  { transform: translate(2px, -2px); }
+    40%  { transform: translate(2px, 2px); }
+    60%  { transform: translate(-2px, -2px); }
+    80%  { transform: translate(-2px, 2px); }
+    100% { transform: translate(0); }
   }
   .animate-glitch-2 {
     animation: glitch-2 0.2s cubic-bezier(.25, .46, .45, .94) both infinite;
   }
+
+  /* ──────────────────────────────────────────────
+     ELDER SCROLLS TYPOGRAPHY UTILITIES
+     ────────────────────────────────────────────── */
+
+  /* Cinzel — inscribed stone, Ayleid runes, title cards */
+  .font-display {
+    font-family: "Cinzel", "Trajan Pro", ui-serif, Georgia, serif;
+    letter-spacing: 0.06em;
+  }
+
+  /* IM Fell English — aged parchment, in-world books, lore */
+  .font-lore {
+    font-family: "IM Fell English", "Palatino Linotype", ui-serif, Georgia, serif;
+    font-style: italic;
+    letter-spacing: 0.01em;
+  }
+
+  /* ──────────────────────────────────────────────
+     DAEDRIC GLOW
+     Crimson aura of an Oblivion artifact or gate.
+     ────────────────────────────────────────────── */
+  .daedric-glow {
+    box-shadow:
+      0 0 6px  2px rgba(139, 26, 26, 0.55),
+      0 0 18px 4px rgba(139, 26, 26, 0.35),
+      0 0 40px 8px rgba(80, 8, 8, 0.25);
+  }
+
+  /* ──────────────────────────────────────────────
+     DWEMER BORDER
+     Hammered brass channels of a Dwemer automaton.
+     ────────────────────────────────────────────── */
+  .dwemer-border {
+    border: 1px solid #8B6914;
+    box-shadow:
+      inset 0 0 0 1px rgba(200, 168, 75, 0.15),
+      0 0 6px rgba(139, 105, 20, 0.4),
+      0 0 1px  rgba(200, 168, 75, 0.6);
+    border-image: linear-gradient(
+      135deg,
+      #C8A84B 0%,
+      #8B6914 30%,
+      #5a430d 50%,
+      #8B6914 70%,
+      #C8A84B 100%
+    ) 1;
+  }
+
+  /* ──────────────────────────────────────────────
+     HIST PULSE
+     The living heartbeat of the Argonian Hist tree.
+     ────────────────────────────────────────────── */
+  .hist-pulse {
+    animation: hist-breathe 2.4s ease-in-out infinite;
+  }
+  @keyframes hist-breathe {
+    0%, 100% {
+      box-shadow:
+        0 0 4px  2px rgba(45, 80, 22, 0.4),
+        0 0 12px 4px rgba(45, 80, 22, 0.2);
+    }
+    50% {
+      box-shadow:
+        0 0 10px 4px rgba(72, 140, 30, 0.65),
+        0 0 28px 8px rgba(45, 80, 22, 0.35),
+        0 0 50px 12px rgba(20, 50, 8, 0.2);
+    }
+  }
+
+  /* ──────────────────────────────────────────────
+     ASH BLIGHT
+     The corruption of Dagoth Ur's blight disease.
+     Sepia wash with a feverish red shift.
+     ────────────────────────────────────────────── */
+  .ash-blight {
+    filter:
+      sepia(60%)
+      hue-rotate(-10deg)
+      saturate(140%)
+      brightness(0.85)
+      contrast(1.1);
+  }
+
+  /* ──────────────────────────────────────────────
+     SKOOMA HAZE
+     The disorienting blur of Moon Sugar intoxication.
+     ────────────────────────────────────────────── */
+  .skooma-haze {
+    filter:
+      blur(0.8px)
+      saturate(180%)
+      hue-rotate(15deg)
+      brightness(1.1);
+    animation: skooma-drift 3s ease-in-out infinite;
+  }
+  @keyframes skooma-drift {
+    0%, 100% { filter: blur(0.5px) saturate(160%) hue-rotate(10deg)  brightness(1.05); }
+    33%       { filter: blur(1.2px) saturate(220%) hue-rotate(25deg)  brightness(1.15); }
+    66%       { filter: blur(0.8px) saturate(190%) hue-rotate(-5deg)  brightness(1.10); }
+  }
+
+  /* ──────────────────────────────────────────────
+     NORDIC CARVED
+     Geometric rune-work of Nordic burial mounds —
+     layered box-shadows simulate chiseled depth.
+     ────────────────────────────────────────────── */
+  .nordic-carved {
+    border: 2px solid rgba(200, 168, 75, 0.5);
+    box-shadow:
+      /* outer bevel — highlight top-left */
+      inset  2px  2px 0 0 rgba(232, 224, 208, 0.12),
+      /* outer bevel — shadow bottom-right */
+      inset -2px -2px 0 0 rgba(0, 0, 0, 0.45),
+      /* inner rule line */
+      inset  4px  4px 0 0 rgba(200, 168, 75, 0.06),
+      inset -4px -4px 0 0 rgba(0, 0, 0, 0.25),
+      /* outer ambient */
+      0 0 8px rgba(139, 105, 20, 0.3),
+      0 2px 4px rgba(0, 0, 0, 0.6);
+    border-radius: 1px; /* Norse craftwork — nearly square */
+  }
+
+  /* ──────────────────────────────────────────────
+     TELVANNI SHIMMER
+     The iridescent, mushroom-tower glow of
+     House Telvanni's strange magic.
+     ────────────────────────────────────────────── */
+  .telvanni-shimmer {
+    position: relative;
+    overflow: hidden;
+  }
+  .telvanni-shimmer::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      120deg,
+      transparent          0%,
+      rgba(155, 80, 200, 0.08)  25%,
+      rgba(80, 200, 180, 0.10)  50%,
+      rgba(200, 168, 75, 0.07)  75%,
+      transparent          100%
+    );
+    background-size: 250% 100%;
+    animation: telvanni-iridescence 5s ease-in-out infinite;
+    pointer-events: none;
+    border-radius: inherit;
+  }
+  @keyframes telvanni-iridescence {
+    0%   { background-position: -100% 0; opacity: 0.6; }
+    50%  { background-position:  200% 0; opacity: 1;   }
+    100% { background-position: -100% 0; opacity: 0.6; }
+  }
+
+  /* ──────────────────────────────────────────────
+     ANCESTOR GHOST
+     The translucent appearance of a Dunmer ancestor
+     summoned from the spirit world.
+     ────────────────────────────────────────────── */
+  .ancestor-ghost {
+    opacity: 0.55;
+    filter:
+      brightness(1.35)
+      saturate(40%)
+      hue-rotate(195deg)
+      drop-shadow(0 0 8px rgba(160, 200, 255, 0.5));
+    mix-blend-mode: screen;
+    animation: ghost-flicker 4s ease-in-out infinite;
+  }
+  @keyframes ghost-flicker {
+    0%, 100% { opacity: 0.55; filter: brightness(1.35) saturate(40%) hue-rotate(195deg) drop-shadow(0 0 8px  rgba(160, 200, 255, 0.5)); }
+    25%       { opacity: 0.70; filter: brightness(1.50) saturate(50%) hue-rotate(205deg) drop-shadow(0 0 14px rgba(160, 200, 255, 0.7)); }
+    50%       { opacity: 0.48; filter: brightness(1.25) saturate(35%) hue-rotate(190deg) drop-shadow(0 0 6px  rgba(160, 200, 255, 0.4)); }
+    75%       { opacity: 0.62; filter: brightness(1.40) saturate(45%) hue-rotate(200deg) drop-shadow(0 0 10px rgba(160, 200, 255, 0.6)); }
+  }
+
+  /* ──────────────────────────────────────────────
+     FLOAT EMBER
+     Burning cinders drifting upward from
+     the fires of Red Mountain / Morrowind.
+     ────────────────────────────────────────────── */
+  @keyframes float-ember {
+    0% {
+      transform: translateY(0) translateX(0) scale(1);
+      opacity: 0;
+    }
+    10% {
+      opacity: 0.9;
+    }
+    40% {
+      transform: translateY(-35%) translateX(8px) scale(0.85);
+      opacity: 0.7;
+    }
+    70% {
+      transform: translateY(-70%) translateX(-6px) scale(0.6);
+      opacity: 0.45;
+    }
+    90% {
+      opacity: 0.15;
+    }
+    100% {
+      transform: translateY(-110%) translateX(4px) scale(0.2);
+      opacity: 0;
+    }
+  }
+  .animate-float-ember {
+    animation: float-ember 3.6s ease-out infinite;
+  }
+
+  /* ──────────────────────────────────────────────
+     RUNE PULSE
+     The rhythmic glow of activated Dwemer or
+     Ayleid runes, cycling through warm gold.
+     ────────────────────────────────────────────── */
+  @keyframes rune-pulse {
+    0%, 100% {
+      box-shadow:
+        0 0 2px  1px rgba(200, 168, 75, 0.3),
+        0 0 6px  2px rgba(139, 105, 20, 0.2);
+      opacity: 0.7;
+    }
+    30% {
+      box-shadow:
+        0 0 6px  3px rgba(200, 168, 75, 0.65),
+        0 0 16px 6px rgba(200, 168, 75, 0.35),
+        0 0 30px 8px rgba(139, 105, 20, 0.2);
+      opacity: 1;
+    }
+    60% {
+      box-shadow:
+        0 0 4px  2px rgba(232, 195, 100, 0.55),
+        0 0 10px 4px rgba(200, 168, 75, 0.3),
+        0 0 20px 6px rgba(139, 105, 20, 0.15);
+      opacity: 0.85;
+    }
+  }
+  .animate-rune-pulse {
+    animation: rune-pulse 2.8s ease-in-out infinite;
+  }
+
 }
