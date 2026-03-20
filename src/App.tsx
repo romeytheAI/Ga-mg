@@ -120,6 +120,35 @@ export interface ActiveEncounter {
   image_url?: string;
 }
 
+export interface FameReputation {
+  sex: number;          // -100 to 100: negative = prude, positive = slut
+  prostitution: number; // 0 to 100
+  rape: number;         // 0 to 100
+  exhibitionism: number; // 0 to 100
+  kindness: number;     // -100 to 100: negative = cruel, positive = kind
+  business: number;     // 0 to 100
+  social: number;       // -100 to 100: negative = pariah, positive = respected
+  combat: number;       // 0 to 100
+}
+
+export interface SocialStatus {
+  wanted_sibling: boolean;
+  betrothed: boolean;
+  exiled: boolean;
+  guild_member: boolean;
+  town_pariah: boolean;
+  reputation: {
+    [locationId: string]: FameReputation;
+  };
+  global_fame: FameReputation;
+  virginity: {
+    vaginal: boolean;
+    anal: boolean;
+    oral: boolean;
+    penile: boolean;
+  };
+}
+
 export interface GameState {
   player: {
     identity: { name: string, race: string, birthsign: string, origin: string, gender: string },
@@ -129,10 +158,12 @@ export interface GameState {
     afflictions: string[],
     clothing: ClothingLayer,
     inventory: Item[],
+    money: number,
+    beauty: number,
     anatomy: any,
     psychology: any,
     perks_flaws: any,
-    social: any,
+    social: SocialStatus,
     cosmetics: any,
     arcane: any,
     justice: any,
@@ -535,6 +566,74 @@ function generateProceduralItem(level: number, type?: Item['type']): Item {
   };
 }
 
+// --- DoL Parity Helper Functions ---
+
+const createEmptyFame = (): FameReputation => ({
+  sex: 0, prostitution: 0, rape: 0, exhibitionism: 0,
+  kindness: 0, business: 0, social: 0, combat: 0
+});
+
+const calculateBeauty = (state: GameState): number => {
+  let beauty = state.player.stats.allure;
+
+  // Hygiene impact: -20 to +20
+  const hygieneBonus = Math.floor((state.player.stats.hygiene - 50) / 2.5);
+  beauty += hygieneBonus;
+
+  // Clothing impact
+  const clothedSlots = Object.values(state.player.clothing).filter(item => item !== null);
+  const avgIntegrity = clothedSlots.length > 0
+    ? clothedSlots.reduce((sum, item) => sum + (item?.integrity || 0), 0) / clothedSlots.length
+    : 0;
+  const clothingBonus = Math.floor((avgIntegrity - 50) / 5);
+  beauty += clothingBonus;
+
+  // Purity bonus/penalty
+  const purityBonus = Math.floor((state.player.stats.purity - 50) / 10);
+  beauty += purityBonus;
+
+  // Corruption penalty
+  const corruptionPenalty = -Math.floor(state.player.stats.corruption / 5);
+  beauty += corruptionPenalty;
+
+  // Trauma penalty
+  const traumaPenalty = -Math.floor(state.player.stats.trauma / 10);
+  beauty += traumaPenalty;
+
+  return Math.max(0, Math.min(100, beauty));
+};
+
+const isExposed = (state: GameState): boolean => {
+  const chest = state.player.clothing.chest;
+  const underwear = state.player.clothing.underwear;
+  const legs = state.player.clothing.legs;
+
+  // Exposed if chest is missing or destroyed
+  if (!chest || (chest.integrity !== undefined && chest.integrity <= 0)) {
+    return true;
+  }
+
+  // Exposed if underwear AND legs are both missing/destroyed
+  const underwearGone = !underwear || (underwear.integrity !== undefined && underwear.integrity <= 0);
+  const legsGone = !legs || (legs.integrity !== undefined && legs.integrity <= 0);
+
+  if (underwearGone && legsGone) {
+    return true;
+  }
+
+  return false;
+};
+
+const updateFame = (
+  current: FameReputation,
+  category: keyof FameReputation,
+  amount: number
+): FameReputation => {
+  const updated = { ...current };
+  updated[category] = Math.max(-100, Math.min(100, updated[category] + amount));
+  return updated;
+};
+
 // --- Initial State ---
 const initialState: GameState = {
   player: {
@@ -567,10 +666,26 @@ const initialState: GameState = {
         is_equipped: true
       }
     ],
+    money: 0,
+    beauty: 5,
     anatomy: { height: "small", build: "waifish", metabolism: "fast", healer: "normal", sleep: "light", gut: "sensitive", bones: "fragile", flexibility: "normal", blood: "normal", vision: "normal", skin: "pale", pheromones: "neutral", visage: "innocent", temp_pref: "warmth", injuries: [] },
     psychology: { outlook: "hopeful", innate: "submissive", paranoia: 0.1, empathy: 0.9, psychopathy: 0.0, phobias: ["darkness"], touch_starved: true, sexuality: "unknown", stoic: false, fragile_ego: true },
     perks_flaws: { hidden_pockets: false, silver_tongue: false, nimble_fingers: true, danger_sense: false, animal_whisperer: true, green_thumb: false, eidetic_memory: false, debt_ridden: false, hunted: false, cursed: false, addictive_personality: false, mute: false, blind_one_eye: false, frail: true, unlucky: false },
-    social: { wanted_sibling: false, betrothed: false, exiled: false, guild_member: false, town_pariah: false },
+    social: {
+      wanted_sibling: false,
+      betrothed: false,
+      exiled: false,
+      guild_member: false,
+      town_pariah: false,
+      reputation: {},
+      global_fame: createEmptyFame(),
+      virginity: {
+        vaginal: true,
+        anal: true,
+        oral: true,
+        penile: true
+      }
+    },
     cosmetics: { hair_length: "shaggy", eye_color: "blue", skin_tone: "fair", tattoos: [], piercings: [], posture: "cautious", scars: [], voice_pitch: "high", scent: "dust and lye", literacy: false, dominant_hand: "right", resting_hr: 75, blushing: true, body_mods: [], true_name: "Vael" },
     arcane: { spells: [], magicka_overcharge: false, blood_vials: 0, true_sight: false, telepathy_unlocked: false, toxicity: 0, withdrawal_timer: 0, soul_gems: 0, tattoos: [], corruption_taint: 0, astral_projection: false },
     justice: { suspicion: 0, bounty: 0, evidence_left: 0, jail_sentence: 0, contraband_slots: 0, fence_reputation: 0, black_book_debt: 0, banishment: false, extortion_targets: [] },
@@ -895,11 +1010,31 @@ function gameReducer(state: GameState, action: any): GameState {
       if (state.player.biology.parasites.length >= 5) ascension_state = 'broodmother';
       if (newTrauma >= 100 && maxHealth <= 1) ascension_state = 'asylum';
 
+      // Create temporary state to calculate beauty
+      const tempState = {
+        ...state,
+        player: {
+          ...state.player,
+          inventory: newInventory,
+          stats: {
+            ...state.player.stats,
+            health: newHealth, max_health: maxHealth,
+            trauma: newTrauma, stamina: newStamina, max_stamina: maxStamina,
+            willpower: newWillpower, max_willpower: maxWillpower,
+            lust: newLust, corruption: newCorruption,
+            arousal: newArousal, pain: newPain, control: newControl,
+            stress: newStress, hallucination: newHallucination, purity: newPurity
+          }
+        }
+      };
+      const newBeauty = calculateBeauty(tempState as GameState);
+
       return {
         ...state,
         player: {
           ...state.player,
           age_days: newAgeDays,
+          beauty: newBeauty,
           stats: { 
             ...state.player.stats, 
             health: newHealth, max_health: maxHealth, 
@@ -1334,6 +1469,163 @@ function gameReducer(state: GameState, action: any): GameState {
           }
         }
       };
+    case 'UPDATE_MONEY': {
+      const newMoney = Math.max(0, state.player.money + action.payload);
+      return {
+        ...state,
+        player: { ...state.player, money: newMoney }
+      };
+    }
+    case 'UPDATE_FAME': {
+      const { location, category, amount } = action.payload;
+      const currentLocationFame = state.player.social.reputation[location] || createEmptyFame();
+      const updatedLocationFame = updateFame(currentLocationFame, category, amount);
+      const updatedGlobalFame = updateFame(state.player.social.global_fame, category, amount / 2);
+
+      return {
+        ...state,
+        player: {
+          ...state.player,
+          social: {
+            ...state.player.social,
+            reputation: {
+              ...state.player.social.reputation,
+              [location]: updatedLocationFame
+            },
+            global_fame: updatedGlobalFame
+          }
+        }
+      };
+    }
+    case 'UPDATE_VIRGINITY': {
+      const { type } = action.payload;
+      return {
+        ...state,
+        player: {
+          ...state.player,
+          social: {
+            ...state.player.social,
+            virginity: {
+              ...state.player.social.virginity,
+              [type]: false
+            }
+          }
+        }
+      };
+    }
+    case 'RECALCULATE_BEAUTY': {
+      const newBeauty = calculateBeauty(state);
+      return {
+        ...state,
+        player: { ...state.player, beauty: newBeauty }
+      };
+    }
+    case 'DAMAGE_CLOTHING': {
+      const { slot, amount } = action.payload;
+      const item = state.player.inventory.find(i => i.slot === slot && i.is_equipped);
+      if (!item || item.integrity === undefined) return state;
+
+      const newIntegrity = Math.max(0, item.integrity - amount);
+      const newInventory = state.player.inventory.map(i =>
+        i.id === item.id ? { ...i, integrity: newIntegrity } : i
+      );
+
+      // If clothing is destroyed and player is exposed, increase exhibitionism
+      let newState = {
+        ...state,
+        player: { ...state.player, inventory: newInventory }
+      };
+
+      if (newIntegrity === 0 && isExposed(newState)) {
+        newState = {
+          ...newState,
+          player: {
+            ...newState.player,
+            psych_profile: {
+              ...newState.player.psych_profile,
+              exhibitionism: Math.min(100, newState.player.psych_profile.exhibitionism + 5)
+            },
+            stats: {
+              ...newState.player.stats,
+              stress: Math.min(100, newState.player.stats.stress + 10)
+            }
+          }
+        };
+      }
+
+      return newState;
+    }
+    case 'STRIP_CLOTHING': {
+      const { slot } = action.payload;
+      const item = state.player.inventory.find(i => i.slot === slot && i.is_equipped);
+      if (!item) return state;
+
+      const newInventory = state.player.inventory.map(i =>
+        i.id === item.id ? { ...i, is_equipped: false, integrity: 0 } : i
+      );
+
+      let newState = {
+        ...state,
+        player: { ...state.player, inventory: newInventory }
+      };
+
+      // Increase exhibitionism and stress when forcibly stripped
+      if (isExposed(newState)) {
+        newState = {
+          ...newState,
+          player: {
+            ...newState.player,
+            psych_profile: {
+              ...newState.player.psych_profile,
+              exhibitionism: Math.min(100, newState.player.psych_profile.exhibitionism + 10),
+              submission_index: Math.min(100, newState.player.psych_profile.submission_index + 5)
+            },
+            stats: {
+              ...newState.player.stats,
+              stress: Math.min(100, newState.player.stats.stress + 20),
+              trauma: Math.min(100, newState.player.stats.trauma + 5)
+            }
+          }
+        };
+      }
+
+      return newState;
+    }
+    case 'UPDATE_SUBMISSION': {
+      const { amount, context } = action.payload;
+      const newSubmission = Math.max(0, Math.min(100, state.player.psych_profile.submission_index + amount));
+
+      // Submission affects other stats
+      let statChanges: any = {};
+      if (context === 'defiant' && amount < 0) {
+        // Defiance increases stress but maintains control
+        statChanges = {
+          stress: Math.min(100, state.player.stats.stress + 5),
+          control: Math.min(100, state.player.stats.control + 2)
+        };
+      } else if (context === 'submissive' && amount > 0) {
+        // Submission reduces stress but lowers control
+        statChanges = {
+          stress: Math.max(0, state.player.stats.stress - 3),
+          control: Math.max(0, state.player.stats.control - 2)
+        };
+      }
+
+      return {
+        ...state,
+        player: {
+          ...state.player,
+          psych_profile: {
+            ...state.player.psych_profile,
+            submission_index: newSubmission
+          },
+          stats: {
+            ...state.player.stats,
+            ...statChanges
+          }
+        }
+      };
+    }
     default:
       return state;
   }
@@ -2649,6 +2941,18 @@ Example: { "health": 50, "allure": 20 }`;
               <User className="w-3 h-3 text-white/40" />
               <span className="text-white/60">
                 {Math.floor(state.player.age_days / 365)} Cycles
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Sparkles className="w-3 h-3 text-white/40" />
+              <span className="text-white/60">
+                Beauty: {state.player.beauty}
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              <ShoppingBag className="w-3 h-3 text-white/40" />
+              <span className={state.player.money > 100 ? 'text-yellow-400' : 'text-white/60'}>
+                {state.player.money} Gold
               </span>
             </div>
           </div>
