@@ -7,7 +7,7 @@ import {
 } from 'lucide-react';
 import { GoogleGenAI, Type } from "@google/genai";
 import { SaveLoadModal } from './components/SaveLoadModal';
-import { CharacterCreation, CharacterConfig } from './components/CharacterCreation';
+import { CharacterCreation } from './components/CharacterCreation';
 
 interface ErrorBoundaryProps {
   children: React.ReactNode;
@@ -1132,74 +1132,102 @@ function gameReducer(state: GameState, action: any): GameState {
     case 'START_NEW_GAME': {
       const cfg = action.payload;
       // Apply race stat bonuses
-      const raceBonuses: Record<string, Partial<Record<StatKey, number>>> = {
-        'Human':    { willpower: 5, stamina: 5 },
-        'Elf':      { allure: 15, health: -10, willpower: 10 },
-        'Half-Elf': { allure: 8, willpower: 5, stamina: 3 },
-        'Beastkin': { stamina: 20, health: 10, allure: -5 },
-        'Shade':    { allure: 20, corruption: -10, health: -15 },
+      const RACE_BONUSES: Record<string, Partial<Record<StatKey, number>>> = {
+        Human:    { willpower: 5, stamina: 5 },
+        Elf:      { allure: 15, willpower: 15, health: -10 },
+        Nord:     { health: 20, stamina: 20, willpower: -10 },
+        Khajiit:  { control: 10, allure: 5 },
+        Argonian: { health: 10, stamina: 10 },
+        Dunmer:   { willpower: 10, allure: 10, purity: -15 },
+        Breton:   { willpower: 20, health: -5 },
+        Redguard: { stamina: 15, health: 10, willpower: -5 },
       };
-      const birthsignBonuses: Record<string, { stats: Partial<Record<StatKey, number>>, skills: Record<string, number> }> = {
-        'The Thief':   { stats: { purity: -5 }, skills: { skulduggery: 15, athletics: 10 } },
-        'The Lover':   { stats: { allure: 10, willpower: -10 }, skills: { seduction: 20 } },
-        'The Warrior': { stats: { health: 10, allure: -5 }, skills: { athletics: 15 } },
-        'The Scholar': { stats: { willpower: 20, stamina: -10 }, skills: { school_grades: 10 } },
-        'The Serpent': { stats: { corruption: -5 }, skills: { skulduggery: 5 } },
-        'The Void':    { stats: { trauma: 20, hallucination: -20 }, skills: {} },
+      // Apply birthsign skill bonuses
+      const BIRTHSIGN_SKILLS: Record<string, Partial<Record<string, number>>> = {
+        'The Thief':   { skulduggery: 10, seduction: 5 },
+        'The Warrior': { athletics: 10 },
+        'The Mage':    {},
+        'The Shadow':  { skulduggery: 15 },
+        'The Lady':    { seduction: 10 },
+        'The Lover':   { seduction: 15, dancing: 5 },
+        'The Tower':   {},
+        'The Serpent': { skulduggery: 5 },
       };
-      const originBonuses: Record<string, { stats: Partial<Record<StatKey, number>>, skills: Record<string, number>, location: string }> = {
-        'Orphan':          { stats: { trauma: 15, stress: 10 }, skills: { housekeeping: 15 }, location: 'orphanage' },
-        'Street Urchin':   { stats: { purity: -10, stamina: 10 }, skills: { skulduggery: 20 }, location: 'alleyways' },
-        'Disgraced Noble': { stats: { allure: 15, stress: 20 }, skills: { seduction: 10, school_grades: 20 }, location: 'town_square' },
-        'Escaped Slave':   { stats: { trauma: 25, willpower: 10 }, skills: { athletics: 20 }, location: 'forest' },
-        'Temple Initiate': { stats: { purity: 20, stress: -10 }, skills: { school_grades: 10 }, location: 'temple_gardens' },
+      // Apply origin overrides
+      const ORIGIN_OVERRIDES: Record<string, Partial<GameState['player']>> = {
+        'Orphan':           { age_days: 6570 },
+        'Escaped Slave':    { age_days: 7300 },
+        "Noble's Bastard":  { age_days: 7300 },
+        'Wanderer':         { age_days: 8030 },
+        'Former Acolyte':   { age_days: 8760 },
+        'Disgraced Guard':  { age_days: 9125 },
       };
-
-      const rb = raceBonuses[cfg.race] || {};
-      const bb = birthsignBonuses[cfg.birthsign] || { stats: {}, skills: {} };
-      const ob = originBonuses[cfg.origin] || { stats: {}, skills: {}, location: 'orphanage' };
-
-      const clamp = (v: number, min: number, max: number) => Math.max(min, Math.min(max, v));
-
-      const startStats = {
-        ...initialState.player.stats,
-        health: clamp(80 + (rb.health || 0) + (bb.stats.health || 0), 1, 200),
-        max_health: clamp(100 + (rb.health || 0), 10, 200),
-        stamina: clamp(70 + (rb.stamina || 0) + (bb.stats.stamina || 0), 1, 200),
-        max_stamina: clamp(100 + (rb.stamina || 0), 10, 200),
-        willpower: clamp(90 + (rb.willpower || 0) + (bb.stats.willpower || 0), 1, 200),
-        max_willpower: clamp(100 + (rb.willpower || 0), 10, 200),
-        allure: clamp(5 + (rb.allure || 0) + (bb.stats.allure || 0), 0, 100),
-        purity: clamp(100 + (bb.stats.purity || 0) + (ob.stats.purity || 0), 0, 100),
-        trauma: clamp(10 + (bb.stats.trauma || 0) + (ob.stats.trauma || 0), 0, 100),
-        stress: clamp(20 + (ob.stats.stress || 0), 0, 100),
-        corruption: clamp(0 + (bb.stats.corruption || 0), 0, 100),
-        hallucination: clamp(0 + (bb.stats.hallucination || 0), 0, 100),
+      const ORIGIN_STATS: Record<string, Partial<Record<StatKey, number>>> = {
+        'Orphan':           {},
+        'Escaped Slave':    { trauma: 40, health: 60 },
+        "Noble's Bastard":  { allure: 10 },
+        'Wanderer':         {},
+        'Former Acolyte':   { willpower: 10, purity: 20 },
+        'Disgraced Guard':  { health: 20, stamina: 20 },
       };
-
-      const startSkills = {
-        seduction:    clamp(0  + (bb.skills.seduction    || 0) + (ob.skills.seduction    || 0), 0, 100),
-        athletics:    clamp(5  + (bb.skills.athletics    || 0) + (ob.skills.athletics    || 0), 0, 100),
-        skulduggery:  clamp(10 + (bb.skills.skulduggery  || 0) + (ob.skills.skulduggery  || 0), 0, 100),
-        swimming:     0,
-        dancing:      0,
-        housekeeping: clamp(15 + (ob.skills.housekeeping || 0), 0, 100),
-        school_grades:clamp(50 + (bb.skills.school_grades|| 0) + (ob.skills.school_grades|| 0), 0, 100),
+      const ORIGIN_LOCATIONS: Record<string, string> = {
+        'Orphan':           'orphanage',
+        'Escaped Slave':    'forest',
+        "Noble's Bastard":  'town_square',
+        'Wanderer':         'town_square',
+        'Former Acolyte':   'temple_gardens',
+        'Disgraced Guard':  'town_square',
       };
-
-      // Perks based on origin
-      const originPerks = {
-        'Escaped Slave':   { ...initialState.player.perks_flaws, hunted: true, frail: false },
-        'Street Urchin':   { ...initialState.player.perks_flaws, nimble_fingers: true },
-        'Disgraced Noble': { ...initialState.player.perks_flaws, silver_tongue: true, debt_ridden: true },
-        'Temple Initiate': { ...initialState.player.perks_flaws, frail: false },
-        'Orphan':          { ...initialState.player.perks_flaws },
+      const ORIGIN_INVENTORY: Record<string, any[]> = {
+        'Disgraced Guard': [{
+          id: 'iron-sword', name: 'Iron Sword', type: 'weapon', rarity: 'common',
+          description: 'A worn iron sword from your guard days. The edge is nicked but still functional.',
+          value: 20, weight: 3, integrity: 70, max_integrity: 100, is_equipped: true
+        }],
       };
 
-      const startLocation = LOCATIONS[ob.location] || LOCATIONS.orphanage;
+      const raceBonuses = RACE_BONUSES[cfg.race] || {};
+      const birthsignSkills = BIRTHSIGN_SKILLS[cfg.birthsign] || {};
+      const originStats = ORIGIN_STATS[cfg.origin] || {};
+      const originOverride = ORIGIN_OVERRIDES[cfg.origin] || {};
+      const startLocationId = ORIGIN_LOCATIONS[cfg.origin] || 'orphanage';
+      const bonusInventory = ORIGIN_INVENTORY[cfg.origin] || [];
 
-      // Void birthsign: starts with a trauma scar
-      const startAfflictions = cfg.birthsign === 'The Void' ? ['Void-Touched'] : [];
+      const baseStats = { ...initialState.player.stats };
+      const allStatDeltas = { ...raceBonuses, ...originStats };
+      for (const [k, v] of Object.entries(allStatDeltas)) {
+        if (k in baseStats) {
+          (baseStats as any)[k] = Math.max(1, Math.min(
+            (baseStats as any)['max_' + k] || 100,
+            (baseStats as any)[k] + (v as number)
+          ));
+        }
+      }
+      if (cfg.birthsign === 'The Warrior') { baseStats.stamina = Math.min(baseStats.max_stamina, baseStats.stamina + 15); }
+      if (cfg.birthsign === 'The Tower')   { baseStats.control = Math.min(100, baseStats.control + 20); }
+
+      const baseSkills = { ...initialState.player.skills };
+      for (const [k, v] of Object.entries(birthsignSkills)) {
+        if (k in baseSkills) (baseSkills as any)[k] = Math.min(100, (baseSkills as any)[k] + (v as number));
+      }
+
+      const startLocation = LOCATIONS[startLocationId] || LOCATIONS.orphanage;
+
+      // Birthsign: The Mage unlocks first spell slot
+      const arcane = { ...initialState.player.arcane };
+      if (cfg.birthsign === 'The Mage') {
+        arcane.spells = [{ id: 'minor_spark', name: 'Minor Spark', cost: 10, damage: 15, description: 'A crackling bolt of raw magicka.' }];
+      }
+
+      // Origin-based quests
+      const ORIGIN_QUESTS: Record<string, { id: string, title: string, description: string, status: 'active' | 'completed' | 'failed' }> = {
+        'Orphan':          { id: 'q_escape', title: 'Survive the Orphanage', description: 'Escape Matron Grelod and find your own path.', status: 'active' },
+        'Escaped Slave':   { id: 'q_free',   title: 'Stay Free', description: 'The Inquisition is hunting you. Disappear.', status: 'active' },
+        "Noble's Bastard": { id: 'q_heir',   title: 'The Hidden Heir', description: 'Someone powerful knows who you are. Decide your move.', status: 'active' },
+        'Wanderer':        { id: 'q_wander', title: 'Find Your Place', description: 'This town is as good as any. Or is it?', status: 'active' },
+        'Former Acolyte':  { id: 'q_cult',   title: 'Severed Vows', description: 'The cult you left will not forget you.', status: 'active' },
+        'Disgraced Guard': { id: 'q_honor',  title: 'Reclaim Your Name', description: 'You were framed. Find out by whom.', status: 'active' },
+      };
 
       return {
         ...initialState,
@@ -1212,10 +1240,12 @@ function gameReducer(state: GameState, action: any): GameState {
             origin: cfg.origin || 'Orphan',
             gender: cfg.gender || 'female',
           },
-          stats: startStats,
-          skills: startSkills,
-          afflictions: startAfflictions,
-          perks_flaws: (originPerks as any)[cfg.origin] || initialState.player.perks_flaws,
+          stats: baseStats,
+          skills: baseSkills,
+          arcane,
+          inventory: [...initialState.player.inventory, ...bonusInventory],
+          quests: [ORIGIN_QUESTS[cfg.origin] || ORIGIN_QUESTS['Orphan']],
+          ...(originOverride as any),
         },
         world: {
           ...initialState.world,
@@ -1226,8 +1256,8 @@ function gameReducer(state: GameState, action: any): GameState {
           ...initialState.ui,
           settings: {
             ...initialState.ui.settings,
-            stat_drain_multiplier: cfg.sandbox ? 0 : (cfg.hardcore ? 2.0 : 1.0),
-            enable_extreme_content: cfg.directorCut || false,
+            stat_drain_multiplier: cfg.sandbox ? 0 : 1.0,
+            enable_extreme_content: true,
           }
         }
       };
@@ -1886,6 +1916,8 @@ export default function AppWrapper() {
 
 function App({ state, dispatch }: { state: GameState, dispatch: React.Dispatch<any> }) {
   const [hasStarted, setHasStarted] = useState(false);
+  const [showCharacterCreation, setShowCharacterCreation] = useState(false);
+  const [pendingConfig, setPendingConfig] = useState<any>(null);
   const [customAction, setCustomAction] = useState('');
   const [showSettings, setShowSettings] = useState(false);
   const [availableTextModels, setAvailableTextModels] = useState<{name: string, count: number}[]>([]);
@@ -1955,24 +1987,24 @@ function App({ state, dispatch }: { state: GameState, dispatch: React.Dispatch<a
   const isInitialMount = useRef(true);
   const encounterBuffer = useEncounterBuffer(state);
 
-  const [showCharCreation, setShowCharCreation] = useState(false);
-  const [pendingConfig, setPendingConfig] = useState<any>(null);
-
   const handleStartGame = (config: any) => {
-    // Store config and show character creation
-    setPendingConfig(config);
-    setShowCharCreation(true);
-  };
-
-  const handleCharCreationComplete = (charConfig: CharacterConfig) => {
-    setShowCharCreation(false);
-    dispatch({ type: 'START_NEW_GAME', payload: { ...pendingConfig, ...charConfig } });
-    setHasStarted(true);
-  };
-
-  const handleCharCreationBack = () => {
-    setShowCharCreation(false);
-    setPendingConfig(null);
+    // For scenario/daily modes, skip character creation and use preset identity
+    if (config.mode === 'scenario' && config.scenario) {
+      const SCENARIO_PRESETS: Record<string, any> = {
+        escaped_slave: { name: 'Unknown', race: 'Human', gender: 'female', birthsign: 'The Shadow', origin: 'Escaped Slave' },
+        nobles_fall:   { name: 'Aravyn', race: 'Breton', gender: 'nonbinary', birthsign: 'The Lady', origin: "Noble's Bastard" },
+      };
+      const preset = SCENARIO_PRESETS[config.scenario] || {};
+      dispatch({ type: 'START_NEW_GAME', payload: { ...config, ...preset } });
+      setHasStarted(true);
+    } else if (config.mode === 'daily') {
+      dispatch({ type: 'START_NEW_GAME', payload: { ...config, name: 'Challenger', race: 'Human', gender: 'female', birthsign: 'The Thief', origin: 'Wanderer' } });
+      setHasStarted(true);
+    } else {
+      // Standard new game — show character creation
+      setPendingConfig(config);
+      setShowCharacterCreation(true);
+    }
   };
 
   const handleLoadGame = (saveData: any) => {
@@ -2512,12 +2544,20 @@ Example: { "health": 50, "allure": 20 }`;
     }
   };
 
-  if (showCharCreation) {
+  if (showCharacterCreation && pendingConfig) {
     return (
       <CharacterCreation
-        onComplete={handleCharCreationComplete}
-        onBack={handleCharCreationBack}
-        initialConfig={pendingConfig || {}}
+        baseConfig={pendingConfig}
+        onComplete={(config) => {
+          dispatch({ type: 'START_NEW_GAME', payload: config });
+          setShowCharacterCreation(false);
+          setPendingConfig(null);
+          setHasStarted(true);
+        }}
+        onBack={() => {
+          setShowCharacterCreation(false);
+          setPendingConfig(null);
+        }}
       />
     );
   }
