@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import { GoogleGenAI, Type } from "@google/genai";
 import { SaveLoadModal } from './components/SaveLoadModal';
+import { CharacterCreation, CharacterConfig } from './components/CharacterCreation';
 
 interface ErrorBoundaryProps {
   children: React.ReactNode;
@@ -1128,14 +1129,109 @@ function gameReducer(state: GameState, action: any): GameState {
         console.error("Failed to inject JSON", e);
         return state;
       }
-    case 'START_NEW_GAME':
+    case 'START_NEW_GAME': {
+      const cfg = action.payload;
+      // Apply race stat bonuses
+      const raceBonuses: Record<string, Partial<Record<StatKey, number>>> = {
+        'Human':    { willpower: 5, stamina: 5 },
+        'Elf':      { allure: 15, health: -10, willpower: 10 },
+        'Half-Elf': { allure: 8, willpower: 5, stamina: 3 },
+        'Beastkin': { stamina: 20, health: 10, allure: -5 },
+        'Shade':    { allure: 20, corruption: -10, health: -15 },
+      };
+      const birthsignBonuses: Record<string, { stats: Partial<Record<StatKey, number>>, skills: Record<string, number> }> = {
+        'The Thief':   { stats: { purity: -5 }, skills: { skulduggery: 15, athletics: 10 } },
+        'The Lover':   { stats: { allure: 10, willpower: -10 }, skills: { seduction: 20 } },
+        'The Warrior': { stats: { health: 10, allure: -5 }, skills: { athletics: 15 } },
+        'The Scholar': { stats: { willpower: 20, stamina: -10 }, skills: { school_grades: 10 } },
+        'The Serpent': { stats: { corruption: -5 }, skills: { skulduggery: 5 } },
+        'The Void':    { stats: { trauma: 20, hallucination: -20 }, skills: {} },
+      };
+      const originBonuses: Record<string, { stats: Partial<Record<StatKey, number>>, skills: Record<string, number>, location: string }> = {
+        'Orphan':          { stats: { trauma: 15, stress: 10 }, skills: { housekeeping: 15 }, location: 'orphanage' },
+        'Street Urchin':   { stats: { purity: -10, stamina: 10 }, skills: { skulduggery: 20 }, location: 'alleyways' },
+        'Disgraced Noble': { stats: { allure: 15, stress: 20 }, skills: { seduction: 10, school_grades: 20 }, location: 'town_square' },
+        'Escaped Slave':   { stats: { trauma: 25, willpower: 10 }, skills: { athletics: 20 }, location: 'forest' },
+        'Temple Initiate': { stats: { purity: 20, stress: -10 }, skills: { school_grades: 10 }, location: 'temple_gardens' },
+      };
+
+      const rb = raceBonuses[cfg.race] || {};
+      const bb = birthsignBonuses[cfg.birthsign] || { stats: {}, skills: {} };
+      const ob = originBonuses[cfg.origin] || { stats: {}, skills: {}, location: 'orphanage' };
+
+      const clamp = (v: number, min: number, max: number) => Math.max(min, Math.min(max, v));
+
+      const startStats = {
+        ...initialState.player.stats,
+        health: clamp(80 + (rb.health || 0) + (bb.stats.health || 0), 1, 200),
+        max_health: clamp(100 + (rb.health || 0), 10, 200),
+        stamina: clamp(70 + (rb.stamina || 0) + (bb.stats.stamina || 0), 1, 200),
+        max_stamina: clamp(100 + (rb.stamina || 0), 10, 200),
+        willpower: clamp(90 + (rb.willpower || 0) + (bb.stats.willpower || 0), 1, 200),
+        max_willpower: clamp(100 + (rb.willpower || 0), 10, 200),
+        allure: clamp(5 + (rb.allure || 0) + (bb.stats.allure || 0), 0, 100),
+        purity: clamp(100 + (bb.stats.purity || 0) + (ob.stats.purity || 0), 0, 100),
+        trauma: clamp(10 + (bb.stats.trauma || 0) + (ob.stats.trauma || 0), 0, 100),
+        stress: clamp(20 + (ob.stats.stress || 0), 0, 100),
+        corruption: clamp(0 + (bb.stats.corruption || 0), 0, 100),
+        hallucination: clamp(0 + (bb.stats.hallucination || 0), 0, 100),
+      };
+
+      const startSkills = {
+        seduction:    clamp(0  + (bb.skills.seduction    || 0) + (ob.skills.seduction    || 0), 0, 100),
+        athletics:    clamp(5  + (bb.skills.athletics    || 0) + (ob.skills.athletics    || 0), 0, 100),
+        skulduggery:  clamp(10 + (bb.skills.skulduggery  || 0) + (ob.skills.skulduggery  || 0), 0, 100),
+        swimming:     0,
+        dancing:      0,
+        housekeeping: clamp(15 + (ob.skills.housekeeping || 0), 0, 100),
+        school_grades:clamp(50 + (bb.skills.school_grades|| 0) + (ob.skills.school_grades|| 0), 0, 100),
+      };
+
+      // Perks based on origin
+      const originPerks = {
+        'Escaped Slave':   { ...initialState.player.perks_flaws, hunted: true, frail: false },
+        'Street Urchin':   { ...initialState.player.perks_flaws, nimble_fingers: true },
+        'Disgraced Noble': { ...initialState.player.perks_flaws, silver_tongue: true, debt_ridden: true },
+        'Temple Initiate': { ...initialState.player.perks_flaws, frail: false },
+        'Orphan':          { ...initialState.player.perks_flaws },
+      };
+
+      const startLocation = LOCATIONS[ob.location] || LOCATIONS.orphanage;
+
+      // Void birthsign: starts with a trauma scar
+      const startAfflictions = cfg.birthsign === 'The Void' ? ['Void-Touched'] : [];
+
       return {
         ...initialState,
+        player: {
+          ...initialState.player,
+          identity: {
+            name: cfg.name || 'Vael',
+            race: cfg.race || 'Human',
+            birthsign: cfg.birthsign || 'The Thief',
+            origin: cfg.origin || 'Orphan',
+            gender: cfg.gender || 'female',
+          },
+          stats: startStats,
+          skills: startSkills,
+          afflictions: startAfflictions,
+          perks_flaws: (originPerks as any)[cfg.origin] || initialState.player.perks_flaws,
+        },
         world: {
           ...initialState.world,
-          director_cut: action.payload.directorCut || false
+          current_location: startLocation,
+          director_cut: cfg.directorCut || false,
+        },
+        ui: {
+          ...initialState.ui,
+          settings: {
+            ...initialState.ui.settings,
+            stat_drain_multiplier: cfg.sandbox ? 0 : (cfg.hardcore ? 2.0 : 1.0),
+            enable_extreme_content: cfg.directorCut || false,
+          }
         }
       };
+    }
     case 'LOAD_GAME':
       return action.payload;
     case 'TOGGLE_MAGICKA_OVERCHARGE':
@@ -1859,9 +1955,24 @@ function App({ state, dispatch }: { state: GameState, dispatch: React.Dispatch<a
   const isInitialMount = useRef(true);
   const encounterBuffer = useEncounterBuffer(state);
 
+  const [showCharCreation, setShowCharCreation] = useState(false);
+  const [pendingConfig, setPendingConfig] = useState<any>(null);
+
   const handleStartGame = (config: any) => {
-    dispatch({ type: 'START_NEW_GAME', payload: config });
+    // Store config and show character creation
+    setPendingConfig(config);
+    setShowCharCreation(true);
+  };
+
+  const handleCharCreationComplete = (charConfig: CharacterConfig) => {
+    setShowCharCreation(false);
+    dispatch({ type: 'START_NEW_GAME', payload: { ...pendingConfig, ...charConfig } });
     setHasStarted(true);
+  };
+
+  const handleCharCreationBack = () => {
+    setShowCharCreation(false);
+    setPendingConfig(null);
   };
 
   const handleLoadGame = (saveData: any) => {
@@ -2400,6 +2511,16 @@ Example: { "health": 50, "allure": 20 }`;
       dispatch({ type: 'TOGGLE_UI_SETTING', payload: { key: 'fullscreen', value: false } });
     }
   };
+
+  if (showCharCreation) {
+    return (
+      <CharacterCreation
+        onComplete={handleCharCreationComplete}
+        onBack={handleCharCreationBack}
+        initialConfig={pendingConfig || {}}
+      />
+    );
+  }
 
   if (!hasStarted) {
     return <ImmersiveStartMenu onStartGame={handleStartGame} onLoadGame={handleLoadGame} />;
