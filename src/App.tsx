@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import { GoogleGenAI, Type } from "@google/genai";
 import { SaveLoadModal } from './components/SaveLoadModal';
+import { CharacterCreation } from './components/CharacterCreation';
 
 interface ErrorBoundaryProps {
   children: React.ReactNode;
@@ -119,6 +120,35 @@ export interface ActiveEncounter {
   image_url?: string;
 }
 
+export interface FameReputation {
+  sex: number;          // -100 to 100: negative = prude, positive = slut
+  prostitution: number; // 0 to 100
+  rape: number;         // 0 to 100
+  exhibitionism: number; // 0 to 100
+  kindness: number;     // -100 to 100: negative = cruel, positive = kind
+  business: number;     // 0 to 100
+  social: number;       // -100 to 100: negative = pariah, positive = respected
+  combat: number;       // 0 to 100
+}
+
+export interface SocialStatus {
+  wanted_sibling: boolean;
+  betrothed: boolean;
+  exiled: boolean;
+  guild_member: boolean;
+  town_pariah: boolean;
+  reputation: {
+    [locationId: string]: FameReputation;
+  };
+  global_fame: FameReputation;
+  virginity: {
+    vaginal: boolean;
+    anal: boolean;
+    oral: boolean;
+    penile: boolean;
+  };
+}
+
 export interface GameState {
   player: {
     identity: { name: string, race: string, birthsign: string, origin: string, gender: string },
@@ -128,10 +158,12 @@ export interface GameState {
     afflictions: string[],
     clothing: ClothingLayer,
     inventory: Item[],
+    money: number,
+    beauty: number,
     anatomy: any,
     psychology: any,
     perks_flaws: any,
-    social: any,
+    social: SocialStatus,
     cosmetics: any,
     arcane: any,
     justice: any,
@@ -534,6 +566,74 @@ function generateProceduralItem(level: number, type?: Item['type']): Item {
   };
 }
 
+// --- DoL Parity Helper Functions ---
+
+const createEmptyFame = (): FameReputation => ({
+  sex: 0, prostitution: 0, rape: 0, exhibitionism: 0,
+  kindness: 0, business: 0, social: 0, combat: 0
+});
+
+const calculateBeauty = (state: GameState): number => {
+  let beauty = state.player.stats.allure;
+
+  // Hygiene impact: -20 to +20
+  const hygieneBonus = Math.floor((state.player.stats.hygiene - 50) / 2.5);
+  beauty += hygieneBonus;
+
+  // Clothing impact
+  const clothedSlots = Object.values(state.player.clothing).filter(item => item !== null);
+  const avgIntegrity = clothedSlots.length > 0
+    ? clothedSlots.reduce((sum, item) => sum + (item?.integrity || 0), 0) / clothedSlots.length
+    : 0;
+  const clothingBonus = Math.floor((avgIntegrity - 50) / 5);
+  beauty += clothingBonus;
+
+  // Purity bonus/penalty
+  const purityBonus = Math.floor((state.player.stats.purity - 50) / 10);
+  beauty += purityBonus;
+
+  // Corruption penalty
+  const corruptionPenalty = -Math.floor(state.player.stats.corruption / 5);
+  beauty += corruptionPenalty;
+
+  // Trauma penalty
+  const traumaPenalty = -Math.floor(state.player.stats.trauma / 10);
+  beauty += traumaPenalty;
+
+  return Math.max(0, Math.min(100, beauty));
+};
+
+const isExposed = (state: GameState): boolean => {
+  const chest = state.player.clothing.chest;
+  const underwear = state.player.clothing.underwear;
+  const legs = state.player.clothing.legs;
+
+  // Exposed if chest is missing or destroyed
+  if (!chest || (chest.integrity !== undefined && chest.integrity <= 0)) {
+    return true;
+  }
+
+  // Exposed if underwear AND legs are both missing/destroyed
+  const underwearGone = !underwear || (underwear.integrity !== undefined && underwear.integrity <= 0);
+  const legsGone = !legs || (legs.integrity !== undefined && legs.integrity <= 0);
+
+  if (underwearGone && legsGone) {
+    return true;
+  }
+
+  return false;
+};
+
+const updateFame = (
+  current: FameReputation,
+  category: keyof FameReputation,
+  amount: number
+): FameReputation => {
+  const updated = { ...current };
+  updated[category] = Math.max(-100, Math.min(100, updated[category] + amount));
+  return updated;
+};
+
 // --- Initial State ---
 const initialState: GameState = {
   player: {
@@ -566,10 +666,26 @@ const initialState: GameState = {
         is_equipped: true
       }
     ],
+    money: 0,
+    beauty: 5,
     anatomy: { height: "small", build: "waifish", metabolism: "fast", healer: "normal", sleep: "light", gut: "sensitive", bones: "fragile", flexibility: "normal", blood: "normal", vision: "normal", skin: "pale", pheromones: "neutral", visage: "innocent", temp_pref: "warmth", injuries: [] },
     psychology: { outlook: "hopeful", innate: "submissive", paranoia: 0.1, empathy: 0.9, psychopathy: 0.0, phobias: ["darkness"], touch_starved: true, sexuality: "unknown", stoic: false, fragile_ego: true },
     perks_flaws: { hidden_pockets: false, silver_tongue: false, nimble_fingers: true, danger_sense: false, animal_whisperer: true, green_thumb: false, eidetic_memory: false, debt_ridden: false, hunted: false, cursed: false, addictive_personality: false, mute: false, blind_one_eye: false, frail: true, unlucky: false },
-    social: { wanted_sibling: false, betrothed: false, exiled: false, guild_member: false, town_pariah: false },
+    social: {
+      wanted_sibling: false,
+      betrothed: false,
+      exiled: false,
+      guild_member: false,
+      town_pariah: false,
+      reputation: {},
+      global_fame: createEmptyFame(),
+      virginity: {
+        vaginal: true,
+        anal: true,
+        oral: true,
+        penile: true
+      }
+    },
     cosmetics: { hair_length: "shaggy", eye_color: "blue", skin_tone: "fair", tattoos: [], piercings: [], posture: "cautious", scars: [], voice_pitch: "high", scent: "dust and lye", literacy: false, dominant_hand: "right", resting_hr: 75, blushing: true, body_mods: [], true_name: "Vael" },
     arcane: { spells: [], magicka_overcharge: false, blood_vials: 0, true_sight: false, telepathy_unlocked: false, toxicity: 0, withdrawal_timer: 0, soul_gems: 0, tattoos: [], corruption_taint: 0, astral_projection: false },
     justice: { suspicion: 0, bounty: 0, evidence_left: 0, jail_sentence: 0, contraband_slots: 0, fence_reputation: 0, black_book_debt: 0, banishment: false, extortion_targets: [] },
@@ -894,11 +1010,31 @@ function gameReducer(state: GameState, action: any): GameState {
       if (state.player.biology.parasites.length >= 5) ascension_state = 'broodmother';
       if (newTrauma >= 100 && maxHealth <= 1) ascension_state = 'asylum';
 
+      // Create temporary state to calculate beauty
+      const tempState = {
+        ...state,
+        player: {
+          ...state.player,
+          inventory: newInventory,
+          stats: {
+            ...state.player.stats,
+            health: newHealth, max_health: maxHealth,
+            trauma: newTrauma, stamina: newStamina, max_stamina: maxStamina,
+            willpower: newWillpower, max_willpower: maxWillpower,
+            lust: newLust, corruption: newCorruption,
+            arousal: newArousal, pain: newPain, control: newControl,
+            stress: newStress, hallucination: newHallucination, purity: newPurity
+          }
+        }
+      };
+      const newBeauty = calculateBeauty(tempState as GameState);
+
       return {
         ...state,
         player: {
           ...state.player,
           age_days: newAgeDays,
+          beauty: newBeauty,
           stats: { 
             ...state.player.stats, 
             health: newHealth, max_health: maxHealth, 
@@ -1128,14 +1264,139 @@ function gameReducer(state: GameState, action: any): GameState {
         console.error("Failed to inject JSON", e);
         return state;
       }
-    case 'START_NEW_GAME':
+    case 'START_NEW_GAME': {
+      const cfg = action.payload;
+      // Apply race stat bonuses
+      const RACE_BONUSES: Record<string, Partial<Record<StatKey, number>>> = {
+        Human:    { willpower: 5, stamina: 5 },
+        Elf:      { allure: 15, willpower: 15, health: -10 },
+        Nord:     { health: 20, stamina: 20, willpower: -10 },
+        Khajiit:  { control: 10, allure: 5 },
+        Argonian: { health: 10, stamina: 10 },
+        Dunmer:   { willpower: 10, allure: 10, purity: -15 },
+        Breton:   { willpower: 20, health: -5 },
+        Redguard: { stamina: 15, health: 10, willpower: -5 },
+      };
+      // Apply birthsign skill bonuses
+      const BIRTHSIGN_SKILLS: Record<string, Partial<Record<string, number>>> = {
+        'The Thief':   { skulduggery: 10, seduction: 5 },
+        'The Warrior': { athletics: 10 },
+        'The Mage':    {},
+        'The Shadow':  { skulduggery: 15 },
+        'The Lady':    { seduction: 10 },
+        'The Lover':   { seduction: 15, dancing: 5 },
+        'The Tower':   {},
+        'The Serpent': { skulduggery: 5 },
+      };
+      // Apply origin overrides
+      const ORIGIN_OVERRIDES: Record<string, Partial<GameState['player']>> = {
+        'Orphan':           { age_days: 6570 },
+        'Escaped Slave':    { age_days: 7300 },
+        "Noble's Bastard":  { age_days: 7300 },
+        'Wanderer':         { age_days: 8030 },
+        'Former Acolyte':   { age_days: 8760 },
+        'Disgraced Guard':  { age_days: 9125 },
+      };
+      const ORIGIN_STATS: Record<string, Partial<Record<StatKey, number>>> = {
+        'Orphan':           {},
+        'Escaped Slave':    { trauma: 40, health: 60 },
+        "Noble's Bastard":  { allure: 10 },
+        'Wanderer':         {},
+        'Former Acolyte':   { willpower: 10, purity: 20 },
+        'Disgraced Guard':  { health: 20, stamina: 20 },
+      };
+      const ORIGIN_LOCATIONS: Record<string, string> = {
+        'Orphan':           'orphanage',
+        'Escaped Slave':    'forest',
+        "Noble's Bastard":  'town_square',
+        'Wanderer':         'town_square',
+        'Former Acolyte':   'temple_gardens',
+        'Disgraced Guard':  'town_square',
+      };
+      const ORIGIN_INVENTORY: Record<string, any[]> = {
+        'Disgraced Guard': [{
+          id: 'iron-sword', name: 'Iron Sword', type: 'weapon', rarity: 'common',
+          description: 'A worn iron sword from your guard days. The edge is nicked but still functional.',
+          value: 20, weight: 3, integrity: 70, max_integrity: 100, is_equipped: true
+        }],
+      };
+
+      const raceBonuses = RACE_BONUSES[cfg.race] || {};
+      const birthsignSkills = BIRTHSIGN_SKILLS[cfg.birthsign] || {};
+      const originStats = ORIGIN_STATS[cfg.origin] || {};
+      const originOverride = ORIGIN_OVERRIDES[cfg.origin] || {};
+      const startLocationId = ORIGIN_LOCATIONS[cfg.origin] || 'orphanage';
+      const bonusInventory = ORIGIN_INVENTORY[cfg.origin] || [];
+
+      const baseStats = { ...initialState.player.stats };
+      const allStatDeltas = { ...raceBonuses, ...originStats };
+      for (const [k, v] of Object.entries(allStatDeltas)) {
+        if (k in baseStats) {
+          (baseStats as any)[k] = Math.max(1, Math.min(
+            (baseStats as any)['max_' + k] || 100,
+            (baseStats as any)[k] + (v as number)
+          ));
+        }
+      }
+      if (cfg.birthsign === 'The Warrior') { baseStats.stamina = Math.min(baseStats.max_stamina, baseStats.stamina + 15); }
+      if (cfg.birthsign === 'The Tower')   { baseStats.control = Math.min(100, baseStats.control + 20); }
+
+      const baseSkills = { ...initialState.player.skills };
+      for (const [k, v] of Object.entries(birthsignSkills)) {
+        if (k in baseSkills) (baseSkills as any)[k] = Math.min(100, (baseSkills as any)[k] + (v as number));
+      }
+
+      const startLocation = LOCATIONS[startLocationId] || LOCATIONS.orphanage;
+
+      // Birthsign: The Mage unlocks first spell slot
+      const arcane = { ...initialState.player.arcane };
+      if (cfg.birthsign === 'The Mage') {
+        arcane.spells = [{ id: 'minor_spark', name: 'Minor Spark', cost: 10, damage: 15, description: 'A crackling bolt of raw magicka.' }];
+      }
+
+      // Origin-based quests
+      const ORIGIN_QUESTS: Record<string, { id: string, title: string, description: string, status: 'active' | 'completed' | 'failed' }> = {
+        'Orphan':          { id: 'q_escape', title: 'Survive the Orphanage', description: 'Escape Matron Grelod and find your own path.', status: 'active' },
+        'Escaped Slave':   { id: 'q_free',   title: 'Stay Free', description: 'The Inquisition is hunting you. Disappear.', status: 'active' },
+        "Noble's Bastard": { id: 'q_heir',   title: 'The Hidden Heir', description: 'Someone powerful knows who you are. Decide your move.', status: 'active' },
+        'Wanderer':        { id: 'q_wander', title: 'Find Your Place', description: 'This town is as good as any. Or is it?', status: 'active' },
+        'Former Acolyte':  { id: 'q_cult',   title: 'Severed Vows', description: 'The cult you left will not forget you.', status: 'active' },
+        'Disgraced Guard': { id: 'q_honor',  title: 'Reclaim Your Name', description: 'You were framed. Find out by whom.', status: 'active' },
+      };
+
       return {
         ...initialState,
+        player: {
+          ...initialState.player,
+          identity: {
+            name: cfg.name || 'Vael',
+            race: cfg.race || 'Human',
+            birthsign: cfg.birthsign || 'The Thief',
+            origin: cfg.origin || 'Orphan',
+            gender: cfg.gender || 'female',
+          },
+          stats: baseStats,
+          skills: baseSkills,
+          arcane,
+          inventory: [...initialState.player.inventory, ...bonusInventory],
+          quests: [ORIGIN_QUESTS[cfg.origin] || ORIGIN_QUESTS['Orphan']],
+          ...(originOverride as any),
+        },
         world: {
           ...initialState.world,
-          director_cut: action.payload.directorCut || false
+          current_location: startLocation,
+          director_cut: cfg.directorCut || false,
+        },
+        ui: {
+          ...initialState.ui,
+          settings: {
+            ...initialState.ui.settings,
+            stat_drain_multiplier: cfg.sandbox ? 0 : 1.0,
+            enable_extreme_content: true,
+          }
         }
       };
+    }
     case 'LOAD_GAME':
       return action.payload;
     case 'TOGGLE_MAGICKA_OVERCHARGE':
@@ -1208,6 +1469,163 @@ function gameReducer(state: GameState, action: any): GameState {
           }
         }
       };
+    case 'UPDATE_MONEY': {
+      const newMoney = Math.max(0, state.player.money + action.payload);
+      return {
+        ...state,
+        player: { ...state.player, money: newMoney }
+      };
+    }
+    case 'UPDATE_FAME': {
+      const { location, category, amount } = action.payload;
+      const currentLocationFame = state.player.social.reputation[location] || createEmptyFame();
+      const updatedLocationFame = updateFame(currentLocationFame, category, amount);
+      const updatedGlobalFame = updateFame(state.player.social.global_fame, category, amount / 2);
+
+      return {
+        ...state,
+        player: {
+          ...state.player,
+          social: {
+            ...state.player.social,
+            reputation: {
+              ...state.player.social.reputation,
+              [location]: updatedLocationFame
+            },
+            global_fame: updatedGlobalFame
+          }
+        }
+      };
+    }
+    case 'UPDATE_VIRGINITY': {
+      const { type } = action.payload;
+      return {
+        ...state,
+        player: {
+          ...state.player,
+          social: {
+            ...state.player.social,
+            virginity: {
+              ...state.player.social.virginity,
+              [type]: false
+            }
+          }
+        }
+      };
+    }
+    case 'RECALCULATE_BEAUTY': {
+      const newBeauty = calculateBeauty(state);
+      return {
+        ...state,
+        player: { ...state.player, beauty: newBeauty }
+      };
+    }
+    case 'DAMAGE_CLOTHING': {
+      const { slot, amount } = action.payload;
+      const item = state.player.inventory.find(i => i.slot === slot && i.is_equipped);
+      if (!item || item.integrity === undefined) return state;
+
+      const newIntegrity = Math.max(0, item.integrity - amount);
+      const newInventory = state.player.inventory.map(i =>
+        i.id === item.id ? { ...i, integrity: newIntegrity } : i
+      );
+
+      // If clothing is destroyed and player is exposed, increase exhibitionism
+      let newState = {
+        ...state,
+        player: { ...state.player, inventory: newInventory }
+      };
+
+      if (newIntegrity === 0 && isExposed(newState)) {
+        newState = {
+          ...newState,
+          player: {
+            ...newState.player,
+            psych_profile: {
+              ...newState.player.psych_profile,
+              exhibitionism: Math.min(100, newState.player.psych_profile.exhibitionism + 5)
+            },
+            stats: {
+              ...newState.player.stats,
+              stress: Math.min(100, newState.player.stats.stress + 10)
+            }
+          }
+        };
+      }
+
+      return newState;
+    }
+    case 'STRIP_CLOTHING': {
+      const { slot } = action.payload;
+      const item = state.player.inventory.find(i => i.slot === slot && i.is_equipped);
+      if (!item) return state;
+
+      const newInventory = state.player.inventory.map(i =>
+        i.id === item.id ? { ...i, is_equipped: false, integrity: 0 } : i
+      );
+
+      let newState = {
+        ...state,
+        player: { ...state.player, inventory: newInventory }
+      };
+
+      // Increase exhibitionism and stress when forcibly stripped
+      if (isExposed(newState)) {
+        newState = {
+          ...newState,
+          player: {
+            ...newState.player,
+            psych_profile: {
+              ...newState.player.psych_profile,
+              exhibitionism: Math.min(100, newState.player.psych_profile.exhibitionism + 10),
+              submission_index: Math.min(100, newState.player.psych_profile.submission_index + 5)
+            },
+            stats: {
+              ...newState.player.stats,
+              stress: Math.min(100, newState.player.stats.stress + 20),
+              trauma: Math.min(100, newState.player.stats.trauma + 5)
+            }
+          }
+        };
+      }
+
+      return newState;
+    }
+    case 'UPDATE_SUBMISSION': {
+      const { amount, context } = action.payload;
+      const newSubmission = Math.max(0, Math.min(100, state.player.psych_profile.submission_index + amount));
+
+      // Submission affects other stats
+      let statChanges: any = {};
+      if (context === 'defiant' && amount < 0) {
+        // Defiance increases stress but maintains control
+        statChanges = {
+          stress: Math.min(100, state.player.stats.stress + 5),
+          control: Math.min(100, state.player.stats.control + 2)
+        };
+      } else if (context === 'submissive' && amount > 0) {
+        // Submission reduces stress but lowers control
+        statChanges = {
+          stress: Math.max(0, state.player.stats.stress - 3),
+          control: Math.max(0, state.player.stats.control - 2)
+        };
+      }
+
+      return {
+        ...state,
+        player: {
+          ...state.player,
+          psych_profile: {
+            ...state.player.psych_profile,
+            submission_index: newSubmission
+          },
+          stats: {
+            ...state.player.stats,
+            ...statChanges
+          }
+        }
+      };
+    }
     default:
       return state;
   }
@@ -1790,6 +2208,8 @@ export default function AppWrapper() {
 
 function App({ state, dispatch }: { state: GameState, dispatch: React.Dispatch<any> }) {
   const [hasStarted, setHasStarted] = useState(false);
+  const [showCharacterCreation, setShowCharacterCreation] = useState(false);
+  const [pendingConfig, setPendingConfig] = useState<any>(null);
   const [customAction, setCustomAction] = useState('');
   const [showSettings, setShowSettings] = useState(false);
   const [availableTextModels, setAvailableTextModels] = useState<{name: string, count: number}[]>([]);
@@ -1860,8 +2280,23 @@ function App({ state, dispatch }: { state: GameState, dispatch: React.Dispatch<a
   const encounterBuffer = useEncounterBuffer(state);
 
   const handleStartGame = (config: any) => {
-    dispatch({ type: 'START_NEW_GAME', payload: config });
-    setHasStarted(true);
+    // For scenario/daily modes, skip character creation and use preset identity
+    if (config.mode === 'scenario' && config.scenario) {
+      const SCENARIO_PRESETS: Record<string, any> = {
+        escaped_slave: { name: 'Unknown', race: 'Human', gender: 'female', birthsign: 'The Shadow', origin: 'Escaped Slave' },
+        nobles_fall:   { name: 'Aravyn', race: 'Breton', gender: 'nonbinary', birthsign: 'The Lady', origin: "Noble's Bastard" },
+      };
+      const preset = SCENARIO_PRESETS[config.scenario] || {};
+      dispatch({ type: 'START_NEW_GAME', payload: { ...config, ...preset } });
+      setHasStarted(true);
+    } else if (config.mode === 'daily') {
+      dispatch({ type: 'START_NEW_GAME', payload: { ...config, name: 'Challenger', race: 'Human', gender: 'female', birthsign: 'The Thief', origin: 'Wanderer' } });
+      setHasStarted(true);
+    } else {
+      // Standard new game — show character creation
+      setPendingConfig(config);
+      setShowCharacterCreation(true);
+    }
   };
 
   const handleLoadGame = (saveData: any) => {
@@ -2401,6 +2836,24 @@ Example: { "health": 50, "allure": 20 }`;
     }
   };
 
+  if (showCharacterCreation && pendingConfig) {
+    return (
+      <CharacterCreation
+        baseConfig={pendingConfig}
+        onComplete={(config) => {
+          dispatch({ type: 'START_NEW_GAME', payload: config });
+          setShowCharacterCreation(false);
+          setPendingConfig(null);
+          setHasStarted(true);
+        }}
+        onBack={() => {
+          setShowCharacterCreation(false);
+          setPendingConfig(null);
+        }}
+      />
+    );
+  }
+
   if (!hasStarted) {
     return <ImmersiveStartMenu onStartGame={handleStartGame} onLoadGame={handleLoadGame} />;
   }
@@ -2488,6 +2941,18 @@ Example: { "health": 50, "allure": 20 }`;
               <User className="w-3 h-3 text-white/40" />
               <span className="text-white/60">
                 {Math.floor(state.player.age_days / 365)} Cycles
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Sparkles className="w-3 h-3 text-white/40" />
+              <span className="text-white/60">
+                Beauty: {state.player.beauty}
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              <ShoppingBag className="w-3 h-3 text-white/40" />
+              <span className={state.player.money > 100 ? 'text-yellow-400' : 'text-white/60'}>
+                {state.player.money} Gold
               </span>
             </div>
           </div>
