@@ -1,14 +1,17 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { GameState, ActiveEncounter } from '../types';
+import { GameState, ActiveEncounter } from '../App';
 
 interface EncounterUIProps {
   encounter: ActiveEncounter;
   playerStats: GameState['player']['stats'];
-  onAction: (action: string, intent: string) => void;
+  onAction: (action: string, intent: string, targetedPart?: string) => void;
 }
 
 export const EncounterUI: React.FC<EncounterUIProps> = ({ encounter, playerStats, onAction }) => {
+  const [targetedPart, setTargetedPart] = React.useState<string | null>(null);
+  const bodyParts = ['head', 'torso', 'arms', 'legs'];
+
   return (
     <motion.div 
       initial={{ opacity: 0, y: 20, scale: 0.95 }}
@@ -47,6 +50,30 @@ export const EncounterUI: React.FC<EncounterUIProps> = ({ encounter, playerStats
         <h3 className="text-lg font-serif text-red-400">{encounter.enemy_name}</h3>
         <span className="text-[10px] uppercase tracking-widest text-red-500/50">Turn {encounter.turn}</span>
       </div>
+
+      {/* Target Selection */}
+      <div className="flex gap-2 relative z-10">
+        {bodyParts.map(part => (
+          <button
+            key={part}
+            onClick={() => setTargetedPart(part === targetedPart ? null : part)}
+            className={`text-[9px] uppercase tracking-widest p-1 border ${part === targetedPart ? 'bg-red-900 text-white' : 'border-red-900/30 text-red-500/50'}`}
+          >
+            {part}
+          </button>
+        ))}
+      </div>
+
+      {/* Debuffs */}
+      {encounter.debuffs && encounter.debuffs.length > 0 && (
+        <div className="flex gap-2 relative z-10">
+          {encounter.debuffs.map((debuff, i) => (
+            <span key={i} className="text-[9px] uppercase tracking-widest p-1 border border-blue-900/50 bg-blue-950/20 text-blue-200">
+              {debuff.type} ({debuff.duration})
+            </span>
+          ))}
+        </div>
+      )}
       
       <div className="flex flex-col gap-3 relative z-10">
         <div className="flex items-center justify-between text-xs">
@@ -111,7 +138,7 @@ export const EncounterUI: React.FC<EncounterUIProps> = ({ encounter, playerStats
         <motion.button 
           whileHover={{ scale: 1.02, backgroundColor: "rgba(127, 29, 29, 0.6)" }}
           whileTap={{ scale: 0.98 }}
-          onClick={() => onAction("Struggle and fight back", "aggressive")}
+          onClick={() => onAction("Struggle and fight back", "aggressive", targetedPart || undefined)}
           className="p-3 border border-red-900/50 bg-red-950/20 text-red-200 text-xs uppercase tracking-widest transition-colors"
         >
           Struggle
@@ -119,7 +146,7 @@ export const EncounterUI: React.FC<EncounterUIProps> = ({ encounter, playerStats
         <motion.button 
           whileHover={{ scale: 1.02, backgroundColor: "rgba(88, 28, 135, 0.6)" }}
           whileTap={{ scale: 0.98 }}
-          onClick={() => onAction("Submit and endure", "submissive")}
+          onClick={() => onAction("Submit and endure", "submissive", targetedPart || undefined)}
           className="p-3 border border-purple-900/50 bg-purple-950/20 text-purple-200 text-xs uppercase tracking-widest transition-colors"
         >
           Submit
@@ -127,7 +154,7 @@ export const EncounterUI: React.FC<EncounterUIProps> = ({ encounter, playerStats
         <motion.button 
           whileHover={{ scale: 1.02, backgroundColor: "rgba(131, 24, 67, 0.6)" }}
           whileTap={{ scale: 0.98 }}
-          onClick={() => onAction("Attempt to seduce", "social")}
+          onClick={() => onAction("Attempt to seduce", "social", targetedPart || undefined)}
           className="p-3 border border-pink-900/50 bg-pink-950/20 text-pink-200 text-xs uppercase tracking-widest transition-colors"
         >
           Seduce
@@ -135,7 +162,7 @@ export const EncounterUI: React.FC<EncounterUIProps> = ({ encounter, playerStats
         <motion.button 
           whileHover={{ scale: 1.02, backgroundColor: "rgba(30, 58, 138, 0.6)" }}
           whileTap={{ scale: 0.98 }}
-          onClick={() => onAction("Try to escape", "flee")}
+          onClick={() => onAction("Try to escape", "flee", targetedPart || undefined)}
           className="p-3 border border-blue-900/50 bg-blue-950/20 text-blue-200 text-xs uppercase tracking-widest transition-colors"
         >
           Escape

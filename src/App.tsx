@@ -7,12 +7,9 @@ import {
 } from 'lucide-react';
 import { GoogleGenAI, Type } from "@google/genai";
 import { SaveLoadModal } from './components/SaveLoadModal';
+import { XRayView } from './components/XRayView';
+import { Anatomy, LifeSim } from './types';
 import { ELDER_SCROLLS_LORE, getRelevantLore } from './lore';
-import { STABLE_API, DEFAULT_API_KEY, GEMINI_MODEL } from './constants';
-import { GameState, Item, StatKey, ClothingLayer, Companion, Parasite, ActiveEncounter } from './types';
-import { LOCATIONS, NPCS, AGE_APPEARANCE, BASIC_ITEMS, ENCOUNTERS, ITEM_PREFIXES, ITEM_SUFFIXES } from './gameData';
-import { generateProceduralItem } from './utils/procedural';
-import { initialState } from './initialState';
 
 interface ErrorBoundaryProps {
   children: React.ReactNode;
@@ -51,10 +48,666 @@ class ErrorBoundary extends React.Component<any, any> {
   }
 }
 
-// Types and Constants moved to separate files
+// --- Constants & APIs ---
+const STABLE_API = "https://stablehorde.net/api/v2";
+const DEFAULT_API_KEY = "0000000000"; // Anonymous key for Horde
+const GEMINI_MODEL = "gemini-3-flash-preview";
+
+// --- Types ---
+export type StatKey = 'health' | 'stamina' | 'willpower' | 'lust' | 'trauma' | 'hygiene' | 'corruption' | 'allure' | 'arousal' | 'pain' | 'control' | 'stress' | 'hallucination' | 'purity';
+
+export interface Item {
+  id: string;
+  name: string;
+  type: 'weapon' | 'armor' | 'consumable' | 'misc' | 'clothing';
+  slot?: 'head' | 'neck' | 'shoulders' | 'chest' | 'underwear' | 'legs' | 'feet' | 'hands' | 'waist';
+  rarity: 'common' | 'uncommon' | 'rare' | 'epic' | 'legendary' | 'mythic';
+  stats?: Partial<Record<StatKey, number>>;
+  description: string;
+  value: number;
+  weight: number;
+  integrity?: number;
+  max_integrity?: number;
+  is_equipped?: boolean;
+  lore?: string;
+  special_effect?: string;
+}
+
+export interface ClothingLayer {
+  head: Item | null;
+  neck: Item | null;
+  shoulders: Item | null;
+  chest: Item | null;
+  underwear: Item | null;
+  legs: Item | null;
+  feet: Item | null;
+  hands: Item | null;
+  waist: Item | null;
+}
+
+export interface Companion {
+  id: string;
+  name: string;
+  type: 'npc' | 'pet' | 'thrall' | 'familiar';
+  affection: number;
+  fear: number;
+  equipment: Item[];
+  tags: string[];
+  is_guarding: boolean;
+  stats: { health: number };
+}
+
+export interface Parasite {
+  type: string;
+  days_left: number;
+  symbiosis: boolean;
+  health_drain: number;
+  stamina_drain: number;
+  corruption_buff: number;
+  subservience_toxin: boolean;
+}
+
+export interface ActiveEncounter {
+  id: string;
+  enemy_name: string;
+  enemy_type: string;
+  enemy_health: number;
+  enemy_max_health: number;
+  enemy_lust: number;
+  enemy_max_lust: number;
+  enemy_anger: number;
+  enemy_max_anger: number;
+  player_stance: 'neutral' | 'defensive' | 'aggressive' | 'submissive';
+  turn: number;
+  log: string[];
+  image_url?: string;
+  debuffs: { type: string, duration: number }[];
+  targeted_part: string | null;
+}
+
+export interface GameState {
+  player: {
+    identity: { name: string, race: string, birthsign: string, origin: string, gender: string },
+    stats: Record<StatKey, number> & { max_health: number, max_willpower: number, max_stamina: number },
+    skills: { seduction: number, athletics: number, skulduggery: number, swimming: number, dancing: number, housekeeping: number, school_grades: number },
+    psych_profile: { submission_index: number, cruelty_index: number, exhibitionism: number, promiscuity: number },
+    afflictions: string[],
+    clothing: ClothingLayer,
+    inventory: Item[],
+    anatomy: Anatomy,
+    psychology: any,
+    perks_flaws: any,
+    social: any,
+    cosmetics: any,
+    arcane: any,
+    justice: any,
+    companions: { active_party: Companion[], roster: Companion[], max_encumbrance_bonus: number },
+    base: any,
+    subconscious: any,
+    biology: { cycle_day: number, heat_rut_active: boolean, parasites: Parasite[], incubations: any[], cravings: string[], exhaustion_multiplier: number, post_partum_debuff: number, sterility: boolean },
+    life_sim: LifeSim,
+    age_days: number,
+    avatar_url?: string | null,
+    quests: { id: string, title: string, description: string, status: 'active' | 'completed' | 'failed' }[]
+  },
+  world: {
+    day: number, hour: number, weather: string,
+    current_location: { id?: string, name: string, danger: number, atmosphere: string, npcs: any[], actions?: any[] },
+    macro_events: string[],
+    local_tension: number,
+    aggression_counter: number,
+    active_world_events: string[],
+    turn_count: number,
+    last_intent: string | null,
+    economy: any,
+    ecology: any,
+    factions: any,
+    npc_state: any,
+    meta_events: any,
+    settlement: any,
+    ambient: any,
+    arcane: any,
+    justice: any,
+    dreamscape: any,
+    ascension_state: 'none' | 'pure_soul' | 'void_lord' | 'broodmother' | 'asylum',
+    director_cut: boolean,
+    active_encounter: ActiveEncounter | null
+  },
+  memory_graph: string[],
+  ui: {
+    isPollingText: boolean,
+    isPollingImage: boolean,
+    isGeneratingAvatar: boolean,
+    currentLog: { text: string, type: 'narrative' | 'action' | 'system' }[],
+    currentImage: string | null,
+    choices: { id: string, label: string, intent: string, successChance?: number }[],
+    apiKey: string,
+    hordeApiKey: string,
+    ui_scale: number,
+    fullscreen: boolean,
+    ambient_audio: boolean,
+    haptics_enabled: boolean,
+    accessibility_mode: boolean,
+    last_stat_deltas: Partial<Record<StatKey, number>> | null,
+    show_stats: boolean,
+    show_inventory: boolean,
+    show_map: boolean,
+    show_quests: boolean,
+    show_save_load: boolean,
+    show_xray: boolean,
+    highlighted_part: string | null,
+    targeted_part: string | null,
+    combat_animation: string | null,
+    horde_status: { status: string, queue: number, wait: number } | null,
+    horde_monitor: {
+      active: boolean,
+      text_requests: number,
+      image_requests: number,
+      text_eta: number,
+      image_eta: number,
+      text_initial_eta: number,
+      image_initial_eta: number,
+      text_generation_chance: number,
+      image_generation_chance: number
+    },
+    selectedTextModel: string,
+    selectedImageModel: string,
+    settings: {
+      encounter_rate: number,
+      stat_drain_multiplier: number,
+      enable_parasites: boolean,
+      enable_pregnancy: boolean,
+      enable_extreme_content: boolean
+    }
+  }
+}
 
 // --- Hardcoded Data ---
+const LOCATIONS: Record<string, any> = {
+  'orphanage': {
+    id: 'orphanage',
+    name: "The Orphanage",
+    atmosphere: "cold, damp, smelling of stale porridge, unwashed bodies, and the sharp tang of lye",
+    danger: 5,
+    x: 80, y: 70,
+    npcs: ['constance_michel', 'grelod_the_kind'],
+    description: "Your 'home'. A bleak, stone-walled building in the poorer district of town. The roof leaks during the frequent rains, and the drafty windows offer no protection from the biting winter winds. The children here are thin and fearful, their eyes darting to the shadows where the matron might be lurking. The air is thick with unspoken misery, the smell of stale cabbage soup, and the desperate hope of one day escaping the iron grip of Matron Grelod. Every creaking floorboard serves as a reminder of the punishments that await the disobedient.",
+    actions: [
+      { id: 'sleep', label: "Sleep in your cot", intent: "neutral", outcome: "You curl up on the thin, lumpy mattress, pulling the scratchy wool blanket tight. You try to ignore the cold and the muffled sobs of the younger children. You wake up feeling slightly more rested, though your muscles ache from the hard wooden slats.", stat_deltas: { stamina: 30, stress: -10, lust: -5 } },
+      { id: 'clean_floors', label: "Scrub the stone floors", intent: "work", skill_check: { stat: "stamina", difficulty: 40 }, outcome: "You spend hours on your knees, your hands raw and bleeding from the harsh lye soap. The cold stone bites into your joints. For your grueling labor, you are tossed a small, moldy crust of bread.", fail_outcome: "Your arms give out and you collapse from exhaustion before finishing the grand hall. Grelod finds you and beats you mercilessly with her cane, leaving welts across your back.", stat_deltas: { stamina: -15, stress: 5, purity: 2 }, fail_stat_deltas: { stamina: -20, pain: 10, stress: 15, trauma: 5 }, new_items: [{ name: "Stale Bread Crust", type: "consumable", rarity: "common", description: "Hard as a rock and speckled with mold, but hunger makes it a feast." }] },
+      { id: 'travel_market', label: "Sneak out to the Town Square", intent: "stealth", skill_check: { stat: "willpower", difficulty: 30 }, outcome: "You wait for Constance to turn her back, slipping past the heavy oak doors and into the relative freedom of the city streets.", fail_outcome: "Grelod catches you by the ear just as you reach the door! You manage to wriggle free and run, but not before taking a stinging blow to the side of your head.", stat_deltas: { stamina: -5 }, fail_stat_deltas: { pain: 10, health: -5, stress: 15 }, new_location: 'town_square' },
+      { id: 'travel_academy', label: "Head to the School", intent: "travel", outcome: "You make the long, cold trek to the town school, clutching your meager belongings.", stat_deltas: { stamina: -10 }, new_location: 'school' }
+    ]
+  },
+  'school': {
+    id: 'school',
+    name: "The Town School",
+    atmosphere: "smelling of old parchment, chalk dust, and strict discipline",
+    danger: 10,
+    x: 60, y: 30,
+    npcs: [],
+    description: "A strict institution of learning funded by the local nobility. The halls echo with droning lectures and the sharp crack of the headmaster's ruler. The instructors are unforgiving, demanding perfection, while the older, wealthier students often prey on the weak and impoverished orphans. The scent of old parchment and chalk dust is suffocating, a constant reminder of the rigid expectations placed upon you.",
+    actions: [
+      { id: 'attend_class', label: "Attend classes", intent: "education", skill_check: { stat: "willpower", difficulty: 40 }, outcome: "You focus intensely on the complex arcane theories and historical texts, feeling your mind expand despite the oppressive atmosphere.", fail_outcome: "Exhaustion overtakes you and you fall asleep at your desk. The instructor humiliates you in front of the entire class, making you wear the dunce cap.", stat_deltas: { willpower: 10, stress: 10, stamina: -10 }, fail_stat_deltas: { stress: 20, trauma: 5, stamina: -5 }, skill_deltas: { school_grades: 5 }, fail_skill_deltas: { school_grades: -2 } },
+      { id: 'study_library', label: "Study in the Library", intent: "education", outcome: "You seek refuge in the dusty, silent library, spending hours poring over ancient tomes hidden in the back corners.", stat_deltas: { willpower: 5, stress: 5, stamina: -5 }, skill_deltas: { school_grades: 2 } },
+      { id: 'travel_market', label: "Walk to the Town Square", intent: "travel", outcome: "You leave the stifling school grounds and head towards the bustling noise of the square.", stat_deltas: { stamina: -10 }, new_location: 'town_square' },
+      { id: 'travel_orphanage', label: "Return to the Orphanage", intent: "travel", outcome: "With a heavy heart, you trudge back to the bleak walls of the orphanage.", stat_deltas: { stamina: -10 }, new_location: 'orphanage' }
+    ]
+  },
+  'town_square': {
+    id: 'town_square',
+    name: "Town Square",
+    atmosphere: "bustling, smelling of fresh bread, roasting meats, woodsmoke, and the damp mist from the alleys",
+    danger: 20,
+    x: 82, y: 68,
+    npcs: ['brynjolf', 'brand_shei'],
+    description: "The vibrant, chaotic heart of the town. Stalls line the cobblestone streets, selling everything from fresh produce to stolen trinkets. Wealthy merchants in fine silks brush past ragged beggars. Thieves and guards eye each other warily across the crowded plaza. It's a place of opportunity, but also immense danger for an unprotected youth. The cacophony of shouting vendors, clinking coins, and braying livestock is overwhelming.",
+    actions: [
+      { id: 'work_stall', label: "Work at a merchant stall", intent: "work", skill_check: { stat: "stamina", difficulty: 30 }, outcome: "You spend the day hauling heavy crates and shouting prices until your throat is raw. It's exhausting, backbreaking work, but the merchant tosses you a few coins at the end of the day.", fail_outcome: "Your tired arms give out and you drop a crate of fragile glass goods. The merchant screams at you and fires you without pay, threatening to call the guards.", stat_deltas: { stamina: -20, stress: 10 }, fail_stat_deltas: { stamina: -10, stress: 20, trauma: 2 }, new_items: [{ name: "Gold Coin", type: "misc", rarity: "common", description: "The currency of the realm. Cold, hard, and necessary." }, { name: "Gold Coin", type: "misc", rarity: "common", description: "The currency of the realm. Cold, hard, and necessary." }] },
+      { id: 'beg_gold', label: "Beg for coins", intent: "social", skill_check: { stat: "purity", difficulty: 20 }, outcome: "You put on your most pathetic expression. A wealthy merchant, perhaps feeling a twinge of guilt, tosses a single coin at your feet with a look of profound pity.", fail_outcome: "A passing town guard kicks dirt at you, calling you a nuisance and threatening to throw you in the dungeons if you don't move along.", stat_deltas: { purity: -5, stress: 5 }, fail_stat_deltas: { stress: 10, trauma: 5 }, new_items: [{ name: "Gold Coin", type: "misc", rarity: "common", description: "The currency of the realm. Cold, hard, and necessary." }] },
+      { id: 'travel_orphanage', label: "Return to the Orphanage", intent: "travel", outcome: "You trudge back to the orphanage, dreading the matron's inevitable wrath.", stat_deltas: { stamina: -5 }, new_location: 'orphanage' },
+      { id: 'travel_alleyways', label: "Slip into the Alleyways", intent: "stealth", outcome: "You find a dark, narrow path leading away from the crowds and into the dangerous, shadowed alleyways.", stat_deltas: { stress: 10 }, new_location: 'alleyways' },
+      { id: 'travel_docks', label: "Head to the Docks", intent: "travel", outcome: "You walk down the sloping streets towards the misty, salt-smelling docks.", stat_deltas: { stamina: -5 }, new_location: 'docks' },
+      { id: 'travel_temple', label: "Seek refuge at the Temple", intent: "travel", outcome: "You walk towards the serene, quiet gardens of the Temple, seeking a moment of peace.", stat_deltas: { stamina: -5 }, new_location: 'temple_gardens' }
+    ]
+  },
+  'temple_gardens': {
+    id: 'temple_gardens',
+    name: "Temple Gardens",
+    atmosphere: "peaceful, smelling of blooming flowers and incense",
+    danger: 5,
+    x: 85, y: 65,
+    npcs: [],
+    description: "A rare place of tranquility in the town. Priests tend to the flora, and citizens come to pray for love and peace. The shadows under the large ancient trees offer seclusion, and the air is thick with the sweet, heady scent of blooming nightshade and burning incense. The gentle trickle of a stone fountain provides a soothing backdrop to the quiet murmurs of the devout.",
+    actions: [
+      { id: 'pray', label: "Pray at the altar", intent: "neutral", outcome: "You kneel before the altar. A sense of calm washes over you.", stat_deltas: { stress: -20, trauma: -5, purity: 5 } },
+      { id: 'rest_bench', label: "Rest on a secluded bench", intent: "neutral", outcome: "You sit and watch the leaves fall. It's quiet here.", stat_deltas: { stamina: 15, stress: -10 } },
+      { id: 'travel_market', label: "Return to the Town Square", intent: "travel", outcome: "You leave the peace of the gardens behind.", stat_deltas: { stamina: -5 }, new_location: 'town_square' },
+      { id: 'travel_wilds', label: "Wander into the Forest", intent: "travel", outcome: "You slip out the city gates into the dense forest.", stat_deltas: { stamina: -10 }, new_location: 'forest' }
+    ]
+  },
+  'alleyways': {
+    id: 'alleyways',
+    name: "The Alleyways",
+    atmosphere: "dark, claustrophobic, reeking of sewage and decay",
+    danger: 60,
+    x: 82, y: 72,
+    npcs: [],
+    description: "The sprawling, dangerous paths between buildings. It is home to vagrants and criminals. Shadows seem to move on their own here, and the air is thick with danger and illicit desires. The cobblestones are slick with unknown grime, and the stench of sewage and decay is overpowering. Every footstep echoes ominously, and you constantly feel eyes watching you from the darkness.",
+    actions: [
+      { id: 'scavenge_trash', label: "Scavenge in the muck", intent: "work", skill_check: { stat: "willpower", difficulty: 40 }, outcome: "You find a discarded iron dagger hidden in the filth.", fail_outcome: "A rat bites your hand before scurrying away!", stat_deltas: { purity: -5, stress: 10 }, fail_stat_deltas: { health: -10, pain: 15, stress: 20, trauma: 5 }, new_items: [{ name: "Rusty Iron Dagger", type: "weapon", rarity: "common", description: "A discarded, rusted blade found in the muck. The edge is dull, chipped, and stained with questionable brown spots. It's barely sharp enough to cut cheese, but gripping its worn, sweat-stained leather hilt gives you a slight sense of security in these dark alleys. It smells faintly of old blood, rust, and desperation." }] },
+      { id: 'travel_market', label: "Climb back to the Town Square", intent: "travel", outcome: "You scramble back to the main streets.", stat_deltas: { stamina: -10 }, new_location: 'town_square' },
+      { id: 'travel_brothel', label: "Sneak into the Brothel", intent: "stealth", outcome: "You follow the sweet, sickly smell deeper into the alleys.", stat_deltas: { stress: 15, lust: 10 }, new_location: 'brothel' },
+      { id: 'travel_docks', label: "Head to the Docks", intent: "travel", outcome: "You navigate the labyrinthine alleys towards the docks.", stat_deltas: { stamina: -10 }, new_location: 'docks' }
+    ]
+  },
+  'forest': {
+    id: 'forest',
+    name: "The Dark Forest",
+    atmosphere: "dense, autumnal, filled with the sounds of unseen wildlife",
+    danger: 40,
+    x: 90, y: 60,
+    npcs: [],
+    description: "The deep forests outside the town. Beautiful but treacherous. Wild animals and bandits roam freely here. The canopy is so thick that it blocks out most of the sunlight, casting the forest floor in perpetual twilight. The air is cool and damp, filled with the rustling of unseen creatures and the distant, lonely howl of wolves.",
+    actions: [
+      { id: 'forage', label: "Forage for ingredients", intent: "work", skill_check: { stat: "willpower", difficulty: 30 }, outcome: "You gather some useful herbs and mushrooms.", fail_outcome: "You wander aimlessly, getting scratched by thorns.", stat_deltas: { stamina: -15 }, fail_stat_deltas: { stamina: -20, pain: 5, stress: 10 }, new_items: [{ name: "Blue Mountain Flower", type: "consumable", rarity: "common", description: "Useful for alchemy." }] },
+      { id: 'travel_temple', label: "Return to the City", intent: "travel", outcome: "You head back towards the safety of the town's walls.", stat_deltas: { stamina: -10 }, new_location: 'temple_gardens' },
+      { id: 'travel_farm', label: "Walk to the Farm", intent: "travel", outcome: "You follow a dirt path towards the nearby farm.", stat_deltas: { stamina: -15 }, new_location: 'farm' },
+      { id: 'travel_swamp', label: "Venture towards the Swamps", intent: "travel", outcome: "The trees thin out as the ground grows soggy and foul-smelling.", stat_deltas: { stamina: -20, stress: 10 }, new_location: 'swamp' }
+    ]
+  },
+  'docks': {
+    id: 'docks',
+    name: "The Docks",
+    atmosphere: "foggy, smelling of brine, dead fish, and cheap ale",
+    danger: 30,
+    x: 85, y: 70,
+    npcs: [],
+    description: "Wooden walkways stretch out over the dark, churning waters. Fishermen haul in their catches while workers toil under the harsh gaze of their overseers. It's a rough place, especially at night, when the fog rolls in thick and heavy, obscuring the unsavory deals and violent encounters that take place in the shadows. The smell of brine, dead fish, and cheap ale is inescapable.",
+    actions: [
+      { id: 'fish', label: "Work sorting fish", intent: "work", skill_check: { stat: "stamina", difficulty: 40 }, outcome: "You spend hours covered in fish guts, but you earn your pay.", fail_outcome: "You slip and fall into the freezing, filthy water!", stat_deltas: { stamina: -20, purity: -5 }, fail_stat_deltas: { health: -5, stress: 20, trauma: 5 }, new_items: [{ name: "Gold Coin", type: "misc", rarity: "common", description: "The currency of the realm." }] },
+      { id: 'swim', label: "Swim in the lake", intent: "neutral", outcome: "The water is freezing, but it washes away the grime of the city.", stat_deltas: { stamina: -10, stress: -10, purity: 5 } },
+      { id: 'travel_market', label: "Return to the Town Square", intent: "travel", outcome: "You walk back up the wooden stairs to the city.", stat_deltas: { stamina: -5 }, new_location: 'town_square' }
+    ]
+  },
+  'brothel': {
+    id: 'brothel',
+    name: "The Brothel",
+    atmosphere: "hazy, sweet-smelling, filled with moans and heavy breathing",
+    danger: 70,
+    x: 80, y: 75,
+    npcs: [],
+    description: "A hidden den of iniquity deep within the alleys. Patrons lie on plush velvet cushions, lost in narcotic hazes or engaging in base desires. The air itself makes you feel lightheaded and flushed, thick with the scent of exotic perfumes, sweat, and spilled wine. The lighting is dim and red, casting long, suggestive shadows across the room.",
+    actions: [
+      { id: 'serve_drinks', label: "Serve drinks (and more)", intent: "work", skill_check: { stat: "lust", difficulty: 50 }, outcome: "You navigate the handsy patrons, earning a significant amount of coin, though you feel degraded.", fail_outcome: "A patron gets too aggressive. You manage to escape, but you are shaken and unpaid.", stat_deltas: { stamina: -15, stress: 20, lust: 15, purity: -10, trauma: 5 }, fail_stat_deltas: { pain: 10, stress: 30, trauma: 15, lust: 20 }, new_items: [{ name: "Gold Coin", type: "misc", rarity: "common", description: "The currency of the realm." }, { name: "Gold Coin", type: "misc", rarity: "common", description: "The currency of the realm." }, { name: "Gold Coin", type: "misc", rarity: "common", description: "The currency of the realm." }] },
+      { id: 'travel_alleyways', label: "Flee back to the Alleyways", intent: "flee", outcome: "You stumble out of the hazy den, gasping for cleaner air.", stat_deltas: { stamina: -5, stress: -5 }, new_location: 'alleyways' }
+    ]
+  },
+  'farm': {
+    id: 'farm',
+    name: "The Farm",
+    atmosphere: "smelling of manure, hay, and fresh earth",
+    danger: 15,
+    x: 95, y: 65,
+    npcs: [],
+    description: "A large farm outside the city walls. Fields of wheat stretch out like a golden sea, and large, drafty barns house various livestock. The farmhands are gruff but generally leave you alone if you work hard. The smell of manure, hay, and fresh earth is strong, a stark contrast to the stench of the city alleys.",
+    actions: [
+      { id: 'farm_labor', label: "Do manual labor in the fields", intent: "work", skill_check: { stat: "stamina", difficulty: 50 }, outcome: "Backbreaking work under the sun. You are exhausted but paid.", fail_outcome: "You collapse from the heat. The farmer yells at you and kicks you off the property.", stat_deltas: { stamina: -30, stress: 5 }, fail_stat_deltas: { health: -10, stamina: -40, pain: 10, stress: 15 }, new_items: [{ name: "Gold Coin", type: "misc", rarity: "common", description: "The currency of the realm." }, { name: "Gold Coin", type: "misc", rarity: "common", description: "The currency of the realm." }] },
+      { id: 'travel_wilds', label: "Head into the Forest", intent: "travel", outcome: "You leave the cultivated fields for the untamed forest.", stat_deltas: { stamina: -10 }, new_location: 'forest' }
+    ]
+  },
+  'swamp': {
+    id: 'swamp',
+    name: "The Swamp",
+    atmosphere: "thick, humid, smelling of rot and ancient magic",
+    danger: 80,
+    x: 95, y: 80,
+    npcs: [],
+    description: "The treacherous swamplands. The mud sucks at your boots with every step, and strange, tentacled flora pulse in the gloom. It feels like the land itself is watching you. The air is thick, humid, and smells of rot and ancient, stagnant magic. Unearthly croaks and splashes echo through the mist, warning of the horrors lurking beneath the murky water.",
+    actions: [
+      { id: 'gather_rare_herbs', label: "Search for rare swamp flora", intent: "work", skill_check: { stat: "willpower", difficulty: 70 }, outcome: "You find a glowing mushroom, carefully avoiding the toxic pools.", fail_outcome: "You step into a deep bog! Leeches attach to you before you can scramble out.", stat_deltas: { stamina: -20, stress: 15 }, fail_stat_deltas: { health: -20, pain: 20, stress: 30, trauma: 10, purity: -10 }, new_items: [{ name: "Glowing Mushroom", type: "consumable", rarity: "rare", description: "Pulses with strange energy." }] },
+      { id: 'travel_wilds', label: "Flee back to the Forest", intent: "flee", outcome: "You scramble out of the muck, desperate for solid ground.", stat_deltas: { stamina: -15, stress: -5 }, new_location: 'forest' }
+    ]
+  }
+};
 
+const NPCS: Record<string, any> = {
+  'constance_michel': {
+    id: 'constance_michel',
+    name: "Sister Constance",
+    race: "Human",
+    relationship: 20,
+    description: "The assistant at the orphanage. She is a young woman, barely out of her teens, who tries her best to be kind. However, she is clearly exhausted, overworked, and terrified of Matron Grelod. She often sneaks extra food to the younger children when Grelod isn't looking.",
+    responses: {
+      'social': { narrative_text: "She smiles sadly at you, her eyes darting nervously towards the matron's office. 'Eat quickly, little one. Before she sees you have extra.'", stat_deltas: { stress: -5, willpower: 2 } },
+      'work': { narrative_text: "'Thank you for the help. You're a good child. I'll try to sneak you an extra blanket tonight, it's going to be freezing.'", stat_deltas: { stress: -10, purity: 2 } }
+    }
+  },
+  'grelod_the_kind': {
+    id: 'grelod_the_kind',
+    name: "Matron Grelod",
+    race: "Human",
+    relationship: -50,
+    description: "The headmistress of the orphanage, ironically nicknamed 'The Kind'. A bitter, cruel, and aging woman who takes sadistic pleasure in the suffering of the children in her care. Rumors say she was once a beautiful noblewoman who lost everything, though her current state of perpetual rage makes that hard to believe. She wields a heavy leather belt and a wooden cane, both of which she uses frequently and without hesitation.",
+    responses: {
+      'social': { narrative_text: "She glares at you, her face a mask of pure hatred, spittle flying from her lips. 'Back to work, you lazy, worthless brat! Or it's the belt for you, and no supper!' She raises her cane threateningly.", stat_deltas: { stress: 20, pain: 5, trauma: 5 } },
+      'work': { narrative_text: "She inspects your work with a sneer, running a bony finger over a perfectly clean surface. 'You missed a spot. Do it again, all of it, or you'll sleep in the cellar with the rats!'", stat_deltas: { stamina: -15, stress: 10 } }
+    }
+  },
+  'brynjolf': {
+    id: 'brynjolf',
+    name: "Brynjolf",
+    race: "Human",
+    relationship: 0,
+    description: "A smooth-talking, charismatic rogue who seems to know everyone's business in the town. He usually hangs around the market square, looking for easy marks or potential recruits for his 'organization'. He wears fine, if slightly worn, leather armor.",
+    responses: {
+      'social': { narrative_text: "He leans against a stall, tossing a coin in the air. 'Never done an honest day's work in your life for all that coin you're carrying, eh lass? You've got the look of a survivor.'", stat_deltas: { stress: 5, lust: 5 } },
+      'work': { narrative_text: "He watches you work with an amused expression. 'Keep your hands quick and your eyes open. The alleys are no place for the slow, and neither is this market.'", stat_deltas: { willpower: 5 } }
+    }
+  },
+  'brand_shei': {
+    id: 'brand_shei',
+    name: "Brand-Shei",
+    race: "Elf",
+    relationship: 10,
+    description: "A Dark Elf merchant in the town square. Unlike many others, he seems genuinely kind and fair in his dealings. He sells a variety of exotic goods and often takes pity on the local orphans, occasionally offering them small tasks for decent pay.",
+    responses: {
+      'social': { narrative_text: "He offers a warm, genuine smile. 'Ah, a customer. Or just browsing? Either way, welcome to my humble stall. Stay out of trouble, young one.'", stat_deltas: { stress: -5 } },
+      'work': { narrative_text: "He hands you a small broom. 'I could use a hand organizing these wares and sweeping up, if you're looking for a few honest coins.'", stat_deltas: { stamina: -10 } }
+    }
+  }
+};
+
+const AGE_APPEARANCE: Record<number, string> = {
+  8: "A small, waifish child with wide eyes and a perpetually soot-stained face.",
+  9: "Slightly taller, but still thin. Your features are beginning to lose their infant softness.",
+  10: "Your limbs are growing long and gangly. You move with a nervous, bird-like energy.",
+  11: "The first hints of adolescence appear. Your voice cracks occasionally.",
+  12: "You are starting to fill out, though the orphanage diet keeps you lean.",
+  13: "A growth spurt has left you clumsy. Your face is becoming more defined.",
+  14: "You carry yourself with more confidence. Your eyes have seen too much for your age.",
+  15: "Nearly adult height. Your muscles are wiry from years of chores.",
+  16: "A young adult. You have the hard look of someone who has survived the streets of the town.",
+  17: "You are coming into your own, your body maturing despite the harsh conditions.",
+  18: "Fully grown, bearing the scars and beauty of your experiences."
+};
+
+const BASIC_ITEMS: Record<string, any> = {
+  'bread_crust': { id: 'bread_crust', name: "Stale Bread Crust", type: 'consumable', rarity: 'common', description: "Hard as a rock and speckled with mold, but hunger makes it a feast. It's the standard ration at the orphanage, barely enough to keep a child alive.", value: 1, weight: 0.1, stats: { health: 2, stamina: 5 } },
+  'coin': { id: 'coin', name: "Gold Coin", type: 'misc', rarity: 'common', description: "The currency of the realm. Cold, hard, and necessary. It bears the faded profile of a long-dead emperor, a reminder of the empire's waning influence.", value: 1, weight: 0.01 },
+  'wooden_sword': { id: 'wooden_sword', name: "Wooden Sword", type: 'weapon', rarity: 'common', description: "A child's toy, splintered and worn from countless imaginary battles. It offers little protection, but holding it brings a fleeting sense of courage.", value: 2, weight: 1, stats: { willpower: 5 } },
+  'blue_mountain_flower': { id: 'blue_mountain_flower', name: "Blue Mountain Flower", type: 'consumable', rarity: 'common', description: "A common flower with minor restorative properties. Its petals are a vibrant, unnatural blue, hinting at the latent magic that permeates the land.", value: 2, weight: 0.1, stats: { health: 5, purity: 1 } },
+  'glowing_mushroom': { id: 'glowing_mushroom', name: "Glowing Mushroom", type: 'consumable', rarity: 'uncommon', description: "A strange, bioluminescent mushroom found in damp caves and cellars. It hums with faint, unsettling magic that makes your skin prickle when you hold it.", value: 5, weight: 0.2, stats: { health: -5, lust: 10, corruption: 2 } },
+  'rusty_iron_dagger': { id: 'rusty_iron_dagger', name: "Rusty Iron Dagger", type: 'weapon', rarity: 'common', description: "A discarded, rusted blade found in the muck. The edge is dull, chipped, and stained with questionable brown spots. It's barely sharp enough to cut cheese, but gripping its worn, sweat-stained leather hilt gives you a slight sense of security in these dark alleys. It smells faintly of old blood, rust, and desperation.", value: 5, weight: 2, stats: { willpower: 10 } },
+  'threadbare_tunic': { id: 'threadbare_tunic', name: "Threadbare Tunic", type: 'clothing', rarity: 'common', description: "A simple, coarse wool tunic. It's thin, itchy, and offers almost no protection from the cold or anything else. It smells faintly of sweat and the desperate, cramped conditions of the orphanage. Wearing it immediately marks you as someone of low social standing.", value: 1, weight: 0.5 },
+  'strange_amulet': { id: 'strange_amulet', name: "Strange Amulet", type: 'misc', rarity: 'rare', description: "A heavy, cold metal amulet depicting an eye surrounded by tentacles. It whispers to you in the dark when you try to sleep.", value: 50, weight: 0.5, stats: { willpower: -5, corruption: 5 } },
+  'healing_poultice': { id: 'healing_poultice', name: "Healing Poultice", type: 'consumable', rarity: 'uncommon', description: "A foul-smelling paste made of crushed herbs and mud. It burns when applied, but it closes wounds quickly.", value: 10, weight: 0.5, stats: { health: 20, pain: -10 } }
+};
+
+const ENCOUNTERS = [
+  {
+    id: 'alley_mugger',
+    condition: (state: GameState) => state.world.current_location.danger > 20 && state.world.current_location.id !== 'swamp',
+    outcome: "A rough-looking thug blocks your path, eyeing you up and down with a predatory grin."
+  },
+  {
+    id: 'tentacle_ambush',
+    condition: (state: GameState) => state.world.current_location.id === 'swamp' || state.world.current_location.id === 'docks',
+    outcome: "The dark water suddenly churns. Thick, slimy tentacles erupt from the depths, wrapping around your ankles and pulling you down!"
+  },
+  {
+    id: 'creepy_noble',
+    condition: (state: GameState) => state.world.current_location.id === 'town_square' || state.world.current_location.id === 'temple_gardens',
+    outcome: "A finely dressed noble approaches you. They smell of expensive perfume and wine. 'You look lost, little one. Why don't you come with me?' they purr, reaching out to stroke your hair."
+  },
+  {
+    id: 'stray_dog',
+    condition: (state: GameState) => state.world.current_location.id === 'alleyways' || state.world.current_location.id === 'town_square',
+    outcome: "A mangy, feral dog growls at you from the shadows, baring its yellowed teeth. It looks starved and desperate."
+  },
+  {
+    id: 'drunken_sailor',
+    condition: (state: GameState) => state.world.current_location.id === 'docks' || state.world.current_location.id === 'brothel',
+    outcome: "A burly sailor stumbles out of a tavern, reeking of cheap ale. He spots you and lurches forward, his hands grasping clumsily."
+  },
+  {
+    id: 'corrupt_guard',
+    condition: (state: GameState) => state.world.current_location.id === 'town_square' || state.world.current_location.id === 'alleyways',
+    outcome: "A town guard stops you, his hand resting menacingly on his sword hilt. 'You're out late. Maybe we can come to an... arrangement,' he sneers."
+  },
+  {
+    id: 'wild_boar',
+    condition: (state: GameState) => state.world.current_location.id === 'forest' || state.world.current_location.id === 'farm',
+    outcome: "A massive wild boar bursts from the underbrush, its tusks gleaming. It snorts angrily and charges straight at you!"
+  },
+  {
+    id: 'shadowy_cultist',
+    condition: (state: GameState) => state.world.current_location.id === 'temple_gardens' || state.world.current_location.id === 'swamp',
+    outcome: "A figure in dark, tattered robes steps out from the gloom. They chant in a guttural, forgotten language, their eyes glowing with unnatural fervor."
+  }
+];
+
+// --- Procedural Generation ---
+const ITEM_PREFIXES = ["Torn", "Soiled", "Fine", "Silken", "Blessed", "Cursed", "Gilded", "Sturdy", "Fragile", "Mystic", "Seductive", "Revealing"];
+const ITEM_SUFFIXES = ["of the Maiden", "of the Harlot", "of Agony", "of Grace", "of the Wastes", "of the Goddess", "of the Demon", "of the Thief"];
+
+function generateProceduralItem(level: number, type?: Item['type']): Item {
+  const types: Item['type'][] = ['weapon', 'armor', 'consumable', 'misc', 'clothing'];
+  const selectedType = type || types[Math.floor(Math.random() * types.length)];
+  const rarityRoll = Math.random() * 100;
+  let rarity: Item['rarity'] = 'common';
+  if (rarityRoll > 99) rarity = 'mythic';
+  else if (rarityRoll > 95) rarity = 'legendary';
+  else if (rarityRoll > 85) rarity = 'epic';
+  else if (rarityRoll > 70) rarity = 'rare';
+  else if (rarityRoll > 40) rarity = 'uncommon';
+
+  const prefix = ITEM_PREFIXES[Math.floor(Math.random() * ITEM_PREFIXES.length)];
+  const suffix = ITEM_SUFFIXES[Math.floor(Math.random() * ITEM_SUFFIXES.length)];
+  
+  let name = "";
+  let slot: Item['slot'];
+  
+  if (selectedType === 'clothing') {
+    const slots: Item['slot'][] = ['head', 'neck', 'shoulders', 'chest', 'underwear', 'legs', 'feet', 'hands', 'waist'];
+    slot = slots[Math.floor(Math.random() * slots.length)];
+    const clothingNames = {
+      head: "Hood", neck: "Choker", shoulders: "Shawl", chest: "Corset", 
+      underwear: "Panties", legs: "Stockings", feet: "Heels", hands: "Gloves", waist: "Garter"
+    };
+    name = `${prefix} ${clothingNames[slot!]} ${suffix}`;
+  } else if (selectedType === 'weapon') {
+    const weapons = ["Dagger", "Whip", "Crop", "Staff", "Shiv"];
+    name = `${prefix} ${weapons[Math.floor(Math.random() * weapons.length)]} ${suffix}`;
+  } else if (selectedType === 'consumable') {
+    const consumables = ["Potion", "Elixir", "Wine", "Bread", "Apple"];
+    name = `${prefix} ${consumables[Math.floor(Math.random() * consumables.length)]}`;
+  } else {
+    name = `${prefix} Trinket ${suffix}`;
+  }
+
+  return {
+    id: Math.random().toString(36).substr(2, 9),
+    name,
+    type: selectedType,
+    slot,
+    rarity,
+    description: `A ${rarity} ${selectedType} found in the world.`,
+    value: Math.floor(level * 10 * (rarityRoll / 10)),
+    weight: Math.random() * 5,
+    integrity: 100,
+    max_integrity: 100,
+    stats: {
+      allure: rarity === 'mythic' || rarity === 'legendary' ? 20 : (rarity === 'epic' ? 10 : 0),
+      health: rarity === 'legendary' ? 50 : 0,
+      lust: rarity === 'mythic' ? 15 : 0
+    }
+  };
+}
+
+// --- Initial State ---
+const initialState: GameState = {
+  player: {
+    identity: { name: "Vael", race: "Human", birthsign: "The Thief", origin: "Orphan", gender: "female" },
+    stats: { 
+      health: 80, max_health: 100, 
+      willpower: 90, max_willpower: 100, 
+      stamina: 70, max_stamina: 100, 
+      lust: 0, trauma: 10, hygiene: 40, corruption: 0, allure: 5,
+      arousal: 0, pain: 5, control: 80, stress: 20, hallucination: 0, purity: 100
+    },
+    skills: { seduction: 0, athletics: 5, skulduggery: 10, swimming: 0, dancing: 0, housekeeping: 15, school_grades: 50 },
+    psych_profile: { submission_index: 20, cruelty_index: 0, exhibitionism: 0, promiscuity: 0 },
+    afflictions: [],
+    clothing: {
+      head: null, neck: null, shoulders: null, chest: null, underwear: null, legs: null, feet: null, hands: null, waist: null
+    },
+    inventory: [
+      {
+        id: 'orphan-rags',
+        name: "Threadbare Tunic",
+        type: 'clothing',
+        slot: 'chest',
+        rarity: 'common',
+        description: "A coarse, itchy wool tunic that has been patched a dozen times with mismatched thread. It barely covers you, offering little protection from the cold or prying eyes. It smells faintly of lye, sweat, and the damp desperation of the orphanage. Wearing it marks you as one of the lowest in society.",
+        lore: "Woven from the cheapest flax and wool scraps discarded by the city's tailors, these tunics are the standard issue for wards of the state. The matron of the orphanage claims they build character through discomfort. Many orphans believe the coarse fabric is intentionally chosen to make them easier to grab and harder to ignore. The mismatched patches tell a silent history of previous owners who either aged out, escaped, or succumbed to the harsh winters.",
+        value: 1,
+        weight: 0.5,
+        integrity: 60,
+        max_integrity: 100,
+        is_equipped: true
+      },
+      {
+        id: 'amulet-of-mara',
+        name: "Amulet of Mara",
+        type: 'misc',
+        rarity: 'epic',
+        description: "A golden amulet bearing the knotwork symbol of Mara, Goddess of Love. It feels warm to the touch.",
+        lore: "In the ancient traditions, wearing an Amulet of Mara signals that you are open to courtship and marriage. It is said that the Goddess herself blesses unions formed under her symbol, granting the couple resilience against the harshness of the world.",
+        value: 150,
+        weight: 0.1,
+        special_effect: "You feel a warm, comforting presence. Your heart opens to the possibility of love."
+      },
+      {
+        id: 'healing-poultice',
+        name: "Healing Poultice",
+        type: 'consumable',
+        rarity: 'common',
+        description: "A foul-smelling paste made of crushed herbs and mud. It stings when applied but promotes rapid healing.",
+        value: 15,
+        weight: 0.2,
+        stats: { health: 25 },
+        special_effect: "The stinging sensation quickly fades into a soothing coolness."
+      }
+    ],
+    anatomy: { 
+      height: "small", build: "waifish", metabolism: "fast", healer: "normal", sleep: "light", gut: "sensitive", bones: "fragile", flexibility: "normal", blood: "normal", vision: "normal", skin: "pale", pheromones: "neutral", visage: "innocent", temp_pref: "warmth", injuries: [],
+      organs: { heart: 100, lungs: 100, stomach: 100, liver: 100, kidneys: 100 },
+      bones_integrity: { skull: 100, spine: 100, ribs: 100, arms: 100, legs: 100 }
+    },
+    psychology: { outlook: "hopeful", innate: "submissive", paranoia: 0.1, empathy: 0.9, psychopathy: 0.0, phobias: ["darkness"], touch_starved: true, sexuality: "unknown", stoic: false, fragile_ego: true },
+    perks_flaws: { hidden_pockets: false, silver_tongue: false, nimble_fingers: true, danger_sense: false, animal_whisperer: true, green_thumb: false, eidetic_memory: false, debt_ridden: false, hunted: false, cursed: false, addictive_personality: false, mute: false, blind_one_eye: false, frail: true, unlucky: false },
+    social: { wanted_sibling: false, betrothed: false, exiled: false, guild_member: false, town_pariah: false },
+    cosmetics: { hair_length: "shaggy", eye_color: "blue", skin_tone: "fair", tattoos: [], piercings: [], posture: "cautious", scars: [], voice_pitch: "high", scent: "dust and lye", literacy: false, dominant_hand: "right", resting_hr: 75, blushing: true, body_mods: [], true_name: "Vael" },
+    arcane: { spells: [], magicka_overcharge: false, blood_vials: 0, true_sight: false, telepathy_unlocked: false, toxicity: 0, withdrawal_timer: 0, soul_gems: 0, tattoos: [], corruption_taint: 0, astral_projection: false },
+    justice: { suspicion: 0, bounty: 0, evidence_left: 0, jail_sentence: 0, contraband_slots: 0, fence_reputation: 0, black_book_debt: 0, banishment: false, extortion_targets: [] },
+    companions: { active_party: [], roster: [], max_encumbrance_bonus: 0 },
+    base: { owned: false, location: "none", furniture: [], bed_tier: 0, security_tier: 0, storage: [], alchemy_station: false, bathhouse: false, garden_plot: { planted: false, days_left: 0 }, captive_cell: [], secret_exit: false, property_taxes_due: 0, infestations: false, mannequins: [], library: false, shrine: false },
+    subconscious: { rem_phase: 0, lucid_dreaming: false, sleep_paralysis: false, prophetic_dreams: [], trauma_demons_defeated: [], insomnia: 0, dreamless_potions: 0, coma_days: 0, dream_journal: [] },
+    biology: { cycle_day: 1, heat_rut_active: false, parasites: [], incubations: [], cravings: [], exhaustion_multiplier: 1.0, post_partum_debuff: 0, sterility: false },
+    life_sim: {
+      needs: { hunger: 100, thirst: 100, energy: 100, hygiene: 100, social: 100 },
+      schedule: { work: null, leisure: null, sleep: null }
+    },
+    age_days: 6570, // 18 years
+    avatar_url: null,
+    quests: [
+      { id: 'q1', title: 'Survive the Orphanage', description: 'Find a way to escape the Town Orphanage and the clutches of the matron.', status: 'active' }
+    ]
+  },
+  world: {
+    day: 1, hour: 7, weather: "Foggy",
+    current_location: LOCATIONS.orphanage,
+    macro_events: [],
+    local_tension: 0.1,
+    aggression_counter: 0,
+    active_world_events: [],
+    turn_count: 0,
+    last_intent: null,
+    economy: { inflation: 1.0, shortages: [], caravans: false, taxation: 0, black_market: "active", currency_value: 1.0, smuggling: "open", bounties: 0, property_values: "low", resource_depletion: 0, businesses: [], staff: [], tavern_owned: false, brothel_owned: false, business_reputation: 0, advertising_days: 0, rival_businesses: false, vault_balance: 0 },
+    ecology: { predator_pop: "low", flora: "urban", herb_regrowth: 0, animal_migration: "none", disease: "none", water: "stagnant", soil: "none", weather_spawns: "inactive", lunar: "waxing", eclipse: false },
+    factions: { guild_wars: false, guard_patrols: "high", cult_uprisings: false, noble_feuds: false, peasant_rebellions: false, religious_schisms: false, bandit_expansion: false, smuggler_cartels: false, beggar_syndicates: true, assassin_contracts: false },
+    npc_state: { waking: true, working: true, tavern: false, guard_shifts: "day", market: "open", church: false, secret_meetings: false, rivalries: "active", romance: "dormant", mortality: "enabled" },
+    meta_events: { plague: false, royal_assassination: false, demonic_invasion: false, festival: false, conscription: false, witch_hunt: false, economic_crash: false, refugee_crisis: false, crusade: false, beast_sighting: false },
+    settlement: { construction: "none", destruction: "none", sanitation: "poor", laws: ["curfew"], executions: false, elections: false, town_criers: "active", wanted_posters: "none", fame: 0, prophecies: "none" },
+    ambient: { tide: "none", constellations: "The Thief", crop_yields: "none", temp_gradient: "chilly", wind_direction: "east", mud: "low", blood_washing: false, corpse_rot: "none", metal_rusting: false, structure_aging: "slow" },
+    arcane: { leyline_nodes: [], demonic_pacts: [], wild_magic_chance: 0.01, void_shift_active: false, sacrificial_altars: [] },
+    justice: { wanted_posters: false, jail_hub_active: false, pillory_event: false, undercover_guards: false, assassination_contracts: [], jailbreak_event: false, chain_gang: false, courtroom_trial: false, execution_sequence: false },
+    dreamscape: { active: false, nightmare_cascade: false, shared_dreams: [], reality_blurring: false, dream_merchant_present: false },
+    ascension_state: 'none',
+    director_cut: false,
+    active_encounter: null
+  },
+  memory_graph: ["You are an orphan in the Town Orphanage. Life is hard, but you are learning to survive."],
+  ui: {
+    isPollingText: false,
+    isPollingImage: false,
+    isGeneratingAvatar: false,
+    currentLog: [{ text: "The morning bell clangs, its harsh sound echoing through the cold stone halls of the Orphanage. You shiver in your thin clothes, the damp mist of the town seeping through the cracks in the walls. The other children are already moving between the beds, whispering to wake up before the matron arrives.", type: 'narrative' }],
+    currentImage: null,
+    choices: LOCATIONS.orphanage.actions.map((a: any) => {
+      if (a.skill_check) {
+        const statValue = 80; // Default stat value for initial state (e.g., control) or we can just use a default chance
+        // Actually, let's calculate based on the initial stats
+        const initialStats: any = { health: 80, willpower: 90, stamina: 70, lust: 0, trauma: 10, hygiene: 40, corruption: 0, allure: 5, arousal: 0, pain: 5, control: 80, stress: 20, hallucination: 0, purity: 100 };
+        const val = initialStats[a.skill_check.stat] || 0;
+        const chance = Math.min(100, Math.max(5, (val / a.skill_check.difficulty) * 50 + 25));
+        return { ...a, successChance: Math.round(chance) };
+      }
+      return a;
+    }),
+    apiKey: process.env.GEMINI_API_KEY || "",
+    hordeApiKey: DEFAULT_API_KEY,
+    ui_scale: 1,
+    fullscreen: false,
+    ambient_audio: true,
+    haptics_enabled: true,
+    accessibility_mode: false,
+    last_stat_deltas: null,
+    show_stats: false,
+    show_inventory: false,
+    show_map: false,
+    show_quests: false,
+    show_save_load: false,
+    show_xray: false,
+    highlighted_part: null,
+    targeted_part: null,
+    combat_animation: null,
+    horde_status: null,
+    horde_monitor: {
+      active: false,
+      text_requests: 0,
+      image_requests: 0,
+      text_eta: 0,
+      image_eta: 0,
+      text_initial_eta: 0,
+      image_initial_eta: 0,
+      text_generation_chance: 10, // 10% base chance
+      image_generation_chance: 20 // 20% base chance
+    },
+    selectedTextModel: "aphrodite/TheBloke/MythoMax-L2-13B-AWQ",
+    selectedImageModel: "AlbedoBase XL (SDXL)",
+    settings: {
+      encounter_rate: 50,
+      stat_drain_multiplier: 1.0,
+      enable_parasites: true,
+      enable_pregnancy: true,
+      enable_extreme_content: false
+    }
+  }
+};
+
+// --- Reducer ---
 function gameReducer(state: GameState, action: any): GameState {
   switch (action.type) {
     case 'SET_PLAYER_AVATAR':
@@ -531,6 +1184,16 @@ function gameReducer(state: GameState, action: any): GameState {
         ...state,
         ui: { ...state.ui, [action.payload.key]: action.payload.value }
       };
+    case 'SET_COMBAT_ANIMATION':
+      return {
+        ...state,
+        ui: { ...state.ui, combat_animation: action.payload }
+      };
+    case 'SET_TARGETED_PART':
+      return {
+        ...state,
+        ui: { ...state.ui, targeted_part: action.payload }
+      };
     case 'UPDATE_SETTING':
       return {
         ...state,
@@ -556,23 +1219,13 @@ function gameReducer(state: GameState, action: any): GameState {
         return state;
       }
     case 'START_NEW_GAME':
-      const newGameState = {
+      return {
         ...initialState,
         world: {
           ...initialState.world,
           director_cut: action.payload.directorCut || false
         }
       };
-      
-      if (action.payload.player) {
-        newGameState.player = {
-          ...newGameState.player,
-          ...action.payload.player,
-          identity: { ...newGameState.player.identity, ...action.payload.player.identity },
-          cosmetics: { ...newGameState.player.cosmetics, ...action.payload.player.cosmetics }
-        };
-      }
-      return newGameState;
     case 'LOAD_GAME':
       return action.payload;
     case 'TOGGLE_MAGICKA_OVERCHARGE':
@@ -671,16 +1324,20 @@ async function generateText(prompt: string, apiKey: string, hordeApiKey: string,
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout for initial request
     
-    const res = await fetch(`${STABLE_API}/generate/text/async`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'apikey': hordeApiKey || DEFAULT_API_KEY },
-      body: JSON.stringify({
+    const body: any = {
         prompt: enhancedPrompt,
-        models: [model || "aphrodite/TheBloke/MythoMax-L2-13B-AWQ"],
         params: { max_context_length: 8192, max_length: 600, temperature: 0.75 }
-      }),
-      signal: controller.signal
-    });
+      };
+      if (model) {
+        body.models = [model];
+      }
+      
+      const res = await fetch(`${STABLE_API}/generate/text/async`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'apikey': hordeApiKey || DEFAULT_API_KEY },
+        body: JSON.stringify(body),
+        signal: controller.signal
+      });
     
     clearTimeout(timeoutId);
 
@@ -770,16 +1427,20 @@ async function generateImage(prompt: string, apiKey: string, hordeApiKey: string
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 10000);
     
-    const res = await fetch(`${STABLE_API}/generate/async`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'apikey': hordeApiKey || DEFAULT_API_KEY },
-      body: JSON.stringify({
+    const body: any = {
         prompt,
-        models: [model || "AlbedoBase XL (SDXL)"],
         params: { width: 512, height: 512, steps: 20 }
-      }),
-      signal: controller.signal
-    });
+      };
+      if (model) {
+        body.models = [model];
+      }
+      
+      const res = await fetch(`${STABLE_API}/generate/async`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'apikey': hordeApiKey || DEFAULT_API_KEY },
+        body: JSON.stringify(body),
+        signal: controller.signal
+      });
     
     clearTimeout(timeoutId);
 
@@ -1188,32 +1849,6 @@ function useEncounterBuffer(state: GameState) {
   return buffer;
 }
 
-const TypewriterText = ({ text, speed, className }: { text: string, speed: number, className?: string }) => {
-  const [displayedText, setDisplayedText] = useState('');
-  const [isTyping, setIsTyping] = useState(true);
-  
-  useEffect(() => {
-    setDisplayedText('');
-    setIsTyping(true);
-    let i = 0;
-    const interval = setInterval(() => {
-      setDisplayedText(prev => text.substring(0, prev.length + 1));
-      i++;
-      if (i >= text.length) {
-        clearInterval(interval);
-        setIsTyping(false);
-      }
-    }, speed);
-    return () => clearInterval(interval);
-  }, [text, speed]);
-
-  return (
-    <span className={className}>
-      {displayedText}
-      {isTyping && <motion.span animate={{ opacity: [1, 0] }} transition={{ repeat: Infinity, duration: 0.8 }} className="inline-block w-2 h-4 ml-1 bg-white/50 align-middle" />}
-    </span>
-  );
-};
 
 const SemanticText = ({ text, className }: { text: string, className?: string }) => {
   // Regex auto-colors keywords
@@ -1269,6 +1904,7 @@ const FloatingDeltas = ({ deltas, onComplete }: { deltas: Partial<Record<StatKey
 // --- Main Component ---
 import { ImmersiveStartMenu } from './components/ImmersiveStartMenu';
 import { EncounterUI } from './components/EncounterUI';
+import { NarrativeLog } from './components/NarrativeLog';
 import { saveGame } from './utils/saveManager';
 
 const SettingsContext = createContext<any>(null);
@@ -1543,9 +2179,22 @@ function App({ state, dispatch }: { state: GameState, dispatch: React.Dispatch<a
     }
   };
 
-  const handleAction = async (actionText: string, intent?: string, actionId?: string) => {
+  const handleAction = async (actionText: string, intent?: string, targetedPart?: string, actionId?: string) => {
     if (state.ui.isPollingText) return;
     
+    const triggerCombatFeedback = (animation: string, showXRay: boolean = false, highlightedPart: string | null = null) => {
+      dispatch({ type: 'SET_COMBAT_ANIMATION', payload: animation });
+      setTimeout(() => dispatch({ type: 'SET_COMBAT_ANIMATION', payload: null }), 1000);
+      if (showXRay) {
+        dispatch({ type: 'TOGGLE_UI_SETTING', payload: { key: 'show_xray', value: true } });
+        dispatch({ type: 'TOGGLE_UI_SETTING', payload: { key: 'highlighted_part', value: highlightedPart } });
+        setTimeout(() => {
+          dispatch({ type: 'TOGGLE_UI_SETTING', payload: { key: 'show_xray', value: false } });
+          dispatch({ type: 'TOGGLE_UI_SETTING', payload: { key: 'highlighted_part', value: null } });
+        }, 2000);
+      }
+    };
+
     dispatch({ type: 'START_TURN', payload: { actionText, intent } });
 
     if (state.world.active_encounter) {
@@ -1566,11 +2215,28 @@ function App({ state, dispatch }: { state: GameState, dispatch: React.Dispatch<a
       if (intent === 'aggressive') {
         const athletics = state.player.skills?.athletics || 0;
         const damage = Math.floor(Math.random() * 20) + 10 + Math.floor(athletics / 10) + (hasAquaticPredator && state.world.current_location.name.includes('Water') ? 10 : 0);
+        
+        triggerCombatFeedback(damage > 25 ? 'special_attack' : 'attack', damage > 20, damage > 25 ? 'heart' : 'ribs');
+
         encounterUpdates.enemy_health = Math.max(0, encounter.enemy_health - damage);
         encounterUpdates.enemy_anger = Math.min(100, encounter.enemy_anger + 15);
+        
+        if (targetedPart) {
+          if (targetedPart === 'legs') {
+            encounterUpdates.debuffs = [...(encounter.debuffs || []), { type: 'slowed', duration: 2 }];
+            narrative = `You hit their legs, slowing them down! Dealing ${damage} damage!`;
+          } else if (targetedPart === 'arms') {
+            encounterUpdates.debuffs = [...(encounter.debuffs || []), { type: 'weakened', duration: 2 }];
+            narrative = `You hit their arms, weakening their attacks! Dealing ${damage} damage!`;
+          } else {
+            narrative = `You struggle fiercely, dealing ${damage} damage!`;
+          }
+        } else {
+          narrative = `You struggle fiercely, dealing ${damage} damage!`;
+        }
+
         stat_deltas.stamina = -10;
         skill_deltas.athletics = 1;
-        narrative = `You struggle fiercely, dealing ${damage} damage!`;
         if (encounterUpdates.enemy_health <= 0) {
           narrative += " The enemy is defeated!";
           endEncounter = true;
@@ -1580,6 +2246,7 @@ function App({ state, dispatch }: { state: GameState, dispatch: React.Dispatch<a
           stat_deltas.pain = 10;
         }
       } else if (intent === 'submissive') {
+        triggerCombatFeedback('lust_action', false, null);
         encounterUpdates.enemy_lust = Math.min(100, encounter.enemy_lust + 20);
         encounterUpdates.enemy_anger = Math.max(0, encounter.enemy_anger - 10);
         stat_deltas.stress = 15;
@@ -1591,6 +2258,7 @@ function App({ state, dispatch }: { state: GameState, dispatch: React.Dispatch<a
           endEncounter = true;
         }
       } else if (intent === 'social') {
+        triggerCombatFeedback('spellcast', false, null);
         const seduction = state.player.skills?.seduction || 0;
         const seduceChance = ((state.player.stats.allure || 10) + seduction + (hasAcrobaticLover ? 20 : 0)) / 200;
         if (Math.random() < seduceChance) {
@@ -1609,6 +2277,7 @@ function App({ state, dispatch }: { state: GameState, dispatch: React.Dispatch<a
         }
         stat_deltas.lust = 5;
       } else if (intent === 'flee') {
+        triggerCombatFeedback('dodge', false, null);
         const athletics = state.player.skills?.athletics || 0;
         const fleeChance = ((state.player.stats.stamina || 50) + athletics + (hasShadowWalker ? 30 : 0)) / 200;
         if (Math.random() < fleeChance) {
@@ -1688,7 +2357,9 @@ function App({ state, dispatch }: { state: GameState, dispatch: React.Dispatch<a
           enemy_max_anger: 100,
           player_stance: 'neutral',
           turn: 1,
-          log: []
+          log: [],
+          debuffs: [],
+          targeted_part: null
         };
 
         dispatch({ type: 'SET_ACTIVE_ENCOUNTER', payload: activeEncounter });
@@ -1915,6 +2586,21 @@ Example: { "health": 50, "allure": 20 }`;
     }
   };
 
+  useEffect(() => {
+    const handleResize = () => {
+      const width = window.innerWidth;
+      const baseWidth = 1920; 
+      const scale = width / baseWidth;
+      const clampedScale = Math.max(0.7, Math.min(1.2, scale));
+      dispatch({ type: 'TOGGLE_UI_SETTING', payload: { key: 'ui_scale', value: clampedScale } });
+    };
+    
+    window.addEventListener('resize', handleResize);
+    handleResize();
+    
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
   if (!hasStarted) {
     return <ImmersiveStartMenu onStartGame={handleStartGame} onLoadGame={handleLoadGame} />;
   }
@@ -1948,6 +2634,14 @@ Example: { "health": 50, "allure": 20 }`;
             >
               <ShoppingBag className="w-4 h-4 text-white/40 group-hover:text-white/80" />
               <span className="text-[10px] tracking-widest uppercase text-white/50 group-hover:text-white/90">Possessions</span>
+            </motion.button>
+            <motion.button 
+              whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
+              onClick={() => dispatch({ type: 'TOGGLE_UI_SETTING', payload: { key: 'show_xray', value: true } })}
+              className="group flex items-center gap-2 px-3 py-1.5 border border-white/10 hover:border-white/30 transition-all rounded-sm"
+            >
+              <Eye className="w-4 h-4 text-white/40 group-hover:text-white/80" />
+              <span className="text-[10px] tracking-widest uppercase text-white/50 group-hover:text-white/90">X-Ray</span>
             </motion.button>
             <motion.button 
               whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
@@ -2200,30 +2894,7 @@ Example: { "health": 50, "allure": 20 }`;
           
           {/* Log Area */}
           <div className="flex-1 overflow-y-auto p-8 flex flex-col gap-6 scrollbar-hide" ref={logRef}>
-            {state.ui.currentLog.slice(-20).map((log, i) => {
-              const isLast = i === Math.min(state.ui.currentLog.length, 20) - 1;
-              const isNarrative = log.type === 'narrative';
-              const isAction = log.type === 'action';
-              const isSystem = log.type === 'system';
-              // Speed scales with trauma (higher trauma = faster/more erratic text)
-              const typeSpeed = Math.max(5, 30 - (state.player.stats.trauma / 4));
-              
-              return (
-                <motion.div 
-                  key={i}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className={`relative ${isNarrative ? `text-white/80 ${state.ui.accessibility_mode ? 'font-sans' : 'font-serif'} text-lg leading-relaxed` : isAction ? 'text-emerald-400/80 text-sm tracking-wide italic border-l-2 border-emerald-500/30 pl-4 py-1 bg-emerald-950/10' : 'text-blue-400/80 text-xs tracking-widest uppercase border border-blue-900/30 px-3 py-2 bg-blue-950/10 rounded-sm inline-block self-start'}`}
-                >
-                  {isAction && <div className="absolute -left-[5px] top-1/2 -translate-y-1/2 w-2 h-2 rounded-full bg-emerald-500/50" />}
-                  {isLast && isNarrative ? (
-                    <TypewriterText text={log.text} speed={typeSpeed} />
-                  ) : (
-                    <SemanticText text={log.text} />
-                  )}
-                </motion.div>
-              );
-            })}
+            <NarrativeLog logs={state.ui.currentLog} trauma={state.player.stats.trauma} accessibilityMode={state.ui.accessibility_mode} />
             
             {/* Afflictions */}
             {state.player.afflictions.length > 0 && (
@@ -2265,7 +2936,7 @@ Example: { "health": 50, "allure": 20 }`;
                 <EncounterUI 
                   encounter={state.world.active_encounter} 
                   playerStats={state.player.stats} 
-                  onAction={(action, intent) => handleAction(action, intent)} 
+                  onAction={(action, intent, part) => handleAction(action, intent, part)} 
                 />
               ) : (
                 <>
@@ -2884,8 +3555,57 @@ Example: { "health": 50, "allure": 20 }`;
         )}
       </AnimatePresence>
 
-      {/* Settings Modal */}
-      {/* Stats Modal */}
+      {/* Combat Animation Overlay */}
+      <AnimatePresence>
+        {state.ui.combat_animation && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.5, rotate: -20 }}
+            animate={{ opacity: 1, scale: 1.5, rotate: 0 }}
+            exit={{ opacity: 0, scale: 2, rotate: 20 }}
+            className="absolute inset-0 z-50 flex items-center justify-center pointer-events-none"
+          >
+            <div className="relative">
+              {state.ui.combat_animation === 'attack' && (
+                <div className="w-96 h-4 bg-gradient-to-r from-transparent via-red-500 to-transparent blur-md rotate-45" />
+              )}
+              {state.ui.combat_animation === 'special_attack' && (
+                <div className="w-96 h-8 bg-gradient-to-r from-transparent via-orange-500 to-transparent blur-xl rotate-45 animate-pulse" />
+              )}
+              {state.ui.combat_animation === 'dodge' && (
+                <div className="w-64 h-64 border-4 border-white/30 rounded-full animate-ping" />
+              )}
+              {state.ui.combat_animation === 'spellcast' && (
+                <div className="w-64 h-64 bg-blue-500/30 rounded-full blur-3xl animate-pulse" />
+              )}
+              {state.ui.combat_animation === 'lust_action' && (
+                <div className="w-64 h-64 bg-pink-500/30 rounded-full blur-3xl animate-pulse" />
+              )}
+              {state.ui.combat_animation === 'parry' && (
+                <div className="w-32 h-32 border-8 border-yellow-500 rounded-full animate-ping" />
+              )}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* X-Ray Modal */}
+      <AnimatePresence>
+        {state.ui.show_xray && (
+          <motion.div 
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="absolute inset-0 z-50 bg-black/90 backdrop-blur-xl flex items-center justify-center p-4"
+          >
+            <motion.div 
+              initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }}
+              className="max-w-2xl w-full relative"
+            >
+              <button onClick={() => dispatch({ type: 'TOGGLE_UI_SETTING', payload: { key: 'show_xray', value: false } })} className="absolute top-6 right-6 text-white/40 hover:text-white z-10"><X className="w-6 h-6" /></button>
+              <XRayView anatomy={state.player.anatomy} highlightedPart={state.ui.highlighted_part || undefined} />
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+            {/* Stats Modal */}
       <AnimatePresence>
         {state.ui.show_stats && (
           <motion.div 
