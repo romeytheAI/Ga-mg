@@ -6,6 +6,7 @@ import {
   BookOpen, Trophy, BarChart2, MessageSquare, AlertTriangle, Check
 } from 'lucide-react';
 import { getAllSaves, loadGame, deleteSave, SaveSlot } from '../utils/saveManager';
+import { CharacterCreation } from './CharacterCreation';
 
 interface ImmersiveStartMenuProps {
   onStartGame: (config: any) => void;
@@ -40,6 +41,8 @@ export const ImmersiveStartMenu: React.FC<ImmersiveStartMenuProps> = ({ onStartG
   const [sandboxPrompt, setSandboxPrompt] = useState('');
   const [sandboxResponse, setSandboxResponse] = useState('');
   const [isTestingPrompt, setIsTestingPrompt] = useState(false);
+  const [showCharacterCreation, setShowCharacterCreation] = useState(false);
+  const [pendingStartConfig, setPendingStartConfig] = useState<any>(null);
 
   const audioContextRef = useRef<AudioContext | null>(null);
 
@@ -135,7 +138,7 @@ export const ImmersiveStartMenu: React.FC<ImmersiveStartMenuProps> = ({ onStartG
   };
 
   const handleStartGame = (mode: string, scenario?: string) => {
-    onStartGame({
+    const config = {
       mode,
       scenario,
       seed: seedString || Date.now().toString(),
@@ -145,6 +148,15 @@ export const ImmersiveStartMenu: React.FC<ImmersiveStartMenuProps> = ({ onStartG
       hardcore: hardcoreEconomy,
       offline: offlineFallback,
       websockets: useWebSockets
+    };
+    setPendingStartConfig(config);
+    setShowCharacterCreation(true);
+  };
+
+  const finalizeStartGame = (characterData: any) => {
+    onStartGame({
+      ...pendingStartConfig,
+      player: characterData
     });
   };
 
@@ -260,6 +272,19 @@ export const ImmersiveStartMenu: React.FC<ImmersiveStartMenuProps> = ({ onStartG
     );
   }
 
+  if (showCharacterCreation) {
+    return (
+      <CharacterCreation 
+        onComplete={(data) => {
+          finalizeStartGame(data);
+        }}
+        onCancel={() => {
+          setShowCharacterCreation(false);
+          setPendingStartConfig(null);
+        }}
+      />
+    );
+  }
   const latestSaveTrauma = saves.length > 0 ? Math.max(...saves.map(s => s.trauma || 0)) : 0;
   const isTitleDecayed = latestSaveTrauma > 80;
 

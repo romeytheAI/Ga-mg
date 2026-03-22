@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { GameState, ActiveEncounter } from '../App';
+import { GameState, ActiveEncounter } from '../types';
 
 interface EncounterUIProps {
   encounter: ActiveEncounter;
