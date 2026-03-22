@@ -7,7 +7,7 @@ import {
 } from 'lucide-react';
 import { GoogleGenAI, Type } from "@google/genai";
 import { SaveLoadModal } from './components/SaveLoadModal';
-import { CharacterCreation } from './components/CharacterCreation';
+import { ELDER_SCROLLS_LORE, getRelevantLore } from './lore';
 
 interface ErrorBoundaryProps {
   children: React.ReactNode;
@@ -68,6 +68,7 @@ export interface Item {
   max_integrity?: number;
   is_equipped?: boolean;
   lore?: string;
+  special_effect?: string;
 }
 
 export interface ClothingLayer {
@@ -120,35 +121,6 @@ export interface ActiveEncounter {
   image_url?: string;
 }
 
-export interface FameReputation {
-  sex: number;          // -100 to 100: negative = prude, positive = slut
-  prostitution: number; // 0 to 100
-  rape: number;         // 0 to 100
-  exhibitionism: number; // 0 to 100
-  kindness: number;     // -100 to 100: negative = cruel, positive = kind
-  business: number;     // 0 to 100
-  social: number;       // -100 to 100: negative = pariah, positive = respected
-  combat: number;       // 0 to 100
-}
-
-export interface SocialStatus {
-  wanted_sibling: boolean;
-  betrothed: boolean;
-  exiled: boolean;
-  guild_member: boolean;
-  town_pariah: boolean;
-  reputation: {
-    [locationId: string]: FameReputation;
-  };
-  global_fame: FameReputation;
-  virginity: {
-    vaginal: boolean;
-    anal: boolean;
-    oral: boolean;
-    penile: boolean;
-  };
-}
-
 export interface GameState {
   player: {
     identity: { name: string, race: string, birthsign: string, origin: string, gender: string },
@@ -158,12 +130,10 @@ export interface GameState {
     afflictions: string[],
     clothing: ClothingLayer,
     inventory: Item[],
-    money: number,
-    beauty: number,
     anatomy: any,
     psychology: any,
     perks_flaws: any,
-    social: SocialStatus,
+    social: any,
     cosmetics: any,
     arcane: any,
     justice: any,
@@ -566,74 +536,6 @@ function generateProceduralItem(level: number, type?: Item['type']): Item {
   };
 }
 
-// --- DoL Parity Helper Functions ---
-
-const createEmptyFame = (): FameReputation => ({
-  sex: 0, prostitution: 0, rape: 0, exhibitionism: 0,
-  kindness: 0, business: 0, social: 0, combat: 0
-});
-
-const calculateBeauty = (state: GameState): number => {
-  let beauty = state.player.stats.allure;
-
-  // Hygiene impact: -20 to +20
-  const hygieneBonus = Math.floor((state.player.stats.hygiene - 50) / 2.5);
-  beauty += hygieneBonus;
-
-  // Clothing impact
-  const clothedSlots = Object.values(state.player.clothing).filter(item => item !== null);
-  const avgIntegrity = clothedSlots.length > 0
-    ? clothedSlots.reduce((sum, item) => sum + (item?.integrity || 0), 0) / clothedSlots.length
-    : 0;
-  const clothingBonus = Math.floor((avgIntegrity - 50) / 5);
-  beauty += clothingBonus;
-
-  // Purity bonus/penalty
-  const purityBonus = Math.floor((state.player.stats.purity - 50) / 10);
-  beauty += purityBonus;
-
-  // Corruption penalty
-  const corruptionPenalty = -Math.floor(state.player.stats.corruption / 5);
-  beauty += corruptionPenalty;
-
-  // Trauma penalty
-  const traumaPenalty = -Math.floor(state.player.stats.trauma / 10);
-  beauty += traumaPenalty;
-
-  return Math.max(0, Math.min(100, beauty));
-};
-
-const isExposed = (state: GameState): boolean => {
-  const chest = state.player.clothing.chest;
-  const underwear = state.player.clothing.underwear;
-  const legs = state.player.clothing.legs;
-
-  // Exposed if chest is missing or destroyed
-  if (!chest || (chest.integrity !== undefined && chest.integrity <= 0)) {
-    return true;
-  }
-
-  // Exposed if underwear AND legs are both missing/destroyed
-  const underwearGone = !underwear || (underwear.integrity !== undefined && underwear.integrity <= 0);
-  const legsGone = !legs || (legs.integrity !== undefined && legs.integrity <= 0);
-
-  if (underwearGone && legsGone) {
-    return true;
-  }
-
-  return false;
-};
-
-const updateFame = (
-  current: FameReputation,
-  category: keyof FameReputation,
-  amount: number
-): FameReputation => {
-  const updated = { ...current };
-  updated[category] = Math.max(-100, Math.min(100, updated[category] + amount));
-  return updated;
-};
-
 // --- Initial State ---
 const initialState: GameState = {
   player: {
@@ -659,33 +561,40 @@ const initialState: GameState = {
         slot: 'chest',
         rarity: 'common',
         description: "A coarse, itchy wool tunic that has been patched a dozen times with mismatched thread. It barely covers you, offering little protection from the cold or prying eyes. It smells faintly of lye, sweat, and the damp desperation of the orphanage. Wearing it marks you as one of the lowest in society.",
+        lore: "Woven from the cheapest flax and wool scraps discarded by the city's tailors, these tunics are the standard issue for wards of the state. The matron of the orphanage claims they build character through discomfort. Many orphans believe the coarse fabric is intentionally chosen to make them easier to grab and harder to ignore. The mismatched patches tell a silent history of previous owners who either aged out, escaped, or succumbed to the harsh winters.",
         value: 1,
         weight: 0.5,
         integrity: 60,
         max_integrity: 100,
         is_equipped: true
+      },
+      {
+        id: 'amulet-of-mara',
+        name: "Amulet of Mara",
+        type: 'misc',
+        rarity: 'epic',
+        description: "A golden amulet bearing the knotwork symbol of Mara, Goddess of Love. It feels warm to the touch.",
+        lore: "In the ancient traditions, wearing an Amulet of Mara signals that you are open to courtship and marriage. It is said that the Goddess herself blesses unions formed under her symbol, granting the couple resilience against the harshness of the world.",
+        value: 150,
+        weight: 0.1,
+        special_effect: "You feel a warm, comforting presence. Your heart opens to the possibility of love."
+      },
+      {
+        id: 'healing-poultice',
+        name: "Healing Poultice",
+        type: 'consumable',
+        rarity: 'common',
+        description: "A foul-smelling paste made of crushed herbs and mud. It stings when applied but promotes rapid healing.",
+        value: 15,
+        weight: 0.2,
+        stats: { health: 25 },
+        special_effect: "The stinging sensation quickly fades into a soothing coolness."
       }
     ],
-    money: 0,
-    beauty: 5,
     anatomy: { height: "small", build: "waifish", metabolism: "fast", healer: "normal", sleep: "light", gut: "sensitive", bones: "fragile", flexibility: "normal", blood: "normal", vision: "normal", skin: "pale", pheromones: "neutral", visage: "innocent", temp_pref: "warmth", injuries: [] },
     psychology: { outlook: "hopeful", innate: "submissive", paranoia: 0.1, empathy: 0.9, psychopathy: 0.0, phobias: ["darkness"], touch_starved: true, sexuality: "unknown", stoic: false, fragile_ego: true },
     perks_flaws: { hidden_pockets: false, silver_tongue: false, nimble_fingers: true, danger_sense: false, animal_whisperer: true, green_thumb: false, eidetic_memory: false, debt_ridden: false, hunted: false, cursed: false, addictive_personality: false, mute: false, blind_one_eye: false, frail: true, unlucky: false },
-    social: {
-      wanted_sibling: false,
-      betrothed: false,
-      exiled: false,
-      guild_member: false,
-      town_pariah: false,
-      reputation: {},
-      global_fame: createEmptyFame(),
-      virginity: {
-        vaginal: true,
-        anal: true,
-        oral: true,
-        penile: true
-      }
-    },
+    social: { wanted_sibling: false, betrothed: false, exiled: false, guild_member: false, town_pariah: false },
     cosmetics: { hair_length: "shaggy", eye_color: "blue", skin_tone: "fair", tattoos: [], piercings: [], posture: "cautious", scars: [], voice_pitch: "high", scent: "dust and lye", literacy: false, dominant_hand: "right", resting_hr: 75, blushing: true, body_mods: [], true_name: "Vael" },
     arcane: { spells: [], magicka_overcharge: false, blood_vials: 0, true_sight: false, telepathy_unlocked: false, toxicity: 0, withdrawal_timer: 0, soul_gems: 0, tattoos: [], corruption_taint: 0, astral_projection: false },
     justice: { suspicion: 0, bounty: 0, evidence_left: 0, jail_sentence: 0, contraband_slots: 0, fence_reputation: 0, black_book_debt: 0, banishment: false, extortion_targets: [] },
@@ -1010,31 +919,11 @@ function gameReducer(state: GameState, action: any): GameState {
       if (state.player.biology.parasites.length >= 5) ascension_state = 'broodmother';
       if (newTrauma >= 100 && maxHealth <= 1) ascension_state = 'asylum';
 
-      // Create temporary state to calculate beauty
-      const tempState = {
-        ...state,
-        player: {
-          ...state.player,
-          inventory: newInventory,
-          stats: {
-            ...state.player.stats,
-            health: newHealth, max_health: maxHealth,
-            trauma: newTrauma, stamina: newStamina, max_stamina: maxStamina,
-            willpower: newWillpower, max_willpower: maxWillpower,
-            lust: newLust, corruption: newCorruption,
-            arousal: newArousal, pain: newPain, control: newControl,
-            stress: newStress, hallucination: newHallucination, purity: newPurity
-          }
-        }
-      };
-      const newBeauty = calculateBeauty(tempState as GameState);
-
       return {
         ...state,
         player: {
           ...state.player,
           age_days: newAgeDays,
-          beauty: newBeauty,
           stats: { 
             ...state.player.stats, 
             health: newHealth, max_health: maxHealth, 
@@ -1181,8 +1070,8 @@ function gameReducer(state: GameState, action: any): GameState {
     case 'EQUIP_ITEM': {
       const { itemId, slot } = action.payload;
       const newInventory = state.player.inventory.map(item => {
-        if (item.slot === slot) return { ...item, is_equipped: false };
         if (item.id === itemId) return { ...item, is_equipped: true };
+        if (item.slot === slot) return { ...item, is_equipped: false };
         return item;
       });
       return {
@@ -1221,12 +1110,46 @@ function gameReducer(state: GameState, action: any): GameState {
         });
       }
       
+      let logMessage = `You consumed ${item.name}.`;
+      if (item.special_effect) {
+        logMessage += ` ${item.special_effect}`;
+      }
+
       return {
         ...state,
         player: { ...state.player, stats: newStats, inventory: newInventory },
         ui: {
           ...state.ui,
-          currentLog: [...state.ui.currentLog, { text: `You consumed ${item.name}.`, type: 'system' }]
+          currentLog: [...state.ui.currentLog, { text: logMessage, type: 'system' }]
+        }
+      };
+    }
+    case 'DROP_ITEM': {
+      const { itemId } = action.payload;
+      const item = state.player.inventory.find(i => i.id === itemId);
+      if (!item) return state;
+      
+      const newInventory = state.player.inventory.filter(i => i.id !== itemId);
+      
+      return {
+        ...state,
+        player: { ...state.player, inventory: newInventory },
+        ui: {
+          ...state.ui,
+          currentLog: [...state.ui.currentLog, { text: `You dropped ${item.name}.`, type: 'system' }]
+        }
+      };
+    }
+    case 'INTERACT_ITEM': {
+      const { itemId } = action.payload;
+      const item = state.player.inventory.find(i => i.id === itemId);
+      if (!item || !item.special_effect) return state;
+      
+      return {
+        ...state,
+        ui: {
+          ...state.ui,
+          currentLog: [...state.ui.currentLog, { text: `You interacted with ${item.name}. ${item.special_effect}`, type: 'system' }]
         }
       };
     }
@@ -1264,139 +1187,14 @@ function gameReducer(state: GameState, action: any): GameState {
         console.error("Failed to inject JSON", e);
         return state;
       }
-    case 'START_NEW_GAME': {
-      const cfg = action.payload;
-      // Apply race stat bonuses
-      const RACE_BONUSES: Record<string, Partial<Record<StatKey, number>>> = {
-        Human:    { willpower: 5, stamina: 5 },
-        Elf:      { allure: 15, willpower: 15, health: -10 },
-        Nord:     { health: 20, stamina: 20, willpower: -10 },
-        Khajiit:  { control: 10, allure: 5 },
-        Argonian: { health: 10, stamina: 10 },
-        Dunmer:   { willpower: 10, allure: 10, purity: -15 },
-        Breton:   { willpower: 20, health: -5 },
-        Redguard: { stamina: 15, health: 10, willpower: -5 },
-      };
-      // Apply birthsign skill bonuses
-      const BIRTHSIGN_SKILLS: Record<string, Partial<Record<string, number>>> = {
-        'The Thief':   { skulduggery: 10, seduction: 5 },
-        'The Warrior': { athletics: 10 },
-        'The Mage':    {},
-        'The Shadow':  { skulduggery: 15 },
-        'The Lady':    { seduction: 10 },
-        'The Lover':   { seduction: 15, dancing: 5 },
-        'The Tower':   {},
-        'The Serpent': { skulduggery: 5 },
-      };
-      // Apply origin overrides
-      const ORIGIN_OVERRIDES: Record<string, Partial<GameState['player']>> = {
-        'Orphan':           { age_days: 6570 },
-        'Escaped Slave':    { age_days: 7300 },
-        "Noble's Bastard":  { age_days: 7300 },
-        'Wanderer':         { age_days: 8030 },
-        'Former Acolyte':   { age_days: 8760 },
-        'Disgraced Guard':  { age_days: 9125 },
-      };
-      const ORIGIN_STATS: Record<string, Partial<Record<StatKey, number>>> = {
-        'Orphan':           {},
-        'Escaped Slave':    { trauma: 40, health: 60 },
-        "Noble's Bastard":  { allure: 10 },
-        'Wanderer':         {},
-        'Former Acolyte':   { willpower: 10, purity: 20 },
-        'Disgraced Guard':  { health: 20, stamina: 20 },
-      };
-      const ORIGIN_LOCATIONS: Record<string, string> = {
-        'Orphan':           'orphanage',
-        'Escaped Slave':    'forest',
-        "Noble's Bastard":  'town_square',
-        'Wanderer':         'town_square',
-        'Former Acolyte':   'temple_gardens',
-        'Disgraced Guard':  'town_square',
-      };
-      const ORIGIN_INVENTORY: Record<string, any[]> = {
-        'Disgraced Guard': [{
-          id: 'iron-sword', name: 'Iron Sword', type: 'weapon', rarity: 'common',
-          description: 'A worn iron sword from your guard days. The edge is nicked but still functional.',
-          value: 20, weight: 3, integrity: 70, max_integrity: 100, is_equipped: true
-        }],
-      };
-
-      const raceBonuses = RACE_BONUSES[cfg.race] || {};
-      const birthsignSkills = BIRTHSIGN_SKILLS[cfg.birthsign] || {};
-      const originStats = ORIGIN_STATS[cfg.origin] || {};
-      const originOverride = ORIGIN_OVERRIDES[cfg.origin] || {};
-      const startLocationId = ORIGIN_LOCATIONS[cfg.origin] || 'orphanage';
-      const bonusInventory = ORIGIN_INVENTORY[cfg.origin] || [];
-
-      const baseStats = { ...initialState.player.stats };
-      const allStatDeltas = { ...raceBonuses, ...originStats };
-      for (const [k, v] of Object.entries(allStatDeltas)) {
-        if (k in baseStats) {
-          (baseStats as any)[k] = Math.max(1, Math.min(
-            (baseStats as any)['max_' + k] || 100,
-            (baseStats as any)[k] + (v as number)
-          ));
-        }
-      }
-      if (cfg.birthsign === 'The Warrior') { baseStats.stamina = Math.min(baseStats.max_stamina, baseStats.stamina + 15); }
-      if (cfg.birthsign === 'The Tower')   { baseStats.control = Math.min(100, baseStats.control + 20); }
-
-      const baseSkills = { ...initialState.player.skills };
-      for (const [k, v] of Object.entries(birthsignSkills)) {
-        if (k in baseSkills) (baseSkills as any)[k] = Math.min(100, (baseSkills as any)[k] + (v as number));
-      }
-
-      const startLocation = LOCATIONS[startLocationId] || LOCATIONS.orphanage;
-
-      // Birthsign: The Mage unlocks first spell slot
-      const arcane = { ...initialState.player.arcane };
-      if (cfg.birthsign === 'The Mage') {
-        arcane.spells = [{ id: 'minor_spark', name: 'Minor Spark', cost: 10, damage: 15, description: 'A crackling bolt of raw magicka.' }];
-      }
-
-      // Origin-based quests
-      const ORIGIN_QUESTS: Record<string, { id: string, title: string, description: string, status: 'active' | 'completed' | 'failed' }> = {
-        'Orphan':          { id: 'q_escape', title: 'Survive the Orphanage', description: 'Escape Matron Grelod and find your own path.', status: 'active' },
-        'Escaped Slave':   { id: 'q_free',   title: 'Stay Free', description: 'The Inquisition is hunting you. Disappear.', status: 'active' },
-        "Noble's Bastard": { id: 'q_heir',   title: 'The Hidden Heir', description: 'Someone powerful knows who you are. Decide your move.', status: 'active' },
-        'Wanderer':        { id: 'q_wander', title: 'Find Your Place', description: 'This town is as good as any. Or is it?', status: 'active' },
-        'Former Acolyte':  { id: 'q_cult',   title: 'Severed Vows', description: 'The cult you left will not forget you.', status: 'active' },
-        'Disgraced Guard': { id: 'q_honor',  title: 'Reclaim Your Name', description: 'You were framed. Find out by whom.', status: 'active' },
-      };
-
+    case 'START_NEW_GAME':
       return {
         ...initialState,
-        player: {
-          ...initialState.player,
-          identity: {
-            name: cfg.name || 'Vael',
-            race: cfg.race || 'Human',
-            birthsign: cfg.birthsign || 'The Thief',
-            origin: cfg.origin || 'Orphan',
-            gender: cfg.gender || 'female',
-          },
-          stats: baseStats,
-          skills: baseSkills,
-          arcane,
-          inventory: [...initialState.player.inventory, ...bonusInventory],
-          quests: [ORIGIN_QUESTS[cfg.origin] || ORIGIN_QUESTS['Orphan']],
-          ...(originOverride as any),
-        },
         world: {
           ...initialState.world,
-          current_location: startLocation,
-          director_cut: cfg.directorCut || false,
-        },
-        ui: {
-          ...initialState.ui,
-          settings: {
-            ...initialState.ui.settings,
-            stat_drain_multiplier: cfg.sandbox ? 0 : 1.0,
-            enable_extreme_content: true,
-          }
+          director_cut: action.payload.directorCut || false
         }
       };
-    }
     case 'LOAD_GAME':
       return action.payload;
     case 'TOGGLE_MAGICKA_OVERCHARGE':
@@ -1469,163 +1267,6 @@ function gameReducer(state: GameState, action: any): GameState {
           }
         }
       };
-    case 'UPDATE_MONEY': {
-      const newMoney = Math.max(0, state.player.money + action.payload);
-      return {
-        ...state,
-        player: { ...state.player, money: newMoney }
-      };
-    }
-    case 'UPDATE_FAME': {
-      const { location, category, amount } = action.payload;
-      const currentLocationFame = state.player.social.reputation[location] || createEmptyFame();
-      const updatedLocationFame = updateFame(currentLocationFame, category, amount);
-      const updatedGlobalFame = updateFame(state.player.social.global_fame, category, amount / 2);
-
-      return {
-        ...state,
-        player: {
-          ...state.player,
-          social: {
-            ...state.player.social,
-            reputation: {
-              ...state.player.social.reputation,
-              [location]: updatedLocationFame
-            },
-            global_fame: updatedGlobalFame
-          }
-        }
-      };
-    }
-    case 'UPDATE_VIRGINITY': {
-      const { type } = action.payload;
-      return {
-        ...state,
-        player: {
-          ...state.player,
-          social: {
-            ...state.player.social,
-            virginity: {
-              ...state.player.social.virginity,
-              [type]: false
-            }
-          }
-        }
-      };
-    }
-    case 'RECALCULATE_BEAUTY': {
-      const newBeauty = calculateBeauty(state);
-      return {
-        ...state,
-        player: { ...state.player, beauty: newBeauty }
-      };
-    }
-    case 'DAMAGE_CLOTHING': {
-      const { slot, amount } = action.payload;
-      const item = state.player.inventory.find(i => i.slot === slot && i.is_equipped);
-      if (!item || item.integrity === undefined) return state;
-
-      const newIntegrity = Math.max(0, item.integrity - amount);
-      const newInventory = state.player.inventory.map(i =>
-        i.id === item.id ? { ...i, integrity: newIntegrity } : i
-      );
-
-      // If clothing is destroyed and player is exposed, increase exhibitionism
-      let newState = {
-        ...state,
-        player: { ...state.player, inventory: newInventory }
-      };
-
-      if (newIntegrity === 0 && isExposed(newState)) {
-        newState = {
-          ...newState,
-          player: {
-            ...newState.player,
-            psych_profile: {
-              ...newState.player.psych_profile,
-              exhibitionism: Math.min(100, newState.player.psych_profile.exhibitionism + 5)
-            },
-            stats: {
-              ...newState.player.stats,
-              stress: Math.min(100, newState.player.stats.stress + 10)
-            }
-          }
-        };
-      }
-
-      return newState;
-    }
-    case 'STRIP_CLOTHING': {
-      const { slot } = action.payload;
-      const item = state.player.inventory.find(i => i.slot === slot && i.is_equipped);
-      if (!item) return state;
-
-      const newInventory = state.player.inventory.map(i =>
-        i.id === item.id ? { ...i, is_equipped: false, integrity: 0 } : i
-      );
-
-      let newState = {
-        ...state,
-        player: { ...state.player, inventory: newInventory }
-      };
-
-      // Increase exhibitionism and stress when forcibly stripped
-      if (isExposed(newState)) {
-        newState = {
-          ...newState,
-          player: {
-            ...newState.player,
-            psych_profile: {
-              ...newState.player.psych_profile,
-              exhibitionism: Math.min(100, newState.player.psych_profile.exhibitionism + 10),
-              submission_index: Math.min(100, newState.player.psych_profile.submission_index + 5)
-            },
-            stats: {
-              ...newState.player.stats,
-              stress: Math.min(100, newState.player.stats.stress + 20),
-              trauma: Math.min(100, newState.player.stats.trauma + 5)
-            }
-          }
-        };
-      }
-
-      return newState;
-    }
-    case 'UPDATE_SUBMISSION': {
-      const { amount, context } = action.payload;
-      const newSubmission = Math.max(0, Math.min(100, state.player.psych_profile.submission_index + amount));
-
-      // Submission affects other stats
-      let statChanges: any = {};
-      if (context === 'defiant' && amount < 0) {
-        // Defiance increases stress but maintains control
-        statChanges = {
-          stress: Math.min(100, state.player.stats.stress + 5),
-          control: Math.min(100, state.player.stats.control + 2)
-        };
-      } else if (context === 'submissive' && amount > 0) {
-        // Submission reduces stress but lowers control
-        statChanges = {
-          stress: Math.max(0, state.player.stats.stress - 3),
-          control: Math.max(0, state.player.stats.control - 2)
-        };
-      }
-
-      return {
-        ...state,
-        player: {
-          ...state.player,
-          psych_profile: {
-            ...state.player.psych_profile,
-            submission_index: newSubmission
-          },
-          stats: {
-            ...state.player.stats,
-            ...statChanges
-          }
-        }
-      };
-    }
     default:
       return state;
   }
@@ -1641,7 +1282,10 @@ if (typeof window !== 'undefined') {
 }
 
 // --- API Functions ---
-async function generateText(prompt: string, apiKey: string, hordeApiKey: string, model: string, dispatch?: any) {
+async function generateText(prompt: string, apiKey: string, hordeApiKey: string, model: string, dispatch?: any, skipLore: boolean = false) {
+  const relevantLore = skipLore ? null : getRelevantLore(prompt, 10);
+  const enhancedPrompt = relevantLore ? `Relevant Elder Scrolls Lore:\n${relevantLore}\n\n${prompt}` : prompt;
+
   // Try Horde (AI Horde)
   try {
     if (dispatch) dispatch({ type: 'HORDE_REQUEST_START', payload: { type: 'text' } });
@@ -1653,9 +1297,9 @@ async function generateText(prompt: string, apiKey: string, hordeApiKey: string,
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'apikey': hordeApiKey || DEFAULT_API_KEY },
       body: JSON.stringify({
-        prompt,
+        prompt: enhancedPrompt,
         models: [model || "aphrodite/TheBloke/MythoMax-L2-13B-AWQ"],
-        params: { max_context_length: 2048, max_length: 600, temperature: 0.75 }
+        params: { max_context_length: 8192, max_length: 600, temperature: 0.75 }
       }),
       signal: controller.signal
     });
@@ -1713,7 +1357,7 @@ async function generateText(prompt: string, apiKey: string, hordeApiKey: string,
   // Try Pollinations (Uncensored, Free) as backup
   try {
     const systemPrompt = 'You are an AI Director for a dark fantasy RPG. Respond ONLY with valid JSON.';
-    const fullPrompt = `${systemPrompt}\n\n${prompt}`;
+    const fullPrompt = `${systemPrompt}\n\n${enhancedPrompt}`;
     const pollinationsUrl = `https://gen.pollinations.ai/text/${encodeURIComponent(fullPrompt)}?json=true`;
     const pollinationsRes = await fetch(pollinationsUrl);
     if (pollinationsRes.ok) {
@@ -1840,9 +1484,19 @@ async function generateImage(prompt: string, apiKey: string, hordeApiKey: string
   throw new Error("Failed to generate image with fallback");
 }
 
+export function getSynergies(skills: any) {
+  const synergies = [];
+  if (skills.athletics > 50 && skills.seduction > 50) synergies.push({ name: "Acrobatic Lover", description: "Increased success in physical seduction and stamina retention." });
+  if (skills.skulduggery > 50 && skills.athletics > 50) synergies.push({ name: "Shadow Walker", description: "Enhanced stealth and evasion in hostile encounters." });
+  if (skills.swimming > 50 && skills.athletics > 50) synergies.push({ name: "Aquatic Predator", description: "Superior mobility and combat effectiveness in water." });
+  if (skills.housekeeping > 50 && skills.seduction > 50) synergies.push({ name: "Domestic Bliss", description: "NPCs are more easily charmed in domestic settings." });
+  if (skills.school_grades > 50 && skills.skulduggery > 50) synergies.push({ name: "Criminal Mastermind", description: "Unlocks advanced dialogue options for manipulation and planning." });
+  return synergies;
+}
+
 const compressionWorkerCode = `
 self.onmessage = function(e) {
-  const { state, actionText, localNPCs } = e.data;
+  const { state, actionText, localNPCs, synergies } = e.data;
   
   const translateLust = (lust) => {
     if (lust > 80) return "[Player is overwhelmed by intense arousal]";
@@ -1864,11 +1518,41 @@ self.onmessage = function(e) {
     return "[Player is a weathered elder]";
   };
 
+  const cleanObject = (obj) => {
+    if (Array.isArray(obj)) {
+      const arr = obj.map(cleanObject).filter(v => v !== null && v !== undefined && v !== '' && (Array.isArray(v) ? v.length > 0 : true));
+      return arr.length > 0 ? arr : undefined;
+    } else if (obj !== null && typeof obj === 'object') {
+      const newObj = {};
+      for (const key in obj) {
+        const val = cleanObject(obj[key]);
+        if (val !== undefined && val !== null && val !== false && val !== 0 && val !== '') {
+          newObj[key] = val;
+        }
+      }
+      return Object.keys(newObj).length > 0 ? newObj : undefined;
+    }
+    return obj;
+  };
+
   const topAfflictions = state.player.afflictions ? state.player.afflictions.slice(0, 3) : [];
   const isIndoors = state.world.current_location.name.toLowerCase().includes('inside') || state.world.current_location.name.toLowerCase().includes('room');
   const weatherStr = isIndoors ? "" : \`Weather: \${state.world.weather}\`;
 
-  const worldStateMatrix = JSON.stringify({
+  const localNPCNames = localNPCs.map(n => n.name);
+  const companionNames = state.player.companions.active_party.map(c => c.name);
+  const relevantNpcNames = new Set([...localNPCNames, ...companionNames]);
+  
+  const filteredNpcState = {};
+  if (state.world.npc_state) {
+    for (const name of relevantNpcNames) {
+      if (state.world.npc_state[name]) {
+        filteredNpcState[name] = state.world.npc_state[name];
+      }
+    }
+  }
+
+  const worldStateMatrix = JSON.stringify(cleanObject({
     economy: state.world.economy,
     ecology: state.world.ecology,
     factions: state.world.factions,
@@ -1878,9 +1562,9 @@ self.onmessage = function(e) {
     justice: state.world.justice,
     dreamscape: state.world.dreamscape,
     macro_events: state.world.macro_events,
-    npc_state: state.world.npc_state
-  });
-  const characterMatrix = JSON.stringify({
+    npc_state: Object.keys(filteredNpcState).length > 0 ? filteredNpcState : undefined
+  }) || {});
+  const characterMatrix = JSON.stringify(cleanObject({
     anatomy: state.player.anatomy,
     psychology: state.player.psychology,
     perks: state.player.perks_flaws,
@@ -1892,7 +1576,7 @@ self.onmessage = function(e) {
     base: state.player.base,
     subconscious: state.player.subconscious,
     biology: state.player.biology
-  });
+  }) || {});
 
   let hallucinationTag = "";
   if (state.player.stats.stamina <= 0) {
@@ -1922,6 +1606,11 @@ self.onmessage = function(e) {
     tensionTag += " [The atmosphere is extremely hostile and dangerous. NPCs are aggressive and suspicious.]";
   }
 
+  let recentEvents = state.memory_graph.slice(-3);
+  if (state.memory_graph.length > 3 && state.memory_graph[0].startsWith('[Distant Memory]')) {
+    recentEvents = [state.memory_graph[0], ...recentEvents];
+  }
+
   const settings = state.ui.settings || {
     encounter_rate: 50,
     stat_drain_multiplier: 1.0,
@@ -1929,6 +1618,16 @@ self.onmessage = function(e) {
     enable_pregnancy: true,
     enable_extreme_content: false
   };
+
+  let synergiesTag = "";
+  if (synergies.length > 0) {
+    synergiesTag = \`Active Synergies: \${synergies.map(s => s.name).join(', ')}\\n\`;
+  }
+
+  let localNPCsTag = "";
+  if (localNPCs.length > 0) {
+    localNPCsTag = \`Local NPCs:\\n\${localNPCs.map(npc => \`- \${npc.name} (\${npc.race}): \${npc.description}\`).join('\\\\n')}\\n\\n\`;
+  }
 
   let prompt = \`You are the AI Director of a dark fantasy RPG set in the Elder Scrolls universe (Tamriel).
 Respond ONLY with a valid JSON object. No conversational text.
@@ -1951,6 +1650,7 @@ DoL Parity Guidelines:
 Game Mechanics:
 - Encounter Rate: \${settings.encounter_rate}%. Adjust the frequency of random events or combat accordingly.
 - Stat Drain Multiplier: \${settings.stat_drain_multiplier}x. Multiply any negative stat changes (like health loss, stamina drain, or stress increase) by this factor.
+- Skill Progression: Player actions that use specific skills (e.g., athletics, seduction) should increase those skills by 1-3 points in 'skill_deltas'.
 
 Fluid Combat & Anatomy:
 - When combat occurs, return a specific 'combat_injury' object detailing the semantic injury (e.g., "Deep gash on left arm") and its associated stat penalties, instead of just general damage.
@@ -1980,14 +1680,11 @@ Afflictions: \${topAfflictions.join(', ') || 'None'}
 \${hallucinationTag}
 \${biologyTag}
 \${dreamscapeTag}
-
-Local NPCs:
-\${localNPCs.map(npc => \`- \${npc.name} (\${npc.race}): \${npc.description}\`).join('\\\\n')}
-
-Character Matrix: \${characterMatrix}
+\${synergiesTag}
+\${localNPCsTag}Character Matrix: \${characterMatrix}
 World State Matrix: \${worldStateMatrix}
 Recent Events:
-\${state.memory_graph.slice(-3).join('\\\\n')}
+\${recentEvents.join('\\\\n')}
 
 Player Action: \${actionText}
 
@@ -1996,6 +1693,7 @@ Output JSON Schema:
   "narrative_text": "Detailed description of the outcome",
   "memory_entry": "A concise summary of the player's choice and its immediate consequence to be logged in the memory graph.",
   "stat_deltas": { "health": 0, "stamina": 0, "willpower": 0, "lust": 0, "trauma": 0, "corruption": 0, "arousal": 0, "pain": 0, "control": 0, "stress": 0, "hallucination": 0, "purity": 0 },
+  "skill_deltas": { "seduction": 0, "athletics": 0, "skulduggery": 0, "swimming": 0, "dancing": 0, "housekeeping": 0, "school_grades": 0 },
   "equipment_integrity_delta": -5,
   "new_affliction": "string or null",
   "hours_passed": 1,
@@ -2012,6 +1710,7 @@ JSON Output:\`;
 
   self.postMessage({ prompt });
 };
+
 `;
 
 let compressionWorker: Worker | null = null;
@@ -2044,7 +1743,8 @@ function buildTextPromptAsync(state: GameState, actionText: string): Promise<str
     const localNPCIds = state.world.current_location.npcs || [];
     const localNPCs = localNPCIds.map((id: string) => NPCS[id]).filter(Boolean);
     
-    compressionWorker.postMessage({ state, actionText, localNPCs });
+    const synergies = getSynergies(state.player.skills);
+    compressionWorker.postMessage({ state, actionText, localNPCs, synergies });
   });
 }
 
@@ -2112,19 +1812,29 @@ function useEncounterBuffer(state: GameState) {
 
 const TypewriterText = ({ text, speed, className }: { text: string, speed: number, className?: string }) => {
   const [displayedText, setDisplayedText] = useState('');
+  const [isTyping, setIsTyping] = useState(true);
   
   useEffect(() => {
     setDisplayedText('');
+    setIsTyping(true);
     let i = 0;
     const interval = setInterval(() => {
       setDisplayedText(prev => text.substring(0, prev.length + 1));
       i++;
-      if (i > text.length) clearInterval(interval);
+      if (i >= text.length) {
+        clearInterval(interval);
+        setIsTyping(false);
+      }
     }, speed);
     return () => clearInterval(interval);
   }, [text, speed]);
 
-  return <span className={className}>{displayedText}</span>;
+  return (
+    <span className={className}>
+      {displayedText}
+      {isTyping && <motion.span animate={{ opacity: [1, 0] }} transition={{ repeat: Infinity, duration: 0.8 }} className="inline-block w-2 h-4 ml-1 bg-white/50 align-middle" />}
+    </span>
+  );
 };
 
 const SemanticText = ({ text, className }: { text: string, className?: string }) => {
@@ -2208,14 +1918,13 @@ export default function AppWrapper() {
 
 function App({ state, dispatch }: { state: GameState, dispatch: React.Dispatch<any> }) {
   const [hasStarted, setHasStarted] = useState(false);
-  const [showCharacterCreation, setShowCharacterCreation] = useState(false);
-  const [pendingConfig, setPendingConfig] = useState<any>(null);
   const [customAction, setCustomAction] = useState('');
   const [showSettings, setShowSettings] = useState(false);
   const [availableTextModels, setAvailableTextModels] = useState<{name: string, count: number}[]>([]);
   const [availableImageModels, setAvailableImageModels] = useState<{name: string, count: number}[]>([]);
   const [isLoadingModels, setIsLoadingModels] = useState(false);
   const [isGeneratingAvatar, setIsGeneratingAvatar] = useState(false);
+  const [selectedItem, setSelectedItem] = useState<Item | null>(null);
 
   const generatePlayerAvatar = async () => {
     setIsGeneratingAvatar(true);
@@ -2280,23 +1989,8 @@ function App({ state, dispatch }: { state: GameState, dispatch: React.Dispatch<a
   const encounterBuffer = useEncounterBuffer(state);
 
   const handleStartGame = (config: any) => {
-    // For scenario/daily modes, skip character creation and use preset identity
-    if (config.mode === 'scenario' && config.scenario) {
-      const SCENARIO_PRESETS: Record<string, any> = {
-        escaped_slave: { name: 'Unknown', race: 'Human', gender: 'female', birthsign: 'The Shadow', origin: 'Escaped Slave' },
-        nobles_fall:   { name: 'Aravyn', race: 'Breton', gender: 'nonbinary', birthsign: 'The Lady', origin: "Noble's Bastard" },
-      };
-      const preset = SCENARIO_PRESETS[config.scenario] || {};
-      dispatch({ type: 'START_NEW_GAME', payload: { ...config, ...preset } });
-      setHasStarted(true);
-    } else if (config.mode === 'daily') {
-      dispatch({ type: 'START_NEW_GAME', payload: { ...config, name: 'Challenger', race: 'Human', gender: 'female', birthsign: 'The Thief', origin: 'Wanderer' } });
-      setHasStarted(true);
-    } else {
-      // Standard new game — show character creation
-      setPendingConfig(config);
-      setShowCharacterCreation(true);
-    }
+    dispatch({ type: 'START_NEW_GAME', payload: config });
+    setHasStarted(true);
   };
 
   const handleLoadGame = (saveData: any) => {
@@ -2412,12 +2106,12 @@ function App({ state, dispatch }: { state: GameState, dispatch: React.Dispatch<a
     const summarizeMemory = async () => {
       if (state.memory_graph.length > 15 && !state.ui.isPollingText) {
         const oldestTurns = state.memory_graph.slice(0, 10).join("\\n");
-        const prompt = `Summarize the following events into a single concise paragraph representing a distant memory:\\n\\n${oldestTurns}`;
+        const prompt = `Summarize the following events into a single concise paragraph representing a distant memory:\n\n${oldestTurns}\n\nOutput ONLY the summary text, no JSON.`;
         try {
-          const summaryText = await generateText(prompt, state.ui.apiKey, state.ui.hordeApiKey, state.ui.selectedTextModel, dispatch);
-          let summary = summaryText;
+          const summaryText = await generateText(prompt, state.ui.apiKey, state.ui.hordeApiKey, state.ui.selectedTextModel, dispatch, true);
+          let summary = summaryText.trim();
           try {
-            const jsonMatch = summaryText.match(/\\{[\\s\\S]*\\}/);
+            const jsonMatch = summaryText.match(/\{[\s\S]*\}/);
             if (jsonMatch) {
               const parsed = JSON.parse(jsonMatch[0]);
               summary = parsed.narrative_text || summaryText;
@@ -2486,9 +2180,14 @@ function App({ state, dispatch }: { state: GameState, dispatch: React.Dispatch<a
       let endEncounter = false;
 
       // Simple combat/struggle logic
+      const synergies = getSynergies(state.player.skills);
+      const hasAcrobaticLover = synergies.some(s => s.name === "Acrobatic Lover");
+      const hasShadowWalker = synergies.some(s => s.name === "Shadow Walker");
+      const hasAquaticPredator = synergies.some(s => s.name === "Aquatic Predator");
+
       if (intent === 'aggressive') {
         const athletics = state.player.skills?.athletics || 0;
-        const damage = Math.floor(Math.random() * 20) + 10 + Math.floor(athletics / 10);
+        const damage = Math.floor(Math.random() * 20) + 10 + Math.floor(athletics / 10) + (hasAquaticPredator && state.world.current_location.name.includes('Water') ? 10 : 0);
         encounterUpdates.enemy_health = Math.max(0, encounter.enemy_health - damage);
         encounterUpdates.enemy_anger = Math.min(100, encounter.enemy_anger + 15);
         stat_deltas.stamina = -10;
@@ -2515,7 +2214,7 @@ function App({ state, dispatch }: { state: GameState, dispatch: React.Dispatch<a
         }
       } else if (intent === 'social') {
         const seduction = state.player.skills?.seduction || 0;
-        const seduceChance = ((state.player.stats.allure || 10) + seduction) / 200;
+        const seduceChance = ((state.player.stats.allure || 10) + seduction + (hasAcrobaticLover ? 20 : 0)) / 200;
         if (Math.random() < seduceChance) {
           encounterUpdates.enemy_lust = Math.min(100, encounter.enemy_lust + 30 + Math.floor(seduction / 5));
           narrative = "You successfully seduce them, increasing their lust.";
@@ -2533,19 +2232,21 @@ function App({ state, dispatch }: { state: GameState, dispatch: React.Dispatch<a
         stat_deltas.lust = 5;
       } else if (intent === 'flee') {
         const athletics = state.player.skills?.athletics || 0;
-        const fleeChance = ((state.player.stats.stamina || 50) + athletics) / 200;
+        const fleeChance = ((state.player.stats.stamina || 50) + athletics + (hasShadowWalker ? 30 : 0)) / 200;
         if (Math.random() < fleeChance) {
           narrative = "You manage to escape!";
           skill_deltas.athletics = 2;
           endEncounter = true;
         } else {
           narrative = "You try to run, but they catch you!";
-          stat_deltas.stamina = -15;
+          stat_deltas.stamina = -15 + (hasAcrobaticLover ? 5 : 0);
           stat_deltas.stress = 10;
           skill_deltas.athletics = 1;
           encounterUpdates.enemy_anger = Math.min(100, encounter.enemy_anger + 10);
         }
       }
+
+      encounterUpdates.log = [...(encounter.log || []), narrative];
 
       if (endEncounter) {
         dispatch({ type: 'SET_ACTIVE_ENCOUNTER', payload: null });
@@ -2836,24 +2537,6 @@ Example: { "health": 50, "allure": 20 }`;
     }
   };
 
-  if (showCharacterCreation && pendingConfig) {
-    return (
-      <CharacterCreation
-        baseConfig={pendingConfig}
-        onComplete={(config) => {
-          dispatch({ type: 'START_NEW_GAME', payload: config });
-          setShowCharacterCreation(false);
-          setPendingConfig(null);
-          setHasStarted(true);
-        }}
-        onBack={() => {
-          setShowCharacterCreation(false);
-          setPendingConfig(null);
-        }}
-      />
-    );
-  }
-
   if (!hasStarted) {
     return <ImmersiveStartMenu onStartGame={handleStartGame} onLoadGame={handleLoadGame} />;
   }
@@ -2872,48 +2555,54 @@ Example: { "health": 50, "allure": 20 }`;
           </div>
           
           <nav className="flex items-center gap-4 ml-8">
-            <button 
+            <motion.button 
+              whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
               onClick={() => dispatch({ type: 'TOGGLE_UI_SETTING', payload: { key: 'show_stats', value: true } })}
               className="group flex items-center gap-2 px-3 py-1.5 border border-white/10 hover:border-white/30 transition-all rounded-sm"
             >
               <User className="w-4 h-4 text-white/40 group-hover:text-white/80" />
               <span className="text-[10px] tracking-widest uppercase text-white/50 group-hover:text-white/90">Essence</span>
-            </button>
-            <button 
+            </motion.button>
+            <motion.button 
+              whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
               onClick={() => dispatch({ type: 'TOGGLE_UI_SETTING', payload: { key: 'show_inventory', value: true } })}
               className="group flex items-center gap-2 px-3 py-1.5 border border-white/10 hover:border-white/30 transition-all rounded-sm"
             >
               <ShoppingBag className="w-4 h-4 text-white/40 group-hover:text-white/80" />
               <span className="text-[10px] tracking-widest uppercase text-white/50 group-hover:text-white/90">Possessions</span>
-            </button>
-            <button 
+            </motion.button>
+            <motion.button 
+              whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
               onClick={() => dispatch({ type: 'TOGGLE_UI_SETTING', payload: { key: 'show_map', value: true } })}
               className="group flex items-center gap-2 px-3 py-1.5 border border-white/10 hover:border-white/30 transition-all rounded-sm"
             >
               <MapIcon className="w-4 h-4 text-white/40 group-hover:text-white/80" />
               <span className="text-[10px] tracking-widest uppercase text-white/50 group-hover:text-white/90">Cartography</span>
-            </button>
-            <button 
+            </motion.button>
+            <motion.button 
+              whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
               onClick={() => dispatch({ type: 'TOGGLE_UI_SETTING', payload: { key: 'show_quests', value: true } })}
               className="group flex items-center gap-2 px-3 py-1.5 border border-white/10 hover:border-white/30 transition-all rounded-sm"
             >
               <Book className="w-4 h-4 text-white/40 group-hover:text-white/80" />
               <span className="text-[10px] tracking-widest uppercase text-white/50 group-hover:text-white/90">Journal</span>
-            </button>
-            <button 
+            </motion.button>
+            <motion.button 
+              whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
               onClick={() => dispatch({ type: 'TOGGLE_UI_SETTING', payload: { key: 'show_save_load', value: true } })}
               className="group flex items-center gap-2 px-3 py-1.5 border border-white/10 hover:border-white/30 transition-all rounded-sm"
             >
               <RefreshCw className="w-4 h-4 text-white/40 group-hover:text-white/80" />
               <span className="text-[10px] tracking-widest uppercase text-white/50 group-hover:text-white/90">Save/Load</span>
-            </button>
-            <button 
+            </motion.button>
+            <motion.button 
+              whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
               onClick={() => setShowCompanions(true)}
               className="group flex items-center gap-2 px-3 py-1.5 border border-white/10 hover:border-white/30 transition-all rounded-sm"
             >
               <Ghost className="w-4 h-4 text-white/40 group-hover:text-white/80" />
               <span className="text-[10px] tracking-widest uppercase text-white/50 group-hover:text-white/90">Roster</span>
-            </button>
+            </motion.button>
           </nav>
         </div>
 
@@ -2941,18 +2630,6 @@ Example: { "health": 50, "allure": 20 }`;
               <User className="w-3 h-3 text-white/40" />
               <span className="text-white/60">
                 {Math.floor(state.player.age_days / 365)} Cycles
-              </span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Sparkles className="w-3 h-3 text-white/40" />
-              <span className="text-white/60">
-                Beauty: {state.player.beauty}
-              </span>
-            </div>
-            <div className="flex items-center gap-2">
-              <ShoppingBag className="w-3 h-3 text-white/40" />
-              <span className={state.player.money > 100 ? 'text-yellow-400' : 'text-white/60'}>
-                {state.player.money} Gold
               </span>
             </div>
           </div>
@@ -3063,6 +2740,32 @@ Example: { "health": 50, "allure": 20 }`;
               transition={{ duration: 3 }}
             />
           )}
+
+          {/* Ambient Particles */}
+          <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-20 z-0">
+            {[...Array(15)].map((_, i) => (
+              <motion.div
+                key={i}
+                className="absolute w-1 h-1 bg-white rounded-full blur-[1px]"
+                initial={{ 
+                  x: Math.random() * window.innerWidth, 
+                  y: Math.random() * window.innerHeight,
+                  opacity: Math.random() * 0.5 + 0.1
+                }}
+                animate={{ 
+                  y: [null, Math.random() * -200 - 100],
+                  x: [null, Math.random() * 100 - 50],
+                  opacity: [null, 0]
+                }}
+                transition={{ 
+                  duration: Math.random() * 10 + 10,
+                  repeat: Infinity,
+                  ease: "linear",
+                  delay: Math.random() * 10
+                }}
+              />
+            ))}
+          </div>
           
           {/* Hero Image Container */}
           <div className="relative w-full max-w-2xl aspect-[4/3] rounded-sm overflow-hidden border border-white/10 shadow-2xl shadow-black/80 z-10 bg-[#0a0a0a]">
@@ -3118,10 +2821,12 @@ Example: { "health": 50, "allure": 20 }`;
         <div className="w-full max-w-lg border-l border-white/5 bg-[#0a0a0a]/80 backdrop-blur-2xl flex flex-col relative z-20 shadow-[-20px_0_40px_rgba(0,0,0,0.5)]">
           
           {/* Log Area */}
-          <div className="flex-1 overflow-y-auto p-8 flex flex-col gap-8 scrollbar-hide" ref={logRef}>
+          <div className="flex-1 overflow-y-auto p-8 flex flex-col gap-6 scrollbar-hide" ref={logRef}>
             {state.ui.currentLog.slice(-20).map((log, i) => {
               const isLast = i === Math.min(state.ui.currentLog.length, 20) - 1;
               const isNarrative = log.type === 'narrative';
+              const isAction = log.type === 'action';
+              const isSystem = log.type === 'system';
               // Speed scales with trauma (higher trauma = faster/more erratic text)
               const typeSpeed = Math.max(5, 30 - (state.player.stats.trauma / 4));
               
@@ -3130,10 +2835,9 @@ Example: { "health": 50, "allure": 20 }`;
                   key={i}
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className={!isNarrative 
-                    ? "text-white/40 text-sm tracking-wide italic border-l border-white/10 pl-4" 
-                    : `text-white/80 ${state.ui.accessibility_mode ? 'font-sans' : 'font-serif'} text-lg leading-relaxed`}
+                  className={`relative ${isNarrative ? `text-white/80 ${state.ui.accessibility_mode ? 'font-sans' : 'font-serif'} text-lg leading-relaxed` : isAction ? 'text-emerald-400/80 text-sm tracking-wide italic border-l-2 border-emerald-500/30 pl-4 py-1 bg-emerald-950/10' : 'text-blue-400/80 text-xs tracking-widest uppercase border border-blue-900/30 px-3 py-2 bg-blue-950/10 rounded-sm inline-block self-start'}`}
                 >
+                  {isAction && <div className="absolute -left-[5px] top-1/2 -translate-y-1/2 w-2 h-2 rounded-full bg-emerald-500/50" />}
                   {isLast && isNarrative ? (
                     <TypewriterText text={log.text} speed={typeSpeed} />
                   ) : (
@@ -3197,7 +2901,8 @@ Example: { "health": 50, "allure": 20 }`;
                     />
                   )}
               {state.ui.choices.map(choice => (
-                <button 
+                <motion.button 
+                  whileHover={{ x: 5 }} whileTap={{ scale: 0.98 }}
                   key={choice.id}
                   onClick={() => handleAction(choice.label, choice.intent, choice.id)}
                   className={`group relative p-4 text-left border border-white/5 bg-white/[0.02] hover:bg-white/[0.05] hover:border-white/20 transition-all rounded-sm overflow-hidden flex justify-between items-center ${state.player.stats.health < 20 ? 'desperation-glow border-red-500/50' : ''}`}
@@ -3214,28 +2919,31 @@ Example: { "health": 50, "allure": 20 }`;
                       </span>
                     </div>
                   )}
-                </button>
+                </motion.button>
               ))}
               
               <div className="flex gap-2 mt-4 mb-2">
-                <button 
+                <motion.button 
+                  whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
                   onClick={() => handleAction("Scavenge the area for supplies", "work")}
                   className="flex-1 py-2 bg-white/[0.02] hover:bg-white/[0.05] border border-white/10 hover:border-white/30 transition-all rounded-sm text-[10px] tracking-widest uppercase text-white/60 hover:text-white/90"
                 >
                   Scavenge Area
-                </button>
-                <button 
+                </motion.button>
+                <motion.button 
+                  whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
                   onClick={() => handleAction("Rest and recover", "neutral")}
                   className="flex-1 py-2 bg-white/[0.02] hover:bg-white/[0.05] border border-white/10 hover:border-white/30 transition-all rounded-sm text-[10px] tracking-widest uppercase text-white/60 hover:text-white/90"
                 >
                   Rest & Recover
-                </button>
-                <button 
+                </motion.button>
+                <motion.button 
+                  whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
                   onClick={() => handleAction("Wait for an hour", "neutral")}
                   className="flex-1 py-2 bg-white/[0.02] hover:bg-white/[0.05] border border-white/10 hover:border-white/30 transition-all rounded-sm text-[10px] tracking-widest uppercase text-white/60 hover:text-white/90"
                 >
                   Wait 1 Hour
-                </button>
+                </motion.button>
               </div>
               </>
               )}
@@ -3269,9 +2977,10 @@ Example: { "health": 50, "allure": 20 }`;
               <span>ETA: <span className="text-white/80">{state.ui.horde_monitor.text_eta}s</span></span>
               {state.ui.horde_monitor.text_requests > 0 && state.ui.horde_monitor.text_initial_eta > 0 && (
                 <div className="w-16 h-1 bg-white/10 rounded-full overflow-hidden">
-                  <div 
+                  <motion.div 
                     className="h-full bg-indigo-500" 
-                    style={{ width: `${Math.max(0, Math.min(100, 100 - (state.ui.horde_monitor.text_eta / state.ui.horde_monitor.text_initial_eta) * 100))}%` }}
+                    initial={{ width: 0 }}
+                    animate={{ width: `${Math.max(0, Math.min(100, 100 - (state.ui.horde_monitor.text_eta / state.ui.horde_monitor.text_initial_eta) * 100))}%` }}
                   />
                 </div>
               )}
@@ -3283,9 +2992,10 @@ Example: { "health": 50, "allure": 20 }`;
               <span>ETA: <span className="text-white/80">{state.ui.horde_monitor.image_eta}s</span></span>
               {state.ui.horde_monitor.image_requests > 0 && state.ui.horde_monitor.image_initial_eta > 0 && (
                 <div className="w-16 h-1 bg-white/10 rounded-full overflow-hidden">
-                  <div 
+                  <motion.div 
                     className="h-full bg-pink-500" 
-                    style={{ width: `${Math.max(0, Math.min(100, 100 - (state.ui.horde_monitor.image_eta / state.ui.horde_monitor.image_initial_eta) * 100))}%` }}
+                    initial={{ width: 0 }}
+                    animate={{ width: `${Math.max(0, Math.min(100, 100 - (state.ui.horde_monitor.image_eta / state.ui.horde_monitor.image_initial_eta) * 100))}%` }}
                   />
                 </div>
               )}
@@ -3307,11 +3017,37 @@ Example: { "health": 50, "allure": 20 }`;
             exit={{ opacity: 0 }}
             className="absolute inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4"
           >
+            {/* Ambient Particles */}
+            <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-10 z-0">
+              {[...Array(15)].map((_, i) => (
+                <motion.div
+                  key={i}
+                  className="absolute w-1 h-1 bg-white rounded-full blur-[1px]"
+                  initial={{ 
+                    x: Math.random() * window.innerWidth, 
+                    y: Math.random() * window.innerHeight,
+                    opacity: Math.random() * 0.5 + 0.1
+                  }}
+                  animate={{ 
+                    y: [null, Math.random() * -200 - 100],
+                    x: [null, Math.random() * 100 - 50],
+                    opacity: [null, 0]
+                  }}
+                  transition={{ 
+                    duration: Math.random() * 10 + 10,
+                    repeat: Infinity,
+                    ease: "linear",
+                    delay: Math.random() * 10
+                  }}
+                />
+              ))}
+            </div>
+
             <motion.div 
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
-              className="bg-[#0a0a0a] border border-white/10 p-8 rounded-sm max-w-md w-full relative shadow-2xl"
+              className="bg-[#0a0a0a] border border-white/10 p-8 rounded-sm max-w-md w-full relative shadow-2xl z-10"
             >
               <button 
                 onClick={() => setShowStatus(false)}
@@ -3376,11 +3112,37 @@ Example: { "health": 50, "allure": 20 }`;
             exit={{ opacity: 0 }}
             className="absolute inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4"
           >
+            {/* Ambient Particles */}
+            <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-10 z-0">
+              {[...Array(15)].map((_, i) => (
+                <motion.div
+                  key={i}
+                  className="absolute w-1 h-1 bg-white rounded-full blur-[1px]"
+                  initial={{ 
+                    x: Math.random() * window.innerWidth, 
+                    y: Math.random() * window.innerHeight,
+                    opacity: Math.random() * 0.5 + 0.1
+                  }}
+                  animate={{ 
+                    y: [null, Math.random() * -200 - 100],
+                    x: [null, Math.random() * 100 - 50],
+                    opacity: [null, 0]
+                  }}
+                  transition={{ 
+                    duration: Math.random() * 10 + 10,
+                    repeat: Infinity,
+                    ease: "linear",
+                    delay: Math.random() * 10
+                  }}
+                />
+              ))}
+            </div>
+
             <motion.div 
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
-              className="bg-[#0a0a0a] border border-white/10 p-8 rounded-sm max-w-2xl w-full max-h-[80vh] flex flex-col relative shadow-2xl"
+              className="bg-[#0a0a0a] border border-white/10 p-8 rounded-sm max-w-2xl w-full max-h-[80vh] flex flex-col relative shadow-2xl z-10"
             >
               <button 
                 onClick={() => setShowMemories(false)}
@@ -3421,11 +3183,37 @@ Example: { "health": 50, "allure": 20 }`;
             exit={{ opacity: 0 }}
             className="absolute inset-0 z-50 bg-black/90 backdrop-blur-xl flex items-center justify-center p-4"
           >
+            {/* Ambient Particles */}
+            <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-10 z-0">
+              {[...Array(20)].map((_, i) => (
+                <motion.div
+                  key={i}
+                  className="absolute w-1 h-1 bg-amber-500 rounded-full blur-[1px]"
+                  initial={{ 
+                    x: Math.random() * window.innerWidth, 
+                    y: Math.random() * window.innerHeight,
+                    opacity: Math.random() * 0.5 + 0.1
+                  }}
+                  animate={{ 
+                    y: [null, Math.random() * -200 - 100],
+                    x: [null, Math.random() * 100 - 50],
+                    opacity: [null, 0]
+                  }}
+                  transition={{ 
+                    duration: Math.random() * 10 + 10,
+                    repeat: Infinity,
+                    ease: "linear",
+                    delay: Math.random() * 10
+                  }}
+                />
+              ))}
+            </div>
+
             <motion.div 
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
-              className="bg-[#050505] border border-white/10 rounded-sm w-full max-w-4xl aspect-video relative shadow-2xl overflow-hidden"
+              className="bg-[#050505] border border-white/10 rounded-sm w-full max-w-4xl aspect-video relative shadow-2xl overflow-hidden z-10"
             >
               <button 
                 onClick={() => setShowMap(false)}
@@ -3468,11 +3256,37 @@ Example: { "health": 50, "allure": 20 }`;
             exit={{ opacity: 0 }}
             className="absolute inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4"
           >
+            {/* Ambient Particles */}
+            <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-10 z-0">
+              {[...Array(15)].map((_, i) => (
+                <motion.div
+                  key={i}
+                  className="absolute w-1 h-1 bg-purple-500 rounded-full blur-[1px]"
+                  initial={{ 
+                    x: Math.random() * window.innerWidth, 
+                    y: Math.random() * window.innerHeight,
+                    opacity: Math.random() * 0.5 + 0.1
+                  }}
+                  animate={{ 
+                    y: [null, Math.random() * -200 - 100],
+                    x: [null, Math.random() * 100 - 50],
+                    opacity: [null, 0]
+                  }}
+                  transition={{ 
+                    duration: Math.random() * 10 + 10,
+                    repeat: Infinity,
+                    ease: "linear",
+                    delay: Math.random() * 10
+                  }}
+                />
+              ))}
+            </div>
+
             <motion.div 
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
-              className="bg-[#0a0a0a] border border-purple-500/20 p-8 rounded-sm max-w-2xl w-full relative shadow-[0_0_50px_rgba(168,85,247,0.1)]"
+              className="bg-[#0a0a0a] border border-purple-500/20 p-8 rounded-sm max-w-2xl w-full relative shadow-[0_0_50px_rgba(168,85,247,0.1)] z-10"
             >
               <button 
                 onClick={() => setShowDeveloperMode(false)}
@@ -3525,9 +3339,35 @@ Example: { "health": 50, "allure": 20 }`;
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
             className="absolute inset-0 z-50 bg-black/90 backdrop-blur-xl flex items-center justify-center p-4"
           >
+            {/* Ambient Particles */}
+            <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-10 z-0">
+              {[...Array(15)].map((_, i) => (
+                <motion.div
+                  key={i}
+                  className="absolute w-1 h-1 bg-yellow-500 rounded-full blur-[1px]"
+                  initial={{ 
+                    x: Math.random() * window.innerWidth, 
+                    y: Math.random() * window.innerHeight,
+                    opacity: Math.random() * 0.5 + 0.1
+                  }}
+                  animate={{ 
+                    y: [null, Math.random() * -200 - 100],
+                    x: [null, Math.random() * 100 - 50],
+                    opacity: [null, 0]
+                  }}
+                  transition={{ 
+                    duration: Math.random() * 10 + 10,
+                    repeat: Infinity,
+                    ease: "linear",
+                    delay: Math.random() * 10
+                  }}
+                />
+              ))}
+            </div>
+
             <motion.div 
               initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }}
-              className="bg-[#0a0a0a] border border-white/10 p-8 rounded-sm max-w-2xl w-full relative shadow-2xl overflow-y-auto max-h-[90vh]"
+              className="bg-[#0a0a0a] border border-white/10 p-8 rounded-sm max-w-2xl w-full relative shadow-2xl overflow-y-auto max-h-[90vh] z-10"
             >
               <button onClick={() => dispatch({ type: 'TOGGLE_UI_SETTING', payload: { key: 'show_quests', value: false } })} className="absolute top-6 right-6 text-white/40 hover:text-white"><X className="w-6 h-6" /></button>
               <h2 className="text-2xl font-serif text-white/90 mb-8 border-b border-white/10 pb-4 tracking-widest uppercase">Journal</h2>
@@ -3536,8 +3376,14 @@ Example: { "health": 50, "allure": 20 }`;
                 {(!state.player.quests || state.player.quests.length === 0) ? (
                   <p className="text-white/40 italic text-sm text-center py-8">Your journal is empty.</p>
                 ) : (
-                  state.player.quests.map((quest: any) => (
-                    <div key={quest.id} className="border border-white/5 bg-white/[0.02] p-4 rounded-sm">
+                  state.player.quests.map((quest: any, index: number) => (
+                    <motion.div 
+                      key={quest.id} 
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: index * 0.1 }}
+                      className="border border-white/5 bg-white/[0.02] p-4 rounded-sm"
+                    >
                       <div className="flex justify-between items-start mb-2">
                         <h3 className="text-lg font-serif text-white/90">{quest.title}</h3>
                         <span className={`text-[10px] tracking-widest uppercase px-2 py-1 rounded-sm border ${quest.status === 'active' ? 'text-yellow-400 border-yellow-900/50 bg-yellow-900/20' : quest.status === 'completed' ? 'text-emerald-400 border-emerald-900/50 bg-emerald-900/20' : 'text-red-400 border-red-900/50 bg-red-900/20'}`}>
@@ -3545,7 +3391,7 @@ Example: { "health": 50, "allure": 20 }`;
                         </span>
                       </div>
                       <p className="text-sm text-white/60 leading-relaxed">{quest.description}</p>
-                    </div>
+                    </motion.div>
                   ))
                 )}
               </div>
@@ -3558,9 +3404,35 @@ Example: { "health": 50, "allure": 20 }`;
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
             className="absolute inset-0 z-50 bg-black/90 backdrop-blur-xl flex items-center justify-center p-4"
           >
+            {/* Ambient Particles */}
+            <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-10 z-0">
+              {[...Array(15)].map((_, i) => (
+                <motion.div
+                  key={i}
+                  className="absolute w-1 h-1 bg-blue-500 rounded-full blur-[1px]"
+                  initial={{ 
+                    x: Math.random() * window.innerWidth, 
+                    y: Math.random() * window.innerHeight,
+                    opacity: Math.random() * 0.5 + 0.1
+                  }}
+                  animate={{ 
+                    y: [null, Math.random() * -200 - 100],
+                    x: [null, Math.random() * 100 - 50],
+                    opacity: [null, 0]
+                  }}
+                  transition={{ 
+                    duration: Math.random() * 10 + 10,
+                    repeat: Infinity,
+                    ease: "linear",
+                    delay: Math.random() * 10
+                  }}
+                />
+              ))}
+            </div>
+
             <motion.div 
               initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }}
-              className="bg-[#0a0a0a] border border-white/10 p-8 rounded-sm max-w-4xl w-full relative shadow-2xl overflow-y-auto max-h-[90vh]"
+              className="bg-[#0a0a0a] border border-white/10 p-8 rounded-sm max-w-4xl w-full relative shadow-2xl overflow-y-auto max-h-[90vh] z-10"
             >
               <button onClick={() => dispatch({ type: 'TOGGLE_UI_SETTING', payload: { key: 'show_map', value: false } })} className="absolute top-6 right-6 text-white/40 hover:text-white"><X className="w-6 h-6" /></button>
               <h2 className="text-2xl font-serif text-white/90 mb-8 border-b border-white/10 pb-4 tracking-widest uppercase">Cartography of Tamriel</h2>
@@ -3573,7 +3445,8 @@ Example: { "health": 50, "allure": 20 }`;
                   {Object.values(LOCATIONS).map((loc: any) => {
                     const isCurrent = state.world.current_location.id === loc.id;
                     return (
-                      <button 
+                      <motion.button 
+                        whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.95 }}
                         key={loc.id}
                         onClick={() => {
                           if (!isCurrent) {
@@ -3588,7 +3461,7 @@ Example: { "health": 50, "allure": 20 }`;
                         <span className={`text-[10px] tracking-widest uppercase whitespace-nowrap bg-black/80 px-2 py-1 rounded-sm border ${isCurrent ? 'text-red-400 border-red-900/50' : 'text-white/60 border-white/10 group-hover:text-white group-hover:border-white/30'} transition-all`}>
                           {loc.name}
                         </span>
-                      </button>
+                      </motion.button>
                     );
                   })}
 
@@ -3610,7 +3483,11 @@ Example: { "health": 50, "allure": 20 }`;
                     <div className="p-4 bg-white/[0.02] border border-white/5 rounded-sm">
                       <span className="text-[10px] uppercase text-white/30 block mb-1">Local Tension</span>
                       <div className="h-1 bg-white/5 rounded-full mt-2 overflow-hidden">
-                        <div className="h-full bg-orange-500" style={{ width: `${state.world.local_tension * 100}%` }} />
+                        <motion.div 
+                          className="h-full bg-orange-500" 
+                          initial={{ width: 0 }}
+                          animate={{ width: `${state.world.local_tension * 100}%` }} 
+                        />
                       </div>
                     </div>
                     <div className="p-4 bg-white/[0.02] border border-white/5 rounded-sm">
@@ -3637,9 +3514,35 @@ Example: { "health": 50, "allure": 20 }`;
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
             className="absolute inset-0 z-50 bg-black/90 backdrop-blur-xl flex items-center justify-center p-4"
           >
+            {/* Ambient Particles */}
+            <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-10 z-0">
+              {[...Array(20)].map((_, i) => (
+                <motion.div
+                  key={i}
+                  className="absolute w-1 h-1 bg-indigo-500 rounded-full blur-[1px]"
+                  initial={{ 
+                    x: Math.random() * window.innerWidth, 
+                    y: Math.random() * window.innerHeight,
+                    opacity: Math.random() * 0.5 + 0.1
+                  }}
+                  animate={{ 
+                    y: [null, Math.random() * -200 - 100],
+                    x: [null, Math.random() * 100 - 50],
+                    opacity: [null, 0]
+                  }}
+                  transition={{ 
+                    duration: Math.random() * 10 + 10,
+                    repeat: Infinity,
+                    ease: "linear",
+                    delay: Math.random() * 10
+                  }}
+                />
+              ))}
+            </div>
+
             <motion.div 
               initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }}
-              className="bg-[#0a0a0a] border border-white/10 p-8 rounded-sm max-w-2xl w-full relative shadow-2xl overflow-y-auto max-h-[90vh]"
+              className="bg-[#0a0a0a] border border-white/10 p-8 rounded-sm max-w-2xl w-full relative shadow-2xl overflow-y-auto max-h-[90vh] z-10"
             >
               <button onClick={() => dispatch({ type: 'TOGGLE_UI_SETTING', payload: { key: 'show_stats', value: false } })} className="absolute top-6 right-6 text-white/40 hover:text-white"><X className="w-6 h-6" /></button>
               <h2 className="text-2xl font-serif text-white/90 mb-8 border-b border-white/10 pb-4 tracking-widest uppercase">Character Essence</h2>
@@ -3687,9 +3590,17 @@ Example: { "health": 50, "allure": 20 }`;
                   <h3 className="text-xs tracking-widest uppercase text-white/40 mb-4">Skills</h3>
                   <div className="space-y-4">
                     {Object.entries(state.player.skills).map(([key, value]) => (
-                      <div key={key} className="flex justify-between text-xs">
-                        <span className="text-white/50 capitalize">{key.replace('_', ' ')}</span>
-                        <span className="text-white/90">{value}</span>
+                      <div key={key} className="space-y-1">
+                        <div className="flex justify-between text-xs">
+                          <span className="text-white/50 capitalize">{key.replace('_', ' ')}</span>
+                          <span className="text-white/90">{value as number}</span>
+                        </div>
+                        <div className="h-1 bg-white/5 rounded-full overflow-hidden">
+                          <motion.div 
+                            initial={{ width: 0 }} animate={{ width: `${Math.min(100, value as number)}%` }}
+                            className="h-full bg-indigo-500/50"
+                          />
+                        </div>
                       </div>
                     ))}
                   </div>
@@ -3697,17 +3608,32 @@ Example: { "health": 50, "allure": 20 }`;
                 <div>
                   <h3 className="text-xs tracking-widest uppercase text-white/40 mb-4">Psychological Profile</h3>
                   <div className="space-y-4">
-                    <div className="flex justify-between text-xs">
-                      <span className="text-white/50">Submission</span>
-                      <span className="text-white/90">{state.player.psych_profile.submission_index}</span>
+                    <div className="space-y-1">
+                      <div className="flex justify-between text-xs">
+                        <span className="text-white/50">Submission</span>
+                        <span className="text-white/90">{state.player.psych_profile.submission_index}</span>
+                      </div>
+                      <div className="h-1 bg-white/5 rounded-full overflow-hidden">
+                        <motion.div initial={{ width: 0 }} animate={{ width: `${state.player.psych_profile.submission_index}%` }} className="h-full bg-purple-500/50" />
+                      </div>
                     </div>
-                    <div className="flex justify-between text-xs">
-                      <span className="text-white/50">Cruelty</span>
-                      <span className="text-white/90">{state.player.psych_profile.cruelty_index}</span>
+                    <div className="space-y-1">
+                      <div className="flex justify-between text-xs">
+                        <span className="text-white/50">Cruelty</span>
+                        <span className="text-white/90">{state.player.psych_profile.cruelty_index}</span>
+                      </div>
+                      <div className="h-1 bg-white/5 rounded-full overflow-hidden">
+                        <motion.div initial={{ width: 0 }} animate={{ width: `${state.player.psych_profile.cruelty_index}%` }} className="h-full bg-red-500/50" />
+                      </div>
                     </div>
-                    <div className="flex justify-between text-xs">
-                      <span className="text-white/50">Exhibitionism</span>
-                      <span className="text-white/90">{state.player.psych_profile.exhibitionism}</span>
+                    <div className="space-y-1">
+                      <div className="flex justify-between text-xs">
+                        <span className="text-white/50">Exhibitionism</span>
+                        <span className="text-white/90">{state.player.psych_profile.exhibitionism}</span>
+                      </div>
+                      <div className="h-1 bg-white/5 rounded-full overflow-hidden">
+                        <motion.div initial={{ width: 0 }} animate={{ width: `${state.player.psych_profile.exhibitionism}%` }} className="h-full bg-pink-500/50" />
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -3717,6 +3643,64 @@ Example: { "health": 50, "allure": 20 }`;
                     {state.player.afflictions.length > 0 ? state.player.afflictions.map(a => (
                       <span key={a} className="px-2 py-1 bg-red-900/20 border border-red-500/30 text-[10px] text-red-400 uppercase tracking-tighter">{a}</span>
                     )) : <span className="text-xs text-white/30 italic">None</span>}
+                  </div>
+                </div>
+                <div>
+                  <h3 className="text-xs tracking-widest uppercase text-white/40 mb-4">Active Synergies</h3>
+                  <div className="flex flex-col gap-2">
+                    {getSynergies(state.player.skills).length > 0 ? getSynergies(state.player.skills).map(s => (
+                      <div key={s.name} className="p-2 bg-emerald-900/10 border border-emerald-500/20 rounded">
+                        <div className="text-[10px] text-emerald-400 uppercase tracking-tighter font-bold">{s.name}</div>
+                        <div className="text-[10px] text-white/50">{s.description}</div>
+                      </div>
+                    )) : <span className="text-xs text-white/30 italic">None</span>}
+                  </div>
+                </div>
+                <div>
+                  <h3 className="text-xs tracking-widest uppercase text-white/40 mb-4">Biology & Condition</h3>
+                  <div className="space-y-2">
+                    <div className="flex justify-between text-xs border-b border-white/5 pb-1">
+                      <span className="text-white/50">Cycle Day</span>
+                      <span className="text-white/90">{state.player.biology.cycle_day}</span>
+                    </div>
+                    <div className="flex justify-between text-xs border-b border-white/5 pb-1">
+                      <span className="text-white/50">Heat/Rut Active</span>
+                      <span className={state.player.biology.heat_rut_active ? "text-pink-400" : "text-white/90"}>{state.player.biology.heat_rut_active ? 'Yes' : 'No'}</span>
+                    </div>
+                    <div className="flex justify-between text-xs border-b border-white/5 pb-1">
+                      <span className="text-white/50">Sterility</span>
+                      <span className={state.player.biology.sterility ? "text-red-400" : "text-white/90"}>{state.player.biology.sterility ? 'Yes' : 'No'}</span>
+                    </div>
+                    <div className="flex justify-between text-xs border-b border-white/5 pb-1">
+                      <span className="text-white/50">Exhaustion Multiplier</span>
+                      <span className="text-white/90">{state.player.biology.exhaustion_multiplier.toFixed(2)}x</span>
+                    </div>
+                    {state.player.biology.post_partum_debuff > 0 && (
+                      <div className="flex justify-between text-xs border-b border-white/5 pb-1">
+                        <span className="text-white/50">Post-Partum Debuff</span>
+                        <span className="text-red-400">{state.player.biology.post_partum_debuff} days</span>
+                      </div>
+                    )}
+                    {state.player.biology.parasites.length > 0 && (
+                      <div className="pt-2">
+                        <span className="text-[10px] uppercase text-white/40 block mb-1">Parasites</span>
+                        <div className="flex flex-wrap gap-1">
+                          {state.player.biology.parasites.map((p, i) => (
+                            <span key={i} className="text-[10px] px-1.5 py-0.5 bg-red-900/20 border border-red-500/30 text-red-400 rounded-sm">{p.type}</span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    {state.player.biology.incubations.length > 0 && (
+                      <div className="pt-2">
+                        <span className="text-[10px] uppercase text-white/40 block mb-1">Incubations</span>
+                        <div className="flex flex-wrap gap-1">
+                          {state.player.biology.incubations.map((inc, i) => (
+                            <span key={i} className="text-[10px] px-1.5 py-0.5 bg-purple-900/20 border border-purple-500/30 text-purple-400 rounded-sm">{inc.type} ({inc.progress}%)</span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
@@ -3732,9 +3716,35 @@ Example: { "health": 50, "allure": 20 }`;
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
             className="absolute inset-0 z-50 bg-black/90 backdrop-blur-xl flex items-center justify-center p-4"
           >
+            {/* Ambient Particles */}
+            <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-10 z-0">
+              {[...Array(20)].map((_, i) => (
+                <motion.div
+                  key={i}
+                  className="absolute w-1 h-1 bg-emerald-500 rounded-full blur-[1px]"
+                  initial={{ 
+                    x: Math.random() * window.innerWidth, 
+                    y: Math.random() * window.innerHeight,
+                    opacity: Math.random() * 0.5 + 0.1
+                  }}
+                  animate={{ 
+                    y: [null, Math.random() * -200 - 100],
+                    x: [null, Math.random() * 100 - 50],
+                    opacity: [null, 0]
+                  }}
+                  transition={{ 
+                    duration: Math.random() * 10 + 10,
+                    repeat: Infinity,
+                    ease: "linear",
+                    delay: Math.random() * 10
+                  }}
+                />
+              ))}
+            </div>
+
             <motion.div 
               initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }}
-              className="bg-[#0a0a0a] border border-white/10 p-8 rounded-sm max-w-4xl w-full relative shadow-2xl overflow-y-auto max-h-[90vh]"
+              className="bg-[#0a0a0a] border border-white/10 p-8 rounded-sm max-w-4xl w-full relative shadow-2xl overflow-y-auto max-h-[90vh] z-10"
             >
               <button onClick={() => dispatch({ type: 'TOGGLE_UI_SETTING', payload: { key: 'show_inventory', value: false } })} className="absolute top-6 right-6 text-white/40 hover:text-white"><X className="w-6 h-6" /></button>
               <h2 className="text-2xl font-serif text-white/90 mb-8 border-b border-white/10 pb-4 tracking-widest uppercase">Possessions</h2>
@@ -3742,47 +3752,75 @@ Example: { "health": 50, "allure": 20 }`;
               <div className="grid grid-cols-3 gap-8">
                 <div className="col-span-2 space-y-4">
                   <h3 className="text-xs tracking-widest uppercase text-white/40 mb-4">Backpack</h3>
-                  <div className="grid grid-cols-2 gap-4">
-                    {state.player.inventory.map(item => (
-                      <div key={item.id} className={`p-4 border ${item.is_equipped ? 'border-white/40 bg-white/5' : 'border-white/10 bg-black'} rounded-sm transition-all hover:border-white/30 group relative`}>
-                        <div className="flex justify-between items-start mb-2">
-                          <span className="text-sm font-serif text-white/90">{item.name}</span>
-                          <span className={`text-[8px] px-1 border uppercase ${item.rarity === 'common' ? 'border-white/20 text-white/40' : item.rarity === 'mythic' ? 'border-red-500 text-red-500' : 'border-purple-500 text-purple-500'}`}>{item.rarity}</span>
+                  <div className="flex flex-col gap-2">
+                    {state.player.inventory.map((item, index) => (
+                      <motion.div 
+                        key={item.id} 
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: index * 0.05 }}
+                        onClick={() => setSelectedItem(item)}
+                        className={`p-3 border ${item.is_equipped ? 'border-white/40 bg-white/5' : 'border-white/10 bg-black'} rounded-sm transition-all hover:border-white/30 group relative flex flex-col cursor-pointer`}
+                      >
+                        <div className="flex justify-between items-center mb-1">
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm font-serif text-white/90">{item.name}</span>
+                            <span className={`text-[8px] px-1 border uppercase rounded-sm ${item.rarity === 'common' ? 'border-white/20 text-white/40' : item.rarity === 'mythic' ? 'border-red-500 text-red-500' : 'border-purple-500 text-purple-500'}`}>{item.rarity}</span>
+                          </div>
+                          <span className="text-[10px] text-white/30 uppercase tracking-widest">{item.type} {item.slot ? `(${item.slot})` : ''}</span>
                         </div>
-                        <p className="text-[10px] text-white/40 mb-2 line-clamp-2">{item.description}</p>
-                        {item.stats && Object.keys(item.stats).length > 0 && (
-                          <div className="flex flex-wrap gap-1 mb-4">
-                            {Object.entries(item.stats).map(([stat, val]) => (
-                              <span key={stat} className={`text-[8px] uppercase tracking-widest px-1.5 py-0.5 border rounded-sm ${val > 0 ? 'text-emerald-400 border-emerald-900/50 bg-emerald-950/30' : 'text-red-400 border-red-900/50 bg-red-950/30'}`}>
-                                {stat}: {val > 0 ? '+' : ''}{val}
+                        <p className="text-[10px] text-white/40 mb-2 line-clamp-1 group-hover:line-clamp-none transition-all">{item.description}</p>
+                        
+                        <div className="flex justify-between items-end mt-auto pt-2">
+                          <div className="flex flex-wrap gap-1">
+                            {item.stats && Object.entries(item.stats).map(([stat, val]) => (
+                              <span key={stat} className={`text-[8px] uppercase tracking-widest px-1.5 py-0.5 border rounded-sm ${(val as number) > 0 ? 'text-emerald-400 border-emerald-900/50 bg-emerald-950/30' : 'text-red-400 border-red-900/50 bg-red-950/30'}`}>
+                                {stat}: {(val as number) > 0 ? '+' : ''}{val as number}
                               </span>
                             ))}
                           </div>
-                        )}
-                        <div className="flex justify-between items-center mt-auto">
-                          <span className="text-[10px] text-white/30 uppercase tracking-widest">{item.type}</span>
-                          {item.type === 'consumable' ? (
-                            <button 
-                              onClick={() => dispatch({ type: 'USE_ITEM', payload: { itemId: item.id } })}
-                              className="text-[10px] border border-white/20 px-2 py-1 hover:bg-white/10 uppercase tracking-widest text-emerald-400"
-                            >
-                              [Consume]
-                            </button>
-                          ) : (
-                            <button 
-                              onClick={() => dispatch({ type: item.is_equipped ? 'UNEQUIP_ITEM' : 'EQUIP_ITEM', payload: { itemId: item.id, slot: item.slot } })}
-                              className="text-[10px] border border-white/20 px-2 py-1 hover:bg-white/10 uppercase tracking-widest"
-                            >
-                              {item.is_equipped ? '[Unequip]' : '[Equip]'}
-                            </button>
-                          )}
-                        </div>
-                        {item.integrity !== undefined && (
-                          <div className="absolute bottom-0 left-0 w-full h-[2px] bg-white/5">
-                            <div className="h-full bg-white/20" style={{ width: `${item.integrity}%` }} />
+                          
+                          <div className="flex items-center gap-2">
+                            {item.integrity !== undefined && (
+                              <div className="flex items-center gap-1 mr-2">
+                                <span className="text-[8px] text-white/30 uppercase">INT</span>
+                                <div className="w-12 h-1 bg-white/10 rounded-full overflow-hidden">
+                                  <motion.div 
+                                    className="h-full bg-white/40" 
+                                    initial={{ width: 0 }}
+                                    animate={{ width: `${item.integrity}%` }} 
+                                  />
+                                </div>
+                              </div>
+                            )}
+                            {item.type === 'consumable' ? (
+                              <motion.button 
+                                whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
+                                onClick={(e) => { e.stopPropagation(); dispatch({ type: 'USE_ITEM', payload: { itemId: item.id } }); }}
+                                className="text-[10px] border border-emerald-500/30 bg-emerald-900/20 px-3 py-1 hover:bg-emerald-900/40 uppercase tracking-widest text-emerald-400 transition-colors"
+                              >
+                                Consume
+                              </motion.button>
+                            ) : ['weapon', 'armor', 'clothing'].includes(item.type) ? (
+                              <motion.button 
+                                whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
+                                onClick={(e) => { e.stopPropagation(); dispatch({ type: item.is_equipped ? 'UNEQUIP_ITEM' : 'EQUIP_ITEM', payload: { itemId: item.id, slot: item.slot } }); }}
+                                className={`text-[10px] border px-3 py-1 uppercase tracking-widest transition-colors ${item.is_equipped ? 'border-white/40 bg-white/10 hover:bg-white/20 text-white' : 'border-white/20 hover:bg-white/10 text-white/60'}`}
+                              >
+                                {item.is_equipped ? 'Unequip' : 'Equip'}
+                              </motion.button>
+                            ) : item.special_effect ? (
+                              <motion.button 
+                                whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
+                                onClick={(e) => { e.stopPropagation(); dispatch({ type: 'INTERACT_ITEM', payload: { itemId: item.id } }); }}
+                                className="text-[10px] border border-purple-500/30 bg-purple-900/20 px-3 py-1 hover:bg-purple-900/40 uppercase tracking-widest text-purple-400 transition-colors"
+                              >
+                                Interact
+                              </motion.button>
+                            ) : null}
                           </div>
-                        )}
-                      </div>
+                        </div>
+                      </motion.div>
                     ))}
                   </div>
                 </div>
@@ -3793,13 +3831,157 @@ Example: { "health": 50, "allure": 20 }`;
                     {['head', 'neck', 'shoulders', 'chest', 'underwear', 'legs', 'feet', 'hands', 'waist'].map(slot => {
                       const equipped = state.player.inventory.find(i => i.slot === slot && i.is_equipped);
                       return (
-                        <div key={slot} className="flex justify-between items-center p-3 border border-white/5 bg-white/[0.02] rounded-sm">
+                        <div 
+                          key={slot} 
+                          onClick={() => equipped && setSelectedItem(equipped)}
+                          className={`flex justify-between items-center p-3 border border-white/5 bg-white/[0.02] rounded-sm transition-colors ${equipped ? 'cursor-pointer hover:bg-white/5' : ''}`}
+                        >
                           <span className="text-[10px] uppercase text-white/30 tracking-tighter">{slot}</span>
                           <span className="text-xs text-white/70 font-serif">{equipped ? equipped.name : <span className="text-white/20 italic">Empty</span>}</span>
                         </div>
                       );
                     })}
                   </div>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {selectedItem && (
+          <motion.div 
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="absolute inset-0 z-[60] bg-black/90 backdrop-blur-xl flex items-center justify-center p-4"
+            onClick={() => setSelectedItem(null)}
+          >
+            {/* Ambient Particles */}
+            <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-10 z-0">
+              {[...Array(20)].map((_, i) => (
+                <motion.div
+                  key={i}
+                  className="absolute w-1 h-1 bg-amber-500 rounded-full blur-[1px]"
+                  initial={{ 
+                    x: Math.random() * window.innerWidth, 
+                    y: Math.random() * window.innerHeight,
+                    opacity: Math.random() * 0.5 + 0.1
+                  }}
+                  animate={{ 
+                    y: [null, Math.random() * -200 - 100],
+                    x: [null, Math.random() * 100 - 50],
+                    opacity: [null, 0]
+                  }}
+                  transition={{ 
+                    duration: Math.random() * 10 + 10,
+                    repeat: Infinity,
+                    ease: "linear",
+                    delay: Math.random() * 10
+                  }}
+                />
+              ))}
+            </div>
+
+            <motion.div 
+              initial={{ scale: 0.9, opacity: 0, y: 20 }} animate={{ scale: 1, opacity: 1, y: 0 }} exit={{ scale: 0.9, opacity: 0, y: 20 }}
+              onClick={(e) => e.stopPropagation()}
+              className="bg-[#0a0a0a] border border-amber-900/30 p-8 rounded-sm max-w-2xl w-full relative shadow-2xl overflow-y-auto max-h-[90vh] z-10"
+            >
+              <button onClick={() => setSelectedItem(null)} className="absolute top-6 right-6 text-white/40 hover:text-white"><X className="w-6 h-6" /></button>
+              
+              <div className="flex items-center gap-3 mb-6 border-b border-white/10 pb-4">
+                <h2 className="text-2xl font-serif text-amber-500/90 tracking-widest uppercase">{selectedItem.name}</h2>
+                <span className={`text-[10px] px-2 py-1 border uppercase rounded-sm ${selectedItem.rarity === 'common' ? 'border-white/20 text-white/40' : selectedItem.rarity === 'mythic' ? 'border-red-500 text-red-500' : 'border-purple-500 text-purple-500'}`}>{selectedItem.rarity}</span>
+              </div>
+              
+              <div className="space-y-6">
+                <div className="text-sm text-white/60 italic border-l-2 border-white/10 pl-4 py-2">
+                  {selectedItem.description}
+                </div>
+                
+                {selectedItem.lore && (
+                  <div className="prose prose-invert prose-sm max-w-none">
+                    <p className="text-white/80 font-serif leading-relaxed text-lg">
+                      {selectedItem.lore}
+                    </p>
+                  </div>
+                )}
+
+                {selectedItem.stats && Object.keys(selectedItem.stats).length > 0 && (
+                  <div className="flex flex-wrap gap-2">
+                    {Object.entries(selectedItem.stats).map(([stat, val]) => (
+                      <span key={stat} className={`text-xs uppercase tracking-widest px-2 py-1 border rounded-sm ${(val as number) > 0 ? 'text-emerald-400 border-emerald-900/50 bg-emerald-950/30' : 'text-red-400 border-red-900/50 bg-red-950/30'}`}>
+                        {stat}: {(val as number) > 0 ? '+' : ''}{val as number}
+                      </span>
+                    ))}
+                  </div>
+                )}
+                
+                <div className="flex flex-wrap gap-2 pt-4 border-t border-white/10">
+                  <span className="text-[10px] text-white/40 uppercase tracking-widest bg-white/5 px-2 py-1 rounded-sm">Type: {selectedItem.type}</span>
+                  {selectedItem.slot && <span className="text-[10px] text-white/40 uppercase tracking-widest bg-white/5 px-2 py-1 rounded-sm">Slot: {selectedItem.slot}</span>}
+                  <span className="text-[10px] text-white/40 uppercase tracking-widest bg-white/5 px-2 py-1 rounded-sm">Weight: {selectedItem.weight}</span>
+                  <span className="text-[10px] text-white/40 uppercase tracking-widest bg-white/5 px-2 py-1 rounded-sm">Value: {selectedItem.value}</span>
+                </div>
+
+                <div className="flex gap-3 pt-6 border-t border-white/10">
+                  {selectedItem.type === 'consumable' && (
+                    <motion.button
+                      whileHover={{ scale: 1.02, backgroundColor: "rgba(16, 185, 129, 0.2)" }}
+                      whileTap={{ scale: 0.98 }}
+                      onClick={() => {
+                        dispatch({ type: 'USE_ITEM', payload: { itemId: selectedItem.id } });
+                        setSelectedItem(null);
+                      }}
+                      className="flex-1 border border-emerald-900/50 bg-emerald-950/10 text-emerald-400 p-3 rounded-sm tracking-widest uppercase text-xs transition-colors"
+                    >
+                      Use
+                    </motion.button>
+                  )}
+
+                  {selectedItem.type !== 'consumable' && selectedItem.special_effect && (
+                    <motion.button
+                      whileHover={{ scale: 1.02, backgroundColor: "rgba(167, 139, 250, 0.2)" }}
+                      whileTap={{ scale: 0.98 }}
+                      onClick={() => {
+                        dispatch({ type: 'INTERACT_ITEM', payload: { itemId: selectedItem.id } });
+                        setSelectedItem(null);
+                      }}
+                      className="flex-1 border border-purple-900/50 bg-purple-950/10 text-purple-400 p-3 rounded-sm tracking-widest uppercase text-xs transition-colors"
+                    >
+                      Interact
+                    </motion.button>
+                  )}
+                  
+                  {['weapon', 'armor', 'clothing'].includes(selectedItem.type) && selectedItem.slot && (
+                    <motion.button
+                      whileHover={{ scale: 1.02, backgroundColor: "rgba(59, 130, 246, 0.2)" }}
+                      whileTap={{ scale: 0.98 }}
+                      onClick={() => {
+                        if (selectedItem.is_equipped) {
+                          dispatch({ type: 'UNEQUIP_ITEM', payload: { itemId: selectedItem.id } });
+                        } else {
+                          dispatch({ type: 'EQUIP_ITEM', payload: { itemId: selectedItem.id, slot: selectedItem.slot } });
+                        }
+                        setSelectedItem(null);
+                      }}
+                      className="flex-1 border border-blue-900/50 bg-blue-950/10 text-blue-400 p-3 rounded-sm tracking-widest uppercase text-xs transition-colors"
+                    >
+                      {selectedItem.is_equipped ? 'Unequip' : 'Equip'}
+                    </motion.button>
+                  )}
+
+                  <motion.button
+                    whileHover={{ scale: 1.02, backgroundColor: "rgba(239, 68, 68, 0.2)" }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={() => {
+                      dispatch({ type: 'DROP_ITEM', payload: { itemId: selectedItem.id } });
+                      setSelectedItem(null);
+                    }}
+                    className="flex-1 border border-red-900/50 bg-red-950/10 text-red-400 p-3 rounded-sm tracking-widest uppercase text-xs transition-colors"
+                  >
+                    Drop
+                  </motion.button>
                 </div>
               </div>
             </motion.div>
@@ -3815,11 +3997,37 @@ Example: { "health": 50, "allure": 20 }`;
             exit={{ opacity: 0 }}
             className="absolute inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4"
           >
+            {/* Ambient Particles */}
+            <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-10 z-0">
+              {[...Array(15)].map((_, i) => (
+                <motion.div
+                  key={i}
+                  className="absolute w-1 h-1 bg-white rounded-full blur-[1px]"
+                  initial={{ 
+                    x: Math.random() * window.innerWidth, 
+                    y: Math.random() * window.innerHeight,
+                    opacity: Math.random() * 0.5 + 0.1
+                  }}
+                  animate={{ 
+                    y: [null, Math.random() * -200 - 100],
+                    x: [null, Math.random() * 100 - 50],
+                    opacity: [null, 0]
+                  }}
+                  transition={{ 
+                    duration: Math.random() * 10 + 10,
+                    repeat: Infinity,
+                    ease: "linear",
+                    delay: Math.random() * 10
+                  }}
+                />
+              ))}
+            </div>
+
             <motion.div 
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
-              className="bg-[#0a0a0a] border border-white/10 p-8 rounded-sm max-w-md w-full relative shadow-2xl"
+              className="bg-[#0a0a0a] border border-white/10 p-8 rounded-sm max-w-md w-full relative shadow-2xl z-10"
             >
               <button 
                 onClick={() => setShowSettings(false)}
@@ -4047,11 +4255,37 @@ Example: { "health": 50, "allure": 20 }`;
             exit={{ opacity: 0 }}
             className="absolute inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4"
           >
+            {/* Ambient Particles */}
+            <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-10 z-0">
+              {[...Array(15)].map((_, i) => (
+                <motion.div
+                  key={i}
+                  className="absolute w-1 h-1 bg-yellow-500 rounded-full blur-[1px]"
+                  initial={{ 
+                    x: Math.random() * window.innerWidth, 
+                    y: Math.random() * window.innerHeight,
+                    opacity: Math.random() * 0.5 + 0.1
+                  }}
+                  animate={{ 
+                    y: [null, Math.random() * -200 - 100],
+                    x: [null, Math.random() * 100 - 50],
+                    opacity: [null, 0]
+                  }}
+                  transition={{ 
+                    duration: Math.random() * 10 + 10,
+                    repeat: Infinity,
+                    ease: "linear",
+                    delay: Math.random() * 10
+                  }}
+                />
+              ))}
+            </div>
+
             <motion.div 
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
-              className="bg-[#0a0a0a] border border-white/10 p-8 rounded-sm max-w-2xl w-full relative shadow-2xl overflow-y-auto max-h-[80vh]"
+              className="bg-[#0a0a0a] border border-white/10 p-8 rounded-sm max-w-2xl w-full relative shadow-2xl overflow-y-auto max-h-[80vh] z-10"
             >
               <button 
                 onClick={() => setShowCompanions(false)}
@@ -4080,11 +4314,23 @@ Example: { "health": 50, "allure": 20 }`;
                           <div className="flex gap-4 text-xs">
                             <div className="flex-1">
                               <span className="text-white/40 block mb-1">Affection</span>
-                              <div className="h-1 bg-white/10 rounded-full overflow-hidden"><div className="h-full bg-pink-500/50" style={{width: `${c.affection}%`}}/></div>
+                              <div className="h-1 bg-white/10 rounded-full overflow-hidden">
+                                <motion.div 
+                                  className="h-full bg-pink-500/50" 
+                                  initial={{ width: 0 }}
+                                  animate={{ width: `${c.affection}%` }}
+                                />
+                              </div>
                             </div>
                             <div className="flex-1">
                               <span className="text-white/40 block mb-1">Fear</span>
-                              <div className="h-1 bg-white/10 rounded-full overflow-hidden"><div className="h-full bg-purple-500/50" style={{width: `${c.fear}%`}}/></div>
+                              <div className="h-1 bg-white/10 rounded-full overflow-hidden">
+                                <motion.div 
+                                  className="h-full bg-purple-500/50" 
+                                  initial={{ width: 0 }}
+                                  animate={{ width: `${c.fear}%` }}
+                                />
+                              </div>
                             </div>
                           </div>
                         </div>
@@ -4107,11 +4353,37 @@ Example: { "health": 50, "allure": 20 }`;
             exit={{ opacity: 0 }}
             className="absolute inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4"
           >
+            {/* Ambient Particles */}
+            <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-10 z-0">
+              {[...Array(15)].map((_, i) => (
+                <motion.div
+                  key={i}
+                  className="absolute w-1 h-1 bg-stone-400 rounded-full blur-[1px]"
+                  initial={{ 
+                    x: Math.random() * window.innerWidth, 
+                    y: Math.random() * window.innerHeight,
+                    opacity: Math.random() * 0.5 + 0.1
+                  }}
+                  animate={{ 
+                    y: [null, Math.random() * -200 - 100],
+                    x: [null, Math.random() * 100 - 50],
+                    opacity: [null, 0]
+                  }}
+                  transition={{ 
+                    duration: Math.random() * 10 + 10,
+                    repeat: Infinity,
+                    ease: "linear",
+                    delay: Math.random() * 10
+                  }}
+                />
+              ))}
+            </div>
+
             <motion.div 
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
-              className="bg-[#0a0a0a] border border-white/10 p-8 rounded-sm max-w-2xl w-full relative shadow-2xl overflow-y-auto max-h-[80vh]"
+              className="bg-[#0a0a0a] border border-white/10 p-8 rounded-sm max-w-2xl w-full relative shadow-2xl overflow-y-auto max-h-[80vh] z-10"
             >
               <button 
                 onClick={() => setShowBase(false)}
@@ -4165,11 +4437,37 @@ Example: { "health": 50, "allure": 20 }`;
             exit={{ opacity: 0 }}
             className="absolute inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4"
           >
+            {/* Ambient Particles */}
+            <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-10 z-0">
+              {[...Array(15)].map((_, i) => (
+                <motion.div
+                  key={i}
+                  className="absolute w-1 h-1 bg-purple-500 rounded-full blur-[1px]"
+                  initial={{ 
+                    x: Math.random() * window.innerWidth, 
+                    y: Math.random() * window.innerHeight,
+                    opacity: Math.random() * 0.5 + 0.1
+                  }}
+                  animate={{ 
+                    y: [null, Math.random() * -200 - 100],
+                    x: [null, Math.random() * 100 - 50],
+                    opacity: [null, 0]
+                  }}
+                  transition={{ 
+                    duration: Math.random() * 10 + 10,
+                    repeat: Infinity,
+                    ease: "linear",
+                    delay: Math.random() * 10
+                  }}
+                />
+              ))}
+            </div>
+
             <motion.div 
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
-              className="bg-[#0a0a0a] border border-white/10 p-8 rounded-sm max-w-2xl w-full relative shadow-2xl"
+              className="bg-[#0a0a0a] border border-white/10 p-8 rounded-sm max-w-2xl w-full relative shadow-2xl z-10"
             >
               <button 
                 onClick={() => setShowSpellcrafting(false)}
@@ -4232,11 +4530,37 @@ Example: { "health": 50, "allure": 20 }`;
             exit={{ opacity: 0 }}
             className="absolute inset-0 z-50 bg-indigo-950/80 backdrop-blur-md flex items-center justify-center p-4"
           >
+            {/* Ambient Particles */}
+            <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-20 z-0">
+              {[...Array(25)].map((_, i) => (
+                <motion.div
+                  key={i}
+                  className="absolute w-1 h-1 bg-indigo-400 rounded-full blur-[2px]"
+                  initial={{ 
+                    x: Math.random() * window.innerWidth, 
+                    y: Math.random() * window.innerHeight,
+                    opacity: Math.random() * 0.5 + 0.1
+                  }}
+                  animate={{ 
+                    y: [null, Math.random() * -200 - 100],
+                    x: [null, Math.random() * 100 - 50],
+                    opacity: [null, 0]
+                  }}
+                  transition={{ 
+                    duration: Math.random() * 10 + 10,
+                    repeat: Infinity,
+                    ease: "linear",
+                    delay: Math.random() * 10
+                  }}
+                />
+              ))}
+            </div>
+
             <motion.div 
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
-              className="bg-[#0a0a0a] border border-indigo-500/30 p-8 rounded-sm max-w-4xl w-full relative shadow-2xl overflow-hidden h-[80vh]"
+              className="bg-[#0a0a0a] border border-indigo-500/30 p-8 rounded-sm max-w-4xl w-full relative shadow-2xl overflow-hidden h-[80vh] z-10"
             >
               <button 
                 onClick={() => setShowDreamscape(false)}
