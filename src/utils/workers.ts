@@ -287,7 +287,7 @@ export function calculateBeauty(state: GameState): number {
   const equippedItems = state.player.inventory.filter(i => i.is_equipped);
   const avgIntegrity = equippedItems.length > 0
     ? equippedItems.reduce((sum, i) => sum + (i.integrity ?? 100), 0) / equippedItems.length
-    : 0;
+    : 100;
 
   let beauty = allure * 2;
   beauty += hygiene * 0.3;
@@ -501,7 +501,7 @@ export function buildImagePrompt(state: GameState): string {
   }
 
   // Hallucination effects
-  if (state.player.stats.hallucination > 50 || state.player.stats.stamina <= 0) {
+  if ((state.player.stats.hallucination || 0) > 50 || state.player.stats.stamina <= 0) {
     parts.push("distorted perception, visual artifacts, hallucinatory elements");
   }
 
