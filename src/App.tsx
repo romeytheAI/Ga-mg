@@ -238,7 +238,8 @@ export interface GameState {
       stat_drain_multiplier: number,
       enable_parasites: boolean,
       enable_pregnancy: boolean,
-      enable_extreme_content: boolean
+      enable_extreme_content: boolean,
+      streamer_mode: boolean
     }
   }
 }
@@ -634,6 +635,25 @@ const updateFame = (
   return updated;
 };
 
+// Helper to check if image should be censored in streamer mode
+const shouldCensorImage = (state: GameState): boolean => {
+  if (!state.ui.settings.streamer_mode) return false;
+
+  // Censor if exposed
+  if (isExposed(state)) return true;
+
+  // Censor if high arousal/lust
+  if ((state.player.stats.arousal || 0) >= 50 || (state.player.stats.lust || 0) >= 50) return true;
+
+  // Censor if exhibitionism is high
+  if ((state.player.psych_profile.exhibitionism || 0) >= 40) return true;
+
+  // Censor if in active encounter
+  if (state.world.active_encounter) return true;
+
+  return false;
+};
+
 // --- Initial State ---
 const initialState: GameState = {
   player: {
@@ -772,7 +792,8 @@ const initialState: GameState = {
       stat_drain_multiplier: 1.0,
       enable_parasites: true,
       enable_pregnancy: true,
-      enable_extreme_content: false
+      enable_extreme_content: false,
+      streamer_mode: false
     }
   }
 };
@@ -1927,7 +1948,8 @@ self.onmessage = function(e) {
     stat_drain_multiplier: 1.0,
     enable_parasites: true,
     enable_pregnancy: true,
-    enable_extreme_content: false
+    enable_extreme_content: false,
+    streamer_mode: false
   };
 
   let prompt = \`You are the AI Director of a dark fantasy RPG set in the Elder Scrolls universe (Tamriel).
@@ -2049,15 +2071,123 @@ function buildTextPromptAsync(state: GameState, actionText: string): Promise<str
 }
 
 function buildImagePrompt(state: GameState) {
+  // Check for streamer mode censoring
+  if (shouldCensorImage(state)) {
+    return "masterpiece, high quality, dark fantasy, Elder Scrolls style, abstract silhouette in shadows, fade to black, cinematic lighting, mysterious atmosphere, safe for streaming";
+  }
+
   const timeOfDay = state.world.hour >= 6 && state.world.hour <= 18 ? "daytime" : "nighttime";
   const ageYears = Math.floor(state.player.age_days / 365);
   const ageAppearance = AGE_APPEARANCE[ageYears] || "A young person";
   const afflictions = state.player.afflictions.length > 0 ? state.player.afflictions.join(", ") : "healthy";
   const cosmetics = `${state.player.cosmetics.hair_length} hair, ${state.player.cosmetics.eye_color} eyes, ${state.player.cosmetics.skin_tone} skin, ${state.player.cosmetics.posture} posture`;
-  
+
+  // Enhanced clothing state visualization with damage/exposure
+  let clothingDescription = "";
+  const equippedItems = state.player.inventory.filter(i => i.is_equipped);
+  if (equippedItems.length === 0) {
+    clothingDescription = "completely naked, exposed";
+  } else {
+    const clothingStates = equippedItems.map(item => {
+      const integrity = item.integrity || 100;
+      let condition = "";
+      if (integrity <= 0) condition = "destroyed";
+      else if (integrity < 30) condition = "torn and barely covering";
+      else if (integrity < 60) condition = "damaged and ripped";
+      else if (integrity < 80) condition = "worn";
+      else condition = "";
+      return condition ? `${condition} ${item.name}` : item.name;
+    });
+    clothingDescription = clothingStates.join(", ");
+
+    // Add exposure indicators
+    if (isExposed(state)) {
+      clothingDescription += ", partially exposed, revealing";
+    }
+  }
+
+  // Beauty and attractiveness representation
+  const beauty = state.player.beauty || 0;
+  let beautyDescriptor = "";
+  if (beauty >= 80) beautyDescriptor = ", strikingly beautiful, alluring";
+  else if (beauty >= 60) beautyDescriptor = ", attractive, appealing";
+  else if (beauty >= 40) beautyDescriptor = ", average appearance";
+  else if (beauty >= 20) beautyDescriptor = ", disheveled appearance";
+  else beautyDescriptor = ", unkempt, bedraggled";
+
+  // Hygiene visual effects
+  const hygiene = state.player.stats.hygiene || 50;
+  let hygieneDescriptor = "";
+  if (hygiene < 20) hygieneDescriptor = ", filthy, covered in grime";
+  else if (hygiene < 40) hygieneDescriptor = ", dirty, unwashed";
+  else if (hygiene < 60) hygieneDescriptor = "";
+  else if (hygiene >= 80) hygieneDescriptor = ", clean and well-groomed";
+
+  // Arousal and lust visual indicators
+  const arousal = state.player.stats.arousal || 0;
+  const lust = state.player.stats.lust || 0;
+  let arousalDescriptor = "";
+  if (arousal >= 80 || lust >= 80) arousalDescriptor = ", flushed face, labored breathing, lustful expression";
+  else if (arousal >= 50 || lust >= 50) arousalDescriptor = ", flushed cheeks, heated gaze";
+  else if (arousal >= 30 || lust >= 30) arousalDescriptor = ", slightly flushed";
+
+  // Corruption visual manifestations
+  const corruption = state.player.stats.corruption || 0;
+  let corruptionDescriptor = "";
+  if (corruption >= 90) corruptionDescriptor = ", dark veins visible on skin, eerie glow in eyes, corrupted aura";
+  else if (corruption >= 70) corruptionDescriptor = ", darkened fingertips, shadowy presence";
+  else if (corruption >= 50) corruptionDescriptor = ", faint dark marks on skin";
+  else if (corruption >= 30) corruptionDescriptor = ", subtle darkness in eyes";
+
+  // Trauma and stress visual cues
+  const trauma = state.player.stats.trauma || 0;
+  const stress = state.player.stats.stress || 0;
+  let traumaDescriptor = "";
+  if (trauma >= 80 || stress >= 80) traumaDescriptor = ", haunted expression, thousand-yard stare, trembling";
+  else if (trauma >= 50 || stress >= 60) traumaDescriptor = ", anxious demeanor, worried eyes";
+  else if (trauma >= 30 || stress >= 40) traumaDescriptor = ", tense posture";
+
+  // Purity visual representation
+  const purity = state.player.stats.purity || 100;
+  let purityDescriptor = "";
+  if (purity >= 90) purityDescriptor = ", innocent aura, soft glow";
+  else if (purity <= 20) purityDescriptor = ", jaded expression, worldly-wise";
+
+  // Submission/control body language
+  const submission = state.player.psych_profile.submission_index || 0;
+  const control = state.player.stats.control || 80;
+  let submissionDescriptor = "";
+  if (submission >= 70) submissionDescriptor = ", submissive posture, lowered gaze, meek stance";
+  else if (submission >= 40) submissionDescriptor = ", deferential body language";
+  else if (control >= 80) submissionDescriptor = ", confident stance, commanding presence";
+
+  // Exhibitionism visual representation
+  const exhibitionism = state.player.psych_profile.exhibitionism || 0;
+  let exhibitionismDescriptor = "";
+  if (exhibitionism >= 70 && isExposed(state)) exhibitionismDescriptor = ", shameless display, unashamed";
+  else if (exhibitionism >= 40 && isExposed(state)) exhibitionismDescriptor = ", bold exposure";
+  else if (exhibitionism < 20 && isExposed(state)) exhibitionismDescriptor = ", embarrassed, trying to cover";
+
+  // Ascension state visual transformations
+  let ascensionDescriptor = "";
+  if (state.world.ascension_state === 'pure_soul') {
+    ascensionDescriptor = ", radiant holy aura, divine glow, ethereal beauty";
+  } else if (state.world.ascension_state === 'void_lord') {
+    ascensionDescriptor = ", shadowy tendrils, void energy crackling, dark power emanating";
+  } else if (state.world.ascension_state === 'broodmother') {
+    ascensionDescriptor = ", chitinous growths, parasitic integration, inhuman transformation";
+  } else if (state.world.ascension_state === 'asylum') {
+    ascensionDescriptor = ", broken mind visible in eyes, fractured reality around them";
+  }
+
   let biologyTags = "";
   if (state.player.biology.incubations.length > 0 || state.player.biology.parasites.length > 0) {
-    biologyTags = ", swollen abdomen, pregnant appearance";
+    const parasiteCount = state.player.biology.parasites.length;
+    if (parasiteCount >= 3) {
+      biologyTags = ", heavily pregnant appearance, multiple swollen areas, parasitic growths visible";
+    } else {
+      biologyTags = ", swollen abdomen, pregnant appearance";
+    }
   }
 
   let dreamscapeTags = "";
@@ -2070,8 +2200,7 @@ function buildImagePrompt(state: GameState) {
     companionTags = `, accompanied by ${state.player.companions.active_party[0].name} (${state.player.companions.active_party[0].type})`;
   }
 
-  const equipped = state.player.inventory.filter(i => i.is_equipped).map(i => i.name).join(", ") || "nothing";
-  return `masterpiece, high quality, dark fantasy, Elder Scrolls style, ${state.world.current_location.atmosphere}, ${state.world.weather}, ${timeOfDay}, ${ageAppearance}, character wearing ${equipped}, ${cosmetics}, ${afflictions}${biologyTags}${dreamscapeTags}${companionTags}`;
+  return `masterpiece, high quality, dark fantasy, Elder Scrolls style, ${state.world.current_location.atmosphere}, ${state.world.weather}, ${timeOfDay}, ${ageAppearance}, character wearing ${clothingDescription}${beautyDescriptor}${hygieneDescriptor}${arousalDescriptor}${corruptionDescriptor}${traumaDescriptor}${purityDescriptor}${submissionDescriptor}${exhibitionismDescriptor}${ascensionDescriptor}, ${cosmetics}, ${afflictions}${biologyTags}${dreamscapeTags}${companionTags}`;
 }
 
 function getFallbackResponse() {
@@ -3067,14 +3196,25 @@ Example: { "health": 50, "allure": 20 }`;
           {/* Hero Image Container */}
           <div className="relative w-full max-w-2xl aspect-[4/3] rounded-sm overflow-hidden border border-white/10 shadow-2xl shadow-black/80 z-10 bg-[#0a0a0a]">
             {state.ui.currentImage ? (
-              <motion.img 
-                key={state.ui.currentImage}
-                src={state.ui.currentImage} 
-                className="w-[110%] h-[110%] -left-[5%] -top-[5%] absolute object-cover will-change-transform"
-                style={{ transform: 'translateZ(0)' }}
-                animate={{ x: mousePos.x, y: mousePos.y }}
-                transition={{ type: 'spring', stiffness: 40, damping: 30 }}
-              />
+              <>
+                <motion.img
+                  key={state.ui.currentImage}
+                  src={state.ui.currentImage}
+                  className={`w-[110%] h-[110%] -left-[5%] -top-[5%] absolute object-cover will-change-transform ${shouldCensorImage(state) ? 'blur-3xl' : ''}`}
+                  style={{ transform: 'translateZ(0)' }}
+                  animate={{ x: mousePos.x, y: mousePos.y }}
+                  transition={{ type: 'spring', stiffness: 40, damping: 30 }}
+                />
+                {shouldCensorImage(state) && (
+                  <div className="absolute inset-0 bg-black/70 flex items-center justify-center">
+                    <div className="text-center">
+                      <EyeOff className="w-16 h-16 text-white/40 mx-auto mb-4" />
+                      <p className="text-xs tracking-widest uppercase text-white/60">Streamer Mode Active</p>
+                      <p className="text-[10px] text-white/40 mt-1">Content Obscured</p>
+                    </div>
+                  </div>
+                )}
+              </>
             ) : (
               <div className="absolute inset-0 flex items-center justify-center">
                 <div className="w-32 h-[1px] bg-gradient-to-r from-transparent via-white/20 to-transparent" />
@@ -3934,6 +4074,13 @@ Example: { "health": 50, "allure": 20 }`;
                   <span className="text-xs tracking-widest uppercase text-red-500/50">Extreme Content</span>
                   <button onClick={() => dispatch({ type: 'UPDATE_SETTING', payload: { key: 'enable_extreme_content', value: !state.ui.settings.enable_extreme_content } })} className={`text-xs px-3 py-1 rounded-sm border ${state.ui.settings.enable_extreme_content ? 'text-red-500 border-red-500/50' : 'text-white/80 border-white/20 hover:text-white'}`}>
                     {state.ui.settings.enable_extreme_content ? 'Active' : 'Disabled'}
+                  </button>
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <span className="text-xs tracking-widest uppercase text-blue-500/50">Streamer Mode</span>
+                  <button onClick={() => dispatch({ type: 'UPDATE_SETTING', payload: { key: 'streamer_mode', value: !state.ui.settings.streamer_mode } })} className={`text-xs px-3 py-1 rounded-sm border ${state.ui.settings.streamer_mode ? 'text-blue-500 border-blue-500/50' : 'text-white/80 border-white/20 hover:text-white'}`}>
+                    {state.ui.settings.streamer_mode ? 'Active' : 'Disabled'}
                   </button>
                 </div>
               </div>
