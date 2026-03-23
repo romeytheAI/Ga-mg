@@ -30,7 +30,7 @@ import { PREDEFINED_ANATOMIES, STABLE_API, DEFAULT_API_KEY, AGE_APPEARANCE } fro
 import { ELDER_SCROLLS_LORE, getRelevantLore } from './lore';
 import { generateProceduralItem } from './utils/procedural';
 import { generateText, generateImage, generateLegendaryStats } from './services/api';
-import { buildTextPromptAsync, buildImagePrompt, imageWorker } from './utils/workers';
+import { buildTextPromptAsync, buildImagePrompt, imageWorker, shouldCensorImage } from './utils/workers';
 import { getSynergies, getAgeTag, getFallbackResponse, getHealthSemantic, getStaminaSemantic, getTraumaSemantic } from './utils/gameLogic';
 import { useEncounterBuffer } from './hooks/useEncounterBuffer';
 
@@ -973,7 +973,7 @@ Example: { "health": 50, "allure": 20 }`;
               <motion.img 
                 key={state.ui.currentImage}
                 src={state.ui.currentImage} 
-                className="w-[110%] h-[110%] -left-[5%] -top-[5%] absolute object-cover will-change-transform"
+                className={`w-[110%] h-[110%] -left-[5%] -top-[5%] absolute object-cover will-change-transform ${shouldCensorImage(state) ? 'blur-3xl' : ''}`}
                 style={{ transform: 'translateZ(0)' }}
                 animate={{ x: mousePos.x, y: mousePos.y }}
                 transition={{ type: 'spring', stiffness: 40, damping: 30 }}
@@ -981,6 +981,16 @@ Example: { "health": 50, "allure": 20 }`;
             ) : (
               <div className="absolute inset-0 flex items-center justify-center">
                 <div className="w-32 h-[1px] bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+              </div>
+            )}
+
+            {/* Streamer Mode Censor Overlay */}
+            {shouldCensorImage(state) && state.ui.currentImage && (
+              <div className="absolute inset-0 bg-black/60 flex items-center justify-center z-15">
+                <div className="flex flex-col items-center gap-2">
+                  <EyeOff className="w-8 h-8 text-white/40" />
+                  <span className="text-[10px] tracking-[0.3em] uppercase text-white/40">Streamer Mode Active</span>
+                </div>
               </div>
             )}
             

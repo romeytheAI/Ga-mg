@@ -155,7 +155,8 @@ export const initialState: GameState = {
       stat_drain_multiplier: 1.0,
       enable_parasites: true,
       enable_pregnancy: true,
-      enable_extreme_content: false
+      enable_extreme_content: false,
+      streamer_mode: false
     }
   }
 };

@@ -133,7 +133,8 @@ self.onmessage = function(e) {
     stat_drain_multiplier: 1.0,
     enable_parasites: true,
     enable_pregnancy: true,
-    enable_extreme_content: false
+    enable_extreme_content: false,
+    streamer_mode: false
   };
 
   let synergiesTag = "";
@@ -256,28 +257,253 @@ export function buildTextPromptAsync(state: GameState, actionText: string): Prom
   });
 }
 
-export function buildImagePrompt(state: GameState) {
+/**
+ * Determines if the player character is exposed (missing critical clothing).
+ * Exposed = chest slot missing/destroyed OR both underwear AND legs missing/destroyed.
+ */
+export function isExposed(state: GameState): boolean {
+  const equippedItems = state.player.inventory.filter(i => i.is_equipped);
+  const chest = equippedItems.find(i => i.slot === 'chest');
+  const underwear = equippedItems.find(i => i.slot === 'underwear');
+  const legs = equippedItems.find(i => i.slot === 'legs');
+
+  const chestMissing = !chest || (chest.integrity !== undefined && chest.integrity <= 0);
+  const underwearMissing = !underwear || (underwear.integrity !== undefined && underwear.integrity <= 0);
+  const legsMissing = !legs || (legs.integrity !== undefined && legs.integrity <= 0);
+
+  return chestMissing || (underwearMissing && legsMissing);
+}
+
+/**
+ * Calculates a beauty score (0-100) based on multiple factors.
+ */
+export function calculateBeauty(state: GameState): number {
+  const allure = state.player.stats.allure || 0;
+  const hygiene = state.player.stats.hygiene || 50;
+  const corruption = state.player.stats.corruption || 0;
+  const trauma = state.player.stats.trauma || 0;
+  const purity = state.player.stats.purity || 50;
+
+  const equippedItems = state.player.inventory.filter(i => i.is_equipped);
+  const avgIntegrity = equippedItems.length > 0
+    ? equippedItems.reduce((sum, i) => sum + (i.integrity ?? 100), 0) / equippedItems.length
+    : 0;
+
+  let beauty = allure * 2;
+  beauty += hygiene * 0.3;
+  beauty += avgIntegrity * 0.1;
+  beauty += purity * 0.1;
+  beauty -= corruption * 0.1;
+  beauty -= trauma * 0.1;
+
+  return Math.max(0, Math.min(100, Math.round(beauty)));
+}
+
+/**
+ * Determines if image content should be censored (for streamer mode).
+ */
+export function shouldCensorImage(state: GameState): boolean {
+  if (!state.ui.settings.streamer_mode) return false;
+
+  if (isExposed(state)) return true;
+  if ((state.player.stats.arousal || 0) >= 50 || (state.player.stats.lust || 0) >= 50) return true;
+  if ((state.player.psych_profile.exhibitionism || 0) >= 40) return true;
+  if (state.world.active_encounter) return true;
+
+  return false;
+}
+
+/**
+ * Comprehensive image prompt builder with 12 visual systems for DoL graphic parity.
+ */
+export function buildImagePrompt(state: GameState): string {
+  // Streamer mode: generate a safe abstract prompt when censoring is needed
+  if (shouldCensorImage(state)) {
+    return `abstract dark fantasy landscape, silhouette of a figure, atmospheric fog, ${state.world.current_location.atmosphere}, ${state.world.weather}, cinematic lighting, safe for work`;
+  }
+
   const timeOfDay = state.world.hour >= 6 && state.world.hour <= 18 ? "daytime" : "nighttime";
   const ageYears = Math.floor(state.player.age_days / 365);
   const ageAppearance = AGE_APPEARANCE[ageYears] || "A young person";
-  const afflictions = state.player.afflictions.length > 0 ? state.player.afflictions.join(", ") : "healthy";
-  const cosmetics = \`\${state.player.cosmetics.hair_length} hair, \${state.player.cosmetics.eye_color} eyes, \${state.player.cosmetics.skin_tone} skin, \${state.player.cosmetics.posture} posture\`;
-  
-  let biologyTags = "";
-  if (state.player.biology.incubations.length > 0 || state.player.biology.parasites.length > 0) {
-    biologyTags = ", swollen abdomen, pregnant appearance";
+  const cosmetics = `${state.player.cosmetics.hair_length} hair, ${state.player.cosmetics.eye_color} eyes, ${state.player.cosmetics.skin_tone} skin`;
+
+  const parts: string[] = [
+    "masterpiece, high quality, dark fantasy, Elder Scrolls style",
+    state.world.current_location.atmosphere,
+    state.world.weather,
+    timeOfDay,
+    ageAppearance,
+    cosmetics
+  ];
+
+  // --- 1. Clothing integrity visualization ---
+  const equippedItems = state.player.inventory.filter(i => i.is_equipped);
+  if (equippedItems.length === 0) {
+    parts.push("completely naked, exposed, vulnerable");
+  } else {
+    const clothingDescriptions: string[] = [];
+    for (const item of equippedItems) {
+      const integrity = item.integrity ?? 100;
+      if (integrity <= 0) continue; // destroyed
+      if (integrity < 20) {
+        clothingDescriptions.push(`${item.name} in shreds`);
+      } else if (integrity < 50) {
+        clothingDescriptions.push(`torn ${item.name}`);
+      } else if (integrity < 80) {
+        clothingDescriptions.push(`worn ${item.name}`);
+      } else {
+        clothingDescriptions.push(item.name);
+      }
+    }
+    if (clothingDescriptions.length > 0) {
+      parts.push(`wearing ${clothingDescriptions.join(", ")}`);
+    } else {
+      parts.push("completely naked, exposed");
+    }
+
+    if (isExposed(state)) {
+      parts.push("exposed skin, missing clothing");
+    }
   }
 
-  let dreamscapeTags = "";
+  // --- 2. Beauty/attractiveness ---
+  const beauty = calculateBeauty(state);
+  if (beauty >= 80) {
+    parts.push("strikingly beautiful, radiant");
+  } else if (beauty >= 60) {
+    parts.push("attractive, pleasant features");
+  } else if (beauty >= 40) {
+    parts.push("plain appearance");
+  } else if (beauty >= 20) {
+    parts.push("disheveled, unkempt");
+  } else {
+    parts.push("unkempt, bedraggled appearance");
+  }
+
+  // --- 3. Hygiene effects ---
+  const hygiene = state.player.stats.hygiene || 50;
+  if (hygiene < 20) {
+    parts.push("filthy, covered in grime, matted hair");
+  } else if (hygiene < 40) {
+    parts.push("dirty, unwashed, smudged skin");
+  } else if (hygiene < 60) {
+    parts.push("slightly disheveled");
+  } else if (hygiene >= 80) {
+    parts.push("clean and well-groomed");
+  }
+
+  // --- 4. Arousal/lust physical manifestations ---
+  const arousal = state.player.stats.arousal || 0;
+  const lust = state.player.stats.lust || 0;
+  const maxArousalLust = Math.max(arousal, lust);
+  if (maxArousalLust >= 80) {
+    parts.push("flushed face, labored breathing, lustful expression, heavy-lidded eyes");
+  } else if (maxArousalLust >= 50) {
+    parts.push("flushed cheeks, slightly parted lips, quickened breathing");
+  } else if (maxArousalLust >= 30) {
+    parts.push("subtle flush on cheeks");
+  }
+
+  // --- 5. Corruption visual effects ---
+  const corruption = state.player.stats.corruption || 0;
+  if (corruption >= 90) {
+    parts.push("dark veins visible on skin, eerie glow in eyes, corrupted aura, shadowy wisps");
+  } else if (corruption >= 70) {
+    parts.push("dark veins on skin, unnatural pallor, faint dark aura");
+  } else if (corruption >= 50) {
+    parts.push("darkened veins, unsettling aura");
+  } else if (corruption >= 30) {
+    parts.push("subtle darkness in eyes, faint unnatural shadow");
+  }
+
+  // --- 6. Trauma/stress psychological manifestations ---
+  const trauma = state.player.stats.trauma || 0;
+  const stress = state.player.stats.stress || 0;
+  const maxTraumaStress = Math.max(trauma, stress);
+  if (maxTraumaStress >= 80) {
+    parts.push("haunted expression, thousand-yard stare, trembling, hollow eyes");
+  } else if (maxTraumaStress >= 50) {
+    parts.push("anxious expression, darting eyes, tense jaw");
+  } else if (maxTraumaStress >= 30) {
+    parts.push("tense posture, wary expression");
+  }
+
+  // --- 7. Purity descriptors ---
+  const purity = state.player.stats.purity || 50;
+  if (purity >= 90) {
+    parts.push("innocent aura, soft glow, gentle demeanor");
+  } else if (purity <= 20) {
+    parts.push("jaded expression, worldly-wise, knowing eyes");
+  }
+
+  // --- 8. Submission/control body language ---
+  const submission = state.player.psych_profile.submission_index || 0;
+  const control = state.player.stats.control || 50;
+  if (submission >= 70) {
+    parts.push("submissive posture, lowered gaze, hunched shoulders");
+  } else if (submission <= 20 && control >= 70) {
+    parts.push("confident stance, commanding presence, raised chin");
+  }
+
+  // --- 9. Exhibitionism context awareness ---
+  const exhibitionism = state.player.psych_profile.exhibitionism || 0;
+  if (isExposed(state)) {
+    if (exhibitionism >= 60) {
+      parts.push("shameless display, confident despite exposure");
+    } else if (exhibitionism >= 30) {
+      parts.push("nervous but not hiding, conflicted expression");
+    } else {
+      parts.push("embarrassed, desperately trying to cover up, blushing deeply");
+    }
+  }
+
+  // --- 10. Ascension state transformations ---
+  switch (state.world.ascension_state) {
+    case 'pure_soul':
+      parts.push("radiant holy aura, divine glow, ethereal beauty, golden light emanating");
+      break;
+    case 'void_lord':
+      parts.push("shadowy tendrils, void energy crackling, dark power emanating, glowing eyes");
+      break;
+    case 'broodmother':
+      parts.push("chitinous growths on skin, parasitic integration, inhuman transformation");
+      break;
+    case 'asylum':
+      parts.push("broken mind visible in eyes, fractured reality around them, distorted space");
+      break;
+  }
+
+  // --- 11. Enhanced biology visualization ---
+  const parasites = state.player.biology.parasites || [];
+  const incubations = state.player.biology.incubations || [];
+  if (parasites.length >= 3) {
+    parts.push("parasitic growths visible on skin, multiple swollen areas, inhuman distortions");
+  } else if (parasites.length > 0) {
+    parts.push("swollen abdomen, faint parasitic markings");
+  }
+  if (incubations.length > 0) {
+    parts.push("visibly pregnant, swollen belly, maternal glow");
+  }
+
+  // --- 12. Environmental context ---
   if (state.world.dreamscape.active) {
-    dreamscapeTags = ", surreal, dreamlike, ethereal, floating elements, impossible geometry";
+    parts.push("surreal, dreamlike, ethereal, floating elements, impossible geometry");
   }
 
-  let companionTags = "";
   if (state.player.companions.active_party.length > 0) {
-    companionTags = \`, accompanied by \${state.player.companions.active_party[0].name} (\${state.player.companions.active_party[0].type})\`;
+    const companion = state.player.companions.active_party[0];
+    parts.push(`accompanied by ${companion.name} (${companion.type})`);
   }
 
-  const equipped = state.player.inventory.filter(i => i.is_equipped).map(i => i.name).join(", ") || "nothing";
-  return \`masterpiece, high quality, dark fantasy, Elder Scrolls style, \${state.world.current_location.atmosphere}, \${state.world.weather}, \${timeOfDay}, \${ageAppearance}, character wearing \${equipped}, \${cosmetics}, \${afflictions}\${biologyTags}\${dreamscapeTags}\${companionTags}\`;
+  const afflictions = state.player.afflictions;
+  if (afflictions.length > 0) {
+    parts.push(afflictions.slice(0, 3).join(", "));
+  }
+
+  // Hallucination effects
+  if (state.player.stats.hallucination > 50 || state.player.stats.stamina <= 0) {
+    parts.push("distorted perception, visual artifacts, hallucinatory elements");
+  }
+
+  return parts.filter(Boolean).join(", ");
 }
