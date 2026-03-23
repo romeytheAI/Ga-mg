@@ -1,6 +1,7 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { GameState, ActiveEncounter } from '../App';
+import { CharacterModel } from './CharacterModel';
+import { GameState, ActiveEncounter } from '../types';
 
 interface EncounterUIProps {
   encounter: ActiveEncounter;
@@ -49,6 +50,9 @@ export const EncounterUI: React.FC<EncounterUIProps> = ({ encounter, playerStats
       <div className="flex justify-between items-center border-b border-red-900/30 pb-2 relative z-10">
         <h3 className="text-lg font-serif text-red-400">{encounter.enemy_name}</h3>
         <span className="text-[10px] uppercase tracking-widest text-red-500/50">Turn {encounter.turn}</span>
+      </div>
+      <div className="flex justify-center my-4 relative z-10">
+        <CharacterModel anatomy={encounter.anatomy} isPlayer={false} />
       </div>
 
       {/* Target Selection */}

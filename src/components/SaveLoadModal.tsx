@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { saveGame, loadGame, getAllSaves, deleteSave } from '../utils/saveManager';
-import { GameState } from '../App';
+import { GameState } from '../types';
 import { X, Save, Download, Trash2 } from 'lucide-react';
 
 interface SaveLoadModalProps {
