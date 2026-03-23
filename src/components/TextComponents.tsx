@@ -42,3 +42,26 @@ export const SemanticText = ({ text, className }: { text: string, className?: st
     </span>
   );
 };
+
+export const FloatingDeltas = ({ deltas, onComplete }: { deltas: Partial<Record<import('../types').StatKey, number>>, onComplete: () => void }) => {
+  useEffect(() => {
+    const timer = setTimeout(onComplete, 2000);
+    return () => clearTimeout(timer);
+  }, [onComplete]);
+
+  return (
+    <motion.div 
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: -50 }}
+      exit={{ opacity: 0 }}
+      className="absolute top-1/4 left-1/2 transform -translate-x-1/2 pointer-events-none z-50 flex flex-col items-center gap-1"
+    >
+      {deltas.health !== 0 && <span className={deltas.health! > 0 ? "text-green-400" : "text-red-400 font-bold"}>{deltas.health! > 0 ? '+' : ''}{deltas.health} Health</span>}
+      {deltas.stamina !== 0 && <span className={deltas.stamina! > 0 ? "text-blue-400" : "text-orange-400"}>{deltas.stamina! > 0 ? '+' : ''}{deltas.stamina} Stamina</span>}
+      {deltas.trauma !== 0 && <span className={deltas.trauma! > 0 ? "text-purple-400 font-bold" : "text-gray-400"}>{deltas.trauma! > 0 ? '+' : ''}{deltas.trauma} Trauma</span>}
+      {deltas.willpower !== 0 && <span className={deltas.willpower! > 0 ? "text-indigo-400" : "text-indigo-600"}>{deltas.willpower! > 0 ? '+' : ''}{deltas.willpower} Willpower</span>}
+      {deltas.lust !== 0 && <span className={deltas.lust! > 0 ? "text-pink-400 font-bold" : "text-pink-200"}>{deltas.lust! > 0 ? '+' : ''}{deltas.lust} Lust</span>}
+      {deltas.corruption !== 0 && <span className={deltas.corruption! > 0 ? "text-emerald-500 font-bold" : "text-emerald-200"}>{deltas.corruption! > 0 ? '+' : ''}{deltas.corruption} Corruption</span>}
+    </motion.div>
+  );
+};

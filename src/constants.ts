@@ -1,5 +1,18 @@
 import { Anatomy } from './types';
 
+export const STABLE_API = "https://stablehorde.net/api/v2";
+export const DEFAULT_API_KEY = "0000000000";
+
+export const AGE_APPEARANCE: Record<number, string> = {
+  18: "Young, fresh-faced",
+  20: "Youthful",
+  25: "Mature",
+  30: "Experienced",
+  40: "Weathered",
+  50: "Aged",
+  60: "Elderly"
+};
+
 export const PREDEFINED_ANATOMIES: Record<string, Anatomy> = {
   average: {
     height: 'average',
