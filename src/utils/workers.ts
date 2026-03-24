@@ -457,7 +457,53 @@ export function buildImagePrompt(state: GameState): string {
     }
   }
 
-  // --- 10. Ascension state transformations ---
+  // --- 10. Pain visualization ---
+  const pain = state.player.stats.pain || 0;
+  if (pain >= 80) {
+    parts.push("grimacing in agony, tears of pain, body contorted, visible wounds");
+  } else if (pain >= 50) {
+    parts.push("wincing in pain, gritting teeth, strained expression");
+  } else if (pain >= 30) {
+    parts.push("slight grimace, guarded posture");
+  }
+
+  // --- 11. Injury/wound visualization ---
+  const injuries = state.player.anatomy.injuries || [];
+  if (injuries.length >= 3) {
+    parts.push("covered in multiple wounds, bleeding heavily, battered body");
+  } else if (injuries.length > 0) {
+    const injuryDesc = injuries.slice(0, 2).map(inj => inj.description).join(", ");
+    parts.push(`visible injuries: ${injuryDesc}`);
+  }
+
+  // --- 12. Scar/tattoo/piercing visualization ---
+  const scars = state.player.cosmetics.scars || [];
+  const tattoos = state.player.cosmetics.tattoos || [];
+  const piercings = state.player.cosmetics.piercings || [];
+  if (scars.length > 0) {
+    parts.push(`${scars.length > 2 ? 'heavily scarred' : 'bearing scars'}`);
+  }
+  if (tattoos.length > 0) {
+    parts.push(`tattooed with ${tattoos.slice(0, 2).join(" and ")}`);
+  }
+  if (piercings.length > 0) {
+    parts.push(`${piercings.length > 2 ? 'multiple piercings' : 'pierced'}`);
+  }
+
+  // --- 13. Cruelty index visualization ---
+  const cruelty = state.player.psych_profile.cruelty_index || 0;
+  if (cruelty >= 70) {
+    parts.push("cruel smirk, predatory gaze, menacing aura");
+  } else if (cruelty >= 40) {
+    parts.push("cold expression, calculating eyes");
+  }
+
+  // --- 14. Heat/rut biology state ---
+  if (state.player.biology.heat_rut_active) {
+    parts.push("feverish flush, dilated pupils, restless energy, pheromonal haze");
+  }
+
+  // --- 15. Ascension state transformations ---
   switch (state.world.ascension_state) {
     case 'pure_soul':
       parts.push("radiant holy aura, divine glow, ethereal beauty, golden light emanating");
@@ -473,7 +519,7 @@ export function buildImagePrompt(state: GameState): string {
       break;
   }
 
-  // --- 11. Enhanced biology visualization ---
+  // --- 16. Enhanced biology visualization ---
   const parasites = state.player.biology.parasites || [];
   const incubations = state.player.biology.incubations || [];
   if (parasites.length >= 3) {
@@ -485,7 +531,7 @@ export function buildImagePrompt(state: GameState): string {
     parts.push("visibly pregnant, swollen belly, maternal glow");
   }
 
-  // --- 12. Environmental context ---
+  // --- 17. Environmental context ---
   if (state.world.dreamscape.active) {
     parts.push("surreal, dreamlike, ethereal, floating elements, impossible geometry");
   }
@@ -505,5 +551,114 @@ export function buildImagePrompt(state: GameState): string {
     parts.push("distorted perception, visual artifacts, hallucinatory elements");
   }
 
+  // --- 18. Posture from cosmetics ---
+  const posture = state.player.cosmetics.posture;
+  if (posture && posture !== 'normal') {
+    parts.push(`${posture} posture`);
+  }
+
   return parts.filter(Boolean).join(", ");
+}
+
+/**
+ * Builds a contextual image prompt for encounter scenes, including
+ * enemy visual description and player state.
+ */
+export function buildEncounterImagePrompt(state: GameState, enemyName: string, enemyType: string, outcome: string): string {
+  if (shouldCensorImage(state)) {
+    return `abstract dark fantasy landscape, two silhouettes in confrontation, atmospheric fog, ${state.world.current_location.atmosphere}, ${state.world.weather}, cinematic lighting, safe for work`;
+  }
+
+  const timeOfDay = state.world.hour >= 6 && state.world.hour <= 18 ? "daytime" : "nighttime";
+  const playerAppearance = state.player.cosmetics.hair_length
+    ? `${state.player.identity.race} ${state.player.identity.gender} with ${state.player.cosmetics.hair_length} hair`
+    : `${state.player.identity.race} ${state.player.identity.gender}`;
+
+  const equippedItems = state.player.inventory.filter(i => i.is_equipped);
+  const clothingDesc = equippedItems.length > 0
+    ? equippedItems.map(i => {
+        const integrity = i.integrity ?? 100;
+        if (integrity < 20) return `${i.name} in shreds`;
+        if (integrity < 50) return `torn ${i.name}`;
+        return i.name;
+      }).join(", ")
+    : "no clothing";
+
+  const stanceDesc = state.player.stats.pain > 50
+    ? "wounded and struggling"
+    : state.player.stats.stress > 60
+    ? "terrified"
+    : "alert and wary";
+
+  return [
+    "masterpiece, high quality, dark fantasy, Elder Scrolls style, dramatic encounter scene",
+    state.world.current_location.atmosphere,
+    state.world.weather,
+    timeOfDay,
+    `${playerAppearance} wearing ${clothingDesc}`,
+    `${stanceDesc}`,
+    `confronting ${enemyName} (${enemyType})`,
+    outcome,
+    "atmospheric, gritty, detailed, cinematic lighting, action pose"
+  ].filter(Boolean).join(", ");
+}
+
+/**
+ * Computes CSS post-processing classes based on the current game state.
+ * These are applied to the main container for psychological/physical visual effects.
+ */
+export function getVisualEffectClasses(state: GameState): string[] {
+  const classes: string[] = [];
+
+  // Low health: red vignette heartbeat
+  if (state.player.stats.health < 20) {
+    classes.push("heartbeat-vignette");
+  }
+
+  // High trauma: desaturation
+  if (state.player.stats.trauma > 80) {
+    classes.push("apathy-desaturation");
+  }
+
+  // Medium trauma: chromatic aberration
+  if (state.player.stats.trauma > 50) {
+    classes.push("chromatic-aberration");
+  }
+
+  // High arousal/lust: warm pink tint
+  const maxArousalLust = Math.max(state.player.stats.arousal || 0, state.player.stats.lust || 0);
+  if (maxArousalLust >= 70) {
+    classes.push("arousal-warmth");
+  }
+
+  // High corruption: dark vignette
+  if ((state.player.stats.corruption || 0) >= 60) {
+    classes.push("corruption-darkness");
+  }
+
+  // Low control: screen tremor
+  if ((state.player.stats.control || 50) < 20) {
+    classes.push("low-control-tremor");
+  }
+
+  // High pain: red flash
+  if ((state.player.stats.pain || 0) >= 60) {
+    classes.push("pain-flash");
+  }
+
+  // Active hallucinations: visual distortion
+  if ((state.player.stats.hallucination || 0) > 60 || state.player.stats.stamina <= 5) {
+    classes.push("hallucination-distortion");
+  }
+
+  // Weather effects
+  if (state.world.weather === 'Rain') classes.push("weather-rain");
+  if (state.world.weather === 'Fog') classes.push("weather-fog");
+
+  // Dark atmosphere
+  if (state.world.current_location.atmosphere.includes('dark')) {
+    classes.push("pitch-black");
+  }
+
+  return classes;
 }
