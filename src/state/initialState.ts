@@ -63,7 +63,7 @@ export const initialState: GameState = {
     psychology: { outlook: "hopeful", innate: "submissive", paranoia: 0.1, empathy: 0.9, psychopathy: 0.0, phobias: ["darkness"], touch_starved: true, sexuality: "unknown", stoic: false, fragile_ego: true },
     perks_flaws: { hidden_pockets: false, silver_tongue: false, nimble_fingers: true, danger_sense: false, animal_whisperer: true, green_thumb: false, eidetic_memory: false, debt_ridden: false, hunted: false, cursed: false, addictive_personality: false, mute: false, blind_one_eye: false, frail: true, unlucky: false },
     social: { wanted_sibling: false, betrothed: false, exiled: false, guild_member: false, town_pariah: false },
-    cosmetics: { hair_length: "shaggy", eye_color: "blue", skin_tone: "fair", tattoos: [], piercings: [], posture: "cautious", scars: [], voice_pitch: "high", scent: "dust and lye", literacy: false, dominant_hand: "right", resting_hr: 75, blushing: true, body_mods: [], true_name: "Vael" },
+    cosmetics: { hair_length: "shaggy", hair_color: "brown", eye_color: "blue", skin_tone: "fair", tattoos: [], piercings: [], posture: "cautious", scars: [], voice_pitch: "high", scent: "dust and lye", literacy: false, dominant_hand: "right", resting_hr: 75, blushing: true, body_mods: [], true_name: "Vael" },
     arcane: { spells: [], magicka_overcharge: false, blood_vials: 0, true_sight: false, telepathy_unlocked: false, toxicity: 0, withdrawal_timer: 0, soul_gems: 0, tattoos: [], corruption_taint: 0, astral_projection: false },
     justice: { suspicion: 0, bounty: 0, evidence_left: 0, jail_sentence: 0, contraband_slots: 0, fence_reputation: 0, black_book_debt: 0, banishment: false, extortion_targets: [] },
     companions: { active_party: [], roster: [], max_encumbrance_bonus: 0 },

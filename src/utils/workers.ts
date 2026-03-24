@@ -259,25 +259,178 @@ export function buildTextPromptAsync(state: GameState, actionText: string): Prom
 export function buildImagePrompt(state: GameState) {
   const timeOfDay = state.world.hour >= 6 && state.world.hour <= 18 ? "daytime" : "nighttime";
   const ageYears = Math.floor(state.player.age_days / 365);
-  const ageAppearance = AGE_APPEARANCE[ageYears] || "A young person";
-  const afflictions = state.player.afflictions.length > 0 ? state.player.afflictions.join(", ") : "healthy";
-  const cosmetics = `${state.player.cosmetics.hair_length} hair, ${state.player.cosmetics.eye_color} eyes, ${state.player.cosmetics.skin_tone} skin, ${state.player.cosmetics.posture} posture`;
-  
-  let biologyTags = "";
-  if (state.player.biology.incubations.length > 0 || state.player.biology.parasites.length > 0) {
-    biologyTags = ", swollen abdomen, pregnant appearance";
-  }
+  const ageAppearance = AGE_APPEARANCE[ageYears] || "young adult";
 
-  let dreamscapeTags = "";
-  if (state.world.dreamscape.active) {
-    dreamscapeTags = ", surreal, dreamlike, ethereal, floating elements, impossible geometry";
-  }
+  const describeIntegrity = (integrity?: number) => {
+    const value = integrity ?? 100;
+    if (value <= 0) return "destroyed";
+    if (value < 15) return "shredded";
+    if (value < 35) return "tattered";
+    if (value < 60) return "weathered";
+    if (value < 85) return "worn";
+    return "pristine";
+  };
 
-  let companionTags = "";
-  if (state.player.companions.active_party.length > 0) {
-    companionTags = `, accompanied by ${state.player.companions.active_party[0].name} (${state.player.companions.active_party[0].type})`;
-  }
+  const equippedClothing = state.player.inventory
+    .filter(i => i.is_equipped && i.type === 'clothing')
+    .map(i => `${describeIntegrity(i.integrity)} ${i.name}`);
 
-  const equipped = state.player.inventory.filter(i => i.is_equipped).map(i => i.name).join(", ") || "nothing";
-  return `masterpiece, high quality, dark fantasy, Elder Scrolls style, ${state.world.current_location.atmosphere}, ${state.world.weather}, ${timeOfDay}, ${ageAppearance}, character wearing ${equipped}, ${cosmetics}, ${afflictions}${biologyTags}${dreamscapeTags}${companionTags}`;
+  const clothingTags = equippedClothing.length > 0 ? equippedClothing.join(", ") : "naked, exposed skin";
+
+  const hygiene = state.player.stats.hygiene;
+  const hygieneTag = hygiene < 25
+    ? "filthy, sweat-slick skin"
+    : hygiene < 50
+      ? "grimy, travel-worn"
+      : hygiene < 75
+        ? "slightly disheveled"
+        : "clean and well-kept";
+
+  const allure = state.player.stats.allure;
+  const beautyTag = allure > 75 ? "striking beauty" : allure > 40 ? "soft features" : "plain, weary charm";
+
+  const arousal = state.player.stats.arousal;
+  const lust = state.player.stats.lust;
+  const arousalTag = Math.max(arousal, lust) > 85
+    ? "visibly aroused, flushed skin, desperate gaze"
+    : Math.max(arousal, lust) > 60
+      ? "restless, heavy breathing, warm glow"
+      : Math.max(arousal, lust) > 30
+        ? "subtle tension and warmth"
+        : "composed demeanor";
+
+  const corruption = state.player.stats.corruption;
+  const corruptionTag = corruption > 80
+    ? "void-tainted aura, dark veins, unsettling halo"
+    : corruption > 60
+      ? "shadowy corruption creeping along skin"
+      : corruption > 35
+        ? "faint corruption tint"
+        : "pure aura";
+
+  const traumaTag = state.player.stats.trauma > 70
+    ? "haunted eyes, thousand-yard stare"
+    : state.player.stats.trauma > 45
+      ? "tired, wary gaze"
+      : "alert, focused eyes";
+
+  const stressTag = state.player.stats.stress > 70
+    ? "rigid shoulders, tension in every muscle"
+    : state.player.stats.stress > 40
+      ? "restless fidgeting"
+      : "loose, ready stance";
+
+  const purityTag = state.player.stats.purity > 80
+    ? "soft halo of purity"
+    : state.player.stats.purity < 30
+      ? "tainted innocence"
+      : "";
+
+  const submissionTag = state.player.stats.control < 25 || state.player.psych_profile.submission_index > 70
+    ? "submissive posture, lowered chin"
+    : state.player.stats.control < 50
+      ? "uncertain, wavering stance"
+      : "steady, self-possessed posture";
+
+  const exhibitionism = state.player.psych_profile.exhibitionism;
+  const exhibitionismTag = exhibitionism > 70
+    ? "boldly displayed body, unapologetic exposure"
+    : exhibitionism > 40
+      ? "willing to be seen"
+      : "guarded modesty";
+
+  const painTag = state.player.stats.pain > 70
+    ? "grimacing through pain"
+    : state.player.stats.pain > 40
+      ? "slight winces and guarded motion"
+      : "";
+
+  const injuryTag = state.player.anatomy.injuries.length > 0
+    ? `visible wounds: ${state.player.anatomy.injuries.slice(0, 2).map(i => i.description).join(", ")}`
+    : "";
+
+  const scars = state.player.cosmetics.scars ?? [];
+  const tattoos = state.player.cosmetics.tattoos ?? [];
+  const piercings = state.player.cosmetics.piercings ?? [];
+  const markings: string[] = [];
+  if (scars.length > 0) markings.push(`${scars.length} scars`);
+  if (tattoos.length > 0) markings.push(`${tattoos.length} tattoos`);
+  if (piercings.length > 0) markings.push(`${piercings.length} piercings`);
+  const markingsTag = markings.length > 0 ? `body markings: ${markings.join(", ")}` : "";
+
+  const crueltyTag = state.player.psych_profile.cruelty_index > 70
+    ? "predatory stare"
+    : state.player.psych_profile.cruelty_index > 40
+      ? "hard, unforgiving gaze"
+      : "softened expression";
+
+  const biologyTag = (() => {
+    const tags: string[] = [];
+    if (state.player.biology.heat_rut_active) tags.push("in heat/rut, flushed scent");
+    if (state.player.biology.parasites.length > 0) tags.push("parasite bulges beneath skin");
+    if (state.player.biology.incubations.length > 0) tags.push("swollen abdomen");
+    return tags.join(", ");
+  })();
+
+  const ascensionTag = (() => {
+    switch (state.world.ascension_state) {
+      case 'pure_soul': return "glowing soulfire aura";
+      case 'void_lord': return "void halo, tendrils of shadow";
+      case 'broodmother': return "fertile, nurturing gravitas";
+      case 'asylum': return "unsettling, fractured presence";
+      default: return "";
+    }
+  })();
+
+  const afflictionTag = state.player.afflictions.length > 0
+    ? `afflicted by ${state.player.afflictions.slice(0, 3).join(", ")}`
+    : "";
+
+  const environmentTag = `${state.world.current_location.name}, ${state.world.current_location.atmosphere}, ${state.world.weather}, ${timeOfDay}`;
+  const dreamscapeTag = state.world.dreamscape.active ? "dreamlike distortions" : "";
+  const companionTag = state.player.companions.active_party.length > 0
+    ? `accompanied by ${state.player.companions.active_party.map(c => c.name).join(", ")}`
+    : "";
+
+  const baseIdentity = `${ageAppearance} ${state.player.identity.race} ${state.player.identity.gender}, ${state.player.cosmetics.hair_length} ${state.player.cosmetics.hair_color} hair, ${state.player.cosmetics.eye_color} eyes, ${state.player.cosmetics.skin_tone} skin, ${state.player.cosmetics.posture} posture`;
+
+  return [
+    "masterpiece, high quality, dark fantasy illustration, Elder Scrolls aesthetic",
+    environmentTag,
+    baseIdentity,
+    clothingTags,
+    `${beautyTag}, ${hygieneTag}`,
+    arousalTag,
+    corruptionTag,
+    traumaTag,
+    stressTag,
+    purityTag,
+    submissionTag,
+    exhibitionismTag,
+    painTag,
+    injuryTag,
+    markingsTag,
+    crueltyTag,
+    biologyTag,
+    ascensionTag,
+    afflictionTag,
+    companionTag,
+    dreamscapeTag
+  ].filter(Boolean).join(", ");
+}
+
+export function getVisualEffectClasses(state: GameState) {
+  const classes: string[] = [];
+  if (state.player.stats.health < 30) classes.push('heartbeat-vignette');
+  if (state.player.stats.trauma >= 70) {
+    classes.push('apathy-desaturation');
+  } else if (state.player.stats.trauma >= 45) {
+    classes.push('chromatic-aberration');
+  }
+  if (state.player.stats.lust > 70 || state.player.stats.arousal > 70) classes.push('arousal-warmth');
+  if (state.player.stats.corruption > 60) classes.push('corruption-darkness');
+  if (state.player.stats.control < 30) classes.push('low-control-tremor');
+  if (state.player.stats.pain > 70) classes.push('pain-flash');
+  if (state.player.stats.hallucination > 0) classes.push('hallucination-distortion');
+  return classes.join(' ');
 }
