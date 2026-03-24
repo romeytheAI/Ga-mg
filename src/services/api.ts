@@ -1,4 +1,3 @@
-import { GoogleGenAI } from "@google/genai";
 import { STABLE_API, DEFAULT_API_KEY } from '../constants';
 import { getRelevantLore } from '../lore';
 import { imageWorker } from '../utils/workers';
@@ -198,18 +197,26 @@ export async function generateImage(prompt: string, apiKey: string, hordeApiKey:
     console.warn("Horde image generation failed.");
   }
 
-  // Fallback to Gemini Image (if available)
-  if (!apiKey || apiKey.startsWith('sk-or-')) throw new Error("No API key available for fallback generation");
-  const ai = new GoogleGenAI({ apiKey });
-  const response = await ai.models.generateContent({
-    model: "gemini-2.5-flash-image",
-    contents: { parts: [{ text: prompt }] }
-  });
-  for (const part of response.candidates[0].content.parts) {
-    if (part.inlineData) {
-      return `data:image/png;base64,${part.inlineData.data}`;
+  // Fallback to Gemini Image via backend
+  try {
+    const res = await fetch('/api/generate-image', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ prompt }),
+    });
+    if (!res.ok) {
+      throw new Error(`Backend returned ${res.status}`);
     }
+    const data = await res.json();
+    if (data.image) {
+      return data.image;
+    }
+  } catch (backendError) {
+    console.warn("Backend image generation fallback failed", backendError);
   }
+
   throw new Error("Failed to generate image with fallback");
 }
 

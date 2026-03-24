@@ -5,7 +5,7 @@ import {
   Shield, Sword, Zap, Droplets, AlertTriangle, Ghost, Sparkles, 
   Layers, ShoppingBag, Eye, EyeOff, Thermometer, Clock, Calendar, RefreshCw, Book
 } from 'lucide-react';
-import { GoogleGenAI, Type } from "@google/genai";
+import { Type } from "@google/genai";
 import { CharacterModel } from './components/CharacterModel';
 import { SaveLoadModal } from './components/SaveLoadModal';
 import { XRayView } from './components/XRayView';
@@ -77,26 +77,23 @@ function App({ state, dispatch }: { state: GameState, dispatch: React.Dispatch<a
   const generatePlayerAvatar = async () => {
     setIsGeneratingAvatar(true);
     try {
-      const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY! });
       const prompt = `A highly detailed, dark fantasy portrait of a ${getAgeTag(state.player.age_days, state.player.identity.race)} ${state.player.identity.race} ${state.player.identity.gender}. ${AGE_APPEARANCE[Math.floor(state.player.age_days / 365)] || ''} ${state.player.cosmetics.hair_length} ${state.player.cosmetics.eye_color} eyes. Dark, gritty, atmospheric lighting.`;
       
-      const response = await ai.models.generateContent({
-        model: 'gemini-2.5-flash-image',
-        contents: {
-          parts: [
-            {
-              text: prompt,
-            },
-          ],
+      const res = await fetch('/api/generate-image', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
         },
+        body: JSON.stringify({ prompt }),
       });
-      
-      for (const part of response.candidates[0].content.parts) {
-        if (part.inlineData) {
-          const base64EncodeString: string = part.inlineData.data;
-          const imageUrl = `data:image/png;base64,${base64EncodeString}`;
-          dispatch({ type: 'SET_PLAYER_AVATAR', payload: imageUrl });
-        }
+
+      if (!res.ok) {
+        throw new Error('Failed to generate image');
+      }
+
+      const data = await res.json();
+      if (data.image) {
+        dispatch({ type: 'SET_PLAYER_AVATAR', payload: data.image });
       }
     } catch (error) {
       console.error('Error generating avatar:', error);
@@ -273,30 +270,23 @@ function App({ state, dispatch }: { state: GameState, dispatch: React.Dispatch<a
     if (state.ui.isGeneratingAvatar) return;
     dispatch({ type: 'START_AVATAR_GENERATION' });
     try {
-      const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY! });
       const prompt = `A highly detailed, dark fantasy portrait of a ${getAgeTag(state.player.age_days, state.player.identity.race)} ${state.player.identity.race} ${state.player.identity.gender}. ${AGE_APPEARANCE[Math.floor(state.player.age_days / 365)] || ''} ${state.player.cosmetics.hair_length} ${state.player.cosmetics.eye_color} eyes. Dark, gritty, atmospheric lighting.`;
       
-      const response = await ai.models.generateContent({
-        model: 'gemini-2.5-flash-image',
-        contents: {
-          parts: [
-            {
-              text: prompt,
-            },
-          ],
+      const res = await fetch('/api/generate-image', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
         },
+        body: JSON.stringify({ prompt }),
       });
-      
-      let imageUrl = null;
-      for (const part of response.candidates[0].content.parts) {
-        if (part.inlineData) {
-          const base64EncodeString: string = part.inlineData.data;
-          imageUrl = `data:image/png;base64,${base64EncodeString}`;
-          break;
-        }
+
+      if (!res.ok) {
+        throw new Error('Failed to generate image');
       }
-      if (imageUrl) {
-        dispatch({ type: 'RESOLVE_AVATAR', payload: imageUrl });
+
+      const data = await res.json();
+      if (data.image) {
+        dispatch({ type: 'RESOLVE_AVATAR', payload: data.image });
       } else {
         throw new Error("No image generated");
       }
