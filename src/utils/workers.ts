@@ -314,7 +314,7 @@ export function shouldCensorImage(state: GameState): boolean {
 }
 
 /**
- * Comprehensive image prompt builder with 12 visual systems for DoL graphic parity.
+ * Comprehensive image prompt builder with 18 visual systems for DoL graphic parity.
  */
 export function buildImagePrompt(state: GameState): string {
   // Streamer mode: generate a safe abstract prompt when censoring is needed

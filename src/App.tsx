@@ -15,6 +15,8 @@ import { JournalModal } from './components/modals/JournalModal';
 import { MapModal } from './components/modals/MapModal';
 import { XRayModal } from './components/modals/XRayModal';
 import { StatsModal } from './components/modals/StatsModal';
+import { StatusModal } from './components/modals/StatusModal';
+import { MemoriesModal } from './components/modals/MemoriesModal';
 import { InventoryModal } from './components/modals/InventoryModal';
 import { DeveloperModeModal } from './components/modals/DeveloperModeModal';
 import { SettingsModal } from './components/modals/SettingsModal';
@@ -68,6 +70,10 @@ function App({ state, dispatch }: { state: GameState, dispatch: React.Dispatch<a
   const [hasStarted, setHasStarted] = useState(false);
   const [customAction, setCustomAction] = useState('');
   const [showSettings, setShowSettings] = useState(false);
+  const [showCompanions, setShowCompanions] = useState(false);
+  const [showStatus, setShowStatus] = useState(false);
+  const [showMemories, setShowMemories] = useState(false);
+  const [showMap, setShowMap] = useState(false);
   const [availableTextModels, setAvailableTextModels] = useState<{name: string, count: number}[]>([]);
   const [availableImageModels, setAvailableImageModels] = useState<{name: string, count: number}[]>([]);
   const [isLoadingModels, setIsLoadingModels] = useState(false);
@@ -1154,7 +1160,7 @@ Example: { "health": 50, "allure": 20 }`;
 
       {/* Map Modal */}
       <AnimatePresence>
-        {showMap && <MapModal state={state} onClose={() => setShowMap(false)} />}
+        {showMap && <MapModal state={state} dispatch={dispatch} handleAction={handleAction} />}
       </AnimatePresence>
 
       {/* Developer Mode Modal */}
