@@ -119,7 +119,7 @@ export const initialState: GameState = {
       }
       return a;
     }),
-    apiKey: process.env.GEMINI_API_KEY || "",
+    apiKey: "",
     hordeApiKey: "0000000000",
     ui_scale: 1,
     fullscreen: false,

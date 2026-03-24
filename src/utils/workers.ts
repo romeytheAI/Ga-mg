@@ -261,7 +261,7 @@ export function buildImagePrompt(state: GameState) {
   const ageYears = Math.floor(state.player.age_days / 365);
   const ageAppearance = AGE_APPEARANCE[ageYears] || "A young person";
   const afflictions = state.player.afflictions.length > 0 ? state.player.afflictions.join(", ") : "healthy";
-  const cosmetics = \`\${state.player.cosmetics.hair_length} hair, \${state.player.cosmetics.eye_color} eyes, \${state.player.cosmetics.skin_tone} skin, \${state.player.cosmetics.posture} posture\`;
+  const cosmetics = `${state.player.cosmetics.hair_length} hair, ${state.player.cosmetics.eye_color} eyes, ${state.player.cosmetics.skin_tone} skin, ${state.player.cosmetics.posture} posture`;
   
   let biologyTags = "";
   if (state.player.biology.incubations.length > 0 || state.player.biology.parasites.length > 0) {
@@ -275,9 +275,9 @@ export function buildImagePrompt(state: GameState) {
 
   let companionTags = "";
   if (state.player.companions.active_party.length > 0) {
-    companionTags = \`, accompanied by \${state.player.companions.active_party[0].name} (\${state.player.companions.active_party[0].type})\`;
+    companionTags = `, accompanied by ${state.player.companions.active_party[0].name} (${state.player.companions.active_party[0].type})`;
   }
 
   const equipped = state.player.inventory.filter(i => i.is_equipped).map(i => i.name).join(", ") || "nothing";
-  return \`masterpiece, high quality, dark fantasy, Elder Scrolls style, \${state.world.current_location.atmosphere}, \${state.world.weather}, \${timeOfDay}, \${ageAppearance}, character wearing \${equipped}, \${cosmetics}, \${afflictions}\${biologyTags}\${dreamscapeTags}\${companionTags}\`;
+  return `masterpiece, high quality, dark fantasy, Elder Scrolls style, ${state.world.current_location.atmosphere}, ${state.world.weather}, ${timeOfDay}, ${ageAppearance}, character wearing ${equipped}, ${cosmetics}, ${afflictions}${biologyTags}${dreamscapeTags}${companionTags}`;
 }
