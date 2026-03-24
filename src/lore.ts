@@ -1,27 +1,72 @@
-export function getRelevantLore(contextText: string, maxLines: number = 10): string {
-  const lines = ELDER_SCROLLS_LORE.split('\n').filter(line => line.trim().length > 0);
-  const stopWords = new Set(['that', 'with', 'from', 'this', 'player', 'action', 'state', 'health', 'stamina', 'willpower', 'lust', 'trauma', 'corruption', 'arousal', 'pain', 'control', 'stress', 'hallucination', 'purity', 'equipment', 'integrity', 'delta', 'affliction', 'hours', 'passed', 'follow', 'choices', 'items', 'world', 'changes', 'memory', 'updates', 'combat', 'injury', 'quests', 'completed', 'narrative', 'text', 'json', 'output', 'schema', 'description', 'example', 'valid', 'only', 'respond', 'director', 'fantasy', 'dark', 'elder', 'scrolls', 'universe', 'tamriel', 'guidelines', 'parity', 'track', 'update', 'clothing', 'damaged', 'removed', 'reaches', 'destroyed', 'stripped', 'npcs', 'predatory', 'submissive', 'indifferent', 'actions', 'consequences', 'psychological', 'cruelty', 'detailed', 'outcome', 'concise', 'summary', 'choice', 'immediate', 'consequence', 'logged', 'graph', 'string', 'null', 'unique', 'label', 'intent', 'aggressive', 'neutral', 'success', 'chance', 'name', 'type', 'weapon', 'armor', 'consumable', 'misc', 'slot', 'head', 'chest', 'rarity', 'common', 'destruction', 'alteration', 'creation', 'burned', 'down', 'remembers', 'stole', 'sweetroll', 'deep', 'gash', 'left', 'penalty', 'title']);
-  const keywords = (contextText.toLowerCase().match(/\b\w{4,}\b/g) || []).filter(w => !stopWords.has(w));
-  
-  if (keywords.length === 0) return lines.slice(0, maxLines).join('\n');
+const STOP_WORDS = new Set(['that', 'with', 'from', 'this', 'player', 'action', 'state', 'health', 'stamina', 'willpower', 'lust', 'trauma', 'corruption', 'arousal', 'pain', 'control', 'stress', 'hallucination', 'purity', 'equipment', 'integrity', 'delta', 'affliction', 'hours', 'passed', 'follow', 'choices', 'items', 'world', 'changes', 'memory', 'updates', 'combat', 'injury', 'quests', 'completed', 'narrative', 'text', 'json', 'output', 'schema', 'description', 'example', 'valid', 'only', 'respond', 'director', 'fantasy', 'dark', 'elder', 'scrolls', 'universe', 'tamriel', 'guidelines', 'parity', 'track', 'update', 'clothing', 'damaged', 'removed', 'reaches', 'destroyed', 'stripped', 'npcs', 'predatory', 'submissive', 'indifferent', 'actions', 'consequences', 'psychological', 'cruelty', 'detailed', 'outcome', 'concise', 'summary', 'choice', 'immediate', 'consequence', 'logged', 'graph', 'string', 'null', 'unique', 'label', 'intent', 'aggressive', 'neutral', 'success', 'chance', 'name', 'type', 'weapon', 'armor', 'consumable', 'misc', 'slot', 'head', 'chest', 'rarity', 'common', 'destruction', 'alteration', 'creation', 'burned', 'down', 'remembers', 'stole', 'sweetroll', 'deep', 'gash', 'left', 'penalty', 'title']);
 
-  const scoredLines = lines.map(line => {
-    const lowerLine = line.toLowerCase();
+let PRECOMPUTED_LINES: string[];
+let PRECOMPUTED_LOWER_LINES: string[];
+let LINE_TRIGRAMS: Set<number>[];
+
+function initPrecomputed() {
+  if (PRECOMPUTED_LINES) return;
+  PRECOMPUTED_LINES = ELDER_SCROLLS_LORE.split('\n').filter(line => line.trim().length > 0);
+  PRECOMPUTED_LOWER_LINES = PRECOMPUTED_LINES.map(line => line.toLowerCase());
+  LINE_TRIGRAMS = PRECOMPUTED_LOWER_LINES.map(line => {
+    const trigrams = new Set<number>();
+    for (let i = 0; i < line.length - 2; i++) {
+        const hash = (line.charCodeAt(i) << 16) | (line.charCodeAt(i + 1) << 8) | line.charCodeAt(i + 2);
+        trigrams.add(hash);
+    }
+    return trigrams;
+  });
+}
+
+export function getRelevantLore(contextText: string, maxLines: number = 10): string {
+  initPrecomputed();
+  const keywords = (contextText.toLowerCase().match(/\b\w{4,}\b/g) || []).filter(w => !STOP_WORDS.has(w));
+  
+  if (keywords.length === 0) return PRECOMPUTED_LINES.slice(0, maxLines).join('\n');
+
+  const keywordsTrigrams = keywords.map(kw => {
+      const tg = [];
+      for (let i = 0; i < kw.length - 2; i++) {
+          tg.push((kw.charCodeAt(i) << 16) | (kw.charCodeAt(i + 1) << 8) | kw.charCodeAt(i + 2));
+      }
+      return tg;
+  });
+
+  const scoredLines = [];
+  for (let i = 0; i < PRECOMPUTED_LINES.length; i++) {
     let score = 0;
-    for (const keyword of keywords) {
-      if (lowerLine.includes(keyword)) {
+    const lowerLine = PRECOMPUTED_LOWER_LINES[i];
+    const trigrams = LINE_TRIGRAMS[i];
+
+    for (let j = 0; j < keywords.length; j++) {
+      const kwTrigrams = keywordsTrigrams[j];
+      let matchPossible = true;
+      for (let k = 0; k < kwTrigrams.length; k++) {
+          if (!trigrams.has(kwTrigrams[k])) {
+              matchPossible = false;
+              break;
+          }
+      }
+      if (matchPossible && lowerLine.includes(keywords[j])) {
         score++;
       }
     }
-    return { line, score };
-  });
+    if (score > 0) {
+      scoredLines.push({ line: PRECOMPUTED_LINES[i], score, index: i });
+    }
+  }
 
-  scoredLines.sort((a, b) => b.score - a.score);
+  scoredLines.sort((a, b) => {
+    if (b.score !== a.score) {
+      return b.score - a.score;
+    }
+    return a.index - b.index;
+  });
   
-  const selected = scoredLines.filter(item => item.score > 0).slice(0, maxLines).map(item => item.line);
+  const selected = scoredLines.slice(0, maxLines).map(item => item.line);
   
   if (selected.length === 0) {
-    return lines.slice(0, maxLines).join('\n');
+    return PRECOMPUTED_LINES.slice(0, maxLines).join('\n');
   }
   
   return selected.join('\n');
