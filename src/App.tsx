@@ -631,12 +631,13 @@ function App({ state, dispatch }: { state: GameState, dispatch: React.Dispatch<a
           
           // Legendary Item Logic
           if (parsedText.new_items) {
-            for (let item of parsedText.new_items) {
+            const statsPromises = parsedText.new_items.map(async (item: any) => {
               if (item.rarity === 'legendary' || item.rarity === 'mythic') {
                 const stats = await generateLegendaryStats(item.name, item.description, state.ui.apiKey, state.ui.hordeApiKey, state.ui.selectedTextModel, dispatch);
                 item.stats = { ...item.stats, ...stats };
               }
-            }
+            });
+            await Promise.all(statsPromises);
           }
         } else {
           parsedText = getFallbackResponse();
