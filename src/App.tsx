@@ -41,6 +41,7 @@ import { EncounterUI } from './components/EncounterUI';
 import { NarrativeLog } from './components/NarrativeLog';
 import { saveGame } from './utils/saveManager';
 import { FloatingDeltas } from './components/TextComponents';
+import { DoLStatsSidebar } from './components/DoLStatsSidebar';
 
 const SettingsContext = createContext<any>(null);
 const HordeNetworkContext = createContext<any>(null);
@@ -878,59 +879,13 @@ Example: { "health": 50, "allure": 20 }`;
       )}
       {/* Main Content */}
       <main className="flex-1 flex overflow-hidden relative">
-        {/* Sidebar for Player Avatar */}
-        <div className="w-64 border-r border-white/5 bg-black/60 backdrop-blur-md p-4 flex flex-col gap-4 overflow-y-auto hidden xl:flex z-20 shrink-0">
-          <div className="relative aspect-[3/4] w-full border border-white/10 rounded-sm overflow-hidden bg-black/80 flex items-center justify-center group">
-            {state.player.avatar_url ? (
-              <img src={state.player.avatar_url} alt="Player Avatar" className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity duration-500" referrerPolicy="no-referrer" />
-            ) : (
-              <div className="text-white/20 flex flex-col items-center gap-2">
-                <User className="w-8 h-8 opacity-50" />
-                <span className="text-[10px] tracking-widest uppercase">No Avatar</span>
-              </div>
-            )}
-            
-            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent pointer-events-none" />
-            
-            <div className="absolute bottom-0 left-0 right-0 p-3 flex flex-col gap-1">
-              <span className="text-sm font-serif text-white/90">{state.player.identity.name}</span>
-              <span className="text-[10px] tracking-widest uppercase text-white/50">{state.player.identity.race} {state.player.identity.gender}</span>
-            </div>
-
-            <button 
-              onClick={generateAvatar}
-              disabled={state.ui.isGeneratingAvatar}
-              className="absolute top-2 right-2 p-1.5 bg-black/50 hover:bg-white/10 border border-white/10 rounded-sm backdrop-blur-md transition-colors disabled:opacity-50"
-              title="Generate Avatar"
-            >
-              {state.ui.isGeneratingAvatar ? (
-                <div className="w-3 h-3 border border-t-white/60 rounded-full animate-spin" />
-              ) : (
-                <RefreshCw className="w-3 h-3 text-white/60" />
-              )}
-            </button>
-          </div>
-
-          <div className="flex flex-col gap-2 mt-4">
-            <h3 className="text-[10px] tracking-widest uppercase text-white/40 border-b border-white/10 pb-1 mb-2">Appearance</h3>
-            <div className="text-xs text-white/60 flex justify-between">
-              <span>Hair:</span>
-              <span className="text-white/80">{state.player.cosmetics.hair_length} {state.player.cosmetics.hair_color}</span>
-            </div>
-            <div className="text-xs text-white/60 flex justify-between">
-              <span>Eyes:</span>
-              <span className="text-white/80">{state.player.cosmetics.eye_color}</span>
-            </div>
-            <div className="text-xs text-white/60 flex justify-between">
-              <span>Skin:</span>
-              <span className="text-white/80">{state.player.cosmetics.skin_tone}</span>
-            </div>
-            <div className="text-xs text-white/60 flex justify-between">
-              <span>Build:</span>
-              <span className="text-white/80">{state.player.cosmetics.body_type}</span>
-            </div>
-          </div>
-        </div>
+        {/* DoL Stats Sidebar - always visible */}
+        <DoLStatsSidebar
+          state={state}
+          dispatch={dispatch}
+          onOpenStats={() => dispatch({ type: 'TOGGLE_UI_SETTING', payload: { key: 'show_stats', value: true } })}
+          onOpenInventory={() => dispatch({ type: 'TOGGLE_UI_SETTING', payload: { key: 'show_inventory', value: true } })}
+        />
 
         {/* Left: Visuals */}
         <div className="flex-1 relative flex items-center justify-center p-12" onMouseMove={handleMouseMove}>

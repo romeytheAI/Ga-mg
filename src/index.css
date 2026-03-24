@@ -135,4 +135,73 @@
     50% { transform: scale(1.01) translate(2px, -2px); }
     100% { transform: scale(1); }
   }
+
+  /* DoL-style torn clothing effect */
+  .dol-torn-overlay {
+    position: relative;
+  }
+  .dol-torn-overlay::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(
+      -55deg,
+      transparent,
+      transparent 4px,
+      rgba(0,0,0,0.12) 4px,
+      rgba(0,0,0,0.12) 5px
+    );
+    pointer-events: none;
+  }
+
+  /* DoL stat bar pulse at critical level */
+  .stat-critical {
+    animation: stat-crit-pulse 0.8s ease-in-out infinite;
+  }
+  @keyframes stat-crit-pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.55; }
+  }
+
+  /* DoL sprite container glow by state */
+  .sprite-exposed-glow {
+    filter: drop-shadow(0 0 6px rgba(255, 60, 60, 0.45));
+  }
+  .sprite-corruption-glow {
+    filter: drop-shadow(0 0 8px rgba(160, 0, 220, 0.4));
+  }
+  .sprite-arousal-glow {
+    filter: drop-shadow(0 0 6px rgba(255, 100, 140, 0.38));
+  }
+
+  /* DoL exposure warning flash */
+  .exposure-flash {
+    animation: exposure-warn 1.2s ease-in-out infinite;
+  }
+  @keyframes exposure-warn {
+    0%, 100% { color: rgba(255, 80, 80, 0.7); }
+    50%       { color: rgba(255, 180, 180, 1.0); }
+  }
+
+  /* Scale / fur texture subtle shimmer */
+  .surface-scales-shimmer {
+    animation: scale-shimmer 4s linear infinite;
+  }
+  @keyframes scale-shimmer {
+    0%   { filter: brightness(1.00) saturate(1.00); }
+    50%  { filter: brightness(1.06) saturate(1.08); }
+    100% { filter: brightness(1.00) saturate(1.00); }
+  }
+
+  /* DoL racial name badge colors */
+  .race-badge-nord       { color: #a0c8f0; border-color: #3860a0; }
+  .race-badge-imperial   { color: #d4a870; border-color: #8a6030; }
+  .race-badge-breton     { color: #c0a8e0; border-color: #7060a0; }
+  .race-badge-redguard   { color: #e08060; border-color: #803018; }
+  .race-badge-dunmer     { color: #c09090; border-color: #802020; }
+  .race-badge-altmer     { color: #e0d060; border-color: #908018; }
+  .race-badge-bosmer     { color: #90b870; border-color: #406018; }
+  .race-badge-orsimer    { color: #90b060; border-color: #305018; }
+  .race-badge-khajiit    { color: #d4b880; border-color: #886030; }
+  .race-badge-argonian   { color: #80c090; border-color: #306040; }
 }

@@ -33,6 +33,55 @@ export interface Anatomy {
     arms: number;
     legs: number;
   };
+
+  // ── Racial body-part fields ──────────────────────────────────────────────
+  /** Approximate height in centimetres (derived from race if not overridden) */
+  height_cm?: number;
+  /** Ear morphology */
+  ear_type?: 'round' | 'pointed_long' | 'pointed_short' | 'cat' | 'reptilian_none';
+  /** Whether character has a visible tail */
+  has_tail?: boolean;
+  /** Whether character has tusks (lower jaw) */
+  has_tusks?: boolean;
+  /** Heavy bony brow ridge */
+  has_heavy_brow?: boolean;
+  /** Elongated snout / muzzle */
+  has_muzzle?: boolean;
+  /** Head protrusions: horns, frills (Argonian) */
+  has_head_protrusions?: boolean;
+  /** Leg skeletal structure */
+  leg_type?: 'plantigrade' | 'digitigrade';
+  /** Hand/claw morphology */
+  hand_type?: 'human' | 'clawed_light' | 'clawed_heavy' | 'pawed';
+  /** Foot morphology */
+  foot_type?: 'human' | 'clawed' | 'pawed_digitigrade';
+  /** Surface covering type */
+  skin_surface?: 'skin' | 'scales' | 'fur';
+  /** Surface pattern for scales/fur */
+  surface_pattern?: 'none' | 'scales_smooth' | 'scales_ridge' | 'fur_solid' | 'fur_spotted' | 'fur_striped' | 'tattoo_warpaint';
+  /** Secondary / accent color for racial markings */
+  accent_color?: string;
+  // ── Per body-part integrity (0–100) ──────────────────────────────────────
+  body_parts?: {
+    head: number;
+    neck: number;
+    upper_arm_l: number;
+    upper_arm_r: number;
+    forearm_l: number;
+    forearm_r: number;
+    hand_l: number;
+    hand_r: number;
+    torso: number;
+    abdomen: number;
+    pelvis: number;
+    thigh_l: number;
+    thigh_r: number;
+    calf_l: number;
+    calf_r: number;
+    foot_l: number;
+    foot_r: number;
+    tail?: number;
+  };
 }
 
 export interface LifeSim {
@@ -103,6 +152,12 @@ export interface Parasite {
   subservience_toxin: boolean;
 }
 
+export interface Incubation {
+  type: string;
+  progress: number;
+  days_remaining: number;
+}
+
 export interface ActiveEncounter {
   id: string;
   enemy_name: string;
@@ -141,7 +196,7 @@ export interface GameState {
     companions: { active_party: Companion[], roster: Companion[], max_encumbrance_bonus: number },
     base: any,
     subconscious: any,
-    biology: { cycle_day: number, heat_rut_active: boolean, parasites: Parasite[], incubations: any[], cravings: string[], exhaustion_multiplier: number, post_partum_debuff: number, sterility: boolean, fertility_cycle: string, fertility: number, lactation_level: number },
+    biology: { cycle_day: number, heat_rut_active: boolean, parasites: Parasite[], incubations: Incubation[], cravings: string[], exhaustion_multiplier: number, post_partum_debuff: number, sterility: boolean, fertility_cycle: string, fertility: number, lactation_level: number },
     status_effects: string[],
     life_sim: LifeSim,
     age_days: number,
