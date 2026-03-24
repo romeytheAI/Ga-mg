@@ -1,6 +1,8 @@
 import { GameState, StatKey } from '../types';
+import { SimWorld, HordeRequest } from '../sim/types';
 import { LOCATIONS } from '../data/locations';
 import { initialState } from '../state/initialState';
+import { tickSimulation } from '../sim/SimulationEngine';
 
 export function gameReducer(state: GameState, action: any): GameState {
   switch (action.type) {
@@ -352,6 +354,69 @@ export function gameReducer(state: GameState, action: any): GameState {
           }
         }
       };
+
+    // ── Simulation engine ────────────────────────────────────────────────
+    case 'SIM_TICK': {
+      if (!state.sim_world) return state;
+      const nextSimWorld: SimWorld = tickSimulation(state.sim_world);
+      return { ...state, sim_world: nextSimWorld };
+    }
+
+    case 'SIM_HORDE_ENQUEUE': {
+      const req = action.payload as HordeRequest;
+      // Avoid duplicate requests for the same subject
+      const alreadyQueued = state.horde_queue.some(
+        r => r.subject_id === req.subject_id && r.type === req.type && r.status !== 'done' && r.status !== 'failed'
+      );
+      if (alreadyQueued) return state;
+      return { ...state, horde_queue: [...state.horde_queue, req] };
+    }
+
+    case 'SIM_HORDE_UPDATE': {
+      const updated = action.payload as HordeRequest;
+      const queue = state.horde_queue.map(r => r.id === updated.id ? updated : r);
+      // If done, store result in the NPC's dialogue_cache / backstory
+      if (updated.status === 'done' && updated.result && state.sim_world) {
+        const npcs = state.sim_world.npcs.map(npc => {
+          if (npc.id !== updated.subject_id) return npc;
+          if (updated.type === 'backstory') return { ...npc, backstory: updated.result };
+          if (updated.type === 'dialogue') {
+            return { ...npc, dialogue_cache: { ...npc.dialogue_cache, [updated.id]: updated.result! } };
+          }
+          return npc;
+        });
+        return {
+          ...state,
+          horde_queue: queue,
+          sim_world: { ...state.sim_world, npcs },
+        };
+      }
+      return { ...state, horde_queue: queue };
+    }
+
+    case 'SIM_ADD_MEMORY': {
+      const { npcId, event, sentiment, subjectId } = action.payload;
+      if (!state.sim_world) return state;
+      const npcs = state.sim_world.npcs.map(npc => {
+        if (npc.id !== npcId) return npc;
+        const { addMemory } = require('../sim/MemorySystem');
+        return { ...npc, memory: addMemory(npc, event, sentiment, subjectId, state.sim_world!.turn) };
+      });
+      return { ...state, sim_world: { ...state.sim_world, npcs } };
+    }
+
+    case 'SIM_APPLY_INTERACTION': {
+      const { npcId, targetId, outcome } = action.payload;
+      if (!state.sim_world) return state;
+      const npcs = state.sim_world.npcs.map(npc => {
+        if (npc.id !== npcId) return npc;
+        const { getRelationship, upsertRelationship, applyInteraction } = require('../sim/RelationshipSystem');
+        const rel = getRelationship(npc, targetId);
+        const updated = applyInteraction(rel, outcome, state.sim_world!.turn);
+        return { ...npc, relationships: upsertRelationship(npc.relationships, updated) };
+      });
+      return { ...state, sim_world: { ...state.sim_world, npcs } };
+    }
     default:
       return state;
   }
