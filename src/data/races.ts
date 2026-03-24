@@ -324,7 +324,11 @@ export const ELDER_SCROLLS_RACES: Record<string, RacialBodyFeatures> = {
 
 };
 
-/** Normalize race string from game state to a RacialBodyFeatures key */
+/**
+ * Normalize a race string from game state to a {@link RacialBodyFeatures} object.
+ * Matches by exact key, display name, or a set of common aliases.
+ * Falls back to Imperial when no match is found.
+ */
 export function resolveRace(raceName: string): RacialBodyFeatures {
   const normalized = raceName.trim().toLowerCase();
   for (const [key, def] of Object.entries(ELDER_SCROLLS_RACES)) {

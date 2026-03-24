@@ -312,7 +312,7 @@ export const DoLStatsSidebar: React.FC<DoLStatsSidebarProps> = ({
               </div>
             ))}
             {biology.incubations.map((inc: Incubation, i: number) => (
-              <div key={i} className="text-[8px] text-purple-400/70 flex items-center gap-1 ml-1">
+              <div key={`inc-${inc.type}-${i}`} className="text-[8px] text-purple-400/70 flex items-center gap-1 ml-1">
                 <span>◎</span>
                 <span className="truncate">{inc.type} ({inc.progress}%)</span>
               </div>

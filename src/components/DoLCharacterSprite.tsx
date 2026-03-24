@@ -52,6 +52,12 @@ interface BodyGeom {
   legSpread: number;
   showPecs: boolean;
   jawW: number;
+  // Extended anatomy
+  bustSize: number;        // 0=none/male, 1=small, 2=medium, 3=large
+  showAdamsApple: boolean;
+  showBodyHair: boolean;   // male chest/leg hair
+  showMuscleDef: boolean;  // visible muscle definition lines
+  navelY: number;          // Y coordinate of navel
 }
 
 function buildBodyGeom(gender: string, raceDef: RacialBodyFeatures): BodyGeom {
@@ -98,6 +104,12 @@ function buildBodyGeom(gender: string, raceDef: RacialBodyFeatures): BodyGeom {
   };
   const heightScale = hScaleMap[raceDef.name] || 1.0;
 
+  const bustSize = isFemale
+    ? (['wiry', 'slim'].includes(raceDef.build) ? 1
+      : ['heavy', 'stocky'].includes(raceDef.build) ? 3
+      : 2)
+    : 0;
+
   return {
     heightScale, headRX, headRY,
     shoulderHW, waistHW, hipHW,
@@ -107,6 +119,11 @@ function buildBodyGeom(gender: string, raceDef: RacialBodyFeatures): BodyGeom {
     thighW, calfW, footW, footH, legSpread,
     showPecs: isMale && raceDef.build !== 'slim' && raceDef.build !== 'wiry',
     jawW: isMale ? 2.5 : isFemale ? 0 : 1,
+    bustSize,
+    showAdamsApple: isMale,
+    showBodyHair: isMale && ['muscular', 'heavy', 'athletic', 'stocky'].includes(raceDef.build),
+    showMuscleDef: ['muscular', 'athletic', 'heavy', 'stocky'].includes(raceDef.build),
+    navelY: 88,
   };
 }
 
@@ -139,6 +156,26 @@ function resolveHairColor(raceDef: RacialBodyFeatures, cosmeticHair: string): st
     grey: '#888890', auburn: '#7a2a10', gold: '#c8a020',
   };
   return manual[cosmeticHair] || raceDef.hair_colors[0] || '#5a3a1a';
+}
+
+// Integrity threshold below which a clothing slot is considered "destroyed / not covering"
+const EXPOSURE_INTEGRITY_THRESHOLD = 10;
+function getNippleColor(skinHex: string, skinType: string): string {
+  if (skinType === 'fur') return '#8a5828';   // muted for Khajiit
+  if (skinType === 'scales') return '#5a6828'; // muted for Argonian
+  const map: Record<string, string> = {
+    '#f4d5b0': '#d4836a',
+    '#f0e8d8': '#c87860',
+    '#c8956a': '#a85840',
+    '#b8a060': '#9a6840',
+    '#d4bc60': '#b89048', // Altmer gold
+    '#8a9090': '#808888', // Dunmer ash
+    '#6b3d2e': '#8a4030',
+    '#3d1e12': '#6a2820',
+    '#4a6a30': '#3a5828', // Argonian green
+    '#c8a878': '#a07858', // Khajiit tan
+  };
+  return map[skinHex] || '#c07868';
 }
 
 export const DoLCharacterSprite: React.FC<DoLCharacterSpriteProps> = ({ state, compact = false }) => {
@@ -191,6 +228,20 @@ export const DoLCharacterSprite: React.FC<DoLCharacterSpriteProps> = ({ state, c
 
   const bodyFilter = corruption ? 'hue-rotate(270deg) saturate(1.3)'
     : arousalHigh ? 'hue-rotate(-12deg) saturate(1.2)' : undefined;
+
+  // ── Gender / anatomy state ───────────────────────────────────────────────
+  const isMale   = gender === 'male';
+  const isFemale = gender === 'female';
+  // Chest exposed when slot is empty OR clothing integrity fully destroyed
+  const isChestExposed   = !clothing.chest   || (clothing.chest.integrity   ?? 100) <= EXPOSURE_INTEGRITY_THRESHOLD;
+  const isGroinExposed   = !clothing.underwear || (clothing.underwear.integrity ?? 100) <= EXPOSURE_INTEGRITY_THRESHOLD;
+  const nippleClr        = getNippleColor(skin, raceDef.skin_type);
+  const isLactating      = biology.lactation_level > 0;
+  const isAroused        = stats.arousal > 50 || stats.lust > 60;
+  // Pregnancy bump (0–1) derived from incubations tagged with "preg"
+  const pregnancyBump    = biology.incubations
+    .filter(i => i.type.toLowerCase().includes('preg'))
+    .reduce((max, i) => Math.max(max, i.progress / 100), 0);
 
   const svgH = compact ? 144 : 225;
   const svgW = compact ? 80  : 100;
@@ -273,19 +324,98 @@ export const DoLCharacterSprite: React.FC<DoLCharacterSpriteProps> = ({ state, c
         {/* Pelvis */}
         <path d={`M ${cx - geom.hipHW},${hipTopY} L ${cx + geom.hipHW},${hipTopY} C ${cx + geom.hipHW + 2},${crotchY - 4} ${legRX + geom.thighW/2},${crotchY} L ${legLX - geom.thighW/2},${crotchY} C ${cx - geom.hipHW - 2},${crotchY - 4} ${cx - geom.hipHW},${hipTopY} Z`} fill={skin} />
 
+        {/* ── PREGNANCY BELLY OVERLAY ── */}
+        {pregnancyBump > 0 && (
+          <ellipse
+            cx={cx} cy={waistY - 2 + pregnancyBump * 12}
+            rx={geom.waistHW + pregnancyBump * 14}
+            ry={pregnancyBump * 18}
+            fill={skin}
+          />
+        )}
+
+        {/* ── NAVEL ── */}
+        {isChestExposed && (
+          <circle cx={cx} cy={geom.navelY} r="1.3" fill={`${skin}60`} />
+        )}
+
         {/* Female bust */}
-        {geom.bustR > 0 && !clothing.chest && (
+        {geom.bustR > 0 && isChestExposed && (
           <>
             <ellipse cx={cx - geom.shoulderHW * 0.38} cy={geom.bustY} rx={geom.bustR} ry={geom.bustR * 0.82} fill={skin} />
             <ellipse cx={cx + geom.shoulderHW * 0.38} cy={geom.bustY} rx={geom.bustR} ry={geom.bustR * 0.82} fill={skin} />
           </>
         )}
         {/* Male pec lines */}
-        {geom.showPecs && !clothing.chest && (
+        {geom.showPecs && isChestExposed && (
           <>
             <path d={`M ${cx-3},${shldY+12} Q ${cx - geom.shoulderHW * 0.65},${shldY+22} ${cx-3},${shldY+28}`} fill="none" stroke={`${skin}88`} strokeWidth="0.8" />
             <path d={`M ${cx+3},${shldY+12} Q ${cx + geom.shoulderHW * 0.65},${shldY+22} ${cx+3},${shldY+28}`} fill="none" stroke={`${skin}88`} strokeWidth="0.8" />
           </>
+        )}
+
+        {/* ── COLLARBONE (when chest exposed) ── */}
+        {isChestExposed && (
+          <>
+            <path d={`M ${cx - 1},${shldY + 2} Q ${cx - geom.shoulderHW * 0.65},${shldY - 2} ${cx - geom.shoulderHW * 0.92},${shldY + 3}`}
+              fill="none" stroke={`${skin}55`} strokeWidth={isMale ? '1.1' : '0.75'} strokeLinecap="round" />
+            <path d={`M ${cx + 1},${shldY + 2} Q ${cx + geom.shoulderHW * 0.65},${shldY - 2} ${cx + geom.shoulderHW * 0.92},${shldY + 3}`}
+              fill="none" stroke={`${skin}55`} strokeWidth={isMale ? '1.1' : '0.75'} strokeLinecap="round" />
+          </>
+        )}
+
+        {/* ── FEMALE NIPPLES (when chest exposed) ── */}
+        {isChestExposed && isFemale && geom.bustR > 0 && (
+          <>
+            {/* Left areola + nipple */}
+            <circle cx={cx - geom.shoulderHW * 0.38} cy={geom.bustY}
+              r={geom.bustR * 0.32} fill={`${skin}aa`} />
+            <circle cx={cx - geom.shoulderHW * 0.38} cy={geom.bustY}
+              r={isAroused ? geom.bustR * 0.18 : geom.bustR * 0.13}
+              fill={nippleClr} />
+            {/* Right areola + nipple */}
+            <circle cx={cx + geom.shoulderHW * 0.38} cy={geom.bustY}
+              r={geom.bustR * 0.32} fill={`${skin}aa`} />
+            <circle cx={cx + geom.shoulderHW * 0.38} cy={geom.bustY}
+              r={isAroused ? geom.bustR * 0.18 : geom.bustR * 0.13}
+              fill={nippleClr} />
+            {/* Lactation drip marks */}
+            {isLactating && (
+              <>
+                <ellipse cx={cx - geom.shoulderHW * 0.38}
+                  cy={geom.bustY + geom.bustR * 0.5} rx="0.7" ry="1.5"
+                  fill="rgba(255,255,255,0.30)" />
+                <ellipse cx={cx + geom.shoulderHW * 0.38}
+                  cy={geom.bustY + geom.bustR * 0.5} rx="0.7" ry="1.5"
+                  fill="rgba(255,255,255,0.30)" />
+              </>
+            )}
+          </>
+        )}
+
+        {/* ── MALE NIPPLES (when chest exposed) ── */}
+        {isChestExposed && isMale && (
+          <>
+            <circle cx={cx - geom.shoulderHW * 0.42} cy={shldY + 20} r="1.0" fill={nippleClr} />
+            <circle cx={cx + geom.shoulderHW * 0.42} cy={shldY + 20} r="1.0" fill={nippleClr} />
+          </>
+        )}
+
+        {/* ── MALE BODY HAIR (chest & torso, when exposed) ── */}
+        {isChestExposed && geom.showBodyHair && raceDef.skin_type === 'skin' && (
+          <g opacity="0.18">
+            {/* Chest scatter */}
+            {([-4, -2, 0, 2, 4] as const).map((dx, i) => (
+              <circle key={`ch-${i}`}
+                cx={cx + dx * 2.2} cy={shldY + 24 + (Math.abs(dx) % 2) * 4}
+                r="0.75" fill={hairClr} />
+            ))}
+            <circle cx={cx} cy={shldY + 34} r="0.7" fill={hairClr} />
+            {/* Happy trail */}
+            {[0, 1, 2].map((dy, i) => (
+              <circle key={`ht-${i}`} cx={cx} cy={waistY - 22 + dy * 6} r="0.55" fill={hairClr} />
+            ))}
+          </g>
         )}
 
         {/* ── ARMS ── */}
@@ -312,8 +442,30 @@ export const DoLCharacterSprite: React.FC<DoLCharacterSpriteProps> = ({ state, c
           </g>
         )}
 
+        {/* ── MUSCLE DEFINITION (arms) ── */}
+        {geom.showMuscleDef && !clothing.shoulders && (
+          <g>
+            {/* Left bicep curve */}
+            <path d={`M ${shLX - geom.upperArmW * 0.25},${shldY + 8} Q ${shLX - geom.upperArmW * 0.55},${shldY + 22} ${shLX - geom.upperArmW * 0.25},${shldY + 34}`}
+              fill="none" stroke={`${skin}48`} strokeWidth="0.85" strokeLinecap="round" />
+            {/* Right bicep curve */}
+            <path d={`M ${shRX + geom.upperArmW * 0.25},${shldY + 8} Q ${shRX + geom.upperArmW * 0.55},${shldY + 22} ${shRX + geom.upperArmW * 0.25},${shldY + 34}`}
+              fill="none" stroke={`${skin}48`} strokeWidth="0.85" strokeLinecap="round" />
+          </g>
+        )}
+        {/* Muscle definition (torso centre line) */}
+        {geom.showMuscleDef && isChestExposed && (
+          <path d={`M ${cx},${shldY + 6} L ${cx},${waistY - 4}`}
+            fill="none" stroke={`${skin}38`} strokeWidth="0.7" />
+        )}
+
         {/* ── NECK ── */}
         <rect x={cx - geom.headRX * 0.48} y={neckTopY} width={geom.headRX * 0.96} height={neckBotY - neckTopY + 1} fill={skin} />
+
+        {/* Adam's apple (male) */}
+        {geom.showAdamsApple && (
+          <ellipse cx={cx} cy={neckTopY + 4} rx="2" ry="1.6" fill={`${skin}88`} />
+        )}
 
         {/* ── HEAD ── */}
         <ellipse cx={cx} cy={headCY} rx={geom.headRX} ry={geom.headRY} fill={skin} />
@@ -464,6 +616,109 @@ export const DoLCharacterSprite: React.FC<DoLCharacterSpriteProps> = ({ state, c
             <line x1={cx-9} y1={headCY-3} x2={cx-4} y2={headCY+3} stroke={accentClr} strokeWidth="1.5" strokeLinecap="round" />
             <line x1={cx+9} y1={headCY-3} x2={cx+4} y2={headCY+3} stroke={accentClr} strokeWidth="1.5" strokeLinecap="round" />
           </g>
+        )}
+
+        {/* ── INNER THIGH CONTOUR (when legs exposed) ── */}
+        {!clothing.legs && (
+          <g>
+            {isFemale ? (
+              // Female: smooth rounded inner thigh curves
+              <>
+                <path d={`M ${legLX + geom.thighW * 0.22},${crotchY + 4} Q ${legLX + geom.thighW * 0.08},${crotchY + 32} ${legLX + geom.thighW * 0.18},${kneeY - 8}`}
+                  fill="none" stroke={`${skin}38`} strokeWidth="0.7" strokeLinecap="round" />
+                <path d={`M ${legRX - geom.thighW * 0.22},${crotchY + 4} Q ${legRX - geom.thighW * 0.08},${crotchY + 32} ${legRX - geom.thighW * 0.18},${kneeY - 8}`}
+                  fill="none" stroke={`${skin}38`} strokeWidth="0.7" strokeLinecap="round" />
+              </>
+            ) : (
+              // Male: sharper quad-sweep outer line
+              <>
+                <path d={`M ${legLX - geom.thighW * 0.28},${crotchY + 6} Q ${legLX - geom.thighW * 0.38},${crotchY + 30} ${legLX - geom.thighW * 0.2},${kneeY - 10}`}
+                  fill="none" stroke={`${skin}35`} strokeWidth="0.75" strokeLinecap="round" />
+                <path d={`M ${legRX + geom.thighW * 0.28},${crotchY + 6} Q ${legRX + geom.thighW * 0.38},${crotchY + 30} ${legRX + geom.thighW * 0.2},${kneeY - 10}`}
+                  fill="none" stroke={`${skin}35`} strokeWidth="0.75" strokeLinecap="round" />
+              </>
+            )}
+          </g>
+        )}
+        {/* Quad/calf muscle definition for athletic builds */}
+        {geom.showMuscleDef && !clothing.legs && (
+          <g>
+            <path d={`M ${legLX + geom.thighW * 0.3},${crotchY + 8} Q ${legLX + geom.thighW * 0.42},${crotchY + 28} ${legLX + geom.thighW * 0.22},${kneeY - 12}`}
+              fill="none" stroke={`${skin}38`} strokeWidth="0.65" />
+            <path d={`M ${legRX - geom.thighW * 0.3},${crotchY + 8} Q ${legRX - geom.thighW * 0.42},${crotchY + 28} ${legRX - geom.thighW * 0.22},${kneeY - 12}`}
+              fill="none" stroke={`${skin}38`} strokeWidth="0.65" />
+          </g>
+        )}
+
+        {/* ── GROIN ANATOMY (when underwear absent / destroyed) ── */}
+        {isGroinExposed && isFemale && (
+          <>
+            {/* Mons pubis */}
+            <ellipse cx={cx} cy={crotchY - 4} rx="4.5" ry="3.2" fill={skin} />
+            {/* Labia major – two converging curves */}
+            <path d={`M ${cx - 2.2},${crotchY - 2} Q ${cx - 2},${crotchY + 4} ${cx},${crotchY + 8}`}
+              fill="none" stroke={`${skin}cc`} strokeWidth="1.3" strokeLinecap="round" />
+            <path d={`M ${cx + 2.2},${crotchY - 2} Q ${cx + 2},${crotchY + 4} ${cx},${crotchY + 8}`}
+              fill="none" stroke={`${skin}cc`} strokeWidth="1.3" strokeLinecap="round" />
+            {/* Labia minor hint */}
+            <path d={`M ${cx - 1},${crotchY - 1} Q ${cx - 0.8},${crotchY + 3} ${cx},${crotchY + 6}`}
+              fill="none" stroke={`${nippleClr}88`} strokeWidth="0.7" strokeLinecap="round" />
+            <path d={`M ${cx + 1},${crotchY - 1} Q ${cx + 0.8},${crotchY + 3} ${cx},${crotchY + 6}`}
+              fill="none" stroke={`${nippleClr}88`} strokeWidth="0.7" strokeLinecap="round" />
+            {/* Arousal flush */}
+            {isAroused && (
+              <ellipse cx={cx} cy={crotchY} rx="4" ry="5"
+                fill="rgba(255,80,100,0.14)" />
+            )}
+            {/* Pubic hair (skin races only) */}
+            {raceDef.skin_type === 'skin' && (
+              <g opacity="0.22">
+                {([-3, -1, 1, 3] as const).map((dx, i) => (
+                  <ellipse key={`pfh-${i}`}
+                    cx={cx + dx} cy={crotchY - 8 + (Math.abs(dx) % 2)}
+                    rx="0.75" ry="1.3" fill={hairClr} />
+                ))}
+              </g>
+            )}
+          </>
+        )}
+        {isGroinExposed && isMale && (
+          <>
+            {/* Pubic hair */}
+            {geom.showBodyHair && raceDef.skin_type === 'skin' && (
+              <g opacity="0.22">
+                {([-4, -2, 0, 2, 4] as const).map((dx, i) => (
+                  <ellipse key={`mph-${i}`}
+                    cx={cx + dx} cy={crotchY - 15 + (Math.abs(dx) % 2)}
+                    rx="0.7" ry="1.5" fill={hairClr} />
+                ))}
+              </g>
+            )}
+            {/* Shaft – longer & angled up when aroused */}
+            {isAroused ? (
+              <>
+                <rect x={cx - 2.5} y={crotchY - 16} width="5" height="14" rx="2.5" fill={skin} />
+                <ellipse cx={cx} cy={crotchY - 17} rx="3" ry="2.5" fill={skin} />
+              </>
+            ) : (
+              <>
+                <rect x={cx - 2} y={crotchY - 8} width="4" height="8" rx="2" fill={skin} />
+                <ellipse cx={cx} cy={crotchY - 9} rx="2.5" ry="2" fill={skin} />
+              </>
+            )}
+            {/* Scrotum */}
+            <ellipse cx={cx - 2.2} cy={crotchY + 5} rx="3" ry="2.5" fill={skin} />
+            <ellipse cx={cx + 2.2} cy={crotchY + 5} rx="3" ry="2.5" fill={skin} />
+            {/* Glans corona outline */}
+            {isAroused && (
+              <ellipse cx={cx} cy={crotchY - 17} rx="3.2" ry="2.7"
+                fill="none" stroke={`${nippleClr}70`} strokeWidth="0.6" />
+            )}
+          </>
+        )}
+        {/* Non-binary / unknown – neutral mons (no detail) */}
+        {isGroinExposed && !isMale && !isFemale && (
+          <ellipse cx={cx} cy={crotchY - 2} rx="4" ry="2.8" fill={skin} />
         )}
 
         {/* ── STATUS OVERLAYS ── */}
