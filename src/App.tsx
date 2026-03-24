@@ -29,7 +29,7 @@ import { gameReducer } from './reducers/gameReducer';
 import { PREDEFINED_ANATOMIES, STABLE_API, DEFAULT_API_KEY, AGE_APPEARANCE } from './constants';
 import { ELDER_SCROLLS_LORE, getRelevantLore } from './lore';
 import { generateText, generateImage, generateLegendaryStats } from './services/api';
-import { buildTextPromptAsync, buildImagePrompt, imageWorker } from './utils/workers';
+import { buildTextPromptAsync, buildImagePrompt, getVisualEffectClasses, imageWorker } from './utils/workers';
 import { getSynergies, getAgeTag, getFallbackResponse, getHealthSemantic, getStaminaSemantic, getTraumaSemantic } from './utils/gameLogic';
 import { useEncounterBuffer } from './hooks/useEncounterBuffer';
 
@@ -72,6 +72,7 @@ function App({ state, dispatch }: { state: GameState, dispatch: React.Dispatch<a
   const [isLoadingModels, setIsLoadingModels] = useState(false);
   const [isGeneratingAvatar, setIsGeneratingAvatar] = useState(false);
   const [selectedItem, setSelectedItem] = useState<Item | null>(null);
+  const visualEffectClasses = getVisualEffectClasses(state);
 
   const generatePlayerAvatar = async () => {
     setIsGeneratingAvatar(true);
@@ -967,7 +968,7 @@ Example: { "health": 50, "allure": 20 }`;
           </div>
           
           {/* Hero Image Container */}
-          <div className="relative w-full max-w-2xl aspect-[4/3] rounded-sm overflow-hidden border border-white/10 shadow-2xl shadow-black/80 z-10 bg-[#0a0a0a]">
+          <div className={`relative w-full max-w-2xl aspect-[4/3] rounded-sm overflow-hidden border border-white/10 shadow-2xl shadow-black/80 z-10 bg-[#0a0a0a] ${visualEffectClasses}`}>
             {state.ui.currentImage ? (
               <motion.img 
                 key={state.ui.currentImage}
