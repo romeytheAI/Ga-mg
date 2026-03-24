@@ -179,6 +179,13 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
               {state.ui.settings.enable_extreme_content ? 'Active' : 'Disabled'}
             </button>
           </div>
+
+          <div className="flex items-center justify-between">
+            <span className="text-xs tracking-widest uppercase text-blue-400/50">Streamer Mode</span>
+            <button onClick={() => dispatch({ type: 'UPDATE_SETTING', payload: { key: 'streamer_mode', value: !state.ui.settings.streamer_mode } })} className={`text-xs px-3 py-1 rounded-sm border ${state.ui.settings.streamer_mode ? 'text-blue-400 border-blue-400/50 bg-blue-900/20' : 'text-white/80 border-white/20 hover:text-white'}`}>
+              {state.ui.settings.streamer_mode ? 'Active' : 'Disabled'}
+            </button>
+          </div>
         </div>
 
         <div className="space-y-4 mb-8">

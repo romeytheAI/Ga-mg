@@ -214,7 +214,8 @@ export interface GameState {
       stat_drain_multiplier: number,
       enable_parasites: boolean,
       enable_pregnancy: boolean,
-      enable_extreme_content: boolean
+      enable_extreme_content: boolean,
+      streamer_mode: boolean
     }
   }
 }

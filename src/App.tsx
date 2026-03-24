@@ -15,6 +15,8 @@ import { JournalModal } from './components/modals/JournalModal';
 import { MapModal } from './components/modals/MapModal';
 import { XRayModal } from './components/modals/XRayModal';
 import { StatsModal } from './components/modals/StatsModal';
+import { StatusModal } from './components/modals/StatusModal';
+import { MemoriesModal } from './components/modals/MemoriesModal';
 import { InventoryModal } from './components/modals/InventoryModal';
 import { DeveloperModeModal } from './components/modals/DeveloperModeModal';
 import { SettingsModal } from './components/modals/SettingsModal';
@@ -30,7 +32,7 @@ import { PREDEFINED_ANATOMIES, STABLE_API, DEFAULT_API_KEY, AGE_APPEARANCE } fro
 import { ELDER_SCROLLS_LORE, getRelevantLore } from './lore';
 import { generateProceduralItem } from './utils/procedural';
 import { generateText, generateImage, generateLegendaryStats } from './services/api';
-import { buildTextPromptAsync, buildImagePrompt, imageWorker } from './utils/workers';
+import { buildTextPromptAsync, buildImagePrompt, imageWorker, shouldCensorImage, buildEncounterImagePrompt, getVisualEffectClasses, isExposed } from './utils/workers';
 import { getSynergies, getAgeTag, getFallbackResponse, getHealthSemantic, getStaminaSemantic, getTraumaSemantic } from './utils/gameLogic';
 import { useEncounterBuffer } from './hooks/useEncounterBuffer';
 
@@ -68,6 +70,10 @@ function App({ state, dispatch }: { state: GameState, dispatch: React.Dispatch<a
   const [hasStarted, setHasStarted] = useState(false);
   const [customAction, setCustomAction] = useState('');
   const [showSettings, setShowSettings] = useState(false);
+  const [showCompanions, setShowCompanions] = useState(false);
+  const [showStatus, setShowStatus] = useState(false);
+  const [showMemories, setShowMemories] = useState(false);
+  const [showMap, setShowMap] = useState(false);
   const [availableTextModels, setAvailableTextModels] = useState<{name: string, count: number}[]>([]);
   const [availableImageModels, setAvailableImageModels] = useState<{name: string, count: number}[]>([]);
   const [isLoadingModels, setIsLoadingModels] = useState(false);
@@ -501,7 +507,7 @@ function App({ state, dispatch }: { state: GameState, dispatch: React.Dispatch<a
         } });
 
         dispatch({ type: 'INITIAL_IMAGE_START' });
-        const encounterImagePrompt = `A dark fantasy RPG encounter with ${activeEncounter.enemy_name}. ${encounter.outcome}. Atmospheric, gritty, detailed, cinematic lighting.`;
+        const encounterImagePrompt = buildEncounterImagePrompt(state, activeEncounter.enemy_name, activeEncounter.enemy_type, encounter.outcome);
         generateImage(encounterImagePrompt, state.ui.apiKey, state.ui.hordeApiKey, state.ui.selectedImageModel, dispatch)
           .then(img => dispatch({ type: 'RESOLVE_IMAGE', payload: img }))
           .catch(() => dispatch({ type: 'RESOLVE_IMAGE_FAILED' }));
@@ -659,8 +665,18 @@ function App({ state, dispatch }: { state: GameState, dispatch: React.Dispatch<a
       
       dispatch({ type: 'RESOLVE_TEXT', payload: { parsedText, actionText } });
 
-      // 3. Conditional Image Generation
-      const shouldRegenImage = parsedText.new_items?.length > 0 || state.world.turn_count % 10 === 0;
+      // 3. Conditional Image Generation - regenerate on significant state changes
+      const hasNewItems = parsedText.new_items?.length > 0;
+      const hasClothingChange = parsedText.stat_deltas?.equipment_integrity_delta != null;
+      const hasLocationChange = parsedText.new_location != null;
+      const isPeriodicRegen = state.world.turn_count % 5 === 0;
+      const hasSignificantStatChange = parsedText.stat_deltas && (
+        Math.abs(parsedText.stat_deltas.corruption || 0) >= 10 ||
+        Math.abs(parsedText.stat_deltas.trauma || 0) >= 15 ||
+        Math.abs(parsedText.stat_deltas.arousal || 0) >= 20 ||
+        Math.abs(parsedText.stat_deltas.health || 0) >= 25
+      );
+      const shouldRegenImage = hasNewItems || hasClothingChange || hasLocationChange || isPeriodicRegen || hasSignificantStatChange;
       if (shouldRegenImage) {
         dispatch({ type: 'INITIAL_IMAGE_START' });
         generateImage(buildImagePrompt(state), state.ui.apiKey, state.ui.hordeApiKey, state.ui.selectedImageModel, dispatch)
@@ -696,12 +712,7 @@ Example: { "health": 50, "allure": 20 }`;
 
   const containerClasses = [
     "min-h-screen bg-[#050505] text-white/80 font-sans flex flex-col selection:bg-white/20 transition-colors duration-1000",
-    state.world.weather === 'Rain' ? "weather-rain" : "",
-    state.world.weather === 'Fog' ? "weather-fog" : "",
-    state.world.current_location.atmosphere.includes('dark') ? "pitch-black" : "",
-    state.player.stats.health < 20 ? "heartbeat-vignette" : "",
-    state.player.stats.trauma > 80 ? "apathy-desaturation" : "",
-    state.player.stats.trauma > 50 ? "chromatic-aberration" : ""
+    ...getVisualEffectClasses(state)
   ].filter(Boolean).join(" ");
 
   const toggleFullscreen = () => {
@@ -924,6 +935,62 @@ Example: { "health": 50, "allure": 20 }`;
               <span className="text-white/80">{state.player.cosmetics.body_type}</span>
             </div>
           </div>
+
+          {/* Visual State Indicators */}
+          <div className="flex flex-col gap-2 mt-4">
+            <h3 className="text-[10px] tracking-widest uppercase text-white/40 border-b border-white/10 pb-1 mb-2">Condition</h3>
+            
+            {/* Exposure warning */}
+            {isExposed(state) && (
+              <div className="flex items-center gap-2 text-[10px] px-2 py-1 bg-red-900/20 border border-red-500/30 rounded-sm">
+                <AlertTriangle className="w-3 h-3 text-red-400" />
+                <span className="text-red-400 uppercase tracking-widest">Exposed</span>
+              </div>
+            )}
+
+            {/* Clothing integrity mini-bars */}
+            {['chest', 'legs', 'underwear', 'head', 'feet'].map(slot => {
+              const item = state.player.inventory.find(i => i.is_equipped && i.slot === slot);
+              if (!item || item.integrity === undefined) return null;
+              const intPct = Math.max(0, Math.min(100, item.integrity));
+              const colorClass = intPct > 60 ? 'bg-emerald-500/60' : intPct > 30 ? 'bg-yellow-500/60' : 'bg-red-500/60';
+              return (
+                <div key={slot} className="flex items-center gap-2">
+                  <span className="text-[9px] text-white/30 uppercase w-14 truncate">{slot}</span>
+                  <div className="flex-1 h-1 bg-white/5 rounded-full overflow-hidden">
+                    <div className={`h-full ${colorClass} transition-all duration-500`} style={{ width: `${intPct}%` }} />
+                  </div>
+                  <span className="text-[9px] text-white/40 w-6 text-right">{intPct}%</span>
+                </div>
+              );
+            })}
+
+            {/* Key visual stat indicators */}
+            {(state.player.stats.arousal || 0) > 30 && (
+              <div className="flex items-center gap-2 text-[10px]">
+                <Thermometer className="w-3 h-3 text-pink-400/60" />
+                <span className="text-pink-400/60 uppercase tracking-widest">
+                  {(state.player.stats.arousal || 0) >= 80 ? 'Burning' : (state.player.stats.arousal || 0) >= 50 ? 'Aroused' : 'Flushed'}
+                </span>
+              </div>
+            )}
+            {(state.player.stats.corruption || 0) > 30 && (
+              <div className="flex items-center gap-2 text-[10px]">
+                <Zap className="w-3 h-3 text-purple-400/60" />
+                <span className="text-purple-400/60 uppercase tracking-widest">
+                  {(state.player.stats.corruption || 0) >= 70 ? 'Corrupted' : 'Tainted'}
+                </span>
+              </div>
+            )}
+            {(state.player.stats.pain || 0) > 30 && (
+              <div className="flex items-center gap-2 text-[10px]">
+                <AlertTriangle className="w-3 h-3 text-red-400/60" />
+                <span className="text-red-400/60 uppercase tracking-widest">
+                  {(state.player.stats.pain || 0) >= 60 ? 'In Agony' : 'Hurting'}
+                </span>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Left: Visuals */}
@@ -973,7 +1040,7 @@ Example: { "health": 50, "allure": 20 }`;
               <motion.img 
                 key={state.ui.currentImage}
                 src={state.ui.currentImage} 
-                className="w-[110%] h-[110%] -left-[5%] -top-[5%] absolute object-cover will-change-transform"
+                className={`w-[110%] h-[110%] -left-[5%] -top-[5%] absolute object-cover will-change-transform ${shouldCensorImage(state) ? 'blur-3xl' : ''}`}
                 style={{ transform: 'translateZ(0)' }}
                 animate={{ x: mousePos.x, y: mousePos.y }}
                 transition={{ type: 'spring', stiffness: 40, damping: 30 }}
@@ -981,6 +1048,16 @@ Example: { "health": 50, "allure": 20 }`;
             ) : (
               <div className="absolute inset-0 flex items-center justify-center">
                 <div className="w-32 h-[1px] bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+              </div>
+            )}
+
+            {/* Streamer Mode Censor Overlay */}
+            {shouldCensorImage(state) && state.ui.currentImage && (
+              <div className="absolute inset-0 bg-black/60 flex items-center justify-center z-15">
+                <div className="flex flex-col items-center gap-2">
+                  <EyeOff className="w-8 h-8 text-white/40" />
+                  <span className="text-[10px] tracking-[0.3em] uppercase text-white/40">Streamer Mode Active</span>
+                </div>
               </div>
             )}
             
@@ -1083,7 +1160,7 @@ Example: { "health": 50, "allure": 20 }`;
 
       {/* Map Modal */}
       <AnimatePresence>
-        {showMap && <MapModal state={state} onClose={() => setShowMap(false)} />}
+        {showMap && <MapModal state={state} dispatch={dispatch} handleAction={handleAction} />}
       </AnimatePresence>
 
       {/* Developer Mode Modal */}

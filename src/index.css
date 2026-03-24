@@ -96,4 +96,58 @@
   .animate-glitch-2 {
     animation: glitch-2 0.2s cubic-bezier(.25, .46, .45, .94) both infinite;
   }
+
+  /* DoL Parity: Arousal warmth effect - pink/warm tint overlay */
+  .arousal-warmth {
+    box-shadow: inset 0 0 80px rgba(255, 100, 150, 0.15);
+    animation: arousal-pulse 2s ease-in-out infinite alternate;
+  }
+  @keyframes arousal-pulse {
+    0% { box-shadow: inset 0 0 40px rgba(255, 100, 150, 0.1); }
+    100% { box-shadow: inset 0 0 120px rgba(255, 100, 150, 0.2); }
+  }
+
+  /* DoL Parity: Corruption darkness effect - dark vignette */
+  .corruption-darkness {
+    box-shadow: inset 0 0 150px rgba(30, 0, 50, 0.4);
+    animation: corruption-pulse 3s ease-in-out infinite alternate;
+  }
+  @keyframes corruption-pulse {
+    0% { box-shadow: inset 0 0 100px rgba(30, 0, 50, 0.3); }
+    100% { box-shadow: inset 0 0 200px rgba(30, 0, 50, 0.5); }
+  }
+
+  /* DoL Parity: Low control tremor effect */
+  .low-control-tremor {
+    animation: control-tremor 0.15s ease-in-out infinite;
+  }
+  @keyframes control-tremor {
+    0% { transform: translate(0, 0); }
+    25% { transform: translate(1px, -1px); }
+    50% { transform: translate(-1px, 1px); }
+    75% { transform: translate(1px, 1px); }
+    100% { transform: translate(0, 0); }
+  }
+
+  /* DoL Parity: Pain flash effect - red pulse */
+  .pain-flash {
+    box-shadow: inset 0 0 100px rgba(255, 0, 0, 0.2);
+    animation: pain-pulse 0.8s ease-in-out infinite alternate;
+  }
+  @keyframes pain-pulse {
+    0% { box-shadow: inset 0 0 50px rgba(255, 0, 0, 0.1); }
+    100% { box-shadow: inset 0 0 150px rgba(255, 0, 0, 0.3); }
+  }
+
+  /* DoL Parity: Hallucination distortion - wavy + color shift */
+  .hallucination-distortion {
+    animation: hallucinate 0.5s ease-in-out infinite alternate;
+    filter: hue-rotate(10deg) saturate(1.3);
+  }
+  @keyframes hallucinate {
+    0% { filter: hue-rotate(0deg) saturate(1.0); transform: skewX(0deg); }
+    33% { filter: hue-rotate(15deg) saturate(1.5); transform: skewX(0.3deg); }
+    66% { filter: hue-rotate(-10deg) saturate(0.8); transform: skewX(-0.2deg); }
+    100% { filter: hue-rotate(5deg) saturate(1.2); transform: skewX(0.1deg); }
+  }
 }

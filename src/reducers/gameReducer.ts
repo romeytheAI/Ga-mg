@@ -298,6 +298,59 @@ export function gameReducer(state: GameState, action: any): GameState {
         ...state,
         ui: { ...state.ui, last_stat_deltas: null }
       };
+    case 'DAMAGE_CLOTHING': {
+      const { slot: damageSlot, amount: damageAmount } = action.payload;
+      const newInventory = state.player.inventory.map(i => {
+        if (i.is_equipped && i.slot === damageSlot && i.integrity !== undefined) {
+          const newIntegrity = Math.max(0, i.integrity - (damageAmount || 10));
+          return { ...i, integrity: newIntegrity };
+        }
+        return i;
+      });
+      
+      // Check if exposure state changed
+      const damagedItem = newInventory.find(i => i.is_equipped && i.slot === damageSlot);
+      const wasDestroyed = damagedItem && damagedItem.integrity !== undefined && damagedItem.integrity <= 0;
+      
+      let newStats = { ...state.player.stats };
+      if (wasDestroyed) {
+        // Exposure consequences - increase stress and exhibitionism awareness
+        newStats.stress = Math.min(100, (newStats.stress || 0) + 10);
+      }
+      
+      return {
+        ...state,
+        player: {
+          ...state.player,
+          inventory: newInventory,
+          stats: newStats
+        }
+      };
+    }
+    case 'STRIP_CLOTHING': {
+      const { slot: stripSlot } = action.payload;
+      const strippedItem = state.player.inventory.find(i => i.is_equipped && i.slot === stripSlot);
+      if (!strippedItem) return state;
+
+      const newInventory = state.player.inventory.map(i =>
+        i.id === strippedItem.id ? { ...i, is_equipped: false } : i
+      );
+      const newClothing = { ...state.player.clothing, [stripSlot]: null };
+      
+      // Exposure consequences
+      let newStats = { ...state.player.stats };
+      newStats.stress = Math.min(100, (newStats.stress || 0) + 15);
+      
+      return {
+        ...state,
+        player: {
+          ...state.player,
+          inventory: newInventory,
+          clothing: newClothing,
+          stats: newStats
+        }
+      };
+    }
     case 'HORDE_REQUEST_START':
       return {
         ...state,
