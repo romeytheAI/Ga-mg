@@ -172,6 +172,7 @@ export const initialState: GameState = {
       economy,
       global_events: [],
       locations,
+      active_combats: [],
     };
   })(),
   horde_queue: [],

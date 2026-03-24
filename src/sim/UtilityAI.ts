@@ -34,6 +34,7 @@ const ACTION_CATALOGUE: UtilityAction[] = [
     need_gain: 25,
     preconditions: { energy: 20 },
     energy_cost: 8,
+    skill_trained: 'seduction',
   },
   {
     id: 'work',
@@ -43,6 +44,7 @@ const ACTION_CATALOGUE: UtilityAction[] = [
     need_gain: 15,
     preconditions: { energy: 30, hunger: 20 },
     energy_cost: 15,
+    skill_trained: 'housekeeping',
   },
   {
     id: 'trade',
@@ -52,6 +54,26 @@ const ACTION_CATALOGUE: UtilityAction[] = [
     need_gain: 8,
     preconditions: { energy: 20 },
     energy_cost: 6,
+    skill_trained: 'skulduggery',
+  },
+  {
+    id: 'exercise',
+    label: 'Exercise',
+    target_state: 'exercising',
+    need_satisfied: null,
+    need_gain: 0,
+    preconditions: { energy: 40, hunger: 25 },
+    energy_cost: 20,
+    skill_trained: 'athletics',
+  },
+  {
+    id: 'study',
+    label: 'Study',
+    target_state: 'studying',
+    need_satisfied: null,
+    need_gain: 0,
+    preconditions: { energy: 25 },
+    energy_cost: 10,
   },
   {
     id: 'idle',
@@ -70,6 +92,7 @@ const ACTION_CATALOGUE: UtilityAction[] = [
     need_gain: 0,
     preconditions: {},
     energy_cost: 20,
+    skill_trained: 'athletics',
   },
 ];
 

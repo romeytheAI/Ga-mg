@@ -5,6 +5,10 @@
 import { SimNpc, SimLocation, NpcTrait, JobType, DailySchedule } from './types';
 import { buildDefaultSchedule } from './TimeSystem';
 import { initEconomy } from './EconomySystem';
+import { defaultSkills } from './SkillsSystem';
+import { defaultCorruptionState } from './CorruptionSystem';
+import { defaultFame } from './FameSystem';
+import { defaultClothingLoadout } from './ClothingSystem';
 
 // ── Name tables ────────────────────────────────────────────────────────────
 const FIRST_NAMES_MALE = [
@@ -66,6 +70,33 @@ export function generateNpc(seed: number, locationId: string): SimNpc {
 
   const schedule = buildDefaultSchedule(job);
 
+  // Generate starting skills based on job (some baseline competence)
+  const skills = { ...defaultSkills() };
+  const JOB_STARTING_SKILLS: Record<string, Partial<typeof skills>> = {
+    guard: { combat: 20 + Math.floor(rand() * 20), athletics: 15 + Math.floor(rand() * 15) },
+    thief: { skulduggery: 25 + Math.floor(rand() * 20), athletics: 10 + Math.floor(rand() * 15) },
+    innkeeper: { housekeeping: 20 + Math.floor(rand() * 15), seduction: 5 + Math.floor(rand() * 10) },
+    merchant: { seduction: 10 + Math.floor(rand() * 15) },
+    healer: { housekeeping: 15 + Math.floor(rand() * 10) },
+    farmer: { athletics: 15 + Math.floor(rand() * 15), housekeeping: 10 + Math.floor(rand() * 10) },
+    laborer: { athletics: 20 + Math.floor(rand() * 15) },
+    scholar: { housekeeping: 5 + Math.floor(rand() * 5) },
+    none: {},
+  };
+  Object.assign(skills, JOB_STARTING_SKILLS[job] ?? {});
+
+  // Generate starting corruption state
+  const corruption_state = { ...defaultCorruptionState() };
+  corruption_state.willpower = 50 + Math.floor(rand() * 40);
+  corruption_state.stress = Math.floor(rand() * 20);
+
+  // Generate starting fame based on job
+  const fame = { ...defaultFame() };
+  if (job === 'guard') fame.combat_fame = 5 + Math.floor(rand() * 10);
+  if (job === 'thief') fame.crime = 5 + Math.floor(rand() * 15);
+  if (job === 'merchant') fame.wealth_fame = 5 + Math.floor(rand() * 10);
+  if (job === 'innkeeper') fame.social = 10 + Math.floor(rand() * 10);
+
   return {
     id: `npc_${seed}`,
     name,
@@ -81,10 +112,15 @@ export function generateNpc(seed: number, locationId: string): SimNpc {
       happiness: 50 + Math.floor(rand() * 40),
       wealth: 20 + Math.floor(rand() * 60),
     },
+    skills,
+    corruption_state,
+    fame,
+    clothing: defaultClothingLoadout(),
     memory: [],
     relationships: [],
     current_state: 'idle',
     location_id: locationId,
+    target_location_id: null,
     stats: {
       health: 80 + Math.floor(rand() * 20),
       stamina: 70 + Math.floor(rand() * 30),
@@ -116,6 +152,11 @@ const LOCATION_NAMES: Record<SimLocation['type'], string[]> = {
   market:    ['Eastern Bazaar','Trade Square','The Black Market'],
   tavern:    ['The Crooked Flagon','The Weeping Widow','The Silver Stag'],
   farm:      ['Old Mill Farm','Harvest Acres','The Green Paddock'],
+  school:    ['The Academy','Hall of Learning','The Scriptorium'],
+  temple:    ['Temple of the Divines','The Sacred Grove','Chapel of Light'],
+  docks:     ['The Harbour','Fisherman\'s Wharf','The Pier'],
+  alleyway:  ['The Backstreets','Shadow Lane','Rats\' Alley'],
+  brothel:   ['The Velvet Room','The Red Lantern','The Gilded Lily'],
 };
 
 /** Generate a single location from a seed and type. */
@@ -134,10 +175,25 @@ export function generateLocation(
     type,
     x: Math.floor(rand() * 80) + 10, // 10-90%
     y: Math.floor(rand() * 80) + 10,
-    danger: type === 'dungeon' ? 0.6 + rand() * 0.4 : rand() * 0.3,
+    danger: locationDanger(type, rand),
     prosperity: type === 'town' || type === 'market' ? 0.5 + rand() * 0.5 : rand() * 0.5,
     npcs_present: [],
   };
+}
+
+/** Determine location danger based on type. */
+function locationDanger(type: SimLocation['type'], rand: () => number): number {
+  switch (type) {
+    case 'dungeon': return 0.6 + rand() * 0.4;
+    case 'alleyway': return 0.4 + rand() * 0.3;
+    case 'wilderness': return 0.2 + rand() * 0.3;
+    case 'brothel': return 0.3 + rand() * 0.3;
+    case 'docks': return 0.15 + rand() * 0.25;
+    case 'home': return rand() * 0.05;
+    case 'temple': return rand() * 0.05;
+    case 'school': return rand() * 0.1;
+    default: return rand() * 0.3;
+  }
 }
 
 // ── World generation ────────────────────────────────────────────────────────
@@ -147,6 +203,7 @@ export function generateWorldLocations(seed: number): SimLocation[] {
   const types: SimLocation['type'][] = [
     'town', 'town', 'market', 'tavern', 'tavern',
     'farm', 'farm', 'wilderness', 'dungeon',
+    'school', 'temple', 'docks', 'alleyway', 'brothel', 'home',
   ];
   return types.map((t, i) => generateLocation(seed, t, i));
 }
@@ -162,6 +219,7 @@ export function generateStartingWorld(seed: number): {
   const npcs: SimNpc[] = [];
   const npcDensity: Partial<Record<SimLocation['type'], number>> = {
     town: 6, market: 4, tavern: 5, farm: 3, wilderness: 1, dungeon: 2,
+    school: 4, temple: 3, docks: 4, alleyway: 2, brothel: 3, home: 0,
   };
 
   locations.forEach((loc, li) => {
@@ -187,6 +245,21 @@ const EVENT_TEMPLATES = [
   'A noble\'s horse went missing. A reward is offered.',
   'Drought threatens the season\'s crops.',
   'A mysterious stranger moves into the old mill.',
+  'A gang of pickpockets has been targeting the market square.',
+  'The temple announces a day of prayer and reflection.',
+  'A fire breaks out in the docks warehouse district.',
+  'A famous bard arrives to perform at the tavern tonight.',
+  'The guard captain issues a curfew after dark for the alleyways.',
+  'A love triangle between prominent citizens becomes town gossip.',
+  'Heavy rains flood the lower streets. Travel is difficult.',
+  'A wealthy patron is seeking bodyguards for a dangerous journey.',
+  'The school headmaster announces examinations next week.',
+  'A stray animal has been seen lurking near the farms.',
+  'A new law bans certain goods from the black market.',
+  'A local couple announces their engagement at the tavern.',
+  'Rumors of a haunted dwelling spread through the town.',
+  'A traveling circus sets up camp on the outskirts.',
+  'The dock workers threaten to strike over low wages.',
 ];
 
 /** Generate a random world event. */
