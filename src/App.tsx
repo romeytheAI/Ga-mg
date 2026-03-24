@@ -28,7 +28,6 @@ import { initialState } from './state/initialState';
 import { gameReducer } from './reducers/gameReducer';
 import { PREDEFINED_ANATOMIES, STABLE_API, DEFAULT_API_KEY, AGE_APPEARANCE } from './constants';
 import { ELDER_SCROLLS_LORE, getRelevantLore } from './lore';
-import { generateProceduralItem } from './utils/procedural';
 import { generateText, generateImage, generateLegendaryStats } from './services/api';
 import { buildTextPromptAsync, buildImagePrompt, imageWorker } from './utils/workers';
 import { getSynergies, getAgeTag, getFallbackResponse, getHealthSemantic, getStaminaSemantic, getTraumaSemantic } from './utils/gameLogic';
@@ -77,7 +76,7 @@ function App({ state, dispatch }: { state: GameState, dispatch: React.Dispatch<a
   const generatePlayerAvatar = async () => {
     setIsGeneratingAvatar(true);
     try {
-      const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY! });
+      const ai = new GoogleGenAI({ apiKey: state.ui.apiKey });
       const prompt = `A highly detailed, dark fantasy portrait of a ${getAgeTag(state.player.age_days, state.player.identity.race)} ${state.player.identity.race} ${state.player.identity.gender}. ${AGE_APPEARANCE[Math.floor(state.player.age_days / 365)] || ''} ${state.player.cosmetics.hair_length} ${state.player.cosmetics.eye_color} eyes. Dark, gritty, atmospheric lighting.`;
       
       const response = await ai.models.generateContent({
@@ -273,7 +272,7 @@ function App({ state, dispatch }: { state: GameState, dispatch: React.Dispatch<a
     if (state.ui.isGeneratingAvatar) return;
     dispatch({ type: 'START_AVATAR_GENERATION' });
     try {
-      const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY! });
+      const ai = new GoogleGenAI({ apiKey: state.ui.apiKey });
       const prompt = `A highly detailed, dark fantasy portrait of a ${getAgeTag(state.player.age_days, state.player.identity.race)} ${state.player.identity.race} ${state.player.identity.gender}. ${AGE_APPEARANCE[Math.floor(state.player.age_days / 365)] || ''} ${state.player.cosmetics.hair_length} ${state.player.cosmetics.eye_color} eyes. Dark, gritty, atmospheric lighting.`;
       
       const response = await ai.models.generateContent({
