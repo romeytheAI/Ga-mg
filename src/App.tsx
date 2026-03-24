@@ -28,7 +28,6 @@ import { initialState } from './state/initialState';
 import { gameReducer } from './reducers/gameReducer';
 import { PREDEFINED_ANATOMIES, STABLE_API, DEFAULT_API_KEY, AGE_APPEARANCE } from './constants';
 import { ELDER_SCROLLS_LORE, getRelevantLore } from './lore';
-import { generateProceduralItem } from './utils/procedural';
 import { generateText, generateImage, generateLegendaryStats } from './services/api';
 import { buildTextPromptAsync, buildImagePrompt, imageWorker } from './utils/workers';
 import { getSynergies, getAgeTag, getFallbackResponse, getHealthSemantic, getStaminaSemantic, getTraumaSemantic } from './utils/gameLogic';
