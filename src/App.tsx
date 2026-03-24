@@ -15,6 +15,8 @@ import { JournalModal } from './components/modals/JournalModal';
 import { MapModal } from './components/modals/MapModal';
 import { XRayModal } from './components/modals/XRayModal';
 import { StatsModal } from './components/modals/StatsModal';
+import { StatusModal } from './components/modals/StatusModal';
+import { MemoriesModal } from './components/modals/MemoriesModal';
 import { InventoryModal } from './components/modals/InventoryModal';
 import { DeveloperModeModal } from './components/modals/DeveloperModeModal';
 import { SettingsModal } from './components/modals/SettingsModal';
@@ -123,6 +125,10 @@ function App({ state, dispatch }: { state: GameState, dispatch: React.Dispatch<a
   }, [showSettings]);
 
   const [showDeveloperMode, setShowDeveloperMode] = useState(false);
+  const [showStatus, setShowStatus] = useState(false);
+  const [showMemories, setShowMemories] = useState(false);
+  const [showMap, setShowMap] = useState(false);
+  const [showCompanions, setShowCompanions] = useState(false);
 
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
   const logRef = useRef<HTMLDivElement>(null);

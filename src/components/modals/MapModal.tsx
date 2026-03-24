@@ -6,11 +6,19 @@ import { LOCATIONS } from '../../data/locations';
 
 interface MapModalProps {
   state: GameState;
-  dispatch: React.Dispatch<any>;
-  handleAction: (actionName: string, actionType: string) => void;
+  dispatch?: React.Dispatch<any>;
+  handleAction?: (actionName: string, actionType: string) => void;
+  onClose?: () => void;
 }
 
-export const MapModal: React.FC<MapModalProps> = ({ state, dispatch, handleAction }) => {
+export const MapModal: React.FC<MapModalProps> = ({ state, dispatch, handleAction, onClose }) => {
+  const handleClose = () => {
+    if (onClose) {
+      onClose();
+    } else if (dispatch) {
+      dispatch({ type: 'TOGGLE_UI_SETTING', payload: { key: 'show_map', value: false } });
+    }
+  };
   return (
     <motion.div 
       initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
@@ -46,7 +54,7 @@ export const MapModal: React.FC<MapModalProps> = ({ state, dispatch, handleActio
         initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }}
         className="bg-[#0a0a0a] border border-white/10 p-8 rounded-sm max-w-4xl w-full relative shadow-2xl overflow-y-auto max-h-[90vh] z-10"
       >
-        <button onClick={() => dispatch({ type: 'TOGGLE_UI_SETTING', payload: { key: 'show_map', value: false } })} className="absolute top-6 right-6 text-white/40 hover:text-white"><X className="w-6 h-6" /></button>
+        <button onClick={handleClose} className="absolute top-6 right-6 text-white/40 hover:text-white"><X className="w-6 h-6" /></button>
         <h2 className="text-2xl font-serif text-white/90 mb-8 border-b border-white/10 pb-4 tracking-widest uppercase">Cartography of Tamriel</h2>
         
         <div className="grid grid-cols-3 gap-8">
@@ -62,8 +70,8 @@ export const MapModal: React.FC<MapModalProps> = ({ state, dispatch, handleActio
                   key={loc.id}
                   onClick={() => {
                     if (!isCurrent) {
-                      handleAction(`Travel to ${loc.name}`, "travel");
-                      dispatch({ type: 'TOGGLE_UI_SETTING', payload: { key: 'show_map', value: false } });
+                      handleAction?.(`Travel to ${loc.name}`, "travel");
+                      handleClose();
                     }
                   }}
                   className={`absolute flex flex-col items-center gap-2 -translate-x-1/2 -translate-y-1/2 z-10 group ${!isCurrent ? 'cursor-pointer' : 'cursor-default'}`}

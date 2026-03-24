@@ -141,7 +141,8 @@ export interface GameState {
     companions: { active_party: Companion[], roster: Companion[], max_encumbrance_bonus: number },
     base: any,
     subconscious: any,
-    biology: { cycle_day: number, heat_rut_active: boolean, parasites: Parasite[], incubations: any[], cravings: string[], exhaustion_multiplier: number, post_partum_debuff: number, sterility: boolean },
+    biology: { cycle_day: number, heat_rut_active: boolean, parasites: Parasite[], incubations: any[], cravings: string[], exhaustion_multiplier: number, post_partum_debuff: number, sterility: boolean, fertility_cycle: string, fertility: number, lactation_level: number },
+    status_effects: string[],
     life_sim: LifeSim,
     age_days: number,
     avatar_url?: string | null,
@@ -216,5 +217,7 @@ export interface GameState {
       enable_pregnancy: boolean,
       enable_extreme_content: boolean
     }
-  }
+  },
+  sim_world: import('./sim/types').SimWorld | null,
+  horde_queue: import('./sim/types').HordeRequest[],
 }
