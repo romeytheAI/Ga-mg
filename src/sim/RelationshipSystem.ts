@@ -17,6 +17,7 @@ export function getRelationship(npc: SimNpc, target_id: string): Relationship {
       fear: 0,
       familiarity: 0,
       last_interaction: 0,
+      romance: null,
     }
   );
 }

@@ -15,6 +15,14 @@ import { getRelationship, upsertRelationship, applyInteraction, decayRelationshi
 import { produceGoods, collectWage, updatePrices, balanceDemand } from './EconomySystem';
 import { advanceTime, scheduledActivity } from './TimeSystem';
 import { generateRandomEvent } from './ProceduralGen';
+import { trainSkillsFromActivity } from './SkillsSystem';
+import { tickCorruptionState } from './CorruptionSystem';
+import { gainFameFromActivity, decayFame } from './FameSystem';
+import { applyWear, coldExposureStress, applyCombatDamage } from './ClothingSystem';
+import { applyActivityWillpower, stressFromNeeds } from './WillpowerSystem';
+import { shouldTravel, startTravel, completeTravel, checkForEncounter } from './LocationSystem';
+import { tickRomance } from './RomanceSystem';
+import { npcToParticipant, createCombatEncounter, resolveCombatTurn, selectAIStance } from './CombatSystem';
 
 const HOURS_PER_TICK = 1;
 const EVENT_CHANCE_PER_DAY = 0.15; // 15% chance of a world event per day
@@ -27,80 +35,192 @@ const EVENT_CHANCE_PER_DAY = 0.15; // 15% chance of a world event per day
  */
 export function tickSimulation(world: SimWorld): SimWorld {
   let w = advanceTime(world, HOURS_PER_TICK);
+  const dayChanged = w.day !== world.day;
 
   // Random world event (once per day threshold)
-  if (w.day !== world.day && Math.random() < EVENT_CHANCE_PER_DAY) {
+  if (dayChanged && Math.random() < EVENT_CHANCE_PER_DAY) {
     const event = generateRandomEvent(w.day);
-    w = { ...w, global_events: [...w.global_events.slice(-9), event] };
+    w = { ...w, global_events: [...w.global_events.slice(-19), event] };
   }
 
   // Economy tick: update prices and rebalance demand
   let economy = balanceDemand(w.economy);
   economy = updatePrices(economy);
 
+  // Resolve active combats
+  let activeCombats = [...(w.active_combats ?? [])];
+  const combatResults: Map<string, { health: number; stamina: number; won: boolean; escaped: boolean }> = new Map();
+  activeCombats = activeCombats.map(combat => {
+    if (combat.resolved) return combat;
+
+    const atkNpc = w.npcs.find(n => n.id === combat.attacker_id);
+    const defNpc = w.npcs.find(n => n.id === combat.defender_id);
+    if (!atkNpc || !defNpc) return { ...combat, resolved: true, outcome: 'defender_wins' as const };
+
+    let attacker = npcToParticipant(atkNpc);
+    let defender = npcToParticipant(defNpc);
+    attacker.stance = selectAIStance(attacker);
+    defender.stance = selectAIStance(defender);
+
+    const result = resolveCombatTurn(attacker, defender, combat);
+
+    if (result.encounter.resolved) {
+      combatResults.set(combat.attacker_id, {
+        health: result.attacker.health,
+        stamina: result.attacker.stamina,
+        won: result.encounter.outcome === 'attacker_wins',
+        escaped: false,
+      });
+      combatResults.set(combat.defender_id, {
+        health: result.defender.health,
+        stamina: result.defender.stamina,
+        won: result.encounter.outcome === 'defender_wins',
+        escaped: result.encounter.outcome === 'defender_escaped',
+      });
+    }
+
+    return result.encounter;
+  });
+
+  // Remove resolved combats
+  activeCombats = activeCombats.filter(c => !c.resolved);
+
   // NPC ticks
-  const updatedNpcs = w.npcs.map(npc => tickNpc(npc, w, economy));
+  let updatedWorld = { ...w, economy, active_combats: activeCombats };
+  const updatedNpcs = w.npcs.map(npc => {
+    const combatResult = combatResults.get(npc.id);
+    return tickNpc(npc, updatedWorld, economy, dayChanged, combatResult);
+  });
+
+  // Check for new encounters
+  const newCombats = [...activeCombats];
+  for (const npc of updatedNpcs) {
+    if (checkForEncounter(npc, updatedWorld)) {
+      // Find a hostile NPC at the same location
+      const hostileNpc = updatedNpcs.find(
+        other => other.id !== npc.id
+          && other.location_id === npc.location_id
+          && other.traits.includes('aggressive')
+          && !newCombats.some(c => c.attacker_id === other.id || c.defender_id === other.id)
+      );
+      if (hostileNpc) {
+        newCombats.push(createCombatEncounter(hostileNpc.id, npc.id));
+      }
+    }
+  }
 
   return {
-    ...w,
-    economy,
+    ...updatedWorld,
     npcs: updatedNpcs,
     turn: w.turn + 1,
+    active_combats: newCombats,
   };
 }
 
 // ── Per-NPC tick ──────────────────────────────────────────────────────────
 
-function tickNpc(npc: SimNpc, world: SimWorld, economy: typeof world.economy): SimNpc {
+function tickNpc(
+  npc: SimNpc,
+  world: SimWorld,
+  economy: typeof world.economy,
+  dayChanged: boolean,
+  combatResult?: { health: number; stamina: number; won: boolean; escaped: boolean }
+): SimNpc {
+  // 0. Apply combat results if any
+  let stats = { ...npc.stats };
+  let corruption_state = { ...npc.corruption_state };
+  if (combatResult) {
+    stats.health = combatResult.health;
+    stats.stamina = combatResult.stamina;
+    if (combatResult.won) {
+      corruption_state.willpower = Math.min(100, corruption_state.willpower + 5);
+      corruption_state.stress = Math.max(0, corruption_state.stress - 5);
+    } else if (combatResult.escaped) {
+      corruption_state.stress = Math.min(100, corruption_state.stress + 8);
+    } else {
+      corruption_state.stress = Math.min(100, corruption_state.stress + 15);
+      corruption_state.trauma = Math.min(100, corruption_state.trauma + 5);
+      corruption_state.submission = Math.min(100, corruption_state.submission + 3);
+    }
+  }
+
   // 1. Memory decay
   const memory = decayMemories(npc.memory);
 
-  // 2. Relationship decay (against the player character)
+  // 2. Relationship decay & romance tick
   const relationships = npc.relationships.map(rel => {
     const turnsSince = world.turn - rel.last_interaction;
-    const decayed = decayRelationship(rel, turnsSince);
-    return syncFromMemory(decayed, memory, rel.target_id);
+    let decayed = decayRelationship(rel, turnsSince);
+    decayed = syncFromMemory(decayed, memory, rel.target_id);
+
+    // Tick romance if active
+    if (decayed.romance) {
+      decayed = { ...decayed, romance: tickRomance(decayed.romance, decayed, world.turn) };
+    }
+
+    return decayed;
   });
 
   // 3. Needs decay
   let needs = decayNeeds({ ...npc, memory, relationships }, HOURS_PER_TICK);
 
-  // 4. Utility AI: decide action (honour schedule when need is not critical)
+  // 4. Location movement
+  let location_id = npc.location_id;
+  let target_location_id = npc.target_location_id;
+  let currentNpcState = npc.current_state;
+
+  if (npc.current_state === 'travelling' && npc.target_location_id) {
+    // Complete travel
+    const travelResult = completeTravel(npc, world);
+    location_id = travelResult.npc.location_id;
+    target_location_id = null;
+    currentNpcState = 'idle';
+  } else {
+    const travelTarget = shouldTravel(npc, world);
+    if (travelTarget) {
+      target_location_id = travelTarget;
+      currentNpcState = 'travelling';
+    }
+  }
+
+  // 5. Utility AI: decide action (honour schedule when need is not critical)
   const scheduledState = scheduledActivity(npc.schedule, world.hour);
-  const aiAction = selectBestAction({ ...npc, needs }, world.hour);
+  const npcForAI: SimNpc = { ...npc, needs, stats, corruption_state, location_id, relationships };
+  const aiAction = selectBestAction(npcForAI, world.hour);
 
-  // Schedule takes priority unless there's a critical need override
-  const currentState = aiAction.target_state === 'eating'
-    || aiAction.target_state === 'sleeping'
-    || aiAction.target_state === 'fleeing'
-    ? aiAction.target_state
-    : scheduledState;
+  // Schedule takes priority unless there's a critical need override or travelling
+  if (currentNpcState !== 'travelling') {
+    currentNpcState = aiAction.target_state === 'eating'
+      || aiAction.target_state === 'sleeping'
+      || aiAction.target_state === 'fleeing'
+      ? aiAction.target_state
+      : scheduledState;
+  }
 
-  // 5. Apply activity effects to needs
+  // 6. Apply activity effects to needs
   const activityNeeds = applyActivityEffect(
     needs,
-    currentState as 'eating' | 'sleeping' | 'socializing' | 'working' | 'trading' | 'idle',
+    currentNpcState as 'eating' | 'sleeping' | 'socializing' | 'working' | 'trading' | 'idle',
     HOURS_PER_TICK
   );
 
-  // 6. Happiness from need balance
+  // 7. Happiness from need balance
   const happinessDelta = computeHappinessDelta(activityNeeds);
   needs = {
     ...activityNeeds,
     happiness: Math.max(0, Math.min(100, activityNeeds.happiness + happinessDelta)),
   };
 
-  // 7. Economy: earn wage if working, pay for food if eating
-  let stats = { ...npc.stats };
-  if (currentState === 'working') {
+  // 8. Economy: earn wage if working, pay for food if eating
+  if (currentNpcState === 'working') {
     const wages = collectWage(npc.job);
     stats = { ...stats, gold: stats.gold + wages };
     economy = produceGoods(economy, npc.job);
   }
 
-  // 8. Social: record interaction memory if socialising
+  // 9. Social: record interaction memory if socialising
   let updatedMemory = memory;
-  if (currentState === 'socializing' && Math.random() < 0.3) {
+  if (currentNpcState === 'socializing' && Math.random() < 0.3) {
     updatedMemory = addMemory(
       { ...npc, memory },
       'Had a pleasant conversation with a local.',
@@ -110,13 +230,65 @@ function tickNpc(npc: SimNpc, world: SimWorld, economy: typeof world.economy): S
     );
   }
 
+  // 10. Train skills from current activity
+  const skills = trainSkillsFromActivity(
+    { ...npc, skills: npc.skills },
+    currentNpcState,
+    HOURS_PER_TICK
+  );
+
+  // 11. Tick corruption/willpower/stress
+  corruption_state = tickCorruptionState(
+    { ...npc, corruption_state, current_state: currentNpcState } as SimNpc,
+    HOURS_PER_TICK
+  );
+
+  // 12. Apply willpower effects from activity
+  corruption_state = applyActivityWillpower(corruption_state, currentNpcState, HOURS_PER_TICK);
+
+  // 13. Apply stress from unmet needs
+  corruption_state = stressFromNeeds(corruption_state, needs);
+
+  // 14. Gain fame from activity
+  const fame = gainFameFromActivity(
+    { ...npc, fame: npc.fame } as SimNpc,
+    currentNpcState,
+    HOURS_PER_TICK
+  );
+
+  // 15. Decay fame daily
+  const finalFame = dayChanged ? decayFame(fame) : fame;
+
+  // 16. Apply clothing wear from activity
+  let clothing = applyWear(npc.clothing, currentNpcState, HOURS_PER_TICK);
+
+  // 17. Apply cold exposure stress from weather
+  const coldStress = coldExposureStress(clothing, world.weather);
+  if (coldStress > 0) {
+    corruption_state = {
+      ...corruption_state,
+      stress: Math.min(100, corruption_state.stress + coldStress),
+    };
+  }
+
+  // 18. Apply combat clothing damage
+  if (combatResult && !combatResult.won) {
+    clothing = applyCombatDamage(clothing, 15);
+  }
+
   return {
     ...npc,
     needs,
     memory: updatedMemory,
     relationships,
-    current_state: currentState,
+    current_state: currentNpcState,
+    location_id,
+    target_location_id,
     stats,
+    skills,
+    corruption_state,
+    fame: finalFame,
+    clothing,
   };
 }
 

@@ -417,6 +417,93 @@ export function gameReducer(state: GameState, action: any): GameState {
       });
       return { ...state, sim_world: { ...state.sim_world, npcs } };
     }
+
+    case 'SIM_APPLY_CORRUPTION': {
+      const { npcId, amount } = action.payload;
+      if (!state.sim_world) return state;
+      const { applyCorruption } = require('../sim/CorruptionSystem');
+      const npcs = state.sim_world.npcs.map(npc => {
+        if (npc.id !== npcId) return npc;
+        return { ...npc, corruption_state: applyCorruption(npc.corruption_state, amount) };
+      });
+      return { ...state, sim_world: { ...state.sim_world, npcs } };
+    }
+
+    case 'SIM_APPLY_STRESS': {
+      const { npcId, amount } = action.payload;
+      if (!state.sim_world) return state;
+      const { applyStress } = require('../sim/CorruptionSystem');
+      const npcs = state.sim_world.npcs.map(npc => {
+        if (npc.id !== npcId) return npc;
+        return { ...npc, corruption_state: applyStress(npc.corruption_state, amount) };
+      });
+      return { ...state, sim_world: { ...state.sim_world, npcs } };
+    }
+
+    case 'SIM_APPLY_TRAUMA': {
+      const { npcId, amount } = action.payload;
+      if (!state.sim_world) return state;
+      const { applyTrauma } = require('../sim/CorruptionSystem');
+      const npcs = state.sim_world.npcs.map(npc => {
+        if (npc.id !== npcId) return npc;
+        return { ...npc, corruption_state: applyTrauma(npc.corruption_state, amount) };
+      });
+      return { ...state, sim_world: { ...state.sim_world, npcs } };
+    }
+
+    case 'SIM_ADD_FAME': {
+      const { npcId, fameType, amount } = action.payload;
+      if (!state.sim_world) return state;
+      const { addFame } = require('../sim/FameSystem');
+      const npcs = state.sim_world.npcs.map(npc => {
+        if (npc.id !== npcId) return npc;
+        return { ...npc, fame: addFame(npc.fame, fameType, amount) };
+      });
+      return { ...state, sim_world: { ...state.sim_world, npcs } };
+    }
+
+    case 'SIM_DAMAGE_CLOTHING': {
+      const { npcId, slot, amount } = action.payload;
+      if (!state.sim_world) return state;
+      const { damageClothing } = require('../sim/ClothingSystem');
+      const npcs = state.sim_world.npcs.map(npc => {
+        if (npc.id !== npcId) return npc;
+        const item = npc.clothing[slot as keyof typeof npc.clothing];
+        if (!item) return npc;
+        return { ...npc, clothing: { ...npc.clothing, [slot]: damageClothing(item, amount) } };
+      });
+      return { ...state, sim_world: { ...state.sim_world, npcs } };
+    }
+
+    case 'SIM_ROMANTIC_INTERACTION': {
+      const { npcId, targetId, outcome } = action.payload;
+      if (!state.sim_world) return state;
+      const { getRelationship, upsertRelationship } = require('../sim/RelationshipSystem');
+      const { applyRomanticInteraction, defaultRomanceState } = require('../sim/RomanceSystem');
+      const npcs = state.sim_world.npcs.map(npc => {
+        if (npc.id !== npcId) return npc;
+        const rel = getRelationship(npc, targetId);
+        const romance = rel.romance ?? defaultRomanceState();
+        const result = applyRomanticInteraction(romance, rel, outcome, state.sim_world!.turn);
+        return { ...npc, relationships: upsertRelationship(npc.relationships, result.rel) };
+      });
+      return { ...state, sim_world: { ...state.sim_world, npcs } };
+    }
+
+    case 'SIM_START_COMBAT': {
+      if (!state.sim_world) return state;
+      const { attackerId, defenderId } = action.payload;
+      const { createCombatEncounter } = require('../sim/CombatSystem');
+      const combat = createCombatEncounter(attackerId, defenderId);
+      return {
+        ...state,
+        sim_world: {
+          ...state.sim_world,
+          active_combats: [...(state.sim_world.active_combats ?? []), combat],
+        },
+      };
+    }
+
     default:
       return state;
   }
