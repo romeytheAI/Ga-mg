@@ -30,6 +30,6 @@ export function getFallbackResponse() {
   };
 }
 
-export const getHealthSemantic = (h: number) => h > 80 ? 'Robust' : h > 50 ? 'Battered' : h > 20 ? 'Bleeding' : 'Death\\'s Door';
+export const getHealthSemantic = (h: number) => h > 80 ? 'Robust' : h > 50 ? 'Battered' : h > 20 ? 'Bleeding' : 'Death\'s Door';
 export const getStaminaSemantic = (s: number) => s > 80 ? 'Energetic' : s > 50 ? 'Winded' : s > 20 ? 'Exhausted' : 'Collapsing';
 export const getTraumaSemantic = (t: number) => t < 20 ? 'Lucid' : t < 50 ? 'Shaken' : t < 80 ? 'Disturbed' : 'Fractured';
