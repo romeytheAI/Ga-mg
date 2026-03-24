@@ -1,304 +1,617 @@
 import React from 'react';
 import { motion } from 'motion/react';
-import { GameState, ClothingLayer, Item } from '../types';
+import { GameState, Item } from '../types';
+import { resolveRace, RacialBodyFeatures } from '../data/races';
 
 interface DoLCharacterSpriteProps {
   state: GameState;
   compact?: boolean;
 }
 
-// Color per clothing slot for DoL-style layered visualization
 const SLOT_COLORS: Record<string, { fill: string; stroke: string }> = {
-  head:       { fill: '#8b5e3c', stroke: '#a3714a' },
-  neck:       { fill: '#4a7a8a', stroke: '#5a8e9e' },
-  shoulders:  { fill: '#3d5a80', stroke: '#4d6e98' },
-  chest:      { fill: '#2d4a6e', stroke: '#3d5a82' },
-  underwear:  { fill: '#7a3a6e', stroke: '#9a4a8e' },
-  legs:       { fill: '#3a5a3a', stroke: '#4a7a4a' },
-  feet:       { fill: '#5a4a2a', stroke: '#7a6a3a' },
-  hands:      { fill: '#3a3a5a', stroke: '#5a5a7a' },
-  waist:      { fill: '#5a3a3a', stroke: '#7a4a4a' },
+  head:      { fill: '#7a5030', stroke: '#9a6840' },
+  neck:      { fill: '#3a6878', stroke: '#4a7c8c' },
+  shoulders: { fill: '#2d4870', stroke: '#3d5888' },
+  chest:     { fill: '#1e3860', stroke: '#2e4878' },
+  underwear: { fill: '#6a2860', stroke: '#8a3878' },
+  legs:      { fill: '#2a4a2a', stroke: '#3a6a3a' },
+  feet:      { fill: '#4a3818', stroke: '#6a5828' },
+  hands:     { fill: '#282848', stroke: '#383860' },
+  waist:     { fill: '#4a2828', stroke: '#6a3838' },
 };
 
-// Map integrity to opacity and visual damage class
-function getIntegrityStyle(item: Item | null): { opacity: number; torn: boolean; exposed: boolean } {
-  if (!item) return { opacity: 0, torn: false, exposed: true };
-  const integ = item.integrity ?? 100;
-  if (integ > 70) return { opacity: 0.85, torn: false, exposed: false };
-  if (integ > 40) return { opacity: 0.6, torn: true, exposed: false };
-  if (integ > 10) return { opacity: 0.35, torn: true, exposed: true };
-  return { opacity: 0, torn: true, exposed: true };
+function integrityStyle(item: Item | null): { op: number; torn: boolean } {
+  if (!item) return { op: 0, torn: false };
+  const v = item.integrity ?? 100;
+  if (v > 70) return { op: 0.88, torn: false };
+  if (v > 40) return { op: 0.65, torn: true };
+  if (v > 10) return { op: 0.38, torn: true };
+  return { op: 0, torn: true };
 }
 
-// Get skin tone color from cosmetics
-function getSkinColor(state: GameState): string {
-  const tone = state.player.cosmetics?.skin_tone || 'fair';
-  const map: Record<string, string> = {
-    fair: '#f4d5b0',
-    pale: '#f0e8d8',
-    tan: '#c8956a',
-    dark: '#6b3d2e',
-    ebony: '#3d1e12',
-    olive: '#b8a060',
+interface BodyGeom {
+  heightScale: number;
+  headRX: number;
+  headRY: number;
+  shoulderHW: number;
+  waistHW: number;
+  hipHW: number;
+  bustR: number;
+  bustY: number;
+  upperArmW: number;
+  forearmW: number;
+  handW: number;
+  handH: number;
+  shoulderOutset: number;
+  elbowOutset: number;
+  wristOutset: number;
+  thighW: number;
+  calfW: number;
+  footW: number;
+  footH: number;
+  legSpread: number;
+  showPecs: boolean;
+  jawW: number;
+}
+
+function buildBodyGeom(gender: string, raceDef: RacialBodyFeatures): BodyGeom {
+  const isFemale = gender === 'female';
+  const isMale   = gender === 'male';
+
+  const bm: Record<string, [number, number]> = {
+    wiry:     [0.80, 0.80],
+    slim:     [0.88, 0.88],
+    average:  [1.00, 1.00],
+    athletic: [1.08, 1.06],
+    stocky:   [1.14, 1.12],
+    muscular: [1.22, 1.10],
+    heavy:    [1.32, 1.20],
   };
-  return map[tone] || '#f4d5b0';
+  const [wm, lm] = bm[raceDef.build] || [1, 1];
+
+  const shoulderHW = (isMale ? 23 : isFemale ? 17 : 20) * wm;
+  const waistHW    = (isMale ? 15 : isFemale ? 11 : 13) * wm;
+  const hipHW      = (isMale ? 17 : isFemale ? 21 : 19) * wm;
+  const bustR      = isFemale ? (5 + (raceDef.build === 'heavy' ? 2 : 0)) * wm : 0;
+
+  const headRX = (isMale ? 11.5 : 10.5) * wm;
+  const headRY = isMale ? 13 : 12.5;
+
+  const upperArmW      = (isMale ? 6.5 : isFemale ? 4.5 : 5.5) * lm;
+  const forearmW       = (isMale ? 5.5 : isFemale ? 4.0 : 4.8) * lm;
+  const handW          = (isMale ? 9 : isFemale ? 7.5 : 8) * lm;
+  const handH          = (isMale ? 8 : isFemale ? 7 : 7.5) * lm;
+  const shoulderOutset = isMale ? 2 : isFemale ? 1 : 1.5;
+  const elbowOutset    = isMale ? 5 : isFemale ? 3 : 4;
+  const wristOutset    = isMale ? 7 : isFemale ? 5 : 6;
+
+  const thighW  = (isMale ? 10 : isFemale ? 11 : 10.5) * lm;
+  const calfW   = 8 * lm;
+  const footW   = (isMale ? 13 : isFemale ? 11 : 12) * lm;
+  const footH   = isMale ? 7 : 6.5;
+  const legSpread = hipHW * 0.60;
+
+  const hScaleMap: Record<string, number> = {
+    Altmer: 1.12, Nord: 1.08, Orsimer: 1.06,
+    Redguard: 1.02, Imperial: 1.00, Argonian: 0.98, Dunmer: 0.97,
+    Khajiit: 0.95, Breton: 0.92, Bosmer: 0.88,
+  };
+  const heightScale = hScaleMap[raceDef.name] || 1.0;
+
+  return {
+    heightScale, headRX, headRY,
+    shoulderHW, waistHW, hipHW,
+    bustR, bustY: 67,
+    upperArmW, forearmW, handW, handH,
+    shoulderOutset, elbowOutset, wristOutset,
+    thighW, calfW, footW, footH, legSpread,
+    showPecs: isMale && raceDef.build !== 'slim' && raceDef.build !== 'wiry',
+    jawW: isMale ? 2.5 : isFemale ? 0 : 1,
+  };
+}
+
+function resolveSkinColor(raceDef: RacialBodyFeatures, cosmeticTone: string): string {
+  const manual: Record<string, string> = {
+    pale: '#f0e8d8', fair: '#f4d5b0', tan: '#c8956a',
+    olive: '#b8a060', dark: '#6b3d2e', ebony: '#3d1e12',
+    grey: '#8a9090', ash: '#9a9898', gold: '#d4bc60',
+    green: '#4a6a30', blue: '#6090b0', brown: '#7a5030', spotted: '#c8a878',
+  };
+  if (manual[cosmeticTone]) return manual[cosmeticTone];
+  return raceDef.skin_colors[0] || '#f4d5b0';
+}
+
+function resolveEyeColor(raceDef: RacialBodyFeatures, cosmeticEye: string): string {
+  const manual: Record<string, string> = {
+    blue: '#5580cc', green: '#3a8a4a', brown: '#6a4a2a', hazel: '#7a6a3a',
+    grey: '#7a7a8a', violet: '#8a4a9a', silver: '#9a9aaa', gold: '#c8a030',
+    red: '#cc2020', amber: '#c8a020', orange: '#d07030', cyan: '#20a0b0',
+  };
+  if (manual[cosmeticEye]) return manual[cosmeticEye];
+  return raceDef.eye_colors[0] || '#5580cc';
+}
+
+function resolveHairColor(raceDef: RacialBodyFeatures, cosmeticHair: string): string {
+  if (!raceDef.hair_colors) return 'transparent';
+  const manual: Record<string, string> = {
+    black: '#1a1a1a', brown: '#5a3a1a', blonde: '#d4a843', red: '#8b2a0a',
+    white: '#e8e8e8', silver: '#b0b0c0', blue: '#1a4a8b', purple: '#6a2a8b',
+    grey: '#888890', auburn: '#7a2a10', gold: '#c8a020',
+  };
+  return manual[cosmeticHair] || raceDef.hair_colors[0] || '#5a3a1a';
 }
 
 export const DoLCharacterSprite: React.FC<DoLCharacterSpriteProps> = ({ state, compact = false }) => {
-  const clothing = state.player.clothing;
-  const skinColor = getSkinColor(state);
-  const isExposed = !clothing.chest && !clothing.underwear;
-  const hasArousal = state.player.stats.arousal > 40;
-  const hasCorruption = state.player.stats.corruption > 50;
+  const { clothing, identity, cosmetics, stats, biology } = state.player;
+  const raceDef   = resolveRace(identity.race);
+  const gender    = identity.gender || 'female';
+  const geom      = buildBodyGeom(gender, raceDef);
+  const skin      = resolveSkinColor(raceDef, cosmetics?.skin_tone || '');
+  const eyeClr    = resolveEyeColor(raceDef, cosmetics?.eye_color || '');
+  const hairClr   = resolveHairColor(raceDef, cosmetics?.hair_color || '');
+  const accentClr = raceDef.accent_colors[0] || skin;
 
-  const size = compact ? 120 : 200;
-  const scale = compact ? 0.6 : 1;
+  const hasExposure  = !clothing.chest && !clothing.underwear;
+  const arousalHigh  = stats.arousal > 40 || stats.lust > 50;
+  const corruption   = stats.corruption > 60;
+  const lowHealth    = stats.health < 35;
+
+  // Y-axis anchors (viewBox 0 0 100 225)
+  const cx = 50;
+  const headCY  = 21;
+  const neckTopY = headCY + geom.headRY;
+  const neckBotY = neckTopY + 9;
+  const shldY    = neckBotY + 1;
+  const waistY   = 98;
+  const hipTopY  = 104;
+  const crotchY  = 120;
+  const kneeY    = 160;
+  const ankleY   = 196;
+  const footBotY = 206;
+
+  // Arm X positions
+  const shLX = cx - geom.shoulderHW - geom.shoulderOutset;
+  const shRX = cx + geom.shoulderHW + geom.shoulderOutset;
+  const elLX = cx - geom.shoulderHW - geom.elbowOutset;
+  const elRX = cx + geom.shoulderHW + geom.elbowOutset;
+  const elY  = shldY + 40;
+  const wrLX = cx - geom.shoulderHW - geom.wristOutset;
+  const wrRX = cx + geom.shoulderHW + geom.wristOutset;
+  const wrY  = elY + 28;
+  const handCY = wrY + geom.handH / 2;
+
+  // Leg X positions
+  const legLX = cx - geom.legSpread;
+  const legRX = cx + geom.legSpread;
+
+  // Digitigrade (Khajiit)
+  const isDigi     = raceDef.leg_type === 'digitigrade';
+  const digiKneeY  = kneeY - 18;
+  const digiAnkleY = ankleY - 12;
+
+  const bodyFilter = corruption ? 'hue-rotate(270deg) saturate(1.3)'
+    : arousalHigh ? 'hue-rotate(-12deg) saturate(1.2)' : undefined;
+
+  const svgH = compact ? 144 : 225;
+  const svgW = compact ? 80  : 100;
+
+  // Torn clothing mark helper (inline)
+  const tornMark = (x: number, y: number, key: string) => (
+    <line key={key} x1={x} y1={y} x2={x + 4} y2={y + 8}
+      stroke={skin} strokeWidth="1.2" opacity="0.45" />
+  );
 
   return (
-    <div
-      className={`flex flex-col items-center gap-1 ${compact ? '' : 'mt-2'}`}
-      style={{ width: size }}
-    >
+    <div className="flex flex-col items-center gap-0.5">
       <motion.svg
-        viewBox="0 0 100 180"
-        width={size}
-        height={size * 1.8}
-        style={{ filter: hasCorruption ? 'hue-rotate(280deg) saturate(1.3)' : hasArousal ? 'hue-rotate(-15deg) saturate(1.2)' : undefined }}
-        initial={{ opacity: 0, y: -10 }}
+        viewBox="0 0 100 225"
+        width={svgW} height={svgH}
+        style={{ filter: bodyFilter, overflow: 'visible' }}
+        initial={{ opacity: 0, y: -8 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
+        transition={{ duration: 0.45 }}
       >
-        {/* Body outline / skin */}
-        {/* Head */}
-        <ellipse cx="50" cy="18" rx="14" ry="16" fill={skinColor} stroke="#00000040" strokeWidth="0.5" />
-        {/* Neck */}
-        <rect x="44" y="32" width="12" height="10" fill={skinColor} />
-        {/* Torso */}
-        <rect x="30" y="42" width="40" height="50" rx="4" fill={skinColor} />
-        {/* Arms */}
-        <rect x="14" y="44" width="14" height="44" rx="5" fill={skinColor} />
-        <rect x="72" y="44" width="14" height="44" rx="5" fill={skinColor} />
-        {/* Hands */}
-        <ellipse cx="21" cy="92" rx="8" ry="7" fill={skinColor} />
-        <ellipse cx="79" cy="92" rx="8" ry="7" fill={skinColor} />
-        {/* Legs */}
-        <rect x="31" y="92" width="16" height="60" rx="5" fill={skinColor} />
-        <rect x="53" y="92" width="16" height="60" rx="5" fill={skinColor} />
-        {/* Feet */}
-        <ellipse cx="39" cy="155" rx="10" ry="6" fill={skinColor} />
-        <ellipse cx="61" cy="155" rx="10" ry="6" fill={skinColor} />
-
-        {/* Hair */}
-        {(() => {
-          const hairColor = state.player.cosmetics?.hair_color || 'brown';
-          const hairMap: Record<string, string> = {
-            brown: '#5a3a1a', black: '#1a1a1a', blonde: '#d4a843', red: '#8b2a0a',
-            white: '#e8e8e8', silver: '#b0b0c0', blue: '#1a4a8b', purple: '#6a2a8b',
-          };
-          const hc = hairMap[hairColor] || '#5a3a1a';
-          const hairLen = state.player.cosmetics?.hair_length || 'medium';
-          return (
-            <>
-              <ellipse cx="50" cy="13" rx="16" ry="12" fill={hc} />
-              {hairLen === 'long' && (
-                <>
-                  <rect x="33" y="13" width="5" height="30" rx="3" fill={hc} />
-                  <rect x="62" y="13" width="5" height="30" rx="3" fill={hc} />
-                </>
-              )}
-              {(hairLen === 'medium' || hairLen === 'shaggy') && (
-                <>
-                  <rect x="33" y="13" width="5" height="16" rx="3" fill={hc} />
-                  <rect x="62" y="13" width="5" height="16" rx="3" fill={hc} />
-                </>
-              )}
-            </>
-          );
-        })()}
-
-        {/* Eyes */}
-        {(() => {
-          const eyeColor = state.player.cosmetics?.eye_color || 'blue';
-          const eyeMap: Record<string, string> = {
-            blue: '#4a7ab8', green: '#3a8a4a', brown: '#6a4a2a', hazel: '#7a6a3a',
-            grey: '#7a7a8a', violet: '#8a4a9a', silver: '#9a9aaa', gold: '#c8a030',
-          };
-          const ec = eyeMap[eyeColor] || '#4a7ab8';
-          return (
-            <>
-              <ellipse cx="44" cy="18" rx="3.5" ry="3" fill="white" />
-              <ellipse cx="56" cy="18" rx="3.5" ry="3" fill="white" />
-              <circle cx="44" cy="18" r="2" fill={ec} />
-              <circle cx="56" cy="18" r="2" fill={ec} />
-              <circle cx="44.8" cy="17.3" r="0.6" fill="white" />
-              <circle cx="56.8" cy="17.3" r="0.6" fill="white" />
-            </>
-          );
-        })()}
-
-        {/* --- Clothing Layers --- */}
-
-        {/* HEAD item */}
-        {(() => {
-          const item = clothing.head;
-          const { opacity, torn } = getIntegrityStyle(item);
-          if (!item || opacity === 0) return null;
-          const c = SLOT_COLORS.head;
-          return (
-            <g opacity={opacity}>
-              <ellipse cx="50" cy="11" rx="16" ry="10" fill={c.fill} stroke={c.stroke} strokeWidth="0.5"
-                strokeDasharray={torn ? "3 2" : undefined} />
-            </g>
-          );
-        })()}
-
-        {/* NECK item */}
-        {(() => {
-          const item = clothing.neck;
-          const { opacity } = getIntegrityStyle(item);
-          if (!item || opacity === 0) return null;
-          const c = SLOT_COLORS.neck;
-          return (
-            <g opacity={opacity}>
-              <rect x="42" y="32" width="16" height="9" rx="2" fill={c.fill} stroke={c.stroke} strokeWidth="0.5" />
-            </g>
-          );
-        })()}
-
-        {/* SHOULDERS item */}
-        {(() => {
-          const item = clothing.shoulders;
-          const { opacity, torn } = getIntegrityStyle(item);
-          if (!item || opacity === 0) return null;
-          const c = SLOT_COLORS.shoulders;
-          return (
-            <g opacity={opacity}>
-              <rect x="13" y="42" width="18" height="16" rx="3" fill={c.fill} stroke={c.stroke} strokeWidth="0.5"
-                strokeDasharray={torn ? "2 2" : undefined} />
-              <rect x="69" y="42" width="18" height="16" rx="3" fill={c.fill} stroke={c.stroke} strokeWidth="0.5"
-                strokeDasharray={torn ? "2 2" : undefined} />
-            </g>
-          );
-        })()}
-
-        {/* CHEST item */}
-        {(() => {
-          const item = clothing.chest;
-          const { opacity, torn } = getIntegrityStyle(item);
-          if (!item || opacity === 0) return null;
-          const c = SLOT_COLORS.chest;
-          return (
-            <g opacity={opacity}>
-              <rect x="30" y="42" width="40" height="45" rx="4" fill={c.fill} stroke={c.stroke} strokeWidth="0.5"
-                strokeDasharray={torn ? "3 2" : undefined} />
-              {torn && <line x1="35" y1="50" x2="45" y2="70" stroke={c.stroke} strokeWidth="1" opacity="0.5" />}
-            </g>
-          );
-        })()}
-
-        {/* UNDERWEAR item */}
-        {(() => {
-          const item = clothing.underwear;
-          const { opacity, torn } = getIntegrityStyle(item);
-          if (!item || opacity === 0) return null;
-          const c = SLOT_COLORS.underwear;
-          return (
-            <g opacity={opacity}>
-              <rect x="30" y="87" width="40" height="14" rx="3" fill={c.fill} stroke={c.stroke} strokeWidth="0.5"
-                strokeDasharray={torn ? "2 2" : undefined} />
-            </g>
-          );
-        })()}
-
-        {/* WAIST item */}
-        {(() => {
-          const item = clothing.waist;
-          const { opacity } = getIntegrityStyle(item);
-          if (!item || opacity === 0) return null;
-          const c = SLOT_COLORS.waist;
-          return (
-            <g opacity={opacity}>
-              <rect x="28" y="88" width="44" height="8" rx="2" fill={c.fill} stroke={c.stroke} strokeWidth="0.5" />
-            </g>
-          );
-        })()}
-
-        {/* LEGS item */}
-        {(() => {
-          const item = clothing.legs;
-          const { opacity, torn } = getIntegrityStyle(item);
-          if (!item || opacity === 0) return null;
-          const c = SLOT_COLORS.legs;
-          return (
-            <g opacity={opacity}>
-              <rect x="30" y="97" width="16" height="56" rx="4" fill={c.fill} stroke={c.stroke} strokeWidth="0.5"
-                strokeDasharray={torn ? "3 2" : undefined} />
-              <rect x="54" y="97" width="16" height="56" rx="4" fill={c.fill} stroke={c.stroke} strokeWidth="0.5"
-                strokeDasharray={torn ? "3 2" : undefined} />
-            </g>
-          );
-        })()}
-
-        {/* FEET item */}
-        {(() => {
-          const item = clothing.feet;
-          const { opacity } = getIntegrityStyle(item);
-          if (!item || opacity === 0) return null;
-          const c = SLOT_COLORS.feet;
-          return (
-            <g opacity={opacity}>
-              <ellipse cx="39" cy="155" rx="11" ry="7" fill={c.fill} stroke={c.stroke} strokeWidth="0.5" />
-              <ellipse cx="61" cy="155" rx="11" ry="7" fill={c.fill} stroke={c.stroke} strokeWidth="0.5" />
-            </g>
-          );
-        })()}
-
-        {/* HANDS item */}
-        {(() => {
-          const item = clothing.hands;
-          const { opacity } = getIntegrityStyle(item);
-          if (!item || opacity === 0) return null;
-          const c = SLOT_COLORS.hands;
-          return (
-            <g opacity={opacity}>
-              <ellipse cx="21" cy="92" rx="9" ry="8" fill={c.fill} stroke={c.stroke} strokeWidth="0.5" />
-              <ellipse cx="79" cy="92" rx="9" ry="8" fill={c.fill} stroke={c.stroke} strokeWidth="0.5" />
-            </g>
-          );
-        })()}
-
-        {/* Exposure blush overlay */}
-        {isExposed && (
-          <ellipse cx="50" cy="67" rx="20" ry="25" fill="rgba(255,80,80,0.08)" />
+        {/* ── TAIL (Khajiit / Argonian, drawn behind body) ── */}
+        {raceDef.has_tail && raceDef.special_features.includes('tail_thick') && (
+          <path d={`M ${cx+4},${crotchY} Q ${cx+28},${crotchY+20} ${cx+38},${crotchY+55}`}
+            fill="none" stroke={skin} strokeWidth="8" strokeLinecap="round" />
         )}
-
-        {/* Arousal flush on face */}
-        {(state.player.stats.arousal > 30 || state.player.stats.lust > 40) && (
+        {raceDef.has_tail && raceDef.special_features.includes('tail_thin') && (
           <>
-            <ellipse cx="42" cy="22" rx="4" ry="2.5" fill="rgba(255,100,100,0.3)" />
-            <ellipse cx="58" cy="22" rx="4" ry="2.5" fill="rgba(255,100,100,0.3)" />
+            <path d={`M ${cx+3},${crotchY+2} Q ${cx+32},${crotchY+8} ${cx+44},${crotchY+45} Q ${cx+50},${crotchY+65} ${cx+38},${crotchY+78}`}
+              fill="none" stroke={skin} strokeWidth="4.5" strokeLinecap="round" />
+            <path d={`M ${cx+3},${crotchY+2} Q ${cx+32},${crotchY+8} ${cx+44},${crotchY+45}`}
+              fill="none" stroke={accentClr} strokeWidth="2" strokeLinecap="round" opacity="0.45" />
           </>
         )}
 
-        {/* Corruption aura */}
-        {state.player.stats.corruption > 60 && (
-          <ellipse cx="50" cy="90" rx="48" ry="88" fill="none" stroke="rgba(150,0,200,0.2)" strokeWidth="3" />
+        {/* ── LEGS ── */}
+        {isDigi ? (
+          <>
+            {/* Khajiit digitigrade – left */}
+            <rect x={legLX - geom.thighW/2} y={crotchY} width={geom.thighW} height={digiKneeY - crotchY} rx="4" fill={skin} />
+            <line x1={legLX} y1={digiKneeY} x2={legLX - 7} y2={digiAnkleY} stroke={skin} strokeWidth={geom.calfW} strokeLinecap="round" />
+            <line x1={legLX - 7} y1={digiAnkleY} x2={legLX - 4} y2={footBotY - 8} stroke={skin} strokeWidth={geom.calfW * 0.8} strokeLinecap="round" />
+            <ellipse cx={legLX - 2} cy={footBotY - 5} rx={geom.footW * 0.55} ry={geom.footH * 0.75} fill={skin} />
+            {/* Khajiit digitigrade – right */}
+            <rect x={legRX - geom.thighW/2} y={crotchY} width={geom.thighW} height={digiKneeY - crotchY} rx="4" fill={skin} />
+            <line x1={legRX} y1={digiKneeY} x2={legRX + 7} y2={digiAnkleY} stroke={skin} strokeWidth={geom.calfW} strokeLinecap="round" />
+            <line x1={legRX + 7} y1={digiAnkleY} x2={legRX + 4} y2={footBotY - 8} stroke={skin} strokeWidth={geom.calfW * 0.8} strokeLinecap="round" />
+            <ellipse cx={legRX + 2} cy={footBotY - 5} rx={geom.footW * 0.55} ry={geom.footH * 0.75} fill={skin} />
+          </>
+        ) : (
+          <>
+            {/* Standard plantigrade legs – left */}
+            <rect x={legLX - geom.thighW/2} y={crotchY} width={geom.thighW} height={kneeY - crotchY} rx="5" fill={skin} />
+            <ellipse cx={legLX} cy={kneeY} rx={geom.thighW * 0.52} ry="5" fill={skin} />
+            <path d={`M ${legLX - geom.calfW/2},${kneeY} C ${legLX - geom.calfW/2 - 1},${kneeY+20} ${legLX - geom.calfW/2 - 1},${ankleY-10} ${legLX - geom.calfW/2 + 2},${ankleY} L ${legLX + geom.calfW/2 - 2},${ankleY} C ${legLX + geom.calfW/2 + 1},${ankleY-10} ${legLX + geom.calfW/2 + 1},${kneeY+20} ${legLX + geom.calfW/2},${kneeY} Z`} fill={skin} />
+            <ellipse cx={legLX + geom.footW * 0.1} cy={footBotY - geom.footH/2} rx={geom.footW/2} ry={geom.footH/2} fill={skin} />
+            {/* Right leg */}
+            <rect x={legRX - geom.thighW/2} y={crotchY} width={geom.thighW} height={kneeY - crotchY} rx="5" fill={skin} />
+            <ellipse cx={legRX} cy={kneeY} rx={geom.thighW * 0.52} ry="5" fill={skin} />
+            <path d={`M ${legRX - geom.calfW/2},${kneeY} C ${legRX - geom.calfW/2 - 1},${kneeY+20} ${legRX - geom.calfW/2 - 1},${ankleY-10} ${legRX - geom.calfW/2 + 2},${ankleY} L ${legRX + geom.calfW/2 - 2},${ankleY} C ${legRX + geom.calfW/2 + 1},${ankleY-10} ${legRX + geom.calfW/2 + 1},${kneeY+20} ${legRX + geom.calfW/2},${kneeY} Z`} fill={skin} />
+            <ellipse cx={legRX + geom.footW * 0.1} cy={footBotY - geom.footH/2} rx={geom.footW/2} ry={geom.footH/2} fill={skin} />
+          </>
         )}
 
-        {/* Low health wound indicators */}
-        {state.player.stats.health < 40 && (
+        {/* Foot claws */}
+        {(raceDef.foot_type === 'clawed' || raceDef.foot_type === 'pawed_digitigrade') && (
           <g>
-            <circle cx="38" cy="55" r="3" fill="rgba(200,0,0,0.4)" />
-            <circle cx="62" cy="75" r="2.5" fill="rgba(200,0,0,0.35)" />
+            {[-5, 0, 5].map((dx, i) => (
+              <line key={`clf-${i}`} x1={legLX + dx} y1={footBotY - 2} x2={legLX + dx - 1.5} y2={footBotY + 5} stroke={accentClr} strokeWidth="1.2" strokeLinecap="round" />
+            ))}
+            {[-5, 0, 5].map((dx, i) => (
+              <line key={`crf-${i}`} x1={legRX + dx} y1={footBotY - 2} x2={legRX + dx + 1.5} y2={footBotY + 5} stroke={accentClr} strokeWidth="1.2" strokeLinecap="round" />
+            ))}
           </g>
         )}
+
+        {/* ── TORSO (shoulder → waist) ── */}
+        <path d={`M ${cx - geom.shoulderHW},${shldY} C ${cx - geom.shoulderHW - 1},${shldY + 22} ${cx - geom.waistHW - 1},${waistY - 14} ${cx - geom.waistHW},${waistY} L ${cx + geom.waistHW},${waistY} C ${cx + geom.waistHW + 1},${waistY - 14} ${cx + geom.shoulderHW + 1},${shldY + 22} ${cx + geom.shoulderHW},${shldY} Z`} fill={skin} />
+        {/* Abdomen (waist → hip) */}
+        <path d={`M ${cx - geom.waistHW},${waistY} C ${cx - geom.waistHW - 1},${hipTopY - 5} ${cx - geom.hipHW - 1},${hipTopY + 2} ${cx - geom.hipHW},${hipTopY} L ${cx + geom.hipHW},${hipTopY} C ${cx + geom.hipHW + 1},${hipTopY + 2} ${cx + geom.waistHW + 1},${hipTopY - 5} ${cx + geom.waistHW},${waistY} Z`} fill={skin} />
+        {/* Pelvis */}
+        <path d={`M ${cx - geom.hipHW},${hipTopY} L ${cx + geom.hipHW},${hipTopY} C ${cx + geom.hipHW + 2},${crotchY - 4} ${legRX + geom.thighW/2},${crotchY} L ${legLX - geom.thighW/2},${crotchY} C ${cx - geom.hipHW - 2},${crotchY - 4} ${cx - geom.hipHW},${hipTopY} Z`} fill={skin} />
+
+        {/* Female bust */}
+        {geom.bustR > 0 && !clothing.chest && (
+          <>
+            <ellipse cx={cx - geom.shoulderHW * 0.38} cy={geom.bustY} rx={geom.bustR} ry={geom.bustR * 0.82} fill={skin} />
+            <ellipse cx={cx + geom.shoulderHW * 0.38} cy={geom.bustY} rx={geom.bustR} ry={geom.bustR * 0.82} fill={skin} />
+          </>
+        )}
+        {/* Male pec lines */}
+        {geom.showPecs && !clothing.chest && (
+          <>
+            <path d={`M ${cx-3},${shldY+12} Q ${cx - geom.shoulderHW * 0.65},${shldY+22} ${cx-3},${shldY+28}`} fill="none" stroke={`${skin}88`} strokeWidth="0.8" />
+            <path d={`M ${cx+3},${shldY+12} Q ${cx + geom.shoulderHW * 0.65},${shldY+22} ${cx+3},${shldY+28}`} fill="none" stroke={`${skin}88`} strokeWidth="0.8" />
+          </>
+        )}
+
+        {/* ── ARMS ── */}
+        {/* Left upper arm */}
+        <path d={`M ${shLX - geom.upperArmW/2},${shldY} L ${elLX - geom.upperArmW/2 - 1},${elY} L ${elLX + geom.upperArmW/2 - 1},${elY} L ${shLX + geom.upperArmW/2},${shldY} Z`} fill={skin} />
+        <ellipse cx={elLX} cy={elY} rx={geom.upperArmW * 0.5} ry="4" fill={skin} />
+        <path d={`M ${elLX - geom.forearmW/2 - 1},${elY} L ${wrLX - geom.forearmW/2},${wrY} L ${wrLX + geom.forearmW/2},${wrY} L ${elLX + geom.forearmW/2 - 1},${elY} Z`} fill={skin} />
+        <ellipse cx={wrLX} cy={handCY} rx={geom.handW/2} ry={geom.handH/2} fill={skin} />
+        {/* Right upper arm */}
+        <path d={`M ${shRX - geom.upperArmW/2},${shldY} L ${elRX - geom.upperArmW/2 + 1},${elY} L ${elRX + geom.upperArmW/2 + 1},${elY} L ${shRX + geom.upperArmW/2},${shldY} Z`} fill={skin} />
+        <ellipse cx={elRX} cy={elY} rx={geom.upperArmW * 0.5} ry="4" fill={skin} />
+        <path d={`M ${elRX - geom.forearmW/2 + 1},${elY} L ${wrRX - geom.forearmW/2},${wrY} L ${wrRX + geom.forearmW/2},${wrY} L ${elRX + geom.forearmW/2 + 1},${elY} Z`} fill={skin} />
+        <ellipse cx={wrRX} cy={handCY} rx={geom.handW/2} ry={geom.handH/2} fill={skin} />
+
+        {/* Hand claws */}
+        {(raceDef.hand_type !== 'human') && (
+          <g>
+            {[-4, -1.5, 1, 3.5].map((dx, i) => (
+              <line key={`clhl-${i}`} x1={wrLX + dx} y1={handCY + geom.handH/2 - 1} x2={wrLX + dx - 1.5} y2={handCY + geom.handH/2 + 4} stroke={accentClr} strokeWidth="1.2" strokeLinecap="round" />
+            ))}
+            {[-3.5, -1, 1.5, 4].map((dx, i) => (
+              <line key={`clhr-${i}`} x1={wrRX + dx} y1={handCY + geom.handH/2 - 1} x2={wrRX + dx + 1.5} y2={handCY + geom.handH/2 + 4} stroke={accentClr} strokeWidth="1.2" strokeLinecap="round" />
+            ))}
+          </g>
+        )}
+
+        {/* ── NECK ── */}
+        <rect x={cx - geom.headRX * 0.48} y={neckTopY} width={geom.headRX * 0.96} height={neckBotY - neckTopY + 1} fill={skin} />
+
+        {/* ── HEAD ── */}
+        <ellipse cx={cx} cy={headCY} rx={geom.headRX} ry={geom.headRY} fill={skin} />
+        {/* Chin shape (squarer for male) */}
+        <path d={`M ${cx - geom.headRX * 0.78},${headCY + geom.headRY * 0.45} Q ${cx - geom.headRX * 0.6 - geom.jawW},${headCY + geom.headRY + 1} ${cx},${headCY + geom.headRY + 1.5} Q ${cx + geom.headRX * 0.6 + geom.jawW},${headCY + geom.headRY + 1} ${cx + geom.headRX * 0.78},${headCY + geom.headRY * 0.45} Z`} fill={skin} />
+
+        {/* Lizard snout (Argonian) */}
+        {raceDef.has_muzzle && raceDef.special_features.includes('muzzle_lizard') && (
+          <path d={`M ${cx-6},${headCY+2} Q ${cx},${headCY+10} ${cx},${headCY+14} Q ${cx},${headCY+10} ${cx+6},${headCY+2} Z`} fill={skin} stroke={accentClr} strokeWidth="0.5" />
+        )}
+        {/* Cat muzzle (Khajiit) */}
+        {raceDef.has_muzzle && raceDef.special_features.includes('muzzle_cat') && (
+          <ellipse cx={cx} cy={headCY + 6} rx="5.5" ry="4" fill={skin} />
+        )}
+
+        {/* ── EYES ── */}
+        {raceDef.eye_shape === 'reptilian' ? (
+          <>
+            <ellipse cx={cx - 5} cy={headCY} rx="3.8" ry="3" fill="white" />
+            <ellipse cx={cx + 5} cy={headCY} rx="3.8" ry="3" fill="white" />
+            <ellipse cx={cx - 5} cy={headCY} rx="1.1" ry="2.5" fill={eyeClr} />
+            <ellipse cx={cx + 5} cy={headCY} rx="1.1" ry="2.5" fill={eyeClr} />
+          </>
+        ) : raceDef.eye_shape === 'slit_pupil' ? (
+          <>
+            <ellipse cx={cx - 5} cy={headCY} rx="3.8" ry="3" fill="white" />
+            <ellipse cx={cx + 5} cy={headCY} rx="3.8" ry="3" fill="white" />
+            <ellipse cx={cx - 5} cy={headCY} rx="2.5" ry="2.8" fill={eyeClr} />
+            <ellipse cx={cx + 5} cy={headCY} rx="2.5" ry="2.8" fill={eyeClr} />
+            <ellipse cx={cx - 5} cy={headCY} rx="0.7" ry="2.2" fill="#111" />
+            <ellipse cx={cx + 5} cy={headCY} rx="0.7" ry="2.2" fill="#111" />
+          </>
+        ) : (
+          <>
+            <ellipse cx={cx - 4.5} cy={headCY} rx="3.5" ry={geom.headRY * 0.22} fill="white" />
+            <ellipse cx={cx + 4.5} cy={headCY} rx="3.5" ry={geom.headRY * 0.22} fill="white" />
+            <circle cx={cx - 4.5} cy={headCY} r="2" fill={eyeClr} />
+            <circle cx={cx + 4.5} cy={headCY} r="2" fill={eyeClr} />
+            <circle cx={cx - 3.8} cy={headCY - 0.5} r="0.55" fill="white" />
+            <circle cx={cx + 5.2} cy={headCY - 0.5} r="0.55" fill="white" />
+          </>
+        )}
+
+        {/* Heavy brow (Orc) */}
+        {raceDef.has_heavy_brow && (
+          <path d={`M ${cx-9},${headCY-3.5} Q ${cx},${headCY-6} ${cx+9},${headCY-3.5}`} fill={skin} stroke={`${accentClr}80`} strokeWidth="2.5" strokeLinecap="round" />
+        )}
+
+        {/* Tusks (Orc) */}
+        {raceDef.has_tusks && (
+          <>
+            <path d={`M ${cx-4},${headCY + geom.headRY - 2} Q ${cx-6},${headCY + geom.headRY + 8} ${cx-3},${headCY + geom.headRY + 10}`} fill="none" stroke="#d4c080" strokeWidth="2.2" strokeLinecap="round" />
+            <path d={`M ${cx+4},${headCY + geom.headRY - 2} Q ${cx+6},${headCY + geom.headRY + 8} ${cx+3},${headCY + geom.headRY + 10}`} fill="none" stroke="#d4c080" strokeWidth="2.2" strokeLinecap="round" />
+          </>
+        )}
+
+        {/* ── EARS ── */}
+        {raceDef.ear_type === 'round' && (
+          <>
+            <ellipse cx={cx - geom.headRX + 1} cy={headCY - 1} rx="3.5" ry="4.5" fill={skin} />
+            <ellipse cx={cx + geom.headRX - 1} cy={headCY - 1} rx="3.5" ry="4.5" fill={skin} />
+          </>
+        )}
+        {raceDef.ear_type === 'pointed_long' && (
+          <>
+            <path d={`M ${cx - geom.headRX + 1},${headCY + 2} L ${cx - geom.headRX - 10},${headCY - 12} L ${cx - geom.headRX + 2},${headCY - 4} Z`} fill={skin} />
+            <path d={`M ${cx + geom.headRX - 1},${headCY + 2} L ${cx + geom.headRX + 10},${headCY - 12} L ${cx + geom.headRX - 2},${headCY - 4} Z`} fill={skin} />
+          </>
+        )}
+        {raceDef.ear_type === 'pointed_short' && (
+          <>
+            <path d={`M ${cx - geom.headRX + 1},${headCY + 1} L ${cx - geom.headRX - 6},${headCY - 7} L ${cx - geom.headRX + 2},${headCY - 2} Z`} fill={skin} />
+            <path d={`M ${cx + geom.headRX - 1},${headCY + 1} L ${cx + geom.headRX + 6},${headCY - 7} L ${cx + geom.headRX - 2},${headCY - 2} Z`} fill={skin} />
+          </>
+        )}
+        {raceDef.ear_type === 'cat' && (
+          <>
+            <path d={`M ${cx - geom.headRX * 0.55},${headCY - geom.headRY + 3} L ${cx - geom.headRX * 0.2},${headCY - geom.headRY - 10} L ${cx - geom.headRX * 0.1},${headCY - geom.headRY + 2} Z`} fill={skin} />
+            <path d={`M ${cx + geom.headRX * 0.55},${headCY - geom.headRY + 3} L ${cx + geom.headRX * 0.2},${headCY - geom.headRY - 10} L ${cx + geom.headRX * 0.1},${headCY - geom.headRY + 2} Z`} fill={skin} />
+            <path d={`M ${cx - geom.headRX * 0.48},${headCY - geom.headRY + 4} L ${cx - geom.headRX * 0.2},${headCY - geom.headRY - 7} L ${cx - geom.headRX * 0.12},${headCY - geom.headRY + 3} Z`} fill={accentClr} opacity="0.45" />
+            <path d={`M ${cx + geom.headRX * 0.48},${headCY - geom.headRY + 4} L ${cx + geom.headRX * 0.2},${headCY - geom.headRY - 7} L ${cx + geom.headRX * 0.12},${headCY - geom.headRY + 3} Z`} fill={accentClr} opacity="0.45" />
+          </>
+        )}
+
+        {/* Argonian horns + frills */}
+        {raceDef.has_head_protrusions && (
+          <>
+            <path d={`M ${cx},${headCY - geom.headRY} Q ${cx+2},${headCY - geom.headRY - 12} ${cx+1},${headCY - geom.headRY - 18}`} fill="none" stroke={accentClr} strokeWidth="3" strokeLinecap="round" />
+            <path d={`M ${cx-7},${headCY - geom.headRY + 2} Q ${cx-12},${headCY - geom.headRY - 5} ${cx-10},${headCY - geom.headRY - 14}`} fill="none" stroke={accentClr} strokeWidth="2" strokeLinecap="round" />
+            <path d={`M ${cx+7},${headCY - geom.headRY + 2} Q ${cx+12},${headCY - geom.headRY - 5} ${cx+10},${headCY - geom.headRY - 14}`} fill="none" stroke={accentClr} strokeWidth="2" strokeLinecap="round" />
+            <path d={`M ${cx-11},${headCY - geom.headRY * 0.5} Q ${cx-18},${headCY - geom.headRY - 2} ${cx-14},${headCY - geom.headRY - 8}`} fill="none" stroke={accentClr} strokeWidth="1.8" strokeLinecap="round" opacity="0.7" />
+            <path d={`M ${cx+11},${headCY - geom.headRY * 0.5} Q ${cx+18},${headCY - geom.headRY - 2} ${cx+14},${headCY - geom.headRY - 8}`} fill="none" stroke={accentClr} strokeWidth="1.8" strokeLinecap="round" opacity="0.7" />
+          </>
+        )}
+
+        {/* ── HAIR ── */}
+        {raceDef.hair_colors !== null && (
+          <>
+            <ellipse cx={cx} cy={headCY - geom.headRY * 0.2} rx={geom.headRX + 0.5} ry={geom.headRY * 0.72} fill={hairClr} />
+            {(cosmetics?.hair_length === 'long') && (
+              <>
+                <rect x={cx - geom.headRX - 1} y={headCY - 3} width="5.5" height="38" rx="3" fill={hairClr} />
+                <rect x={cx + geom.headRX - 4} y={headCY - 3} width="5.5" height="38" rx="3" fill={hairClr} />
+              </>
+            )}
+            {(cosmetics?.hair_length === 'medium' || cosmetics?.hair_length === 'shaggy') && (
+              <>
+                <rect x={cx - geom.headRX - 1} y={headCY - 3} width="5" height="18" rx="3" fill={hairClr} />
+                <rect x={cx + geom.headRX - 4} y={headCY - 3} width="5" height="18" rx="3" fill={hairClr} />
+              </>
+            )}
+          </>
+        )}
+
+        {/* Khajiit fur whiskers */}
+        {raceDef.ear_type === 'cat' && (
+          <>
+            <line x1={cx - 5} y1={headCY + 6} x2={cx - 18} y2={headCY + 5} stroke={skin} strokeWidth="0.7" opacity="0.6" />
+            <line x1={cx - 5} y1={headCY + 8} x2={cx - 17} y2={headCY + 9} stroke={skin} strokeWidth="0.7" opacity="0.5" />
+            <line x1={cx + 5} y1={headCY + 6} x2={cx + 18} y2={headCY + 5} stroke={skin} strokeWidth="0.7" opacity="0.6" />
+            <line x1={cx + 5} y1={headCY + 8} x2={cx + 17} y2={headCY + 9} stroke={skin} strokeWidth="0.7" opacity="0.5" />
+          </>
+        )}
+
+        {/* ── SURFACE PATTERNS ── */}
+        {raceDef.surface_pattern === 'fur_spotted' && (
+          <g opacity="0.20">
+            {[[cx-8,shldY+8],[cx+6,shldY+18],[cx-4,waistY-10],[legLX+3,kneeY-20],[legRX-3,kneeY-35]].map(([sx,sy],i) => (
+              <circle key={`sp-${i}`} cx={sx} cy={sy} r="3.5" fill={accentClr} />
+            ))}
+          </g>
+        )}
+        {raceDef.surface_pattern === 'fur_striped' && (
+          <g opacity="0.15">
+            <line x1={cx-10} y1={shldY+5}  x2={cx-6}  y2={waistY-5}  stroke={accentClr} strokeWidth="2.5" />
+            <line x1={cx+10} y1={shldY+5}  x2={cx+6}  y2={waistY-5}  stroke={accentClr} strokeWidth="2.5" />
+          </g>
+        )}
+        {raceDef.surface_pattern === 'scales_smooth' && (
+          <g opacity="0.18">
+            {[shldY+8, shldY+18, waistY-10].map((sy,i) => (
+              <path key={`sc-${i}`} d={`M ${cx-12},${sy} Q ${cx},${sy-4} ${cx+12},${sy}`} fill="none" stroke={accentClr} strokeWidth="0.9" />
+            ))}
+          </g>
+        )}
+        {raceDef.surface_pattern === 'tattoo_warpaint' && (
+          <g opacity="0.28">
+            <line x1={cx-9} y1={headCY-3} x2={cx-4} y2={headCY+3} stroke={accentClr} strokeWidth="1.5" strokeLinecap="round" />
+            <line x1={cx+9} y1={headCY-3} x2={cx+4} y2={headCY+3} stroke={accentClr} strokeWidth="1.5" strokeLinecap="round" />
+          </g>
+        )}
+
+        {/* ── STATUS OVERLAYS ── */}
+        {arousalHigh && (
+          <>
+            <ellipse cx={cx - 5.5} cy={headCY + 3} rx="3.5" ry="2" fill="rgba(255,90,90,0.28)" />
+            <ellipse cx={cx + 5.5} cy={headCY + 3} rx="3.5" ry="2" fill="rgba(255,90,90,0.28)" />
+          </>
+        )}
+        {lowHealth && (
+          <>
+            <circle cx={cx - geom.shoulderHW * 0.6} cy={shldY + 18} r="2.5" fill="rgba(200,0,0,0.38)" />
+            <circle cx={cx + geom.shoulderHW * 0.4} cy={waistY - 8} r="2" fill="rgba(200,0,0,0.32)" />
+          </>
+        )}
+        {corruption && (
+          <ellipse cx={cx} cy={(headCY + footBotY) / 2} rx="52" ry="110" fill="none" stroke="rgba(160,0,220,0.18)" strokeWidth="3.5" />
+        )}
+
+        {/* ═══════════════════════════════════════════ */}
+        {/* CLOTHING LAYERS                             */}
+        {/* ═══════════════════════════════════════════ */}
+
+        {/* FEET */}
+        {(() => {
+          const { op, torn } = integrityStyle(clothing.feet);
+          if (!clothing.feet || op === 0) return null;
+          const c = SLOT_COLORS.feet;
+          return (
+            <g opacity={op}>
+              <ellipse cx={legLX + geom.footW * 0.1} cy={footBotY - geom.footH/2} rx={geom.footW/2 + 1} ry={geom.footH/2 + 1} fill={c.fill} stroke={c.stroke} strokeWidth="0.6" strokeDasharray={torn ? '2 2' : undefined} />
+              <ellipse cx={legRX + geom.footW * 0.1} cy={footBotY - geom.footH/2} rx={geom.footW/2 + 1} ry={geom.footH/2 + 1} fill={c.fill} stroke={c.stroke} strokeWidth="0.6" strokeDasharray={torn ? '2 2' : undefined} />
+              {torn && tornMark(legLX, footBotY - 6, 'torn-f')}
+            </g>
+          );
+        })()}
+
+        {/* LEGS */}
+        {(() => {
+          const { op, torn } = integrityStyle(clothing.legs);
+          if (!clothing.legs || op === 0) return null;
+          const c = SLOT_COLORS.legs;
+          return (
+            <g opacity={op}>
+              <rect x={legLX - geom.thighW/2 - 1} y={crotchY} width={geom.thighW + 2} height={ankleY - crotchY} rx="5" fill={c.fill} stroke={c.stroke} strokeWidth="0.6" strokeDasharray={torn ? '3 2' : undefined} />
+              <rect x={legRX - geom.thighW/2 - 1} y={crotchY} width={geom.thighW + 2} height={ankleY - crotchY} rx="5" fill={c.fill} stroke={c.stroke} strokeWidth="0.6" strokeDasharray={torn ? '3 2' : undefined} />
+              {torn && tornMark(legLX - 2, kneeY - 10, 'torn-ll')}
+              {torn && tornMark(legRX + 2, kneeY + 5, 'torn-rl')}
+            </g>
+          );
+        })()}
+
+        {/* UNDERWEAR */}
+        {(() => {
+          const { op, torn } = integrityStyle(clothing.underwear);
+          if (!clothing.underwear || op === 0) return null;
+          const c = SLOT_COLORS.underwear;
+          return (
+            <g opacity={op}>
+              <rect x={cx - geom.hipHW - 1} y={hipTopY + 4} width={(geom.hipHW + 1) * 2} height={crotchY - hipTopY - 2} rx="4" fill={c.fill} stroke={c.stroke} strokeWidth="0.6" strokeDasharray={torn ? '2 2' : undefined} />
+              {torn && tornMark(cx - 5, hipTopY + 8, 'torn-uw')}
+            </g>
+          );
+        })()}
+
+        {/* WAIST */}
+        {(() => {
+          const { op } = integrityStyle(clothing.waist);
+          if (!clothing.waist || op === 0) return null;
+          const c = SLOT_COLORS.waist;
+          return (
+            <g opacity={op}>
+              <rect x={cx - geom.hipHW - 2} y={hipTopY} width={(geom.hipHW + 2) * 2} height="9" rx="3" fill={c.fill} stroke={c.stroke} strokeWidth="0.6" />
+            </g>
+          );
+        })()}
+
+        {/* CHEST */}
+        {(() => {
+          const { op, torn } = integrityStyle(clothing.chest);
+          if (!clothing.chest || op === 0) return null;
+          const c = SLOT_COLORS.chest;
+          return (
+            <g opacity={op}>
+              <path d={`M ${cx - geom.shoulderHW - 1},${shldY} C ${cx - geom.shoulderHW - 2},${shldY + 22} ${cx - geom.waistHW - 1},${waistY - 14} ${cx - geom.waistHW - 1},${waistY + 1} L ${cx + geom.waistHW + 1},${waistY + 1} C ${cx + geom.waistHW + 1},${waistY - 14} ${cx + geom.shoulderHW + 2},${shldY + 22} ${cx + geom.shoulderHW + 1},${shldY} Z`} fill={c.fill} stroke={c.stroke} strokeWidth="0.6" strokeDasharray={torn ? '3 2' : undefined} />
+              {torn && tornMark(cx - 8, shldY + 18, 'torn-c1')}
+              {torn && tornMark(cx + 6, waistY - 12, 'torn-c2')}
+            </g>
+          );
+        })()}
+
+        {/* SHOULDERS */}
+        {(() => {
+          const { op, torn } = integrityStyle(clothing.shoulders);
+          if (!clothing.shoulders || op === 0) return null;
+          const c = SLOT_COLORS.shoulders;
+          return (
+            <g opacity={op}>
+              <rect x={shLX - geom.upperArmW} y={shldY - 2} width={geom.upperArmW * 2 + 2} height="16" rx="4" fill={c.fill} stroke={c.stroke} strokeWidth="0.6" strokeDasharray={torn ? '2 2' : undefined} />
+              <rect x={shRX - geom.upperArmW} y={shldY - 2} width={geom.upperArmW * 2 + 2} height="16" rx="4" fill={c.fill} stroke={c.stroke} strokeWidth="0.6" strokeDasharray={torn ? '2 2' : undefined} />
+            </g>
+          );
+        })()}
+
+        {/* HANDS / GLOVES */}
+        {(() => {
+          const { op } = integrityStyle(clothing.hands);
+          if (!clothing.hands || op === 0) return null;
+          const c = SLOT_COLORS.hands;
+          return (
+            <g opacity={op}>
+              <ellipse cx={wrLX} cy={handCY} rx={geom.handW/2 + 1.5} ry={geom.handH/2 + 1} fill={c.fill} stroke={c.stroke} strokeWidth="0.6" />
+              <ellipse cx={wrRX} cy={handCY} rx={geom.handW/2 + 1.5} ry={geom.handH/2 + 1} fill={c.fill} stroke={c.stroke} strokeWidth="0.6" />
+            </g>
+          );
+        })()}
+
+        {/* NECK clothing */}
+        {(() => {
+          const { op } = integrityStyle(clothing.neck);
+          if (!clothing.neck || op === 0) return null;
+          const c = SLOT_COLORS.neck;
+          return (
+            <g opacity={op}>
+              <rect x={cx - geom.headRX * 0.56} y={neckTopY - 1} width={geom.headRX * 1.12} height={neckBotY - neckTopY + 3} rx="3" fill={c.fill} stroke={c.stroke} strokeWidth="0.6" />
+            </g>
+          );
+        })()}
+
+        {/* HEAD clothing */}
+        {(() => {
+          const { op, torn } = integrityStyle(clothing.head);
+          if (!clothing.head || op === 0) return null;
+          const c = SLOT_COLORS.head;
+          return (
+            <g opacity={op}>
+              <ellipse cx={cx} cy={headCY - geom.headRY * 0.3} rx={geom.headRX + 1.5} ry={geom.headRY * 0.75} fill={c.fill} stroke={c.stroke} strokeWidth="0.6" strokeDasharray={torn ? '3 2' : undefined} />
+            </g>
+          );
+        })()}
+
       </motion.svg>
 
-      {/* Exposure warning */}
-      {isExposed && !compact && (
-        <div className="text-[9px] tracking-widest uppercase text-red-400/80 animate-pulse text-center px-1">
-          Exposed
-        </div>
+      {hasExposure && !compact && (
+        <div className="text-[8px] tracking-widest uppercase text-red-400/70 animate-pulse text-center">⚠ Exposed</div>
+      )}
+      {biology.heat_rut_active && !compact && (
+        <div className="text-[8px] tracking-widest uppercase text-pink-400/70 animate-pulse text-center">♥ Heat</div>
       )}
     </div>
   );

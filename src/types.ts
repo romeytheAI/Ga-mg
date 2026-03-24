@@ -152,6 +152,12 @@ export interface Parasite {
   subservience_toxin: boolean;
 }
 
+export interface Incubation {
+  type: string;
+  progress: number;
+  days_remaining: number;
+}
+
 export interface ActiveEncounter {
   id: string;
   enemy_name: string;
@@ -190,7 +196,7 @@ export interface GameState {
     companions: { active_party: Companion[], roster: Companion[], max_encumbrance_bonus: number },
     base: any,
     subconscious: any,
-    biology: { cycle_day: number, heat_rut_active: boolean, parasites: Parasite[], incubations: any[], cravings: string[], exhaustion_multiplier: number, post_partum_debuff: number, sterility: boolean, fertility_cycle: string, fertility: number, lactation_level: number },
+    biology: { cycle_day: number, heat_rut_active: boolean, parasites: Parasite[], incubations: Incubation[], cravings: string[], exhaustion_multiplier: number, post_partum_debuff: number, sterility: boolean, fertility_cycle: string, fertility: number, lactation_level: number },
     status_effects: string[],
     life_sim: LifeSim,
     age_days: number,

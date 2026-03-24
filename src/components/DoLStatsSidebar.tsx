@@ -1,7 +1,7 @@
 import React from 'react';
 import { motion } from 'motion/react';
 import { Heart, Wind, Shield, Flame, Droplets, Sun, Moon, Zap, Coffee, Users, Star } from 'lucide-react';
-import { GameState, StatKey } from '../types';
+import { GameState, StatKey, Incubation } from '../types';
 import { DoLCharacterSprite } from './DoLCharacterSprite';
 
 interface DoLStatsSidebarProps {
@@ -239,20 +239,23 @@ export const DoLStatsSidebar: React.FC<DoLStatsSidebarProps> = ({
 
         {/* Skills */}
         <SectionHeader label="Skills" />
-        {Object.entries(skills).map(([skill, level]) => (
-          <div key={skill} className="flex items-center gap-1.5 mb-0.5">
-            <span className="text-[8px] uppercase tracking-wider text-white/35 w-16 truncate shrink-0">{skill.replace('_', ' ')}</span>
-            <div className="flex-1 h-1 bg-white/[0.05] rounded-full overflow-hidden">
-              <motion.div
-                className={`h-full rounded-full ${SKILL_COLOR[skill] || 'bg-white/40'}`}
-                initial={{ width: 0 }}
-                animate={{ width: `${Math.min(100, level)}%` }}
-                transition={{ duration: 0.5, delay: 0.05 }}
-              />
+        {Object.entries(skills).map(([skill, levelRaw]) => {
+          const level = Number(levelRaw) || 0;
+          return (
+            <div key={skill} className="flex items-center gap-1.5 mb-0.5">
+              <span className="text-[8px] uppercase tracking-wider text-white/35 w-16 truncate shrink-0">{skill.replace('_', ' ')}</span>
+              <div className="flex-1 h-1 bg-white/[0.05] rounded-full overflow-hidden">
+                <motion.div
+                  className={`h-full rounded-full ${SKILL_COLOR[skill] || 'bg-white/40'}`}
+                  initial={{ width: 0 }}
+                  animate={{ width: `${Math.min(100, level)}%` }}
+                  transition={{ duration: 0.5, delay: 0.05 }}
+                />
+              </div>
+              <span className="text-[8px] font-mono text-white/30 w-5 text-right shrink-0">{level}</span>
             </div>
-            <span className="text-[8px] font-mono text-white/30 w-5 text-right shrink-0">{level}</span>
-          </div>
-        ))}
+          );
+        })}
 
         {/* Clothing Integrity */}
         {equippedClothing.length > 0 && (
@@ -308,7 +311,7 @@ export const DoLStatsSidebar: React.FC<DoLStatsSidebarProps> = ({
                 <span className="truncate">{p.type}</span>
               </div>
             ))}
-            {biology.incubations.map((inc: any, i: number) => (
+            {biology.incubations.map((inc: Incubation, i: number) => (
               <div key={i} className="text-[8px] text-purple-400/70 flex items-center gap-1 ml-1">
                 <span>◎</span>
                 <span className="truncate">{inc.type} ({inc.progress}%)</span>

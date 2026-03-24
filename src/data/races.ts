@@ -345,7 +345,6 @@ export function resolveRace(raceName: string): RacialBodyFeatures {
     cat: 'Khajiit',
     lizard: 'Argonian',
     reptile: 'Argonian',
-    'dark elf (dunmer)': 'Dunmer',
   };
   const alias = aliases[normalized];
   if (alias) return ELDER_SCROLLS_RACES[alias];
