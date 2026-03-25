@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'motion/react';
-import { GameState, Item } from '../types';
+import { GameState, Item, Cosmetics, CosmeticScar, CosmeticTattoo, CosmeticPiercing } from '../types';
 import { resolveRace, RacialBodyFeatures } from '../data/races';
 
 interface DoLCharacterSpriteProps {
@@ -242,6 +242,34 @@ export const DoLCharacterSprite: React.FC<DoLCharacterSpriteProps> = ({ state, c
   const pregnancyBump    = biology.incubations
     .filter(i => i.type.toLowerCase().includes('preg'))
     .reduce((max, i) => Math.max(max, i.progress / 100), 0);
+
+  // ── DoL-parity cosmetic state ──────────────────────────────────────────
+  const cos = (cosmetics || {}) as Partial<Cosmetics>;
+  const hasFreckles   = !!cos.freckles;
+  const hasTanLines   = !!cos.tan_lines;
+  const makeup        = cos.makeup;
+  const lipColor      = makeup?.lipstick || (isFemale ? '#c06868' : undefined);
+  const hasEyeliner   = !!makeup?.eyeliner;
+  const eyeshadowClr  = makeup?.eyeshadow;
+
+  // Normalize scars/tattoos/piercings to structured form
+  const scars: CosmeticScar[] = (cos.scars || []).map(s =>
+    typeof s === 'string' ? { location: 'chest' as const, type: 'slash' as const } : s
+  );
+  const tattoos: CosmeticTattoo[] = (cos.tattoos || []).map(t =>
+    typeof t === 'string' ? { location: 'arms' as const, design: t } : { location: (t as CosmeticTattoo).location || 'arms' as const, ...t }
+  );
+  const piercings: CosmeticPiercing[] = (cos.piercings || []).map(p =>
+    typeof p === 'string' ? { location: 'ear_left' as const } : p
+  );
+  const bodyWriting = cos.body_writing || [];
+  const hasCollar    = (cos.body_mods || []).some(m => m.toLowerCase().includes('collar') || m.toLowerCase().includes('choker'));
+
+  // Multi-zone blush: intensity 0–1 based on arousal/lust/stress
+  const blushIntensity = Math.min(1, (stats.arousal / 100 + stats.lust / 100) * 0.6 + (stats.stress / 100) * 0.15);
+  const isLegsExposed  = !clothing.legs || (clothing.legs.integrity ?? 100) <= EXPOSURE_INTEGRITY_THRESHOLD;
+  const isSweating     = stats.stamina < 30 || stats.arousal > 70;
+  const isArmsExposed  = !clothing.shoulders;
 
   const svgH = compact ? 144 : 225;
   const svgW = compact ? 80  : 100;
@@ -509,7 +537,83 @@ export const DoLCharacterSprite: React.FC<DoLCharacterSpriteProps> = ({ state, c
           </>
         )}
 
-        {/* Heavy brow (Orc) */}
+        {/* ── EYEBROWS ── */}
+        {!raceDef.has_heavy_brow && (
+          <>
+            <path d={`M ${cx - 7.5},${headCY - 4.8} Q ${cx - 4.5},${headCY - 6.5} ${cx - 1.5},${headCY - 5.2}`}
+              fill="none" stroke={hairClr === 'transparent' ? accentClr : hairClr}
+              strokeWidth={isMale ? '1.3' : '0.9'} strokeLinecap="round" opacity="0.75" />
+            <path d={`M ${cx + 7.5},${headCY - 4.8} Q ${cx + 4.5},${headCY - 6.5} ${cx + 1.5},${headCY - 5.2}`}
+              fill="none" stroke={hairClr === 'transparent' ? accentClr : hairClr}
+              strokeWidth={isMale ? '1.3' : '0.9'} strokeLinecap="round" opacity="0.75" />
+          </>
+        )}
+
+        {/* ── EYELASHES (female / non-binary) ── */}
+        {!isMale && !raceDef.has_muzzle && (
+          <>
+            <line x1={cx - 7.8} y1={headCY - 1} x2={cx - 8.8} y2={headCY - 2.5}
+              stroke="#222" strokeWidth="0.6" strokeLinecap="round" />
+            <line x1={cx - 6.5} y1={headCY - 2} x2={cx - 7.2} y2={headCY - 3.5}
+              stroke="#222" strokeWidth="0.5" strokeLinecap="round" />
+            <line x1={cx + 7.8} y1={headCY - 1} x2={cx + 8.8} y2={headCY - 2.5}
+              stroke="#222" strokeWidth="0.6" strokeLinecap="round" />
+            <line x1={cx + 6.5} y1={headCY - 2} x2={cx + 7.2} y2={headCY - 3.5}
+              stroke="#222" strokeWidth="0.5" strokeLinecap="round" />
+          </>
+        )}
+
+        {/* ── EYELINER ── */}
+        {hasEyeliner && (
+          <>
+            <path d={`M ${cx - 8},${headCY} Q ${cx - 4.5},${headCY - 2.8} ${cx - 1},${headCY}`}
+              fill="none" stroke="#1a1a1a" strokeWidth="0.7" strokeLinecap="round" />
+            <path d={`M ${cx + 8},${headCY} Q ${cx + 4.5},${headCY - 2.8} ${cx + 1},${headCY}`}
+              fill="none" stroke="#1a1a1a" strokeWidth="0.7" strokeLinecap="round" />
+          </>
+        )}
+
+        {/* ── EYESHADOW ── */}
+        {eyeshadowClr && (
+          <>
+            <ellipse cx={cx - 4.5} cy={headCY - 2} rx="4" ry="1.8"
+              fill={eyeshadowClr} opacity="0.22" />
+            <ellipse cx={cx + 4.5} cy={headCY - 2} rx="4" ry="1.8"
+              fill={eyeshadowClr} opacity="0.22" />
+          </>
+        )}
+
+        {/* ── NOSE ── */}
+        {!raceDef.has_muzzle && (
+          <path d={`M ${cx},${headCY + 1.5} L ${cx - 1.5},${headCY + 4.5} Q ${cx},${headCY + 5.2} ${cx + 1.5},${headCY + 4.5} Z`}
+            fill={`${skin}cc`} stroke={`${skin}88`} strokeWidth="0.4" />
+        )}
+
+        {/* ── MOUTH / LIPS ── */}
+        {!raceDef.has_muzzle ? (
+          <>
+            {/* Upper lip */}
+            <path d={`M ${cx - 3.5},${headCY + 7.2} Q ${cx - 1},${headCY + 6} ${cx},${headCY + 6.5} Q ${cx + 1},${headCY + 6} ${cx + 3.5},${headCY + 7.2}`}
+              fill="none" stroke={lipColor || `${skin}cc`}
+              strokeWidth={isFemale ? '1.1' : '0.8'} strokeLinecap="round" />
+            {/* Lower lip */}
+            <path d={`M ${cx - 3.2},${headCY + 7.4} Q ${cx},${headCY + 9.2} ${cx + 3.2},${headCY + 7.4}`}
+              fill={lipColor || `${skin}dd`} stroke="none" opacity={isFemale ? '0.50' : '0.30'} />
+          </>
+        ) : raceDef.special_features.includes('muzzle_cat') ? (
+          <>
+            {/* Cat mouth – small W-shape */}
+            <path d={`M ${cx - 2},${headCY + 8.5} L ${cx},${headCY + 9.5} L ${cx + 2},${headCY + 8.5}`}
+              fill="none" stroke={`${skin}99`} strokeWidth="0.6" strokeLinecap="round" />
+            <circle cx={cx} cy={headCY + 7} r="1.2" fill={`${skin}aa`} />
+          </>
+        ) : (
+          <>
+            {/* Lizard mouth – horizontal slit */}
+            <line x1={cx - 4} y1={headCY + 10} x2={cx + 4} y2={headCY + 10}
+              stroke={`${skin}88`} strokeWidth="0.8" strokeLinecap="round" />
+          </>
+        )}
         {raceDef.has_heavy_brow && (
           <path d={`M ${cx-9},${headCY-3.5} Q ${cx},${headCY-6} ${cx+9},${headCY-3.5}`} fill={skin} stroke={`${accentClr}80`} strokeWidth="2.5" strokeLinecap="round" />
         )}
@@ -722,12 +826,340 @@ export const DoLCharacterSprite: React.FC<DoLCharacterSpriteProps> = ({ state, c
         )}
 
         {/* ── STATUS OVERLAYS ── */}
-        {arousalHigh && (
+
+        {/* ── MULTI-ZONE BLUSH/FLUSH (DoL parity) ── */}
+        {blushIntensity > 0.15 && (
+          <g>
+            {/* Cheek blush – scales with intensity */}
+            <ellipse cx={cx - 5.5} cy={headCY + 3} rx={3.5 + blushIntensity * 1.5} ry={2 + blushIntensity}
+              fill={`rgba(255,90,90,${0.12 + blushIntensity * 0.28})`} />
+            <ellipse cx={cx + 5.5} cy={headCY + 3} rx={3.5 + blushIntensity * 1.5} ry={2 + blushIntensity}
+              fill={`rgba(255,90,90,${0.12 + blushIntensity * 0.28})`} />
+            {/* Ear-tip blush */}
+            {raceDef.ear_type === 'pointed_long' && (
+              <>
+                <circle cx={cx - geom.headRX - 8} cy={headCY - 10} r="2.5"
+                  fill={`rgba(255,70,80,${blushIntensity * 0.3})`} />
+                <circle cx={cx + geom.headRX + 8} cy={headCY - 10} r="2.5"
+                  fill={`rgba(255,70,80,${blushIntensity * 0.3})`} />
+              </>
+            )}
+            {raceDef.ear_type === 'pointed_short' && (
+              <>
+                <circle cx={cx - geom.headRX - 4} cy={headCY - 5} r="2"
+                  fill={`rgba(255,70,80,${blushIntensity * 0.25})`} />
+                <circle cx={cx + geom.headRX + 4} cy={headCY - 5} r="2"
+                  fill={`rgba(255,70,80,${blushIntensity * 0.25})`} />
+              </>
+            )}
+            {/* Chest flush (when exposed, high blush) */}
+            {isChestExposed && blushIntensity > 0.4 && (
+              <ellipse cx={cx} cy={shldY + 16} rx={geom.shoulderHW * 0.7} ry="8"
+                fill={`rgba(255,80,90,${(blushIntensity - 0.4) * 0.2})`} />
+            )}
+            {/* Inner thigh flush (when legs exposed, high blush) */}
+            {isLegsExposed && blushIntensity > 0.5 && (
+              <>
+                <ellipse cx={legLX + geom.thighW * 0.15} cy={crotchY + 18} rx="5" ry="12"
+                  fill={`rgba(255,80,100,${(blushIntensity - 0.5) * 0.15})`} />
+                <ellipse cx={legRX - geom.thighW * 0.15} cy={crotchY + 18} rx="5" ry="12"
+                  fill={`rgba(255,80,100,${(blushIntensity - 0.5) * 0.15})`} />
+              </>
+            )}
+          </g>
+        )}
+
+        {/* ── FRECKLES (face + shoulders) ── */}
+        {hasFreckles && raceDef.skin_type === 'skin' && (
+          <g opacity="0.32">
+            {/* Face freckles – scattered across nose-bridge and cheeks */}
+            {[[-3, headCY + 2], [-1.5, headCY + 3.5], [0, headCY + 2.5],
+              [1.5, headCY + 3], [3, headCY + 2],
+              [-6, headCY + 2], [-5, headCY + 3.5], [5, headCY + 2.5], [6, headCY + 3]
+            ].map(([dx, dy], i) => (
+              <circle key={`fr-${i}`} cx={cx + dx} cy={dy} r="0.55" fill="#8a5a30" />
+            ))}
+            {/* Shoulder freckles (when shoulders exposed) */}
+            {isArmsExposed && (
+              <>
+                {[[-2, 4], [0, 7], [2, 3], [4, 8], [-3, 9]].map(([dx, dy], i) => (
+                  <circle key={`frs-l-${i}`} cx={shLX + geom.upperArmW * 0.3 + dx} cy={shldY + dy} r="0.5" fill="#8a5a30" />
+                ))}
+                {[[2, 4], [0, 7], [-2, 3], [-4, 8], [3, 9]].map(([dx, dy], i) => (
+                  <circle key={`frs-r-${i}`} cx={shRX - geom.upperArmW * 0.3 + dx} cy={shldY + dy} r="0.5" fill="#8a5a30" />
+                ))}
+              </>
+            )}
+          </g>
+        )}
+
+        {/* ── SWEAT / WETNESS MARKS ── */}
+        {isSweating && (
+          <g>
+            {/* Forehead sweat drops */}
+            <ellipse cx={cx - 3} cy={headCY - geom.headRY * 0.65} rx="0.6" ry="1.2"
+              fill="rgba(200,220,255,0.35)" />
+            <ellipse cx={cx + 5} cy={headCY - geom.headRY * 0.55} rx="0.5" ry="1"
+              fill="rgba(200,220,255,0.3)" />
+            {/* Neck sweat */}
+            <ellipse cx={cx + 2} cy={neckTopY + 5} rx="0.5" ry="1.3"
+              fill="rgba(200,220,255,0.25)" />
+            {/* Chest sweat (when exposed) */}
+            {isChestExposed && (
+              <>
+                <ellipse cx={cx} cy={shldY + 28} rx="0.5" ry="1.5"
+                  fill="rgba(200,220,255,0.22)" />
+                <ellipse cx={cx + 4} cy={shldY + 22} rx="0.4" ry="1"
+                  fill="rgba(200,220,255,0.18)" />
+              </>
+            )}
+            {/* Body sheen */}
+            {isChestExposed && (
+              <ellipse cx={cx} cy={shldY + 15} rx={geom.shoulderHW * 0.5} ry="14"
+                fill="rgba(255,255,255,0.06)" />
+            )}
+          </g>
+        )}
+
+        {/* ── TAN LINES (when exposed, show lighter areas where clothing was) ── */}
+        {hasTanLines && isChestExposed && raceDef.skin_type === 'skin' && (
+          <g>
+            {/* Chest tan line outline – marks where a top would be */}
+            <path d={`M ${cx - geom.shoulderHW * 0.35},${shldY + 4} Q ${cx},${shldY + 8} ${cx + geom.shoulderHW * 0.35},${shldY + 4}`}
+              fill="none" stroke="rgba(255,255,255,0.12)" strokeWidth="1.5" strokeLinecap="round" />
+            {/* Lighter skin patch (where clothing shielded from sun) */}
+            <path d={`M ${cx - geom.shoulderHW * 0.85},${shldY} C ${cx - geom.shoulderHW * 0.85},${shldY + 20} ${cx - geom.waistHW},${waistY - 12} ${cx - geom.waistHW},${waistY} L ${cx + geom.waistHW},${waistY} C ${cx + geom.waistHW},${waistY - 12} ${cx + geom.shoulderHW * 0.85},${shldY + 20} ${cx + geom.shoulderHW * 0.85},${shldY} Z`}
+              fill="rgba(255,255,255,0.06)" />
+          </g>
+        )}
+        {hasTanLines && isGroinExposed && raceDef.skin_type === 'skin' && (
+          <rect x={cx - geom.hipHW * 0.8} y={hipTopY + 4} width={geom.hipHW * 1.6} height={crotchY - hipTopY - 2} rx="3"
+            fill="rgba(255,255,255,0.06)" />
+        )}
+
+        {/* ── UNDER-BUST / RIBCAGE LINES ── */}
+        {isChestExposed && isFemale && geom.bustR > 0 && (
           <>
-            <ellipse cx={cx - 5.5} cy={headCY + 3} rx="3.5" ry="2" fill="rgba(255,90,90,0.28)" />
-            <ellipse cx={cx + 5.5} cy={headCY + 3} rx="3.5" ry="2" fill="rgba(255,90,90,0.28)" />
+            {/* Under-bust crease lines */}
+            <path d={`M ${cx - geom.shoulderHW * 0.55},${geom.bustY + geom.bustR * 0.65} Q ${cx - geom.shoulderHW * 0.35},${geom.bustY + geom.bustR * 0.85} ${cx - geom.shoulderHW * 0.1},${geom.bustY + geom.bustR * 0.7}`}
+              fill="none" stroke={`${skin}40`} strokeWidth="0.6" strokeLinecap="round" />
+            <path d={`M ${cx + geom.shoulderHW * 0.55},${geom.bustY + geom.bustR * 0.65} Q ${cx + geom.shoulderHW * 0.35},${geom.bustY + geom.bustR * 0.85} ${cx + geom.shoulderHW * 0.1},${geom.bustY + geom.bustR * 0.7}`}
+              fill="none" stroke={`${skin}40`} strokeWidth="0.6" strokeLinecap="round" />
           </>
         )}
+        {/* Ribcage hint (slim/wiry builds when chest exposed) */}
+        {isChestExposed && ['wiry', 'slim'].includes(raceDef.build) && (
+          <g opacity="0.12">
+            {[0, 5, 10].map((dy, i) => (
+              <React.Fragment key={`rib-${i}`}>
+                <path d={`M ${cx - 2},${shldY + 26 + dy} Q ${cx - geom.shoulderHW * 0.5},${shldY + 28 + dy} ${cx - geom.shoulderHW * 0.35},${shldY + 26 + dy}`}
+                  fill="none" stroke={skin} strokeWidth="0.5" />
+                <path d={`M ${cx + 2},${shldY + 26 + dy} Q ${cx + geom.shoulderHW * 0.5},${shldY + 28 + dy} ${cx + geom.shoulderHW * 0.35},${shldY + 26 + dy}`}
+                  fill="none" stroke={skin} strokeWidth="0.5" />
+              </React.Fragment>
+            ))}
+          </g>
+        )}
+
+        {/* ── LINEA ALBA (midline belly definition) ── */}
+        {isChestExposed && raceDef.skin_type === 'skin' && (
+          <path d={`M ${cx},${shldY + 30} L ${cx},${hipTopY - 2}`}
+            fill="none" stroke={`${skin}22`} strokeWidth="0.5" />
+        )}
+
+        {/* ── HIP BONE DEFINITION (slim/wiry when groin area exposed) ── */}
+        {(isGroinExposed || isLegsExposed) && ['wiry', 'slim'].includes(raceDef.build) && (
+          <>
+            <path d={`M ${cx - geom.waistHW * 0.3},${waistY + 2} Q ${cx - geom.hipHW * 0.65},${hipTopY + 2} ${cx - geom.hipHW * 0.45},${hipTopY + 6}`}
+              fill="none" stroke={`${skin}30`} strokeWidth="0.6" strokeLinecap="round" />
+            <path d={`M ${cx + geom.waistHW * 0.3},${waistY + 2} Q ${cx + geom.hipHW * 0.65},${hipTopY + 2} ${cx + geom.hipHW * 0.45},${hipTopY + 6}`}
+              fill="none" stroke={`${skin}30`} strokeWidth="0.6" strokeLinecap="round" />
+          </>
+        )}
+
+        {/* ── SCAR VISUALIZATION ── */}
+        {scars.length > 0 && (
+          <g opacity="0.45">
+            {scars.map((scar, i) => {
+              const st = scar.type || 'slash';
+              const scarColor = st === 'burn' ? 'rgba(180,80,80,0.5)' : 'rgba(220,180,180,0.6)';
+              const scarW = st === 'burn' ? '2' : '1.2';
+              switch (scar.location) {
+                case 'face':
+                  return <line key={`scar-${i}`} x1={cx - 3 + i * 2} y1={headCY - 2} x2={cx + 1 + i * 2} y2={headCY + 5} stroke={scarColor} strokeWidth={scarW} strokeLinecap="round" />;
+                case 'chest':
+                  return isChestExposed ? <line key={`scar-${i}`} x1={cx - 6 + i * 3} y1={shldY + 12} x2={cx + 2 + i * 3} y2={shldY + 26} stroke={scarColor} strokeWidth={scarW} strokeLinecap="round" /> : null;
+                case 'abdomen':
+                  return isChestExposed ? <line key={`scar-${i}`} x1={cx - 4 + i * 2} y1={waistY - 8} x2={cx + 3 + i * 2} y2={waistY + 4} stroke={scarColor} strokeWidth={scarW} strokeLinecap="round" /> : null;
+                case 'arms':
+                  return isArmsExposed ? <line key={`scar-${i}`} x1={shLX + 2} y1={shldY + 14 + i * 8} x2={shLX - 2} y2={shldY + 22 + i * 8} stroke={scarColor} strokeWidth={scarW} strokeLinecap="round" /> : null;
+                case 'legs':
+                  return isLegsExposed ? <line key={`scar-${i}`} x1={legLX - 2} y1={crotchY + 12 + i * 12} x2={legLX + 3} y2={crotchY + 22 + i * 12} stroke={scarColor} strokeWidth={scarW} strokeLinecap="round" /> : null;
+                case 'neck':
+                  return <line key={`scar-${i}`} x1={cx - 3} y1={neckTopY + 2} x2={cx + 2} y2={neckTopY + 6} stroke={scarColor} strokeWidth={scarW} strokeLinecap="round" />;
+                default:
+                  return null;
+              }
+            })}
+          </g>
+        )}
+
+        {/* ── TATTOO VISUALIZATION ── */}
+        {tattoos.length > 0 && (
+          <g>
+            {tattoos.map((tat, i) => {
+              const tClr = tat.color || '#2a4a6a';
+              switch (tat.location) {
+                case 'arms':
+                  return isArmsExposed ? (
+                    <g key={`tat-${i}`} opacity="0.4">
+                      <path d={`M ${shRX + 1},${shldY + 10 + i * 12} Q ${shRX + 4},${shldY + 16 + i * 12} ${shRX + 1},${shldY + 22 + i * 12}`}
+                        fill="none" stroke={tClr} strokeWidth="1.5" strokeLinecap="round" />
+                      <circle cx={shRX + 2} cy={shldY + 16 + i * 12} r="2" fill="none" stroke={tClr} strokeWidth="0.6" />
+                    </g>
+                  ) : null;
+                case 'chest':
+                  return isChestExposed ? (
+                    <g key={`tat-${i}`} opacity="0.35">
+                      <path d={`M ${cx - 5 + i * 3},${shldY + 15} Q ${cx + i * 3},${shldY + 10} ${cx + 5 + i * 3},${shldY + 15}`}
+                        fill="none" stroke={tClr} strokeWidth="1.2" strokeLinecap="round" />
+                    </g>
+                  ) : null;
+                case 'shoulder':
+                  return isArmsExposed ? (
+                    <g key={`tat-${i}`} opacity="0.4">
+                      <circle cx={shRX - geom.upperArmW * 0.1} cy={shldY + 6} r="4" fill="none" stroke={tClr} strokeWidth="1" />
+                      <circle cx={shRX - geom.upperArmW * 0.1} cy={shldY + 6} r="2" fill="none" stroke={tClr} strokeWidth="0.5" />
+                    </g>
+                  ) : null;
+                case 'abdomen':
+                  return isChestExposed ? (
+                    <g key={`tat-${i}`} opacity="0.35">
+                      <path d={`M ${cx - 4},${waistY - 6} L ${cx},${waistY - 10} L ${cx + 4},${waistY - 6}`}
+                        fill="none" stroke={tClr} strokeWidth="0.9" strokeLinecap="round" />
+                    </g>
+                  ) : null;
+                case 'neck':
+                  return (
+                    <g key={`tat-${i}`} opacity="0.35">
+                      <circle cx={cx + 3} cy={neckTopY + 3} r="2.5" fill="none" stroke={tClr} strokeWidth="0.8" />
+                    </g>
+                  );
+                case 'legs':
+                  return isLegsExposed ? (
+                    <g key={`tat-${i}`} opacity="0.35">
+                      <path d={`M ${legRX - 3},${crotchY + 20 + i * 15} Q ${legRX},${crotchY + 14 + i * 15} ${legRX + 3},${crotchY + 20 + i * 15}`}
+                        fill="none" stroke={tClr} strokeWidth="1" strokeLinecap="round" />
+                    </g>
+                  ) : null;
+                case 'face':
+                  return (
+                    <g key={`tat-${i}`} opacity="0.35">
+                      <line x1={cx - 7} y1={headCY + 1} x2={cx - 4} y2={headCY + 4} stroke={tClr} strokeWidth="1" strokeLinecap="round" />
+                    </g>
+                  );
+                default:
+                  return null;
+              }
+            })}
+          </g>
+        )}
+
+        {/* ── PIERCING VISUALIZATION ── */}
+        {piercings.length > 0 && (
+          <g>
+            {piercings.map((p, i) => {
+              const pClr = '#c0c0c0';
+              switch (p.location) {
+                case 'ear_left':
+                  return <circle key={`pier-${i}`} cx={cx - geom.headRX + 0.5} cy={headCY + 1} r="1" fill={pClr} stroke="#888" strokeWidth="0.3" />;
+                case 'ear_right':
+                  return <circle key={`pier-${i}`} cx={cx + geom.headRX - 0.5} cy={headCY + 1} r="1" fill={pClr} stroke="#888" strokeWidth="0.3" />;
+                case 'nose':
+                  return <circle key={`pier-${i}`} cx={cx + 1.8} cy={headCY + 4.5} r="0.7" fill={pClr} stroke="#888" strokeWidth="0.3" />;
+                case 'lip':
+                  return <circle key={`pier-${i}`} cx={cx - 2.5} cy={headCY + 8} r="0.7" fill={pClr} stroke="#888" strokeWidth="0.3" />;
+                case 'eyebrow':
+                  return <circle key={`pier-${i}`} cx={cx - 7} cy={headCY - 4.5} r="0.7" fill={pClr} stroke="#888" strokeWidth="0.3" />;
+                case 'navel':
+                  return isChestExposed ? <circle key={`pier-${i}`} cx={cx} cy={geom.navelY + 1.5} r="0.9" fill={pClr} stroke="#888" strokeWidth="0.3" /> : null;
+                case 'nipple_left':
+                  return isChestExposed && isFemale ? <circle key={`pier-${i}`} cx={cx - geom.shoulderHW * 0.38} cy={geom.bustY} r="0.8" fill={pClr} stroke="#888" strokeWidth="0.4" /> : null;
+                case 'nipple_right':
+                  return isChestExposed && isFemale ? <circle key={`pier-${i}`} cx={cx + geom.shoulderHW * 0.38} cy={geom.bustY} r="0.8" fill={pClr} stroke="#888" strokeWidth="0.4" /> : null;
+                default:
+                  return null;
+              }
+            })}
+          </g>
+        )}
+
+        {/* ── BODY WRITING (DoL feature) ── */}
+        {bodyWriting.length > 0 && (
+          <g>
+            {bodyWriting.map((bw, i) => {
+              const fontSize = 3.5;
+              let wx = cx;
+              let wy = waistY;
+              switch (bw.location) {
+                case 'chest':   wx = cx; wy = shldY + 20; break;
+                case 'abdomen': wx = cx; wy = waistY - 4; break;
+                case 'thigh':   wx = legRX; wy = crotchY + 20; break;
+                case 'arm':     wx = shRX + 2; wy = shldY + 24; break;
+                case 'back':    return null;
+              }
+              const visible = (bw.location === 'chest' || bw.location === 'abdomen') ? isChestExposed
+                : bw.location === 'thigh' ? isLegsExposed
+                : bw.location === 'arm' ? isArmsExposed
+                : false;
+              if (!visible) return null;
+              return (
+                <text key={`bw-${i}`} x={wx} y={wy}
+                  fill="rgba(80,20,20,0.55)" fontSize={fontSize}
+                  textAnchor="middle" fontFamily="serif" fontStyle="italic">
+                  {bw.text.slice(0, 12)}
+                </text>
+              );
+            })}
+          </g>
+        )}
+
+        {/* ── COLLAR / CHOKER ACCESSORY ── */}
+        {hasCollar && (
+          <g>
+            <rect x={cx - geom.headRX * 0.52} y={neckTopY + 1} width={geom.headRX * 1.04} height="3.5" rx="1.5"
+              fill="#2a2a2a" stroke="#444" strokeWidth="0.5" />
+            <circle cx={cx} cy={neckTopY + 3} r="1.2" fill="#888" stroke="#666" strokeWidth="0.3" />
+          </g>
+        )}
+
+        {/* ── INJURY / WOUND VISUALIZATION (body_parts integrity) ── */}
+        {state.player.anatomy.body_parts && (
+          <g>
+            {/* Show bruises/wounds on body parts with low integrity */}
+            {(state.player.anatomy.body_parts.torso ?? 100) < 60 && isChestExposed && (
+              <ellipse cx={cx + 5} cy={shldY + 20} rx="4" ry="3"
+                fill={`rgba(100,0,120,${(60 - (state.player.anatomy.body_parts.torso ?? 100)) / 150})`} />
+            )}
+            {(state.player.anatomy.body_parts.abdomen ?? 100) < 60 && isChestExposed && (
+              <ellipse cx={cx - 4} cy={waistY - 5} rx="3.5" ry="2.5"
+                fill={`rgba(100,0,120,${(60 - (state.player.anatomy.body_parts.abdomen ?? 100)) / 150})`} />
+            )}
+            {(state.player.anatomy.body_parts.head ?? 100) < 60 && (
+              <ellipse cx={cx + 6} cy={headCY - 3} rx="3" ry="2"
+                fill={`rgba(100,0,120,${(60 - (state.player.anatomy.body_parts.head ?? 100)) / 150})`} />
+            )}
+            {(state.player.anatomy.body_parts.thigh_l ?? 100) < 60 && isLegsExposed && (
+              <ellipse cx={legLX} cy={crotchY + 22} rx="3.5" ry="4"
+                fill={`rgba(100,0,120,${(60 - (state.player.anatomy.body_parts.thigh_l ?? 100)) / 150})`} />
+            )}
+            {(state.player.anatomy.body_parts.thigh_r ?? 100) < 60 && isLegsExposed && (
+              <ellipse cx={legRX} cy={crotchY + 22} rx="3.5" ry="4"
+                fill={`rgba(100,0,120,${(60 - (state.player.anatomy.body_parts.thigh_r ?? 100)) / 150})`} />
+            )}
+          </g>
+        )}
+
         {lowHealth && (
           <>
             <circle cx={cx - geom.shoulderHW * 0.6} cy={shldY + 18} r="2.5" fill="rgba(200,0,0,0.38)" />
