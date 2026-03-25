@@ -160,6 +160,21 @@ function resolveHairColor(raceDef: RacialBodyFeatures, cosmeticHair: string): st
 
 // Integrity threshold below which a clothing slot is considered "destroyed / not covering"
 const EXPOSURE_INTEGRITY_THRESHOLD = 10;
+const AROUSAL_BLUSH_WEIGHT  = 0.6;
+const STRESS_BLUSH_WEIGHT   = 0.15;
+const MAX_BODY_WRITING_CHARS = 12;
+
+function normalizeScar(s: string | CosmeticScar): CosmeticScar {
+  return typeof s === 'string' ? { location: 'chest', type: 'slash' } : s;
+}
+function normalizeTattoo(t: string | CosmeticTattoo): CosmeticTattoo {
+  if (typeof t === 'string') return { location: 'arms', design: t };
+  return { location: t.location || 'arms', ...t };
+}
+function normalizePiercing(p: string | CosmeticPiercing): CosmeticPiercing {
+  return typeof p === 'string' ? { location: 'ear_left' } : p;
+}
+
 function getNippleColor(skinHex: string, skinType: string): string {
   if (skinType === 'fur') return '#8a5828';   // muted for Khajiit
   if (skinType === 'scales') return '#5a6828'; // muted for Argonian
@@ -252,21 +267,13 @@ export const DoLCharacterSprite: React.FC<DoLCharacterSpriteProps> = ({ state, c
   const hasEyeliner   = !!makeup?.eyeliner;
   const eyeshadowClr  = makeup?.eyeshadow;
 
-  // Normalize scars/tattoos/piercings to structured form
-  const scars: CosmeticScar[] = (cos.scars || []).map(s =>
-    typeof s === 'string' ? { location: 'chest' as const, type: 'slash' as const } : s
-  );
-  const tattoos: CosmeticTattoo[] = (cos.tattoos || []).map(t =>
-    typeof t === 'string' ? { location: 'arms' as const, design: t } : { location: (t as CosmeticTattoo).location || 'arms' as const, ...t }
-  );
-  const piercings: CosmeticPiercing[] = (cos.piercings || []).map(p =>
-    typeof p === 'string' ? { location: 'ear_left' as const } : p
-  );
+  const scars: CosmeticScar[] = (cos.scars || []).map(normalizeScar);
+  const tattoos: CosmeticTattoo[] = (cos.tattoos || []).map(normalizeTattoo);
+  const piercings: CosmeticPiercing[] = (cos.piercings || []).map(normalizePiercing);
   const bodyWriting = cos.body_writing || [];
   const hasCollar    = (cos.body_mods || []).some(m => m.toLowerCase().includes('collar') || m.toLowerCase().includes('choker'));
 
-  // Multi-zone blush: intensity 0–1 based on arousal/lust/stress
-  const blushIntensity = Math.min(1, (stats.arousal / 100 + stats.lust / 100) * 0.6 + (stats.stress / 100) * 0.15);
+  const blushIntensity = Math.min(1, (stats.arousal / 100 + stats.lust / 100) * AROUSAL_BLUSH_WEIGHT + (stats.stress / 100) * STRESS_BLUSH_WEIGHT);
   const isLegsExposed  = !clothing.legs || (clothing.legs.integrity ?? 100) <= EXPOSURE_INTEGRITY_THRESHOLD;
   const isSweating     = stats.stamina < 30 || stats.arousal > 70;
   const isArmsExposed  = !clothing.shoulders;
@@ -1117,7 +1124,7 @@ export const DoLCharacterSprite: React.FC<DoLCharacterSpriteProps> = ({ state, c
                 <text key={`bw-${i}`} x={wx} y={wy}
                   fill="rgba(80,20,20,0.55)" fontSize={fontSize}
                   textAnchor="middle" fontFamily="serif" fontStyle="italic">
-                  {bw.text.slice(0, 12)}
+                  {bw.text.slice(0, MAX_BODY_WRITING_CHARS)}
                 </text>
               );
             })}
