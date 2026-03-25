@@ -2,12 +2,14 @@ import React, { useEffect } from 'react';
 import { MainLayout } from './components/layout/MainLayout';
 import { Narrative } from './components/game/Narrative';
 import { ActionMenu } from './components/game/ActionMenu';
+import { CharacterCreation } from './components/character/CharacterCreation';
 import { initStartingLocations } from './data/locations';
 import { useLocationStore } from './store/locationStore';
-import { motion, AnimatePresence } from 'motion/react';
+import { useGameStore } from './store/gameStore';
 
 function App() {
   const { locations } = useLocationStore();
+  const gamePhase = useGameStore((state) => state.phase);
   const [isReady, setIsReady] = React.useState(false);
 
   useEffect(() => {
@@ -26,6 +28,11 @@ function App() {
         <div className="text-amber-500 text-xl font-serif animate-pulse">Initializing Nirn...</div>
       </div>
     );
+  }
+
+  // Route based on GamePhase
+  if (gamePhase === 'creation') {
+     return <CharacterCreation />;
   }
 
   return (

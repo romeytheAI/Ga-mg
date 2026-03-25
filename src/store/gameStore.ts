@@ -8,7 +8,15 @@ export type GameTime = {
   minute: number;
 };
 
+export type PlayableRace = 'Altmer' | 'Argonian' | 'Bosmer' | 'Breton' | 'Dunmer' | 'Imperial' | 'Khajiit' | 'Nord' | 'Orc' | 'Redguard';
+export type Background = 'Prisoner' | 'Orphan' | 'Mage Apprentice' | 'Street Thief';
+export type GamePhase = 'creation' | 'playing' | 'gameover';
+
 export type PlayerStats = {
+  // Bio
+  race: PlayableRace;
+  background: Background;
+
   // Elder Scrolls Core Stats
   health: number;
   maxHealth: number;
@@ -42,6 +50,7 @@ export type ClothingItem = {
 };
 
 export type PlayerState = {
+  phase: GamePhase;
   stats: PlayerStats;
   clothing: Record<ClothingLayer, ClothingItem | null>;
   locationId: string;
@@ -50,10 +59,19 @@ export type PlayerState = {
 };
 
 export type GameActionState = PlayerState & {
+  // Initialization
+  startGame: (
+    race: PlayableRace,
+    background: Background,
+    startingLocationId: string,
+    statModifiers: Partial<PlayerStats>,
+    startingClothing: Record<ClothingLayer, ClothingItem | null>
+  ) => void;
+
   // Actions
   advanceTime: (minutes: number) => void;
-  modifyStat: (stat: keyof PlayerStats, amount: number) => void;
-  setStat: (stat: keyof PlayerStats, value: number) => void;
+  modifyStat: (stat: keyof Omit<PlayerStats, 'race' | 'background'>, amount: number) => void;
+  setStat: (stat: keyof Omit<PlayerStats, 'race' | 'background'>, value: number) => void;
   equipClothing: (item: ClothingItem) => void;
   damageClothing: (layer: ClothingLayer, amount: number) => void;
   removeClothing: (layer: ClothingLayer) => void;
@@ -70,10 +88,13 @@ const INITIAL_TIME: GameTime = {
 };
 
 const INITIAL_STATS: PlayerStats = {
+  race: 'Imperial', // Default before selection
+  background: 'Prisoner', // Default before selection
+
   health: 100, maxHealth: 100,
   magicka: 50, maxMagicka: 50,
   fatigue: 100, maxFatigue: 100,
-  septims: 15, // Starting out poor in Seyda Neen
+  septims: 0,
 
   arousal: 0, maxArousal: 10000,
   stress: 0, maxStress: 10000,
@@ -84,34 +105,10 @@ const INITIAL_STATS: PlayerStats = {
 
 const INITIAL_CLOTHING: Record<ClothingLayer, ClothingItem | null> = {
   over: null,
-  upper: {
-    id: 'common_shirt',
-    name: 'Common Shirt',
-    layer: 'upper',
-    integrity: 100,
-    maxIntegrity: 100,
-    exposure: 20,
-    description: 'A simple, rough-spun shirt common among the peasantry of Morrowind.',
-  },
-  lower: {
-    id: 'common_pants',
-    name: 'Common Pants',
-    layer: 'lower',
-    integrity: 100,
-    maxIntegrity: 100,
-    exposure: 20,
-    description: 'Sturdy, rough-spun pants.',
-  },
+  upper: null,
+  lower: null,
   under_upper: null,
-  under_lower: {
-    id: 'linen_undergarment',
-    name: 'Linen Undergarment',
-    layer: 'under_lower',
-    integrity: 50,
-    maxIntegrity: 50,
-    exposure: 10,
-    description: 'Basic linen undergarments.',
-  }
+  under_lower: null
 };
 
 const LATE_GAME_CORRUPTION_THRESHOLD = 5000;
@@ -120,11 +117,26 @@ const LATE_GAME_DAY_THRESHOLD = 30;
 // --- Store ---
 
 export const useGameStore = create<GameActionState>((set, get) => ({
+  phase: 'creation',
   stats: { ...INITIAL_STATS },
   clothing: { ...INITIAL_CLOTHING },
-  locationId: 'seyda_neen_docks',
+  locationId: '',
   time: { ...INITIAL_TIME },
   isLateGame: false,
+
+  startGame: (race, background, startingLocationId, statModifiers, startingClothing) => {
+    set((state) => ({
+      phase: 'playing',
+      locationId: startingLocationId,
+      clothing: startingClothing,
+      stats: {
+        ...state.stats,
+        race,
+        background,
+        ...statModifiers
+      }
+    }));
+  },
 
   advanceTime: (minutes: number) => {
     set((state) => {
@@ -151,7 +163,9 @@ export const useGameStore = create<GameActionState>((set, get) => ({
 
   modifyStat: (stat, amount) => {
     set((state) => {
-      let newValue = state.stats[stat] + amount;
+      // @ts-ignore - We ensure stat is a number key via Omit, but TS is finicky with dynamic index
+      const currentValue = state.stats[stat] as number;
+      let newValue = currentValue + amount;
 
       // Generic bounding based on max properties if they exist
       const maxProp = `max${stat.charAt(0).toUpperCase() + stat.slice(1)}` as keyof PlayerStats;

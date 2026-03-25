@@ -205,4 +205,163 @@ export const initStartingLocations = () => {
   addLocation(censusOffice);
   addLocation(arrillesTradehouse);
   addLocation(bitterCoastSwamp);
+
+  // --- Skyrim (Solitude Docks) ---
+  addLocation({
+    id: 'solitude_docks',
+    name: 'Solitude Docks (Skyrim)',
+    description: () => 'The biting cold of the Sea of Ghosts cuts right through your clothing. The towering stone arch of Solitude looms high above the bustling, icy docks.',
+    actions: [
+      {
+        label: 'Seek shelter from the cold',
+        description: 'Find a warm corner near a brazier.',
+        timeCost: 30,
+        onExecute: () => {
+          const game = useGameStore.getState();
+          game.modifyStat('fatigue', -20);
+          game.modifyStat('stress', -100);
+        }
+      }
+    ],
+    exits: []
+  });
+
+  // --- Cyrodiil (Imperial City Prison) ---
+  addLocation({
+    id: 'imperial_city_prison',
+    name: 'Imperial City Prison (Cyrodiil)',
+    description: () => 'A damp, dark cell in the heart of the Empire. The stone is cold, and the mocking laughter of guards echoes down the hall. A strange dark elf in the cell across from you mutters about the Nine.',
+    actions: [
+      {
+        label: 'Wait',
+        description: 'You can do little but wait for the Emperor.',
+        timeCost: 60,
+        onExecute: () => {
+          const game = useGameStore.getState();
+          game.modifyStat('stress', 500);
+          game.modifyStat('arousal', 50); // DoL isolation trope
+        }
+      }
+    ],
+    exits: []
+  });
+
+  // --- Black Marsh (Blackrose Prison) ---
+  addLocation({
+    id: 'blackrose_prison',
+    name: 'Blackrose Prison (Black Marsh)',
+    description: () => 'The smell of rot and misery is suffocating. This notorious prison in the heart of Murkmire is designed to break bodies and minds.',
+    actions: [
+      {
+        label: 'Endure',
+        description: 'Try to keep your sanity intact.',
+        timeCost: 120,
+        onExecute: () => {
+          const game = useGameStore.getState();
+          game.modifyStat('trauma', 200);
+          game.modifyStat('health', -5);
+        }
+      }
+    ],
+    exits: []
+  });
+
+  // --- Elsweyr (Senchal Slums) ---
+  addLocation({
+    id: 'senchal_slums',
+    name: 'Senchal Slums (Elsweyr)',
+    description: () => 'The air is thick with the sweet, cloying scent of moon sugar. Smugglers and addicts litter the alleys of this lawless port city.',
+    actions: [
+      {
+        label: 'Beg for scraps',
+        description: 'Degrading, but you might survive.',
+        timeCost: 60,
+        onExecute: () => {
+           const game = useGameStore.getState();
+           game.modifyStat('septims', 2);
+           game.modifyStat('stress', 300);
+        }
+      }
+    ],
+    exits: []
+  });
+
+  // --- Valenwood (Falinesti Roots) ---
+  addLocation({
+    id: 'falinesti_roots',
+    name: 'Falinesti Roots (Valenwood)',
+    description: () => 'You stand at the base of the Great Walking City. The massive roots of the graht-oak form natural, twisting caverns. The forest canopy above blocks out most of the sun.',
+    actions: [
+      {
+        label: 'Forage for bugs',
+        description: 'The Green Pact forbids eating plants. Bugs will have to do.',
+        timeCost: 60,
+        onExecute: () => {
+          const game = useGameStore.getState();
+          game.modifyStat('fatigue', -30);
+          game.modifyStat('stress', 100);
+        }
+      }
+    ],
+    exits: []
+  });
+
+  // --- Summerset Isles (Alinor Docks) ---
+  addLocation({
+    id: 'alinor_docks',
+    name: 'Alinor Docks (Summerset)',
+    description: () => 'The architecture is dizzying, made of glass and insect wings. The High Elves here look down upon you with undisguised contempt.',
+    actions: [
+      {
+        label: 'Try to look presentable',
+        description: 'Straighten your clothes to avoid drawing the guard\'s attention.',
+        timeCost: 15,
+        onExecute: () => {
+          const game = useGameStore.getState();
+          game.modifyStat('stress', 200);
+        }
+      }
+    ],
+    exits: []
+  });
+
+  // --- Hammerfell (Stros M'Kai Port) ---
+  addLocation({
+    id: 'stros_mkai_port',
+    name: 'Stros M\'Kai Port (Hammerfell)',
+    description: () => 'The harsh desert sun beats down on this haven for pirates and mercenaries. The air smells of spices and spilled blood.',
+    actions: [
+      {
+        label: 'Look for work',
+        description: 'See if any captain needs a deckhand.',
+        timeCost: 120,
+        onExecute: () => {
+          const game = useGameStore.getState();
+          game.modifyStat('fatigue', 50);
+          game.modifyStat('stress', 150);
+        }
+      }
+    ],
+    exits: []
+  });
+
+  // --- High Rock (Daggerfall Gates) ---
+  addLocation({
+    id: 'daggerfall_gates',
+    name: 'Daggerfall Gates (High Rock)',
+    description: () => 'The massive stone walls of Daggerfall stand before you. Nobles ride past on fine horses, ignoring the squalor outside the city walls.',
+    actions: [
+      {
+        label: 'Rest against the wall',
+        description: 'Catch your breath before entering.',
+        timeCost: 30,
+        onExecute: () => {
+          const game = useGameStore.getState();
+          game.modifyStat('fatigue', -20);
+        }
+      }
+    ],
+    exits: []
+  });
+
 };

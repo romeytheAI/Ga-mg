@@ -1,7 +1,7 @@
 import React from 'react';
 import { useGameStore } from '../../store/gameStore';
 import { StatBar } from '../ui/StatBar';
-import { Clock, Shield, Coins, AlertTriangle } from 'lucide-react';
+import { Clock, Shield, Coins, AlertTriangle, User } from 'lucide-react';
 
 export const Sidebar: React.FC = () => {
   const { stats, time, clothing, isLateGame } = useGameStore();
@@ -12,6 +12,15 @@ export const Sidebar: React.FC = () => {
 
   return (
     <div className="w-80 bg-slate-900 border-r border-slate-800 h-screen p-4 flex flex-col gap-6 overflow-y-auto text-slate-300">
+
+      {/* Identity & Bio */}
+      <div className="flex flex-col gap-1 p-3 bg-slate-950 rounded-lg border border-slate-800 shadow-md">
+         <div className="flex items-center gap-2 text-sm text-slate-400 font-bold uppercase tracking-wider mb-1">
+            <User size={14} /> Identity
+         </div>
+         <div className="text-lg text-amber-500 font-serif font-bold">{stats.race}</div>
+         <div className="text-xs text-slate-500 italic">{stats.background}</div>
+      </div>
 
       {/* Time & Wealth */}
       <div className="flex flex-col gap-2 p-4 bg-slate-950 rounded-lg border border-slate-800 shadow-md">
@@ -29,7 +38,7 @@ export const Sidebar: React.FC = () => {
         {isLateGame && (
           <div className="mt-2 text-xs font-bold text-purple-400 uppercase tracking-widest animate-pulse flex items-center gap-1">
              <AlertTriangle size={14} className="text-purple-500" />
-             The Blight Looms (Late Game)
+             The Blight Looms
           </div>
         )}
       </div>
@@ -59,7 +68,7 @@ export const Sidebar: React.FC = () => {
         {Object.entries(clothing).map(([layer, item]) => (
           item && (
             <div key={layer} className="bg-slate-950 p-3 rounded-md border border-slate-800 flex justify-between items-center group relative cursor-help">
-              <span className="text-sm font-medium text-slate-300 capitalize">{item.name} ({layer})</span>
+              <span className="text-sm font-medium text-slate-300 capitalize truncate w-32">{item.name}</span>
               <span className={`text-xs font-bold ${
                 item.integrity < 20 ? 'text-red-500 animate-pulse' :
                 item.integrity < 50 ? 'text-orange-500' : 'text-slate-400'
@@ -74,6 +83,8 @@ export const Sidebar: React.FC = () => {
                 <span className="text-slate-500">Integrity: {item.integrity}/{item.maxIntegrity}</span>
                 <br/>
                 <span className="text-slate-500">Exposure: {item.exposure}</span>
+                <br/>
+                <span className="text-slate-500 capitalize">Layer: {layer}</span>
               </div>
             </div>
           )
