@@ -1,6 +1,26 @@
-@import "tailwindcss";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-@theme {
-  --font-sans: 'Inter', system-ui, sans-serif;
-  --font-serif: 'Georgia', 'Times New Roman', serif;
+@layer utilities {
+  .scrollbar-thin {
+    scrollbar-width: thin;
+  }
+}
+
+@keyframes tearFall {
+  0% { transform: translateY(0); opacity: 0; }
+  20% { opacity: 1; }
+  80% { opacity: 1; }
+  100% { transform: translateY(15px); opacity: 0; }
+}
+
+@keyframes breathe {
+  0% { transform: scale(1, 1); }
+  50% { transform: scale(1.02, 1.05); }
+  100% { transform: scale(1, 1); }
+}
+
+.animate-breathe {
+  animation: breathe 3s ease-in-out infinite;
 }
