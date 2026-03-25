@@ -169,6 +169,13 @@ export const DoLStatsSidebar: React.FC<DoLStatsSidebarProps> = ({
           color="bg-yellow-700"
           invert pulseHigh
         />
+        {stats.hallucination > 0 && (
+          <StatBar
+            label="Hallucination" value={stats.hallucination}
+            color="bg-fuchsia-800"
+            invert pulseHigh
+          />
+        )}
         {stats.pain > 0 && (
           <StatBar
             label="Pain" value={stats.pain}
