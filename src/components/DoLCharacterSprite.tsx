@@ -294,13 +294,15 @@ export const DoLCharacterSprite: React.FC<DoLCharacterSpriteProps> = ({ state, c
   const hasDebuff      = (type: string) => encounter?.debuffs?.some(d => d.type === type) ?? false;
 
   // Map combat_animation to CSS class
-  const combatAnimClass = combatAnim === 'attack' ? 'sprite-attack-lunge'
-    : combatAnim === 'special_attack' ? 'sprite-special-attack'
-    : combatAnim === 'dodge' ? 'sprite-dodge'
-    : combatAnim === 'spellcast' ? 'sprite-spellcast'
-    : combatAnim === 'lust_action' ? 'sprite-submit'
-    : combatAnim === 'parry' ? 'sprite-parry'
-    : '';
+  const COMBAT_ANIM_CLASSES: Record<string, string> = {
+    attack: 'sprite-attack-lunge',
+    special_attack: 'sprite-special-attack',
+    dodge: 'sprite-dodge',
+    spellcast: 'sprite-spellcast',
+    lust_action: 'sprite-submit',
+    parry: 'sprite-parry',
+  };
+  const combatAnimClass = combatAnim ? COMBAT_ANIM_CLASSES[combatAnim] || '' : '';
 
   // Stance CSS class (persistent posture during encounter)
   const stanceClass = inEncounter
@@ -1469,7 +1471,7 @@ export const DoLCharacterSprite: React.FC<DoLCharacterSpriteProps> = ({ state, c
 
         {/* ── ENCOUNTER: HIT FLASH EFFECT ── */}
         {combatAnim === 'parry' && (
-          <rect x="0" y="0" width="100" height="225" fill="rgba(255,255,255,0.08)" />
+          <rect x="0" y="0" width={svgW} height={svgH} fill="rgba(255,255,255,0.08)" />
         )}
 
         </g>{/* ── END BODY ANIMATION WRAPPER ── */}
