@@ -193,6 +193,348 @@
     100% { filter: brightness(1.00) saturate(1.00); }
   }
 
+  /* ═══════════════════════════════════════════════════════════════════
+     DoL-parity sprite animations
+     ═══════════════════════════════════════════════════════════════════ */
+
+  /* Idle breathing – subtle torso rise/fall */
+  @keyframes sprite-breathe {
+    0%, 100% { transform: translateY(0); }
+    50%      { transform: translateY(-0.6px); }
+  }
+  .sprite-breathe {
+    animation: sprite-breathe 3.2s ease-in-out infinite;
+  }
+
+  /* Eye blink – squash eyelids shut briefly */
+  @keyframes sprite-blink {
+    0%, 92%, 100% { transform: scaleY(1); }
+    95%           { transform: scaleY(0.08); }
+  }
+  .sprite-blink {
+    transform-origin: center;
+    animation: sprite-blink 4.5s ease-in-out infinite;
+  }
+
+  /* Second blink track offset so the two eyes can share a stagger */
+  .sprite-blink-b {
+    transform-origin: center;
+    animation: sprite-blink 4.5s ease-in-out 0.06s infinite;
+  }
+
+  /* Hair sway – gentle side-to-side */
+  @keyframes sprite-hair-sway {
+    0%, 100% { transform: rotate(0deg); }
+    25%      { transform: rotate(0.8deg); }
+    75%      { transform: rotate(-0.8deg); }
+  }
+  .sprite-hair-sway {
+    transform-origin: top center;
+    animation: sprite-hair-sway 4.8s ease-in-out infinite;
+  }
+
+  /* Tail wag – Khajiit/Argonian idle tail movement */
+  @keyframes sprite-tail-wag {
+    0%, 100% { transform: rotate(0deg); }
+    30%      { transform: rotate(5deg); }
+    70%      { transform: rotate(-4deg); }
+  }
+  .sprite-tail-wag {
+    transform-origin: left top;
+    animation: sprite-tail-wag 3s ease-in-out infinite;
+  }
+
+  /* Ear twitch – cat / elf ears */
+  @keyframes sprite-ear-twitch {
+    0%, 88%, 100% { transform: scaleY(1) rotate(0deg); }
+    91%           { transform: scaleY(0.92) rotate(-3deg); }
+    94%           { transform: scaleY(1.04) rotate(2deg); }
+  }
+  .sprite-ear-twitch-l {
+    transform-origin: bottom right;
+    animation: sprite-ear-twitch 5.5s ease-in-out infinite;
+  }
+  .sprite-ear-twitch-r {
+    transform-origin: bottom left;
+    animation: sprite-ear-twitch 5.5s ease-in-out 0.15s infinite;
+  }
+
+  /* Arousal tremble – body shiver */
+  @keyframes sprite-arousal-tremble {
+    0%, 100% { transform: translate(0, 0); }
+    10%      { transform: translate(0.4px, 0); }
+    20%      { transform: translate(-0.3px, 0.2px); }
+    30%      { transform: translate(0.2px, -0.2px); }
+    40%      { transform: translate(-0.4px, 0); }
+    50%      { transform: translate(0.3px, 0.1px); }
+    60%      { transform: translate(-0.2px, -0.1px); }
+    70%      { transform: translate(0.4px, 0); }
+    80%      { transform: translate(-0.3px, 0.2px); }
+    90%      { transform: translate(0.2px, -0.2px); }
+  }
+  .sprite-arousal-tremble {
+    animation: sprite-arousal-tremble 0.35s linear infinite;
+  }
+
+  /* Pain flinch – jolt to the side */
+  @keyframes sprite-pain-flinch {
+    0%, 85%, 100% { transform: translate(0, 0) rotate(0deg); }
+    88%           { transform: translate(-1.5px, -1px) rotate(-1.5deg); }
+    92%           { transform: translate(1px, 0.5px) rotate(1deg); }
+  }
+  .sprite-pain-flinch {
+    animation: sprite-pain-flinch 3.5s ease-in-out infinite;
+  }
+
+  /* Drip animation – liquid drop falling */
+  @keyframes sprite-drip {
+    0%   { transform: translateY(0); opacity: 0.6; }
+    80%  { transform: translateY(8px); opacity: 0.4; }
+    100% { transform: translateY(12px); opacity: 0; }
+  }
+  .sprite-drip {
+    animation: sprite-drip 2.2s ease-in infinite;
+  }
+  .sprite-drip-delay {
+    animation: sprite-drip 2.2s ease-in 1.1s infinite;
+  }
+
+  /* Sweat drop fall */
+  @keyframes sprite-sweat-fall {
+    0%   { transform: translateY(0); opacity: 0.35; }
+    70%  { transform: translateY(6px); opacity: 0.2; }
+    100% { transform: translateY(10px); opacity: 0; }
+  }
+  .sprite-sweat-fall {
+    animation: sprite-sweat-fall 1.8s ease-in infinite;
+  }
+  .sprite-sweat-fall-b {
+    animation: sprite-sweat-fall 1.8s ease-in 0.9s infinite;
+  }
+
+  /* Heart pulse overlay */
+  @keyframes sprite-heart-pulse {
+    0%, 100% { transform: scale(1); opacity: 0.6; }
+    15%      { transform: scale(1.25); opacity: 0.85; }
+    30%      { transform: scale(1); opacity: 0.6; }
+    45%      { transform: scale(1.18); opacity: 0.78; }
+    60%      { transform: scale(1); opacity: 0.6; }
+  }
+  .sprite-heart-pulse {
+    transform-origin: center;
+    animation: sprite-heart-pulse 1.4s ease-in-out infinite;
+  }
+
+  /* Corruption tendril writhe */
+  @keyframes sprite-tendril-writhe {
+    0%, 100% { d: path("M 0,0 Q 5,-8 2,-18 Q -1,-28 3,-38"); }
+    33%      { d: path("M 0,0 Q -4,-10 1,-20 Q 4,-30 -2,-38"); }
+    66%      { d: path("M 0,0 Q 6,-9 -1,-19 Q -3,-29 2,-38"); }
+  }
+  .sprite-tendril {
+    animation: sprite-tendril-writhe 4s ease-in-out infinite;
+  }
+
+  /* Corruption aura pulse */
+  @keyframes sprite-corruption-pulse {
+    0%, 100% { opacity: 0.12; }
+    50%      { opacity: 0.28; }
+  }
+  .sprite-corruption-pulse {
+    animation: sprite-corruption-pulse 2.5s ease-in-out infinite;
+  }
+
+  /* Clothing flutter – torn clothing wave */
+  @keyframes sprite-cloth-flutter {
+    0%, 100% { transform: skewX(0deg); }
+    25%      { transform: skewX(0.6deg); }
+    75%      { transform: skewX(-0.6deg); }
+  }
+  .sprite-cloth-flutter {
+    transform-origin: top center;
+    animation: sprite-cloth-flutter 3.5s ease-in-out infinite;
+  }
+
+  /* Bust bounce – subtle bounce on movement */
+  @keyframes sprite-bust-bounce {
+    0%, 100% { transform: translateY(0); }
+    40%      { transform: translateY(0.5px); }
+    60%      { transform: translateY(-0.3px); }
+  }
+  .sprite-bust-bounce {
+    transform-origin: center top;
+    animation: sprite-bust-bounce 3.2s ease-in-out infinite;
+  }
+
+  /* Whisker twitch for Khajiit */
+  @keyframes sprite-whisker-twitch {
+    0%, 85%, 100% { transform: rotate(0deg); }
+    90%           { transform: rotate(2deg); }
+    95%           { transform: rotate(-1deg); }
+  }
+  .sprite-whisker-twitch-l {
+    transform-origin: right center;
+    animation: sprite-whisker-twitch 6s ease-in-out infinite;
+  }
+  .sprite-whisker-twitch-r {
+    transform-origin: left center;
+    animation: sprite-whisker-twitch 6s ease-in-out 0.3s infinite;
+  }
+
+  /* ═══════════════════════════════════════════════════════════════════
+     DoL-parity encounter / combat sprite animations
+     ═══════════════════════════════════════════════════════════════════ */
+
+  /* Attack lunge – quick forward thrust */
+  @keyframes sprite-attack-lunge {
+    0%   { transform: translate(0, 0) rotate(0deg); }
+    25%  { transform: translate(3px, -2px) rotate(-2deg); }
+    50%  { transform: translate(-1px, 1px) rotate(1deg); }
+    100% { transform: translate(0, 0) rotate(0deg); }
+  }
+  .sprite-attack-lunge {
+    animation: sprite-attack-lunge 0.4s ease-out;
+  }
+
+  /* Special attack – heavier strike with recoil */
+  @keyframes sprite-special-attack {
+    0%   { transform: translate(0, 0) scale(1) rotate(0deg); }
+    15%  { transform: translate(-2px, -1px) scale(1.03) rotate(-3deg); }
+    35%  { transform: translate(5px, -3px) scale(0.98) rotate(2deg); }
+    60%  { transform: translate(-1px, 1px) scale(1.01) rotate(-1deg); }
+    100% { transform: translate(0, 0) scale(1) rotate(0deg); }
+  }
+  .sprite-special-attack {
+    animation: sprite-special-attack 0.55s ease-out;
+  }
+
+  /* Dodge / escape – quick sidestep */
+  @keyframes sprite-dodge {
+    0%   { transform: translate(0, 0); }
+    30%  { transform: translate(-6px, -3px); }
+    60%  { transform: translate(-4px, -1px); }
+    100% { transform: translate(0, 0); }
+  }
+  .sprite-dodge {
+    animation: sprite-dodge 0.5s ease-in-out;
+  }
+
+  /* Spellcast / seduce – glow pulse upward */
+  @keyframes sprite-spellcast {
+    0%   { transform: translateY(0) scale(1); filter: brightness(1); }
+    40%  { transform: translateY(-2px) scale(1.02); filter: brightness(1.15); }
+    100% { transform: translateY(0) scale(1); filter: brightness(1); }
+  }
+  .sprite-spellcast {
+    animation: sprite-spellcast 0.6s ease-in-out;
+  }
+
+  /* Lust / submit action – slow sink with flush */
+  @keyframes sprite-submit {
+    0%   { transform: translateY(0) scale(1); }
+    40%  { transform: translateY(2px) scale(0.98); }
+    70%  { transform: translateY(1px) scale(0.99); }
+    100% { transform: translateY(0) scale(1); }
+  }
+  .sprite-submit {
+    animation: sprite-submit 0.7s ease-in-out;
+  }
+
+  /* Parry / block – brace and recoil */
+  @keyframes sprite-parry {
+    0%   { transform: translate(0, 0) scaleX(1); }
+    30%  { transform: translate(1px, 1px) scaleX(0.97); }
+    60%  { transform: translate(-1px, 0) scaleX(1.02); }
+    100% { transform: translate(0, 0) scaleX(1); }
+  }
+  .sprite-parry {
+    animation: sprite-parry 0.35s ease-out;
+  }
+
+  /* Hit received – flash and stagger */
+  @keyframes sprite-hit-received {
+    0%   { transform: translate(0, 0); filter: brightness(1); }
+    15%  { transform: translate(2px, 0); filter: brightness(2); }
+    30%  { transform: translate(-2px, 1px); filter: brightness(0.8); }
+    50%  { transform: translate(1px, -1px); filter: brightness(1.2); }
+    100% { transform: translate(0, 0); filter: brightness(1); }
+  }
+  .sprite-hit-received {
+    animation: sprite-hit-received 0.45s ease-out;
+  }
+
+  /* Defensive stance – slight crouch */
+  .sprite-stance-defensive {
+    transform: translateY(1.5px) scaleY(0.98);
+  }
+
+  /* Aggressive stance – lean forward */
+  .sprite-stance-aggressive {
+    transform: translateX(1px) translateY(-1px) rotate(-1deg);
+  }
+
+  /* Submissive stance – shrink down */
+  .sprite-stance-submissive {
+    transform: translateY(3px) scaleY(0.96) scaleX(0.98);
+  }
+
+  /* Struggle animation – frantic shaking */
+  @keyframes sprite-struggle {
+    0%, 100% { transform: translate(0, 0) rotate(0deg); }
+    12%      { transform: translate(-1.5px, 0.5px) rotate(-1deg); }
+    25%      { transform: translate(1.5px, -0.5px) rotate(1deg); }
+    37%      { transform: translate(-1px, 0) rotate(-0.5deg); }
+    50%      { transform: translate(1px, 0.5px) rotate(0.5deg); }
+    62%      { transform: translate(-1.5px, -0.5px) rotate(-1deg); }
+    75%      { transform: translate(1px, 0) rotate(0.5deg); }
+    87%      { transform: translate(-0.5px, 0.5px) rotate(-0.3deg); }
+  }
+  .sprite-struggle {
+    animation: sprite-struggle 0.6s ease-in-out infinite;
+  }
+
+  /* Restrained / pinned – compressed posture with subtle strain */
+  @keyframes sprite-restrained {
+    0%, 100% { transform: scaleY(0.95) scaleX(0.97) translateY(2px); }
+    50%      { transform: scaleY(0.96) scaleX(0.96) translateY(2.5px); }
+  }
+  .sprite-restrained {
+    animation: sprite-restrained 2s ease-in-out infinite;
+  }
+
+  /* Targeted body part highlight pulse */
+  @keyframes sprite-target-pulse {
+    0%, 100% { opacity: 0.3; }
+    50%      { opacity: 0.7; }
+  }
+  .sprite-target-pulse {
+    animation: sprite-target-pulse 0.8s ease-in-out infinite;
+  }
+
+  /* Encounter danger aura – red pulsing border glow */
+  @keyframes sprite-danger-aura {
+    0%, 100% { filter: drop-shadow(0 0 3px rgba(255, 40, 40, 0.2)); }
+    50%      { filter: drop-shadow(0 0 8px rgba(255, 40, 40, 0.5)); }
+  }
+  .sprite-danger-aura {
+    animation: sprite-danger-aura 1.5s ease-in-out infinite;
+  }
+
+  /* Debuff visual – slowed (blue tint) */
+  .sprite-debuff-slowed {
+    filter: hue-rotate(180deg) saturate(0.7);
+    animation: sprite-debuff-slow-pulse 2s ease-in-out infinite;
+  }
+  @keyframes sprite-debuff-slow-pulse {
+    0%, 100% { filter: hue-rotate(180deg) saturate(0.7) brightness(1); }
+    50%      { filter: hue-rotate(180deg) saturate(0.8) brightness(1.05); }
+  }
+
+  /* Debuff visual – weakened (desaturated) */
+  .sprite-debuff-weakened {
+    filter: saturate(0.5) brightness(0.9);
+  }
+
   /* DoL racial name badge colors */
   .race-badge-nord       { color: #a0c8f0; border-color: #3860a0; }
   .race-badge-imperial   { color: #d4a870; border-color: #8a6030; }

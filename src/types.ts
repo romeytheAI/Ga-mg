@@ -84,6 +84,49 @@ export interface Anatomy {
   };
 }
 
+export interface CosmeticScar {
+  location: 'face' | 'chest' | 'abdomen' | 'back' | 'arms' | 'legs' | 'neck';
+  type?: 'slash' | 'burn' | 'puncture' | 'brand';
+}
+
+export interface CosmeticTattoo {
+  location: 'face' | 'chest' | 'abdomen' | 'back' | 'arms' | 'legs' | 'neck' | 'shoulder';
+  design?: string;
+  color?: string;
+}
+
+export interface CosmeticPiercing {
+  location: 'ear_left' | 'ear_right' | 'nose' | 'lip' | 'navel' | 'nipple_left' | 'nipple_right' | 'eyebrow' | 'tongue';
+}
+
+export interface Cosmetics {
+  hair_length: string;
+  hair_color: string;
+  eye_color: string;
+  skin_tone: string;
+  tattoos: (string | CosmeticTattoo)[];
+  piercings: (string | CosmeticPiercing)[];
+  posture: string;
+  scars: (string | CosmeticScar)[];
+  voice_pitch: string;
+  scent: string;
+  literacy: boolean;
+  dominant_hand: string;
+  resting_hr: number;
+  blushing: boolean;
+  body_mods: string[];
+  true_name: string;
+  freckles?: boolean;
+  tan_lines?: boolean;
+  makeup?: {
+    lipstick?: string;
+    eyeliner?: boolean;
+    blush_cosmetic?: boolean;
+    eyeshadow?: string;
+  };
+  body_writing?: { text: string; location: 'chest' | 'abdomen' | 'thigh' | 'arm' | 'back' }[];
+}
+
 export interface LifeSim {
   needs: {
     hunger: number;
@@ -190,7 +233,7 @@ export interface GameState {
     psychology: any,
     perks_flaws: any,
     social: any,
-    cosmetics: any,
+    cosmetics: Cosmetics,
     arcane: any,
     justice: any,
     companions: { active_party: Companion[], roster: Companion[], max_encumbrance_bonus: number },
