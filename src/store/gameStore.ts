@@ -8,12 +8,15 @@ export type GameTime = {
   minute: number;
 };
 
+export type Gender = "Male" | "Female";
+
 export type PlayableRace = 'Altmer' | 'Argonian' | 'Bosmer' | 'Breton' | 'Dunmer' | 'Imperial' | 'Khajiit' | 'Nord' | 'Orc' | 'Redguard';
 export type Background = 'Prisoner' | 'Orphan' | 'Mage Apprentice' | 'Street Thief';
 export type GamePhase = 'creation' | 'playing' | 'encounter' | 'shop' | 'gameover';
 
 export type PlayerStats = {
   // Bio
+  gender: Gender;
   race: PlayableRace;
   background: Background;
 
@@ -99,6 +102,7 @@ export type PlayerState = {
 export type GameActionState = PlayerState & {
   // Initialization
   startGame: (
+    gender: Gender,
     race: PlayableRace,
     background: Background,
     startingLocationId: string,
@@ -144,6 +148,7 @@ const INITIAL_TIME: GameTime = {
 };
 
 const INITIAL_STATS: PlayerStats = {
+  gender: 'Female',
   race: 'Imperial',
   background: 'Prisoner',
 
@@ -184,13 +189,14 @@ export const useGameStore = create<GameActionState>((set, get) => ({
   activeShopId: null,
   log: [],
 
-  startGame: (race, background, startingLocationId, statModifiers, startingClothing) => {
+  startGame: (gender, race, background, startingLocationId, statModifiers, startingClothing) => {
     set((state) => ({
       phase: 'playing',
       locationId: startingLocationId,
       clothing: startingClothing,
       stats: {
         ...state.stats,
+        gender,
         race,
         background,
         ...statModifiers

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { useGameStore, PlayableRace, Background, ClothingLayer, ClothingItem } from '../../store/gameStore';
+import { useGameStore, PlayableRace, Background, ClothingLayer, ClothingItem, Gender } from '../../store/gameStore';
 import { Shield, Coins, Brain, Flame, Skull } from 'lucide-react';
 
 const RACES: { id: PlayableRace; desc: string; mods: any }[] = [
@@ -81,6 +81,7 @@ const PROVINCES: { name: string; id: string; desc: string; startNode: string }[]
 
 export const CharacterCreation: React.FC = () => {
   const [step, setStep] = useState(1);
+  const [gender, setGender] = useState<Gender>('Female');
   const [race, setRace] = useState<PlayableRace>('Imperial');
   const [bg, setBg] = useState<Background>('Prisoner');
   const [province, setProvince] = useState(PROVINCES[0]);
@@ -98,6 +99,7 @@ export const CharacterCreation: React.FC = () => {
     }
 
     startGame(
+      gender,
       race,
       bg,
       province.startNode,
@@ -148,7 +150,21 @@ export const CharacterCreation: React.FC = () => {
                 {/* STEP 1: RACE */}
                 {step === 1 && (
                   <motion.div key="step1" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="flex-1 flex flex-col">
-                    <h2 className="text-2xl font-serif text-slate-100 border-b border-slate-800 pb-2 mb-6">Select Heritage</h2>
+
+                    <h2 className="text-2xl font-serif text-slate-100 border-b border-slate-800 pb-2 mb-4">Select Gender</h2>
+                    <div className="grid grid-cols-2 gap-3 mb-8">
+                      {['Female', 'Male'].map(g => (
+                        <button
+                          key={g}
+                          onClick={() => setGender(g as Gender)}
+                          className={`p-3 text-center rounded border transition-all ${gender === g ? 'bg-amber-900/30 border-amber-500 shadow-[0_0_15px_rgba(245,158,11,0.2)]' : 'bg-slate-950 border-slate-800 hover:border-slate-600'}`}
+                        >
+                          <div className="font-bold text-slate-200">{g}</div>
+                        </button>
+                      ))}
+                    </div>
+
+                    <h2 className="text-2xl font-serif text-slate-100 border-b border-slate-800 pb-2 mb-4">Select Heritage</h2>
                     <div className="grid grid-cols-2 gap-3 overflow-y-auto pr-2 max-h-[300px] scrollbar-thin scrollbar-thumb-slate-700">
                       {RACES.map(r => (
                         <button

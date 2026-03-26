@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { useGameStore } from './store/gameStore';
-import { CharacterCreation } from './components/CharacterCreation';
+import { CharacterCreation } from './components/character/CharacterCreation';
 import { Play } from './components/Play';
 
 function App() {
