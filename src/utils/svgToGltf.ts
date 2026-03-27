@@ -271,11 +271,11 @@ function buildSkeletonNodes(s: SpriteState): GltfNode[] {
 
 function toBase64(arr: ArrayBuffer): string {
   const bytes = new Uint8Array(arr);
-  let binary = '';
-  for (let i = 0; i < bytes.length; i++) {
-    binary += String.fromCharCode(bytes[i]);
+  const chunks: string[] = [];
+  for (let i = 0; i < bytes.length; i += 8192) {
+    chunks.push(String.fromCharCode(...bytes.subarray(i, i + 8192)));
   }
-  return btoa(binary);
+  return btoa(chunks.join(''));
 }
 
 function buildGltfJson(meshes: MeshData[], skeletonNodes: GltfNode[]): object {
@@ -412,7 +412,7 @@ function buildGltfJson(meshes: MeshData[], skeletonNodes: GltfNode[]): object {
   return {
     asset: {
       version: '2.0',
-      generator: 'Aetherius SVG-to-glTF Converter',
+      generator: 'DoL SVG-to-glTF Converter',
     },
     scene: 0,
     scenes: [

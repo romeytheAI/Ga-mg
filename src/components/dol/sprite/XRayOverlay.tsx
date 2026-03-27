@@ -218,7 +218,8 @@ export const XRayOverlay: React.FC<XRayOverlayProps> = ({ geom, s, isFemale, org
 
       {/* ── Brain (uses average organ health as proxy since no dedicated brain field) ── */}
       {(() => {
-        const brainHealth = Math.round((organs.heart + organs.lungs + organs.stomach + organs.liver + organs.kidneys) / 5);
+        const organValues = Object.values(organs);
+        const brainHealth = Math.round(organValues.reduce((sum, v) => sum + v, 0) / organValues.length);
         return (
           <>
             <ellipse cx={cx} cy={s.headCY - 2} rx={geom.headRX * 0.5} ry={geom.headRY * 0.45}
