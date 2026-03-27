@@ -96,6 +96,7 @@ export type PlayerState = {
   isLateGame: boolean;
   activeEncounter: ActiveEncounter | null;
   activeShopId: string | null;
+  xrayMode: boolean;
   log: LogMessage[];
 };
 
@@ -136,6 +137,7 @@ export type GameActionState = PlayerState & {
 
   // Shops
   openShop: (shopId: string) => void;
+  toggleXray: () => void;
   closeShop: () => void;
 };
 
@@ -186,6 +188,7 @@ export const useGameStore = create<GameActionState>((set, get) => ({
   time: { ...INITIAL_TIME },
   isLateGame: false,
   activeEncounter: null,
+  xrayMode: false,
   activeShopId: null,
   log: [],
 
@@ -394,6 +397,10 @@ export const useGameStore = create<GameActionState>((set, get) => ({
 
   closeShop: () => {
     set({ phase: 'playing', activeShopId: null });
+  },
+
+  toggleXray: () => {
+    set((state) => ({ xrayMode: !state.xrayMode }));
   },
 
   checkLimits: () => {

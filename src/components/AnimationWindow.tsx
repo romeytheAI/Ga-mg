@@ -3,7 +3,7 @@ import { useGameStore, ClothingLayer } from '../store/gameStore';
 import { SvgPlayerModel } from './model/SvgBodyLayers';
 
 export const AnimationWindow: React.FC = () => {
-  const { stats, clothing } = useGameStore();
+  const { stats, clothing, xrayMode, toggleXray } = useGameStore();
 
   // Calculate total exposure
   let exposedValue = 0;
@@ -34,7 +34,7 @@ export const AnimationWindow: React.FC = () => {
 
        {/* Full Body SVG Layer System */}
        <div className="flex-1 relative z-10 p-2">
-          <SvgPlayerModel stats={stats} clothing={clothing} />
+          <SvgPlayerModel stats={stats} clothing={clothing} xrayMode={xrayMode} />
        </div>
 
        {/* UI Feedback Overlay */}
@@ -47,12 +47,26 @@ export const AnimationWindow: React.FC = () => {
           </span>
        </div>
 
+
+       {/* X-Ray Toggle Button */}
+       <button
+         onClick={toggleXray}
+         className={`absolute top-2 left-2 z-40 px-2 py-1 text-xs font-bold rounded border transition-all ${
+            xrayMode
+              ? 'bg-pink-500/80 text-white border-pink-300 shadow-[0_0_10px_#ec4899]'
+              : 'bg-stone-800/50 text-stone-400 border-stone-600 hover:bg-stone-700/50'
+         }`}
+       >
+         X-RAY
+       </button>
+
        {/* Corner Status Indicators */}
+
        {stats.hallucination > 0 && (
          <div className="absolute top-2 right-2 text-pink-500 animate-pulse text-2xl z-30 pointer-events-none">✨</div>
        )}
        {isCorrupted && (
-         <div className="absolute top-2 left-2 text-indigo-500 animate-pulse text-2xl z-30 pointer-events-none">👁️</div>
+         <div className="absolute bottom-10 left-2 text-indigo-500 animate-pulse text-2xl z-30 pointer-events-none">👁️</div>
        )}
     </div>
   );
