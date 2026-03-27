@@ -24,6 +24,22 @@ export const SvgPlayerModel: React.FC<ModelProps> = ({ stats, clothing, xrayMode
   const isBleeding = stats.health < stats.maxHealth * 0.2;
   const isCorrupted = stats.corruption > 1000;
 
+  // Race-specific features
+  const isElf = race === 'Altmer' || race === 'Bosmer' || race === 'Dunmer';
+  const isKhajiit = race === 'Khajiit';
+  const isArgonian = race === 'Argonian';
+  const isOrc = race === 'Orc';
+  const hasPointedEars = isElf;
+  const hasCatEars = isKhajiit;
+  const hasFinEars = isArgonian;
+  const hasHorns = isArgonian || isOrc;
+  const hasTusks = isOrc;
+  const hasWhiskers = isKhajiit;
+  const hasTail = isKhajiit || isArgonian;
+
+  // Blush color derived from race
+  const blushColor = isArgonian ? '#4AA87A' : isKhajiit ? '#E8A070' : isOrc ? '#88B854' : '#E88888';
+
   // Eyebrows
   let leftBrow = "M 64 46 Q 72 42 84 48";
   let rightBrow = "M 136 46 Q 128 42 116 48";
@@ -152,6 +168,86 @@ export const SvgPlayerModel: React.FC<ModelProps> = ({ stats, clothing, xrayMode
              <stop offset="100%" stopColor="#000000" stopOpacity="0" />
           </radialGradient>
 
+          {/* --- HEAD GRADIENT --- */}
+          <radialGradient id="head-grad" cx="50%" cy="35%" r="65%" fx="50%" fy="25%">
+            <stop offset="0%" stopColor={colors.highLight} />
+            <stop offset="20%" stopColor={colors.midHighlight} />
+            <stop offset="55%" stopColor={colors.base} />
+            <stop offset="85%" stopColor={colors.shadow} />
+            <stop offset="100%" stopColor={colors.deepShadow} />
+          </radialGradient>
+
+          {/* --- HAND GRADIENT --- */}
+          <radialGradient id="hand-grad" cx="50%" cy="40%" r="65%">
+            <stop offset="0%" stopColor={colors.midHighlight} />
+            <stop offset="50%" stopColor={colors.base} />
+            <stop offset="100%" stopColor={colors.shadow} />
+          </radialGradient>
+
+          {/* --- FOOT GRADIENT --- */}
+          <radialGradient id="foot-grad" cx="50%" cy="30%" r="70%">
+            <stop offset="0%" stopColor={colors.midHighlight} />
+            <stop offset="50%" stopColor={colors.base} />
+            <stop offset="100%" stopColor={colors.shadow} />
+          </radialGradient>
+
+          {/* --- EAR GRADIENT --- */}
+          <radialGradient id="ear-inner" cx="50%" cy="50%" r="60%">
+            <stop offset="0%" stopColor={colors.deepShadow} />
+            <stop offset="60%" stopColor={colors.shadow} />
+            <stop offset="100%" stopColor={colors.base} />
+          </radialGradient>
+
+          {/* --- HAIR GRADIENT --- */}
+          <linearGradient id="hair-grad" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stopColor={colors.hairBase} />
+            <stop offset="40%" stopColor={colors.hairBase} />
+            <stop offset="100%" stopColor={colors.hairShadow} />
+          </linearGradient>
+          <radialGradient id="hair-shine" cx="45%" cy="25%" r="50%">
+            <stop offset="0%" stopColor={colors.highLight} stopOpacity="0.35" />
+            <stop offset="100%" stopColor={colors.highLight} stopOpacity="0" />
+          </radialGradient>
+
+          {/* --- CLOTHING GRADIENTS (dynamic per item) --- */}
+          {Object.entries(clothingColors).map(([id, c]) => (
+            <linearGradient key={id} id={`cloth-grad-${id}`} x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor={c.highlight} />
+              <stop offset="25%" stopColor={c.base} />
+              <stop offset="75%" stopColor={c.shadow} />
+              <stop offset="100%" stopColor={c.deepShadow} />
+            </linearGradient>
+          ))}
+
+          {/* --- TEAR / DAMAGE MASKS --- */}
+          <mask id="light-tear-mask">
+            <rect width="200" height="500" fill="white" />
+            <ellipse cx="80" cy="200" rx="6" ry="10" fill="black" />
+            <ellipse cx="130" cy="350" rx="8" ry="5" fill="black" />
+            <ellipse cx="110" cy="180" rx="4" ry="7" fill="black" />
+          </mask>
+          <mask id="heavy-tear-mask">
+            <rect width="200" height="500" fill="white" />
+            <ellipse cx="75" cy="180" rx="10" ry="14" fill="black" />
+            <ellipse cx="130" cy="220" rx="12" ry="8" fill="black" />
+            <ellipse cx="90" cy="340" rx="8" ry="12" fill="black" />
+            <ellipse cx="120" cy="380" rx="10" ry="6" fill="black" />
+            <ellipse cx="105" cy="160" rx="6" ry="10" fill="black" />
+            <path d="M 85 300 L 90 310 L 80 315 Z" fill="black" />
+          </mask>
+
+          {/* --- RIM LIGHT FILTER --- */}
+          <filter id="rim-light" x="-10%" y="-10%" width="120%" height="120%">
+            <feGaussianBlur in="SourceAlpha" stdDeviation="1.5" result="blur" />
+            <feOffset in="blur" dx="-1" dy="0" result="offsetBlur" />
+            <feFlood floodColor={colors.highLight} floodOpacity="0.3" result="color" />
+            <feComposite in="color" in2="offsetBlur" operator="in" result="rimGlow" />
+            <feMerge>
+              <feMergeNode in="rimGlow" />
+              <feMergeNode in="SourceGraphic" />
+            </feMerge>
+          </filter>
+
           {/* --- HIGH FIDELITY GRADIENTS --- */}
 
           {/* Torso Cylinder/Sphere Mapping */}
@@ -246,18 +342,74 @@ export const SvgPlayerModel: React.FC<ModelProps> = ({ stats, clothing, xrayMode
 
         <g id="model" className="animate-breathe origin-bottom">
 
+           {/* --- TAIL (behind body for Khajiit/Argonian) --- */}
+           {hasTail && (
+             <g id="tail" opacity="0.9">
+               {isKhajiit ? (
+                 <path d={`M 105 290 Q 140 310 150 350 Q 155 380 145 400`}
+                   fill="none" stroke={colors.base} strokeWidth="5" strokeLinecap="round" />
+               ) : (
+                 <path d={`M 105 290 Q 135 305 140 340 Q 142 365 135 385`}
+                   fill="none" stroke={colors.base} strokeWidth="7" strokeLinecap="round" />
+               )}
+               {/* Tail shadow */}
+               <path d={isKhajiit
+                 ? `M 106 292 Q 142 312 152 352 Q 157 382 147 402`
+                 : `M 106 292 Q 137 307 142 342 Q 144 367 137 387`}
+                 fill="none" stroke={colors.deepShadow} strokeWidth="3" strokeLinecap="round" opacity="0.4" filter="url(#blur-sm)" />
+             </g>
+           )}
+
            {/* --- ARMS --- */}
            {/* Left Arm */}
-           <g id="arm-l">
+           <g id="arm-l" filter="url(#rim-light)">
               {/* Shoulder/Deltoid */}
               <path d="M 64 110 C 30 110, 30 150, 40 220 L 45 220 C 40 160, 50 140, 72 135 Z" fill="url(#arm-l)" />
               <circle cx="56" cy="130" r="12" fill={colors.highLight} opacity="0.3" filter="url(#blur-md)" />
+              {/* Elbow crease */}
+              <path d="M 38 175 Q 42 180 46 175" stroke={colors.deepShadow} strokeWidth="1.5" fill="none" opacity="0.4" />
+              {/* Wrist bone hint */}
+              <ellipse cx="42" cy="218" rx="3" ry="2" fill={colors.highLight} opacity="0.3" />
+              {/* Left Hand */}
+              <g id="hand-l" transform="translate(35, 218)">
+                <ellipse cx="7" cy="5" rx="7" ry="6" fill="url(#hand-grad)" />
+                {/* Thumb */}
+                <path d="M 13 3 Q 17 0 18 4 Q 18 8 14 7" fill={colors.base} stroke={colors.shadow} strokeWidth="0.5" />
+                {/* Fingers */}
+                <path d="M 3 10 Q 2 17 3 18" stroke={colors.base} strokeWidth="2.5" strokeLinecap="round" fill="none" />
+                <path d="M 6 10 Q 5 19 6 20" stroke={colors.base} strokeWidth="2.5" strokeLinecap="round" fill="none" />
+                <path d="M 9 10 Q 9 18 10 19" stroke={colors.base} strokeWidth="2.5" strokeLinecap="round" fill="none" />
+                <path d="M 12 9 Q 13 16 13 17" stroke={colors.base} strokeWidth="2" strokeLinecap="round" fill="none" />
+                {/* Knuckle highlights */}
+                <circle cx="3" cy="10" r="1" fill={colors.highLight} opacity="0.3" />
+                <circle cx="6" cy="10" r="1" fill={colors.highLight} opacity="0.3" />
+                <circle cx="9" cy="10" r="1" fill={colors.highLight} opacity="0.3" />
+              </g>
            </g>
 
            {/* Right Arm */}
-           <g id="arm-r">
+           <g id="arm-r" filter="url(#rim-light)">
               <path d="M 136 110 C 170 110, 170 150, 160 220 L 155 220 C 160 160, 150 140, 128 135 Z" fill="url(#arm-r)" />
               <circle cx="144" cy="130" r="12" fill={colors.highLight} opacity="0.3" filter="url(#blur-md)" />
+              {/* Elbow crease */}
+              <path d="M 154 175 Q 158 180 162 175" stroke={colors.deepShadow} strokeWidth="1.5" fill="none" opacity="0.4" />
+              {/* Wrist bone hint */}
+              <ellipse cx="158" cy="218" rx="3" ry="2" fill={colors.highLight} opacity="0.3" />
+              {/* Right Hand */}
+              <g id="hand-r" transform="translate(151, 218)">
+                <ellipse cx="7" cy="5" rx="7" ry="6" fill="url(#hand-grad)" />
+                {/* Thumb */}
+                <path d="M 1 3 Q -3 0 -4 4 Q -4 8 0 7" fill={colors.base} stroke={colors.shadow} strokeWidth="0.5" />
+                {/* Fingers */}
+                <path d="M 2 10 Q 1 17 2 18" stroke={colors.base} strokeWidth="2.5" strokeLinecap="round" fill="none" />
+                <path d="M 5 10 Q 5 19 6 20" stroke={colors.base} strokeWidth="2.5" strokeLinecap="round" fill="none" />
+                <path d="M 8 10 Q 9 18 9 19" stroke={colors.base} strokeWidth="2.5" strokeLinecap="round" fill="none" />
+                <path d="M 11 9 Q 12 16 12 17" stroke={colors.base} strokeWidth="2" strokeLinecap="round" fill="none" />
+                {/* Knuckle highlights */}
+                <circle cx="2" cy="10" r="1" fill={colors.highLight} opacity="0.3" />
+                <circle cx="5" cy="10" r="1" fill={colors.highLight} opacity="0.3" />
+                <circle cx="8" cy="10" r="1" fill={colors.highLight} opacity="0.3" />
+              </g>
            </g>
 
            {/* --- HEAD & NECK --- */}
@@ -371,8 +523,135 @@ export const SvgPlayerModel: React.FC<ModelProps> = ({ stats, clothing, xrayMode
               <path d={rightBrow} stroke={colors.hairBase} strokeWidth="3" strokeLinecap="round" fill="none" />
               <path d={rightBrow} stroke={colors.hairShadow} strokeWidth="1" strokeLinecap="round" fill="none" opacity="0.7" />
 
+              {/* --- EARS (side of head, behind hair) --- */}
+              {hasPointedEars ? (
+                <>
+                  {/* Elven pointed ears */}
+                  <path d="M 60 50 Q 48 30 42 20 Q 50 35 60 45" fill={colors.base} stroke={colors.shadow} strokeWidth="1" />
+                  <path d="M 48 30 Q 52 38 56 42" fill="url(#ear-inner)" opacity="0.6" />
+                  <path d="M 140 50 Q 152 30 158 20 Q 150 35 140 45" fill={colors.base} stroke={colors.shadow} strokeWidth="1" />
+                  <path d="M 152 30 Q 148 38 144 42" fill="url(#ear-inner)" opacity="0.6" />
+                </>
+              ) : hasFinEars ? (
+                <>
+                  {/* Argonian fin-ears */}
+                  <path d="M 60 48 Q 42 38 38 30 Q 44 42 58 48" fill={colors.base} stroke={colors.shadow} strokeWidth="0.8" />
+                  <path d="M 56 44 Q 44 38 42 34" stroke={colors.midHighlight} strokeWidth="0.5" fill="none" opacity="0.5" />
+                  <path d="M 140 48 Q 158 38 162 30 Q 156 42 142 48" fill={colors.base} stroke={colors.shadow} strokeWidth="0.8" />
+                  <path d="M 144 44 Q 156 38 158 34" stroke={colors.midHighlight} strokeWidth="0.5" fill="none" opacity="0.5" />
+                </>
+              ) : !hasCatEars ? (
+                <>
+                  {/* Human/Orc/Nord rounded ears */}
+                  <ellipse cx="60" cy="55" rx="5" ry="10" fill={colors.base} stroke={colors.shadow} strokeWidth="0.8" />
+                  <ellipse cx="60" cy="55" rx="3" ry="7" fill="url(#ear-inner)" opacity="0.5" />
+                  <ellipse cx="140" cy="55" rx="5" ry="10" fill={colors.base} stroke={colors.shadow} strokeWidth="0.8" />
+                  <ellipse cx="140" cy="55" rx="3" ry="7" fill="url(#ear-inner)" opacity="0.5" />
+                </>
+              ) : null}
+
+              {/* --- TUSKS (Orc, rendered at face level) --- */}
+              {hasTusks && (
+                <>
+                  <path d="M 88 96 Q 86 88 84 82" stroke="#D3D3D3" strokeWidth="2.5" strokeLinecap="round" fill="none" />
+                  <path d="M 88 96 Q 86 88 84 82" stroke={colors.highLight} strokeWidth="1" strokeLinecap="round" fill="none" opacity="0.5" />
+                  <path d="M 112 96 Q 114 88 116 82" stroke="#D3D3D3" strokeWidth="2.5" strokeLinecap="round" fill="none" />
+                  <path d="M 112 96 Q 114 88 116 82" stroke={colors.highLight} strokeWidth="1" strokeLinecap="round" fill="none" opacity="0.5" />
+                </>
+              )}
+
+              {/* --- WHISKER MARKINGS (Khajiit) --- */}
+              {hasWhiskers && (
+                <g opacity="0.6">
+                  {/* Left whiskers */}
+                  <line x1="70" y1="72" x2="48" y2="68" stroke={colors.hairBase} strokeWidth="0.8" />
+                  <line x1="70" y1="76" x2="46" y2="76" stroke={colors.hairBase} strokeWidth="0.8" />
+                  <line x1="70" y1="80" x2="48" y2="84" stroke={colors.hairBase} strokeWidth="0.8" />
+                  {/* Right whiskers */}
+                  <line x1="130" y1="72" x2="152" y2="68" stroke={colors.hairBase} strokeWidth="0.8" />
+                  <line x1="130" y1="76" x2="154" y2="76" stroke={colors.hairBase} strokeWidth="0.8" />
+                  <line x1="130" y1="80" x2="152" y2="84" stroke={colors.hairBase} strokeWidth="0.8" />
+                </g>
+              )}
+
            </g>
 
+           {/* --- HAIR (rendered on top of head, after head group closes) --- */}
+           <g id="hair">
+             {isFemale ? (
+               <>
+                 {/* Long flowing hair */}
+                 <path d="M 60 15 C 55 -15, 80 -25, 100 -20 C 120 -25, 145 -15, 140 15"
+                   fill="url(#hair-grad)" />
+                 {/* Hair shine */}
+                 <path d="M 60 15 C 55 -15, 80 -25, 100 -20 C 120 -25, 145 -15, 140 15"
+                   fill="url(#hair-shine)" />
+                 {/* Side locks framing face */}
+                 <path d="M 58 20 C 50 30, 48 60, 50 85 Q 52 95, 56 90 C 58 75, 56 45, 60 25 Z"
+                   fill="url(#hair-grad)" />
+                 <path d="M 142 20 C 150 30, 152 60, 150 85 Q 148 95, 144 90 C 142 75, 144 45, 140 25 Z"
+                   fill="url(#hair-grad)" />
+                 {/* Back hair falling behind shoulders */}
+                 <path d="M 56 20 Q 48 50 46 100 Q 44 140 50 160 L 55 155 Q 52 120 54 80 Q 56 50 60 25"
+                   fill={colors.hairShadow} opacity="0.7" />
+                 <path d="M 144 20 Q 152 50 154 100 Q 156 140 150 160 L 145 155 Q 148 120 146 80 Q 144 50 140 25"
+                   fill={colors.hairShadow} opacity="0.7" />
+                 {/* Hair strand details */}
+                 <path d="M 70 -10 Q 80 -18 90 -15" stroke={colors.hairShadow} strokeWidth="1" fill="none" opacity="0.5" />
+                 <path d="M 110 -15 Q 120 -18 130 -10" stroke={colors.hairShadow} strokeWidth="1" fill="none" opacity="0.5" />
+               </>
+             ) : (
+               <>
+                 {/* Short masculine hair */}
+                 <path d="M 60 25 C 55 0, 70 -20, 100 -18 C 130 -20, 145 0, 140 25 L 138 30 Q 130 15 100 12 Q 70 15 62 30 Z"
+                   fill="url(#hair-grad)" />
+                 {/* Hair shine */}
+                 <path d="M 60 25 C 55 0, 70 -20, 100 -18 C 130 -20, 145 0, 140 25 L 138 30 Q 130 15 100 12 Q 70 15 62 30 Z"
+                   fill="url(#hair-shine)" />
+                 {/* Texture lines */}
+                 <path d="M 75 -5 Q 85 -12 95 -10" stroke={colors.hairShadow} strokeWidth="1" fill="none" opacity="0.4" />
+                 <path d="M 105 -10 Q 115 -12 125 -5" stroke={colors.hairShadow} strokeWidth="1" fill="none" opacity="0.4" />
+               </>
+             )}
+             {/* Khajiit has mane-like hair */}
+             {isKhajiit && (
+               <>
+                 <path d="M 55 25 Q 48 40 45 65 Q 44 80 48 75 Q 50 55 55 35" fill={colors.hairBase} opacity="0.6" />
+                 <path d="M 145 25 Q 152 40 155 65 Q 156 80 152 75 Q 150 55 145 35" fill={colors.hairBase} opacity="0.6" />
+               </>
+             )}
+             {/* Argonian has head ridges instead of hair */}
+             {isArgonian && (
+               <>
+                 <path d="M 80 -10 Q 90 -18 100 -15 Q 110 -18 120 -10"
+                   fill="none" stroke={colors.shadow} strokeWidth="3" strokeLinecap="round" />
+                 <path d="M 85 -5 Q 92 -12 100 -10 Q 108 -12 115 -5"
+                   fill="none" stroke={colors.shadow} strokeWidth="2" strokeLinecap="round" opacity="0.7" />
+               </>
+             )}
+           </g>
+
+           {/* --- RACE FEATURES ON TOP OF HAIR (cat ears, horns) --- */}
+           {hasCatEars && (
+             <g id="cat-ears">
+               {/* Left cat ear */}
+               <path d="M 72 10 L 62 -20 L 80 0 Z" fill={colors.base} stroke={colors.shadow} strokeWidth="1" />
+               <path d="M 68 5 L 64 -12 L 76 2 Z" fill={colors.deepShadow} opacity="0.5" />
+               <path d="M 70 6 L 64 -14 L 77 1 Z" fill="#C88A8A" opacity="0.4" />
+               {/* Right cat ear */}
+               <path d="M 128 10 L 138 -20 L 120 0 Z" fill={colors.base} stroke={colors.shadow} strokeWidth="1" />
+               <path d="M 132 5 L 136 -12 L 124 2 Z" fill={colors.deepShadow} opacity="0.5" />
+               <path d="M 130 6 L 136 -14 L 123 1 Z" fill="#C88A8A" opacity="0.4" />
+             </g>
+           )}
+           {hasHorns && isArgonian && (
+             <g id="horns">
+               <path d="M 72 5 Q 60 -15 55 -25" stroke={colors.horn || '#655340'} strokeWidth="4" strokeLinecap="round" fill="none" />
+               <path d="M 72 5 Q 60 -15 55 -25" stroke={colors.highLight} strokeWidth="1" strokeLinecap="round" fill="none" opacity="0.4" />
+               <path d="M 128 5 Q 140 -15 145 -25" stroke={colors.horn || '#655340'} strokeWidth="4" strokeLinecap="round" fill="none" />
+               <path d="M 128 5 Q 140 -15 145 -25" stroke={colors.highLight} strokeWidth="1" strokeLinecap="round" fill="none" opacity="0.4" />
+             </g>
+           )}
 
            {/* --- LEGS --- */}
            {isFemale ? (
@@ -391,6 +670,14 @@ export const SvgPlayerModel: React.FC<ModelProps> = ({ stats, clothing, xrayMode
 
                 {/* Thigh gaps / Inner thigh shading */}
                 <path d="M 97 280 L 100 320 L 103 280 Z" fill={colors.deepShadow} opacity="0.6" filter="url(#blur-md)" />
+
+                {/* Ankle definition */}
+                <ellipse cx="84" cy="480" rx="4" ry="2" fill={colors.highLight} opacity="0.3" />
+                <ellipse cx="116" cy="480" rx="4" ry="2" fill={colors.highLight} opacity="0.3" />
+
+                {/* Calf muscle highlight */}
+                <ellipse cx="84" cy="440" rx="5" ry="12" fill={colors.highLight} opacity="0.15" filter="url(#blur-sm)" />
+                <ellipse cx="116" cy="440" rx="5" ry="12" fill={colors.highLight} opacity="0.15" filter="url(#blur-sm)" />
              </g>
            ) : (
              <g id="legs-m">
@@ -407,8 +694,41 @@ export const SvgPlayerModel: React.FC<ModelProps> = ({ stats, clothing, xrayMode
                 <path d="M 85 410 Q 88 415 92 410" stroke={colors.deepShadow} strokeWidth="1.5" fill="none" opacity="0.4" filter="url(#blur-sm)" />
                 <ellipse cx="112" cy="405" rx="5" ry="6" fill={colors.highLight} filter="url(#blur-sm)" opacity="0.3" />
                 <path d="M 108 410 Q 112 415 115 410" stroke={colors.deepShadow} strokeWidth="1.5" fill="none" opacity="0.4" filter="url(#blur-sm)" />
+
+                {/* Calf muscle bulge */}
+                <ellipse cx="88" cy="435" rx="4" ry="10" fill={colors.highLight} opacity="0.15" filter="url(#blur-sm)" />
+                <ellipse cx="112" cy="435" rx="4" ry="10" fill={colors.highLight} opacity="0.15" filter="url(#blur-sm)" />
+
+                {/* Ankle definition */}
+                <ellipse cx="87" cy="478" rx="3" ry="2" fill={colors.highLight} opacity="0.3" />
+                <ellipse cx="113" cy="478" rx="3" ry="2" fill={colors.highLight} opacity="0.3" />
              </g>
            )}
+
+           {/* --- FEET --- */}
+           <g id="feet">
+             {/* Left Foot */}
+             <path d={isFemale
+               ? "M 84 492 Q 82 498 78 500 L 94 500 Q 96 496 92 492 Z"
+               : "M 80 492 Q 78 498 74 500 L 96 500 Q 98 496 95 492 Z"}
+               fill="url(#foot-grad)" />
+             <ellipse cx={isFemale ? 84 : 82} cy={492} rx="2" ry="1.5" fill={colors.highLight} opacity="0.4" />
+             <path d={isFemale
+               ? "M 80 499 Q 86 501 92 499"
+               : "M 76 499 Q 84 501 94 499"}
+               stroke={colors.deepShadow} strokeWidth="0.8" fill="none" opacity="0.4" />
+
+             {/* Right Foot */}
+             <path d={isFemale
+               ? "M 108 492 Q 106 498 106 500 L 120 500 Q 120 496 116 492 Z"
+               : "M 105 492 Q 104 498 104 500 L 124 500 Q 122 496 118 492 Z"}
+               fill="url(#foot-grad)" />
+             <ellipse cx={isFemale ? 116 : 118} cy={492} rx="2" ry="1.5" fill={colors.highLight} opacity="0.4" />
+             <path d={isFemale
+               ? "M 108 499 Q 114 501 118 499"
+               : "M 106 499 Q 114 501 122 499"}
+               stroke={colors.deepShadow} strokeWidth="0.8" fill="none" opacity="0.4" />
+           </g>
 
            {/* --- TORSO --- */}
            {isFemale ? (
@@ -579,6 +899,107 @@ export const SvgPlayerModel: React.FC<ModelProps> = ({ stats, clothing, xrayMode
                     )}
                   </g>
                 )}
+             </g>
+           )}
+
+           {/* --- AMBIENT OCCLUSION SHADOWS --- */}
+           <g id="ambient-occlusion" opacity="0.35">
+             {/* Armpit shadows */}
+             <ellipse cx="68" cy="140" rx="6" ry="10" fill={colors.deepShadow} filter="url(#blur-md)" />
+             <ellipse cx="132" cy="140" rx="6" ry="10" fill={colors.deepShadow} filter="url(#blur-md)" />
+             {/* Hip crease shadows */}
+             <path d="M 80 275 Q 90 285 100 280" stroke={colors.deepShadow} strokeWidth="3" fill="none" filter="url(#blur-md)" />
+             <path d="M 120 275 Q 110 285 100 280" stroke={colors.deepShadow} strokeWidth="3" fill="none" filter="url(#blur-md)" />
+             {/* Neck-shoulder junction */}
+             <path d="M 72 108 Q 80 115 88 110" stroke={colors.deepShadow} strokeWidth="4" fill="none" filter="url(#blur-md)" />
+             <path d="M 128 108 Q 120 115 112 110" stroke={colors.deepShadow} strokeWidth="4" fill="none" filter="url(#blur-md)" />
+           </g>
+
+           {/* --- BODY RIM LIGHT (left edge) --- */}
+           <g id="rim-body" opacity="0.2" style={{ mixBlendMode: 'screen' as const }}>
+             {isFemale ? (
+               <path d="M 72 115 C 55 180, 65 250, 75 280 C 85 290, 90 290, 95 290"
+                 stroke={colors.highLight} strokeWidth="2" fill="none" filter="url(#blur-sm)" />
+             ) : (
+               <path d="M 64 115 C 68 180, 75 250, 80 280 C 85 290, 90 290, 95 290"
+                 stroke={colors.highLight} strokeWidth="2" fill="none" filter="url(#blur-sm)" />
+             )}
+           </g>
+
+           {/* --- EMOTIONAL STATE OVERLAYS --- */}
+           {/* Blush (cheeks and ears) */}
+           {isBlushing && (
+             <g id="blush" opacity={heavyBlush ? 0.6 : 0.35}>
+               <ellipse cx="76" cy="72" rx="10" ry="6" fill={blushColor} filter="url(#blur-md)" />
+               <ellipse cx="124" cy="72" rx="10" ry="6" fill={blushColor} filter="url(#blur-md)" />
+               {/* Nose blush */}
+               <circle cx="100" cy="74" r="4" fill={blushColor} filter="url(#blur-md)" opacity="0.5" />
+               {/* Chest blush when heavy */}
+               {heavyBlush && isFemale && (
+                 <ellipse cx="100" cy="150" rx="25" ry="15" fill={blushColor} filter="url(#blur-lg)" opacity="0.3" />
+               )}
+             </g>
+           )}
+
+           {/* Tears */}
+           {isCrying && (
+             <g id="tears">
+               <path d="M 74 62 Q 72 75 70 90" stroke="#88CCFF" strokeWidth="1.5" fill="none" opacity={heavyTears ? 0.7 : 0.4} />
+               <path d="M 126 62 Q 128 75 130 90" stroke="#88CCFF" strokeWidth="1.5" fill="none" opacity={heavyTears ? 0.7 : 0.4} />
+               <circle cx="70" cy="82" r="1.5" fill="#88CCFF" opacity="0.7" className="animate-[tearFall_2s_ease-in-out_infinite]" />
+               {heavyTears && (
+                 <circle cx="130" cy="78" r="1.5" fill="#88CCFF" opacity="0.7" className="animate-[tearFall_2.5s_ease-in-out_infinite_0.5s]" />
+               )}
+               {heavyTears && (
+                 <>
+                   <ellipse cx="74" cy="60" rx="8" ry="4" fill="#CC6666" opacity="0.25" filter="url(#blur-sm)" />
+                   <ellipse cx="126" cy="60" rx="8" ry="4" fill="#CC6666" opacity="0.25" filter="url(#blur-sm)" />
+                 </>
+               )}
+             </g>
+           )}
+
+           {/* Sweat */}
+           {isSweating && (
+             <g id="sweat" opacity={heavySweat ? 0.7 : 0.4}>
+               <circle cx="80" cy="22" r="1" fill="#88DDFF" />
+               <circle cx="90" cy="18" r="0.8" fill="#88DDFF" />
+               <path d="M 66 40 Q 64 48 66 55" stroke="#88DDFF" strokeWidth="1" fill="none" />
+               {heavySweat && (
+                 <>
+                   <circle cx="120" cy="20" r="0.8" fill="#88DDFF" />
+                   <path d="M 134 40 Q 136 48 134 55" stroke="#88DDFF" strokeWidth="1" fill="none" />
+                   <circle cx="92" cy="180" r="1" fill="#88DDFF" opacity="0.5" />
+                   <circle cx="108" cy="200" r="0.8" fill="#88DDFF" opacity="0.5" />
+                   <ellipse cx="100" cy="160" rx="20" ry="30" fill={colors.highLight} opacity="0.1" filter="url(#blur-md)" />
+                 </>
+               )}
+             </g>
+           )}
+
+           {/* Bruises */}
+           {isBruised && (
+             <g id="bruises" opacity={isBleeding ? 0.7 : 0.5}>
+               <ellipse cx="78" cy="170" rx="8" ry="5" fill="#664488" filter="url(#blur-sm)" transform="rotate(-10 78 170)" />
+               <ellipse cx="115" cy="230" rx="6" ry="8" fill="#554477" filter="url(#blur-sm)" transform="rotate(15 115 230)" />
+               <ellipse cx="90" cy="350" rx="7" ry="5" fill="#553366" filter="url(#blur-sm)" />
+               {isBleeding && (
+                 <>
+                   <path d="M 80 168 L 76 172" stroke="#880000" strokeWidth="1.5" strokeLinecap="round" />
+                   <path d="M 117 228 L 113 232" stroke="#880000" strokeWidth="1.5" strokeLinecap="round" />
+                   <path d="M 78 172 Q 77 180 78 186" stroke="#880000" strokeWidth="1" fill="none" opacity="0.6" />
+                 </>
+               )}
+             </g>
+           )}
+
+           {/* Corruption veins */}
+           {isCorrupted && (
+             <g id="corruption-veins" opacity="0.3" className="animate-pulse">
+               <path d="M 90 130 Q 85 160 88 190 Q 90 220 85 250" stroke="#6B21A8" strokeWidth="1" fill="none" />
+               <path d="M 110 130 Q 115 160 112 190 Q 110 220 115 250" stroke="#6B21A8" strokeWidth="1" fill="none" />
+               <path d="M 95 140 Q 92 150 96 160" stroke="#7C3AED" strokeWidth="0.8" fill="none" />
+               <path d="M 105 140 Q 108 150 104 160" stroke="#7C3AED" strokeWidth="0.8" fill="none" />
              </g>
            )}
         </g>
