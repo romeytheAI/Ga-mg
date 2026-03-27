@@ -32,7 +32,7 @@ export const SvgPlayerModel: React.FC<ModelProps> = ({ stats, clothing, xrayMode
   const hasPointedEars = isElf;
   const hasCatEars = isKhajiit;
   const hasFinEars = isArgonian;
-  const hasHorns = isArgonian || isOrc;
+  const hasHorns = isArgonian;
   const hasTusks = isOrc;
   const hasWhiskers = isKhajiit;
   const hasTail = isKhajiit || isArgonian;
@@ -644,7 +644,7 @@ export const SvgPlayerModel: React.FC<ModelProps> = ({ stats, clothing, xrayMode
                <path d="M 130 6 L 136 -14 L 123 1 Z" fill="#C88A8A" opacity="0.4" />
              </g>
            )}
-           {hasHorns && isArgonian && (
+           {hasHorns && (
              <g id="horns">
                <path d="M 72 5 Q 60 -15 55 -25" stroke={colors.horn || '#655340'} strokeWidth="4" strokeLinecap="round" fill="none" />
                <path d="M 72 5 Q 60 -15 55 -25" stroke={colors.highLight} strokeWidth="1" strokeLinecap="round" fill="none" opacity="0.4" />
