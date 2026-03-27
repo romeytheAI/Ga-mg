@@ -67,7 +67,8 @@ export const NarrativePanel: React.FC<NarrativePanelProps> = ({ state, handleAct
             <EncounterUI 
               encounter={state.world.active_encounter} 
               playerStats={state.player.stats} 
-              onAction={(action, intent, part) => handleAction(action, intent, part)} 
+              onAction={(action, intent, part) => handleAction(action, intent, part)}
+              state={state}
             />
           ) : (
             <>

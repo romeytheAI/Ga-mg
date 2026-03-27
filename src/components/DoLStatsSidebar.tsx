@@ -4,6 +4,7 @@ import { Heart, Wind, Shield, Flame, Droplets, Sun, Moon, Zap, Coffee, Users, St
 import { GameState, StatKey, Incubation } from '../types';
 import { DoLCharacterSprite } from './DoLCharacterSprite';
 import { GltfExportButton } from './GltfExportButton';
+import { GltfViewer3D } from './GltfViewer3D';
 
 interface DoLStatsSidebarProps {
   state: GameState;
@@ -80,9 +81,18 @@ const SKILL_COLOR: Record<string, string> = {
 /** Sprite with inline X-Ray toggle button */
 const SpriteWithXRay: React.FC<{ state: GameState }> = ({ state }) => {
   const [xrayOn, setXrayOn] = useState(false);
+  const [view3D, setView3D] = useState(false);
   return (
     <div className="relative">
-      <DoLCharacterSprite state={state} compact={false} showXRay={xrayOn} />
+      {view3D ? (
+        <GltfViewer3D
+          state={state}
+          height="225px"
+          combatAnimation={state.ui.combat_animation}
+        />
+      ) : (
+        <DoLCharacterSprite state={state} compact={false} showXRay={xrayOn} />
+      )}
       <button
         onClick={() => setXrayOn(!xrayOn)}
         className={`absolute top-1 left-1 text-[7px] tracking-widest uppercase px-1.5 py-0.5 rounded-sm border transition-all ${
@@ -93,7 +103,18 @@ const SpriteWithXRay: React.FC<{ state: GameState }> = ({ state }) => {
       >
         X-RAY
       </button>
-      <div className="absolute top-1 right-1">
+      <div className="absolute top-1 right-1 flex gap-1">
+        <button
+          onClick={() => setView3D(!view3D)}
+          className={`text-[7px] tracking-widest uppercase px-1.5 py-0.5 rounded-sm border transition-all ${
+            view3D
+              ? 'bg-amber-500/20 border-amber-400/50 text-amber-300'
+              : 'bg-black/40 border-white/10 text-white/40 hover:text-white/70 hover:border-white/25'
+          }`}
+          title="Toggle high-fidelity 3D view"
+        >
+          3D
+        </button>
         <GltfExportButton state={state} />
       </div>
     </div>

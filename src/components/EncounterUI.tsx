@@ -1,16 +1,20 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { CharacterModel } from './CharacterModel';
+import { GltfViewer3D } from './GltfViewer3D';
 import { GameState, ActiveEncounter } from '../types';
 
 interface EncounterUIProps {
   encounter: ActiveEncounter;
   playerStats: GameState['player']['stats'];
   onAction: (action: string, intent: string, targetedPart?: string) => void;
+  /** Full game state — enables the high-fidelity 3D internal viewer. */
+  state?: GameState;
 }
 
-export const EncounterUI: React.FC<EncounterUIProps> = ({ encounter, playerStats, onAction }) => {
+export const EncounterUI: React.FC<EncounterUIProps> = ({ encounter, playerStats, onAction, state }) => {
   const [targetedPart, setTargetedPart] = React.useState<string | null>(null);
+  const [show3D, setShow3D] = React.useState(true);
   const bodyParts = ['head', 'torso', 'arms', 'legs'];
 
   return (
@@ -52,7 +56,30 @@ export const EncounterUI: React.FC<EncounterUIProps> = ({ encounter, playerStats
         <span className="text-[10px] uppercase tracking-widest text-red-500/50">Turn {encounter.turn}</span>
       </div>
       <div className="flex justify-center my-4 relative z-10">
-        <CharacterModel anatomy={encounter.anatomy} isPlayer={false} />
+        {state && show3D ? (
+          <div className="w-full">
+            <GltfViewer3D
+              state={state}
+              height="280px"
+              combatAnimation={state.ui.combat_animation}
+            />
+          </div>
+        ) : (
+          <CharacterModel anatomy={encounter.anatomy} isPlayer={false} />
+        )}
+      </div>
+      {/* 3D / 2D toggle */}
+      <div className="flex justify-end -mt-2 mb-1 relative z-10">
+        <button
+          onClick={() => setShow3D(!show3D)}
+          className={`text-[7px] tracking-widest uppercase px-1.5 py-0.5 rounded-sm border transition-all ${
+            show3D
+              ? 'bg-cyan-500/20 border-cyan-400/50 text-cyan-300'
+              : 'bg-black/40 border-white/10 text-white/40 hover:text-white/70'
+          }`}
+        >
+          {show3D ? '3D' : '2D'}
+        </button>
       </div>
 
       {/* Target Selection */}
