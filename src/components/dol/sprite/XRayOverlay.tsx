@@ -216,14 +216,21 @@ export const XRayOverlay: React.FC<XRayOverlayProps> = ({ geom, s, isFemale, org
           ORGANS
          ══════════════════════════════════════════════════════════════ */}
 
-      {/* ── Brain ── */}
-      <ellipse cx={cx} cy={s.headCY - 2} rx={geom.headRX * 0.5} ry={geom.headRY * 0.45}
-        fill={healthColor(organs.heart)} opacity="0.3" />
-      {/* Brain folds */}
-      <path d={`M ${cx - 3},${s.headCY - 6} Q ${cx},${s.headCY - 8} ${cx + 3},${s.headCY - 6}`}
-        fill="none" stroke={healthColor(organs.heart)} strokeWidth="0.4" opacity="0.5" />
-      <path d={`M ${cx - 4},${s.headCY - 4} Q ${cx},${s.headCY - 6.5} ${cx + 4},${s.headCY - 4}`}
-        fill="none" stroke={healthColor(organs.heart)} strokeWidth="0.4" opacity="0.5" />
+      {/* ── Brain (uses average organ health as proxy since no dedicated brain field) ── */}
+      {(() => {
+        const brainHealth = Math.round((organs.heart + organs.lungs + organs.stomach + organs.liver + organs.kidneys) / 5);
+        return (
+          <>
+            <ellipse cx={cx} cy={s.headCY - 2} rx={geom.headRX * 0.5} ry={geom.headRY * 0.45}
+              fill={healthColor(brainHealth)} opacity="0.3" />
+            {/* Brain folds */}
+            <path d={`M ${cx - 3},${s.headCY - 6} Q ${cx},${s.headCY - 8} ${cx + 3},${s.headCY - 6}`}
+              fill="none" stroke={healthColor(brainHealth)} strokeWidth="0.4" opacity="0.5" />
+            <path d={`M ${cx - 4},${s.headCY - 4} Q ${cx},${s.headCY - 6.5} ${cx + 4},${s.headCY - 4}`}
+              fill="none" stroke={healthColor(brainHealth)} strokeWidth="0.4" opacity="0.5" />
+          </>
+        );
+      })()}
 
       {/* ── Heart ── */}
       <g className="animate-pulse">

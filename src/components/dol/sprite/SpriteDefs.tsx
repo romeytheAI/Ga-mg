@@ -151,14 +151,22 @@ export const SpriteDefs: React.FC<SpriteDefsProps> = ({
   </defs>
 );
 
+// ── Shared hex color parsing utility ──────────────────────────────────
+function parseHex(hex: string): [number, number, number] {
+  const h = hex.replace('#', '');
+  return [
+    parseInt(h.substring(0, 2), 16),
+    parseInt(h.substring(2, 4), 16),
+    parseInt(h.substring(4, 6), 16),
+  ];
+}
+const toHex = (v: number) => v.toString(16).padStart(2, '0');
+
 // ── Helper: derive shadow/highlight colors from base skin hex ─────────
 export function deriveSkinTones(skinHex: string): {
   base: string; shadow: string; highlight: string;
 } {
-  const hex = skinHex.replace('#', '');
-  const r = parseInt(hex.substring(0, 2), 16);
-  const g = parseInt(hex.substring(2, 4), 16);
-  const b = parseInt(hex.substring(4, 6), 16);
+  const [r, g, b] = parseHex(skinHex);
 
   const shadowR  = Math.max(0, Math.round(r * 0.78));
   const shadowG  = Math.max(0, Math.round(g * 0.72));
@@ -168,7 +176,6 @@ export function deriveSkinTones(skinHex: string): {
   const hiG = Math.min(255, Math.round(g + (255 - g) * 0.30));
   const hiB = Math.min(255, Math.round(b + (255 - b) * 0.22));
 
-  const toHex = (v: number) => v.toString(16).padStart(2, '0');
   return {
     base: skinHex,
     shadow: `#${toHex(shadowR)}${toHex(shadowG)}${toHex(shadowB)}`,
@@ -178,13 +185,9 @@ export function deriveSkinTones(skinHex: string): {
 
 export function deriveHairHighlight(hairHex: string): string {
   if (hairHex === 'transparent') return 'transparent';
-  const hex = hairHex.replace('#', '');
-  const r = parseInt(hex.substring(0, 2), 16);
-  const g = parseInt(hex.substring(2, 4), 16);
-  const b = parseInt(hex.substring(4, 6), 16);
+  const [r, g, b] = parseHex(hairHex);
   const hiR = Math.min(255, Math.round(r + (255 - r) * 0.4));
   const hiG = Math.min(255, Math.round(g + (255 - g) * 0.35));
   const hiB = Math.min(255, Math.round(b + (255 - b) * 0.3));
-  const toHex = (v: number) => v.toString(16).padStart(2, '0');
   return `#${toHex(hiR)}${toHex(hiG)}${toHex(hiB)}`;
 }
