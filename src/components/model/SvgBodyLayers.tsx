@@ -464,7 +464,7 @@ export const SvgPlayerModel: React.FC<ModelProps> = ({ stats, clothing, xrayMode
            {/* Left Arm */}
            <g id="arm-l" filter="url(#sss-filter)">
               {/* Shoulder/Deltoid with muscle contour */}
-              <path d="M 64 110 C 30 110, 30 150, 40 220 L 45 220 C 40 160, 50 140, 72 135 Z" fill="url(#arm-l)" />
+              <path d="M 64 110 C 30 110, 30 150, 40 220 L 45 220 C 40 160, 50 140, 72 135 Z" fill="url(#arm-l)" filter="url(#skin-texture)" />
               {/* Deltoid highlight (round muscle) */}
               <circle cx="56" cy="128" r="13" fill={colors.highLight} opacity="0.25" filter="url(#blur-md)" />
               {/* Deltoid separation line */}
@@ -488,7 +488,7 @@ export const SvgPlayerModel: React.FC<ModelProps> = ({ stats, clothing, xrayMode
               {/* Left Hand - detailed */}
               <g id="hand-l" transform="translate(35, 218)">
                 {/* Palm */}
-                <ellipse cx="7" cy="5" rx="7" ry="6" fill="url(#hand-grad)" />
+                <ellipse cx="7" cy="5" rx="7" ry="6" fill="url(#hand-grad)" filter="url(#skin-texture)" />
                 {/* Palm crease lines */}
                 <path d="M 2 3 Q 7 6 12 4" stroke={colors.shadow} strokeWidth="0.3" fill="none" opacity="0.3" />
                 <path d="M 1 6 Q 5 8 10 6" stroke={colors.shadow} strokeWidth="0.3" fill="none" opacity="0.25" />
@@ -525,7 +525,7 @@ export const SvgPlayerModel: React.FC<ModelProps> = ({ stats, clothing, xrayMode
 
            {/* Right Arm */}
            <g id="arm-r" filter="url(#sss-filter)">
-              <path d="M 136 110 C 170 110, 170 150, 160 220 L 155 220 C 160 160, 150 140, 128 135 Z" fill="url(#arm-r)" />
+              <path d="M 136 110 C 170 110, 170 150, 160 220 L 155 220 C 160 160, 150 140, 128 135 Z" fill="url(#arm-r)" filter="url(#skin-texture)" />
               {/* Deltoid highlight */}
               <circle cx="144" cy="128" r="13" fill={colors.highLight} opacity="0.25" filter="url(#blur-md)" />
               {/* Deltoid separation */}
@@ -548,7 +548,7 @@ export const SvgPlayerModel: React.FC<ModelProps> = ({ stats, clothing, xrayMode
               <path d="M 157 210 Q 158 215 157 220" stroke="#6688AA" strokeWidth="0.5" fill="none" opacity="0.2" />
               {/* Right Hand - detailed */}
               <g id="hand-r" transform="translate(151, 218)">
-                <ellipse cx="7" cy="5" rx="7" ry="6" fill="url(#hand-grad)" />
+                <ellipse cx="7" cy="5" rx="7" ry="6" fill="url(#hand-grad)" filter="url(#skin-texture)" />
                 {/* Palm crease lines */}
                 <path d="M 2 4 Q 7 6 12 3" stroke={colors.shadow} strokeWidth="0.3" fill="none" opacity="0.3" />
                 <path d="M 4 6 Q 8 8 12 6" stroke={colors.shadow} strokeWidth="0.3" fill="none" opacity="0.25" />
@@ -584,9 +584,9 @@ export const SvgPlayerModel: React.FC<ModelProps> = ({ stats, clothing, xrayMode
            </g>
 
            {/* --- HEAD & NECK --- */}
-           <g id="head" className="origin-[100px_100px]">
+           <g id="head" className="origin-[100px_100px]" filter="url(#sss-filter)">
               {/* Neck Cylinder */}
-              <rect x="88" y="80" width="24" height="40" fill="url(#neck)" />
+              <rect x="88" y="80" width="24" height="40" fill="url(#neck)" filter="url(#skin-texture)" />
               {/* Sternocleidomastoid muscles */}
               <path d="M 88 80 Q 94 100 96 120" stroke={colors.shadow} strokeWidth="1.5" fill="none" opacity="0.5" filter="url(#blur-sm)" />
               <path d="M 112 80 Q 106 100 104 120" stroke={colors.shadow} strokeWidth="1.5" fill="none" opacity="0.5" filter="url(#blur-sm)" />
@@ -594,7 +594,7 @@ export const SvgPlayerModel: React.FC<ModelProps> = ({ stats, clothing, xrayMode
               <path d="M 88 80 Q 100 100 112 80 Z" fill={colors.deepShadow} opacity="0.6" filter="url(#blur-sm)" />
 
               {/* Jaw & Cheeks */}
-              <path d="M 64 50 Q 64 80 84 96 Q 100 104 116 96 Q 136 80 136 50 Z" fill={colors.base} />
+              <path d="M 64 50 Q 64 80 84 96 Q 100 104 116 96 Q 136 80 136 50 Z" fill={colors.base} filter="url(#skin-texture)" />
               {/* Jawline shadow */}
               <path d="M 64 50 Q 64 80 84 96 Q 100 104 116 96 Q 136 80 136 50" stroke={colors.shadow} strokeWidth="6" fill="none" opacity="0.5" filter="url(#blur-md)" />
               {/* Cheekbone Highlights */}
@@ -602,7 +602,7 @@ export const SvgPlayerModel: React.FC<ModelProps> = ({ stats, clothing, xrayMode
               <ellipse cx="124" cy="65" rx="8" ry="4" fill={colors.highLight} opacity="0.4" filter="url(#blur-sm)" transform="rotate(15 124 65)" />
 
               {/* Forehead & Cranium */}
-              <path d="M 64 50 C 64 -10, 136 -10, 136 50 Z" fill="url(#head-grad)" />
+              <path d="M 64 50 C 64 -10, 136 -10, 136 50 Z" fill="url(#head-grad)" filter="url(#skin-texture)" />
               <ellipse cx="100" cy="20" rx="20" ry="10" fill={colors.highLight} opacity="0.3" filter="url(#blur-md)" />
 
               {/* High-Fidelity Nose */}
@@ -867,11 +867,11 @@ export const SvgPlayerModel: React.FC<ModelProps> = ({ stats, clothing, xrayMode
 
            {/* --- LEGS --- */}
            {isFemale ? (
-             <g id="legs-f">
+             <g id="legs-f" filter="url(#sss-filter)">
                 {/* Left Leg: Thigh -> Knee -> Calf */}
-                <path d="M 94 280 C 80 320, 80 370, 85 410 C 85 440, 80 470, 78 480 C 76 490, 85 495, 90 495 C 96 495, 98 485, 96 470 C 100 440, 102 380, 100 280 Z" fill="url(#leg-l)" />
+                <path d="M 94 280 C 80 320, 80 370, 85 410 C 85 440, 80 470, 78 480 C 76 490, 85 495, 90 495 C 96 495, 98 485, 96 470 C 100 440, 102 380, 100 280 Z" fill="url(#leg-l)" filter="url(#skin-texture)" />
                 {/* Right Leg */}
-                <path d="M 106 280 C 120 320, 120 370, 115 410 C 115 440, 120 470, 122 480 C 124 490, 115 495, 110 495 C 104 495, 102 485, 104 470 C 100 440, 98 380, 100 280 Z" fill="url(#leg-r)" />
+                <path d="M 106 280 C 120 320, 120 370, 115 410 C 115 440, 120 470, 122 480 C 124 490, 115 495, 110 495 C 104 495, 102 485, 104 470 C 100 440, 98 380, 100 280 Z" fill="url(#leg-r)" filter="url(#skin-texture)" />
 
                 {/* Anatomical Overlays (Knees, Calves) */}
                 <ellipse cx="86" cy="395" rx="6" ry="8" fill={colors.highLight} filter="url(#blur-sm)" opacity="0.3" />
@@ -892,10 +892,10 @@ export const SvgPlayerModel: React.FC<ModelProps> = ({ stats, clothing, xrayMode
                 <ellipse cx="116" cy="440" rx="5" ry="12" fill={colors.highLight} opacity="0.15" filter="url(#blur-sm)" />
              </g>
            ) : (
-             <g id="legs-m">
+             <g id="legs-m" filter="url(#sss-filter)">
                 {/* Thicker, straighter legs */}
-                <path d="M 94 280 C 85 330, 85 380, 88 420 C 88 450, 85 470, 83 480 C 80 490, 88 495, 93 495 C 99 495, 100 485, 98 470 C 102 440, 103 380, 100 280 Z" fill="url(#leg-l)" />
-                <path d="M 106 280 C 115 330, 115 380, 112 420 C 112 450, 115 470, 117 480 C 120 490, 112 495, 107 495 C 101 495, 100 485, 102 470 C 98 440, 97 380, 100 280 Z" fill="url(#leg-r)" />
+                <path d="M 94 280 C 85 330, 85 380, 88 420 C 88 450, 85 470, 83 480 C 80 490, 88 495, 93 495 C 99 495, 100 485, 98 470 C 102 440, 103 380, 100 280 Z" fill="url(#leg-l)" filter="url(#skin-texture)" />
+                <path d="M 106 280 C 115 330, 115 380, 112 420 C 112 450, 115 470, 117 480 C 120 490, 112 495, 107 495 C 101 495, 100 485, 102 470 C 98 440, 97 380, 100 280 Z" fill="url(#leg-r)" filter="url(#skin-texture)" />
 
                 {/* Musculature (Quads, Calves) */}
                 <path d="M 90 310 Q 94 340 88 370" stroke={colors.shadow} strokeWidth="2" fill="none" opacity="0.4" filter="url(#blur-sm)" />
@@ -923,7 +923,7 @@ export const SvgPlayerModel: React.FC<ModelProps> = ({ stats, clothing, xrayMode
              <path d={isFemale
                ? "M 84 492 Q 82 498 78 500 L 94 500 Q 96 496 92 492 Z"
                : "M 80 492 Q 78 498 74 500 L 96 500 Q 98 496 95 492 Z"}
-               fill="url(#foot-grad)" />
+               fill="url(#foot-grad)" filter="url(#skin-texture)" />
              {/* Ankle bone (lateral malleolus) */}
              <ellipse cx={isFemale ? 84 : 82} cy={490} rx="2.5" ry="2" fill={colors.highLight} opacity="0.4" />
              <ellipse cx={isFemale ? 90 : 92} cy={491} rx="2" ry="1.5" fill={colors.highLight} opacity="0.25" />
@@ -951,7 +951,7 @@ export const SvgPlayerModel: React.FC<ModelProps> = ({ stats, clothing, xrayMode
              <path d={isFemale
                ? "M 108 492 Q 106 498 106 500 L 120 500 Q 120 496 116 492 Z"
                : "M 105 492 Q 104 498 104 500 L 124 500 Q 122 496 118 492 Z"}
-               fill="url(#foot-grad)" />
+               fill="url(#foot-grad)" filter="url(#skin-texture)" />
              {/* Ankle bone */}
              <ellipse cx={isFemale ? 116 : 118} cy={490} rx="2.5" ry="2" fill={colors.highLight} opacity="0.4" />
              <ellipse cx={isFemale ? 110 : 108} cy={491} rx="2" ry="1.5" fill={colors.highLight} opacity="0.25" />
@@ -978,9 +978,9 @@ export const SvgPlayerModel: React.FC<ModelProps> = ({ stats, clothing, xrayMode
 
            {/* --- TORSO --- */}
            {isFemale ? (
-             <g id="torso-f">
+             <g id="torso-f" filter="url(#sss-filter)">
                 {/* Main Trunk */}
-                <path d="M 72 110 C 72 110, 55 180, 65 250 C 75 280, 85 290, 100 290 C 115 290, 125 280, 135 250 C 145 180, 128 110, 128 110 Z" fill="url(#torso-f)" />
+                <path d="M 72 110 C 72 110, 55 180, 65 250 C 75 280, 85 290, 100 290 C 115 290, 125 280, 135 250 C 145 180, 128 110, 128 110 Z" fill="url(#torso-f)" filter="url(#skin-texture)" />
 
                 {/* Clavicles */}
                 <path d="M 74 125 Q 85 135 97 130" stroke={colors.deepShadow} strokeWidth="1" fill="none" opacity="0.4" filter="url(#blur-sm)" />
@@ -1031,9 +1031,9 @@ export const SvgPlayerModel: React.FC<ModelProps> = ({ stats, clothing, xrayMode
 
              </g>
            ) : (
-             <g id="torso-m">
+             <g id="torso-m" filter="url(#sss-filter)">
                 {/* Main Trunk (V-Taper) */}
-                <path d="M 64 110 C 64 110, 68 180, 75 250 C 80 280, 85 290, 100 290 C 115 290, 120 280, 125 250 C 132 180, 136 110, 136 110 Z" fill="url(#torso-m)" />
+                <path d="M 64 110 C 64 110, 68 180, 75 250 C 80 280, 85 290, 100 290 C 115 290, 120 280, 125 250 C 132 180, 136 110, 136 110 Z" fill="url(#torso-m)" filter="url(#skin-texture)" />
 
                 {/* Clavicles (Sharper) */}
                 <path d="M 66 122 Q 85 130 96 125" stroke={colors.deepShadow} strokeWidth="2" fill="none" opacity="0.5" filter="url(#blur-sm)" />
