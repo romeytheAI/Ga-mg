@@ -3,6 +3,7 @@ import { motion } from 'motion/react';
 import { Heart, Wind, Shield, Flame, Droplets, Sun, Moon, Zap, Coffee, Users, Star } from 'lucide-react';
 import { GameState, StatKey, Incubation } from '../types';
 import { DoLCharacterSprite } from './DoLCharacterSprite';
+import { GltfExportButton } from './GltfExportButton';
 
 interface DoLStatsSidebarProps {
   state: GameState;
@@ -92,6 +93,9 @@ const SpriteWithXRay: React.FC<{ state: GameState }> = ({ state }) => {
       >
         X-RAY
       </button>
+      <div className="absolute top-1 right-1">
+        <GltfExportButton state={state} />
+      </div>
     </div>
   );
 };
