@@ -9,6 +9,7 @@ import {
   STRESS_BLUSH_WEIGHT, MAX_BODY_WRITING_CHARS, normalizeScar, normalizeTattoo,
   normalizePiercing, getNippleColor, SpriteState
 } from './dol/sprite/utils';
+import { SpriteDefs, deriveSkinTones, deriveHairHighlight } from './dol/sprite/SpriteDefs';
 import { BaseBody } from './dol/sprite/BaseBody';
 import { FaceAndHair } from './dol/sprite/FaceAndHair';
 import { GenitalsAndChest } from './dol/sprite/GenitalsAndChest';
@@ -30,6 +31,10 @@ export const DoLCharacterSprite: React.FC<DoLCharacterSpriteProps> = ({ state, c
   const eyeClr    = resolveEyeColor(raceDef, cosmetics?.eye_color || '');
   const hairClr   = resolveHairColor(raceDef, cosmetics?.hair_color || '');
   const accentClr = raceDef.accent_colors[0] || skin;
+
+  // Hikari-quality derived tones for gradient shading
+  const skinTones   = deriveSkinTones(skin);
+  const hairHiClr   = deriveHairHighlight(hairClr);
 
   const hasExposure  = !clothing.chest && !clothing.underwear;
   const arousalHigh  = stats.arousal > 40 || stats.lust > 50;
@@ -171,6 +176,16 @@ export const DoLCharacterSprite: React.FC<DoLCharacterSpriteProps> = ({ state, c
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.45 }}
       >
+        {/* ── Hikari-quality SVG definitions (gradients, filters) ── */}
+        <SpriteDefs
+          skin={skin}
+          skinShadow={skinTones.shadow}
+          skinHighlight={skinTones.highlight}
+          hairClr={hairClr}
+          hairHighlight={hairHiClr}
+          eyeClr={eyeClr}
+        />
+
         {/* ── BODY ANIMATION WRAPPER (breathing / tremble / flinch) ── */}
         <g className={bodyAnimClass}>
 
