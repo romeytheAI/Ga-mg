@@ -16,6 +16,8 @@ interface FaceAndHairProps {
   cosmetics: Partial<Cosmetics>;
 }
 
+const IRIS_FIBER_ANGLES = [0, 45, 90, 135, 180, 225, 270, 315];
+
 export const FaceAndHair: React.FC<FaceAndHairProps> = ({ geom, s, skin, eyeClr, hairClr, accentClr, raceDef, isMale, isFemale, cosmetics }) => {
   const makeup = cosmetics?.makeup;
   const lipColor = makeup?.lipstick || (isFemale ? '#c06868' : undefined);
@@ -93,7 +95,7 @@ export const FaceAndHair: React.FC<FaceAndHairProps> = ({ geom, s, skin, eyeClr,
             <circle cx={eyeL} cy={eyeY} r={irisR} fill="url(#iris-l)" />
             <circle cx={eyeR} cy={eyeY} r={irisR} fill="url(#iris-r)" />
             {/* Iris fiber lines (radial detail) */}
-            {[0, 45, 90, 135, 180, 225, 270, 315].map(angle => {
+            {IRIS_FIBER_ANGLES.map(angle => {
               const rad = (angle * Math.PI) / 180;
               const innerR = 0.6;
               const outerR = irisR - 0.3;

@@ -254,12 +254,15 @@ export const BaseBody: React.FC<BaseBodyProps> = ({ geom, s, skin, accentClr, ra
       {/* ── MUSCLE DEFINITION (arms) ── */}
       {geom.showMuscleDef && !clothing.shoulders && (
         <g>
+          {/* Left bicep curve */}
           <path d={`M ${s.shLX - geom.upperArmW * 0.25},${s.shldY + 8} Q ${s.shLX - geom.upperArmW * 0.55},${s.shldY + 22} ${s.shLX - geom.upperArmW * 0.25},${s.shldY + 34}`}
             fill="none" stroke={`${skin}48`} strokeWidth="0.85" strokeLinecap="round" />
+          {/* Right bicep curve */}
           <path d={`M ${s.shRX + geom.upperArmW * 0.25},${s.shldY + 8} Q ${s.shRX + geom.upperArmW * 0.55},${s.shldY + 22} ${s.shRX + geom.upperArmW * 0.25},${s.shldY + 34}`}
             fill="none" stroke={`${skin}48`} strokeWidth="0.85" strokeLinecap="round" />
         </g>
       )}
+      {/* Muscle definition (torso centre line) */}
       {geom.showMuscleDef && isChestExposed && (
         <path d={`M ${s.cx},${s.shldY + 6} L ${s.cx},${s.waistY - 4}`}
           fill="none" stroke={`${skin}38`} strokeWidth="0.7" />
