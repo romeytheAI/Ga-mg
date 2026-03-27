@@ -55,9 +55,9 @@ function norm(v: [number, number, number]): [number, number, number] {
   return v;
 }
 
-/** Hermite interpolation between a and b at t ∈ [0,1]. */
+/** Smooth interpolation between a and b at t ∈ [0,1] (smoothstep: 3t²−2t³). */
 function smoothstep(a: number, b: number, t: number): number {
-  const u = t * t * (3 - 2 * t);  // smooth hermite
+  const u = t * t * (3 - 2 * t);
   return a + (b - a) * u;
 }
 

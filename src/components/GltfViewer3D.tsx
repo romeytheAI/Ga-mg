@@ -95,7 +95,8 @@ export const GltfViewer3D: React.FC<GltfViewer3DProps> = ({
       };
 
       return convertSvgToGltf({ geom, spriteState, skinColor });
-    } catch {
+    } catch (e) {
+      console.error('GltfViewer3D: failed to build glTF from state', e);
       return null;
     }
   }, [state.player]);
@@ -308,7 +309,9 @@ export const GltfViewer3D: React.FC<GltfViewer3DProps> = ({
         container.removeChild(renderer.domElement);
       }
     };
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+    // Scene/renderer initialisation runs once on mount; model updates
+    // are handled by the separate effect below that watches state changes.
+  }, [buildGltfFromState, loadGltfIntoScene]);
 
   /* ── react to state changes (rebuild model) ────────────────── */
 
