@@ -444,7 +444,7 @@ export const SvgPlayerModel: React.FC<ModelProps> = ({ stats, clothing, xrayMode
 
            {/* --- TAIL (behind body for Khajiit/Argonian) --- */}
            {hasTail && (
-             <g id="tail" opacity="0.9" style={{ animation: 'tailWag 4s ease-in-out infinite', transformOrigin: '105px 290px' }}>
+             <g id="tail" opacity="0.9" className="anim-tail-wag" style={{ transformOrigin: '105px 290px' }}>
                {isKhajiit ? (
                  <path d={`M 105 290 Q 140 310 150 350 Q 155 380 145 400`}
                    fill="none" stroke={colors.base} strokeWidth="5" strokeLinecap="round" />
@@ -774,7 +774,7 @@ export const SvgPlayerModel: React.FC<ModelProps> = ({ stats, clothing, xrayMode
 
               {/* --- WHISKER MARKINGS (Khajiit) --- */}
               {hasWhiskers && (
-                <g opacity="0.6" style={{ animation: 'whiskerTwitch 6s ease-in-out infinite', transformOrigin: '100px 76px' }}>
+                <g opacity="0.6" className="anim-whisker-twitch" style={{ transformOrigin: '100px 76px' }}>
                   {/* Left whiskers */}
                   <line x1="70" y1="72" x2="48" y2="68" stroke={colors.hairBase} strokeWidth="0.8" />
                   <line x1="70" y1="76" x2="46" y2="76" stroke={colors.hairBase} strokeWidth="0.8" />
@@ -789,7 +789,7 @@ export const SvgPlayerModel: React.FC<ModelProps> = ({ stats, clothing, xrayMode
            </g>
 
            {/* --- HAIR (rendered on top of head, after head group closes) --- */}
-           <g id="hair" style={{ animation: 'hairSway 5s ease-in-out infinite', transformOrigin: '100px 0px' }}>
+           <g id="hair" className="anim-hair-sway" style={{ transformOrigin: '100px 0px' }}>
              {isFemale ? (
                <>
                  {/* Long flowing hair */}
@@ -1213,7 +1213,7 @@ export const SvgPlayerModel: React.FC<ModelProps> = ({ stats, clothing, xrayMode
            )}
 
            {/* --- BODY RIM LIGHT (enhanced dual-edge) --- */}
-           <g id="rim-body" opacity="0.25" style={{ mixBlendMode: 'screen' as const }}>
+           <g id="rim-body" opacity="0.25" style={{ mixBlendMode: 'screen' }}>
              {isFemale ? (
                <>
                  {/* Left rim (main light) */}
@@ -1286,8 +1286,8 @@ export const SvgPlayerModel: React.FC<ModelProps> = ({ stats, clothing, xrayMode
            {/* Sweat */}
            {isSweating && (
              <g id="sweat" opacity={heavySweat ? 0.7 : 0.4}>
-               <circle cx="80" cy="22" r="1" fill="#88DDFF" style={{ animation: 'sweatDrip 2.5s ease-in infinite' }} />
-               <circle cx="90" cy="18" r="0.8" fill="#88DDFF" style={{ animation: 'sweatDrip 3s ease-in infinite 0.5s' }} />
+               <circle cx="80" cy="22" r="1" fill="#88DDFF" className="anim-sweat-drip" />
+               <circle cx="90" cy="18" r="0.8" fill="#88DDFF" className="anim-sweat-drip-delay" />
                <path d="M 66 40 Q 64 48 66 55" stroke="#88DDFF" strokeWidth="1" fill="none" />
                {heavySweat && (
                  <>
@@ -1319,7 +1319,7 @@ export const SvgPlayerModel: React.FC<ModelProps> = ({ stats, clothing, xrayMode
 
            {/* Corruption veins */}
            {isCorrupted && (
-             <g id="corruption-veins" style={{ animation: 'corruptionPulse 2s ease-in-out infinite' }}>
+             <g id="corruption-veins" className="anim-corruption-pulse">
                <path d="M 90 130 Q 85 160 88 190 Q 90 220 85 250" stroke="#6B21A8" strokeWidth="1" fill="none" />
                <path d="M 110 130 Q 115 160 112 190 Q 110 220 115 250" stroke="#6B21A8" strokeWidth="1" fill="none" />
                <path d="M 95 140 Q 92 150 96 160" stroke="#7C3AED" strokeWidth="0.8" fill="none" />

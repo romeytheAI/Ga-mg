@@ -72,3 +72,23 @@
   50% { opacity: 0.4; }
   100% { opacity: 0.2; }
 }
+
+/* --- Animation utility classes for SVG model --- */
+.anim-tail-wag {
+  animation: tailWag 4s ease-in-out infinite;
+}
+.anim-hair-sway {
+  animation: hairSway 5s ease-in-out infinite;
+}
+.anim-whisker-twitch {
+  animation: whiskerTwitch 6s ease-in-out infinite;
+}
+.anim-sweat-drip {
+  animation: sweatDrip 2.5s ease-in infinite;
+}
+.anim-sweat-drip-delay {
+  animation: sweatDrip 3s ease-in infinite 0.5s;
+}
+.anim-corruption-pulse {
+  animation: corruptionPulse 2s ease-in-out infinite;
+}
