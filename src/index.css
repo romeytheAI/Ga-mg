@@ -73,6 +73,38 @@
   100% { opacity: 0.2; }
 }
 
+/* Idle body sway — 0.28 deg matches natural postural micro-sway amplitude */
+@keyframes idleSway {
+  0%   { transform: rotate(0deg); }
+  20%  { transform: rotate(0.28deg); }
+  50%  { transform: rotate(0deg); }
+  80%  { transform: rotate(-0.28deg); }
+  100% { transform: rotate(0deg); }
+}
+
+/* Arousal tremble */
+@keyframes arousalShiver {
+  0%, 100% { transform: translateX(0); }
+  20%       { transform: translateX(0.5px); }
+  60%       { transform: translateX(-0.5px); }
+}
+
+/* Hurt flinch */
+@keyframes hurtFlinch {
+  0%   { transform: translateX(0) rotate(0deg); }
+  15%  { transform: translateX(-3px) rotate(-1.2deg); }
+  45%  { transform: translateX(2px) rotate(0.8deg); }
+  70%  { transform: translateX(-1px) rotate(-0.4deg); }
+  100% { transform: translateX(0) rotate(0deg); }
+}
+
+/* Ecstasy pulse */
+@keyframes ecstasyPulse {
+  0%, 100% { transform: scaleY(1) translateY(0); }
+  30%       { transform: scaleY(1.018) translateY(-1px); }
+  60%       { transform: scaleY(1.018) translateY(-1px); }
+}
+
 /* --- Animation utility classes for SVG model --- */
 .anim-tail-wag {
   animation: tailWag 4s ease-in-out infinite;
@@ -91,4 +123,21 @@
 }
 .anim-corruption-pulse {
   animation: corruptionPulse 2s ease-in-out infinite;
+}
+.anim-eye-blink {
+  animation: eyeBlink 7s ease-in-out infinite;
+  transform-origin: center center;
+}
+.anim-idle-sway {
+  animation: idleSway 8s ease-in-out infinite;
+  transform-origin: center bottom;
+}
+.anim-arousal-shiver {
+  animation: arousalShiver 0.7s ease-in-out infinite;
+}
+.anim-hurt-flinch {
+  animation: hurtFlinch 0.5s ease-out;
+}
+.anim-ecstasy {
+  animation: ecstasyPulse 0.9s ease-in-out infinite;
 }
