@@ -114,7 +114,6 @@ describe('svgToGltf', () => {
   it('has 7 materials with skin color', () => {
     const gltf = JSON.parse(convertSvgToGltf(makeTestFixture()));
     expect(gltf.materials).toHaveLength(7);
-    // All materials should have baseColorFactor
     for (const mat of gltf.materials) {
       expect(mat.pbrMetallicRoughness.baseColorFactor).toHaveLength(4);
       expect(mat.pbrMetallicRoughness.metallicFactor).toBe(0);
@@ -139,7 +138,7 @@ describe('svgToGltf', () => {
   it('all position accessors have valid min/max bounds', () => {
     const gltf = JSON.parse(convertSvgToGltf(makeTestFixture()));
     for (const acc of gltf.accessors) {
-      if (acc.type === 'VEC3') {
+      if (acc.type === 'VEC3' && acc.min) {
         expect(acc.min).toHaveLength(3);
         expect(acc.max).toHaveLength(3);
         for (let i = 0; i < 3; i++) {
@@ -147,5 +146,52 @@ describe('svgToGltf', () => {
         }
       }
     }
+  });
+
+  it('meshes have 3D depth (non-zero Z coordinates)', () => {
+    const gltf = JSON.parse(convertSvgToGltf(makeTestFixture()));
+    // Position accessors should have non-zero Z range for 3D volume
+    const posAccessors = gltf.accessors.filter(
+      (a: { type: string; min?: number[] }) => a.type === 'VEC3' && a.min
+    );
+    let hasDepth = false;
+    for (const acc of posAccessors) {
+      if (acc.min[2] !== acc.max[2]) {
+        hasDepth = true;
+        break;
+      }
+    }
+    expect(hasDepth).toBe(true);
+  });
+
+  it('meshes include NORMAL attribute for proper shading', () => {
+    const gltf = JSON.parse(convertSvgToGltf(makeTestFixture()));
+    for (const mesh of gltf.meshes) {
+      for (const prim of mesh.primitives) {
+        expect(prim.attributes.NORMAL).toBeDefined();
+        expect(typeof prim.attributes.NORMAL).toBe('number');
+      }
+    }
+  });
+
+  it('head mesh has significantly more vertices than a flat disc (3D sphere)', () => {
+    const gltf = JSON.parse(convertSvgToGltf(makeTestFixture()));
+    const headMesh = gltf.meshes.find((m: { name: string }) => m.name === 'Head');
+    expect(headMesh).toBeDefined();
+    const posAccIdx = headMesh.primitives[0].attributes.POSITION;
+    const posAcc = gltf.accessors[posAccIdx];
+    // A 12-ring × 20-segment sphere = (12+1)*(20+1) = 273 vertices
+    // This is much more than the old 25 (flat disc)
+    expect(posAcc.count).toBeGreaterThan(100);
+  });
+
+  it('torso mesh has significant vertex count for 3D volume', () => {
+    const gltf = JSON.parse(convertSvgToGltf(makeTestFixture()));
+    const torso = gltf.meshes.find((m: { name: string }) => m.name === 'Torso');
+    expect(torso).toBeDefined();
+    const posAccIdx = torso.primitives[0].attributes.POSITION;
+    const posAcc = gltf.accessors[posAccIdx];
+    // 6 profile rows × 13 ring verts + 2 caps = much more than old 8
+    expect(posAcc.count).toBeGreaterThan(50);
   });
 });

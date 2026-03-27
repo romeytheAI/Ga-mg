@@ -3,9 +3,10 @@
  *
  * Converts the 2D SVG body geometry (viewBox 0 0 100 225) into a valid
  * glTF 2.0 JSON document with:
- *   - Flat quad/triangle meshes for each body part (head, torso, arms, legs)
+ *   - 3D volumetric meshes for each body part (ellipsoids, tapered cylinders)
  *   - Materials derived from skin / clothing colors
  *   - A skeleton node hierarchy for potential rigging
+ *   - Vertex normals for proper shading
  *   - All buffers embedded as base64 data URIs (self-contained .gltf)
  *
  * The coordinate convention maps SVG (x-right, y-down) to glTF (x-right,
@@ -16,6 +17,8 @@ import { BodyGeom, SpriteState } from '../components/dol/sprite/utils';
 
 /* ── helpers ─────────────────────────────────────────────────────────── */
 
+const S = 1 / 225; // scale factor: 1 SVG unit → 1/225 glTF units
+
 /** Parse "#rrggbb" → [r,g,b,1] in 0-1 range */
 function hexToRgba(hex: string): [number, number, number, number] {
   const h = hex.replace('#', '');
@@ -25,53 +28,183 @@ function hexToRgba(hex: string): [number, number, number, number] {
   return [r, g, b, 1.0];
 }
 
-/** Convert SVG coord → glTF coord.  SVG: (x right, y down), glTF: (x right, y up, z=0). */
+/** Convert SVG coord → glTF coord.  SVG: (x right, y down), glTF: (x right, y up, z forward). */
 function svgToGl(sx: number, sy: number, viewW = 100, viewH = 225): [number, number, number] {
-  const scale = 1 / viewH; // normalise so model height ≈ 1 unit
-  const x = (sx - viewW / 2) * scale;
-  const y = (viewH / 2 - sy) * scale; // flip Y
+  const x = (sx - viewW / 2) * S;
+  const y = (viewH / 2 - sy) * S; // flip Y
   return [x, y, 0];
 }
 
-/** Build a flat quad (2 triangles) from 4 SVG corner points (clockwise). */
-function quadFromCorners(
-  topLeft: [number, number],
-  topRight: [number, number],
-  bottomRight: [number, number],
-  bottomLeft: [number, number],
-): { positions: number[]; indices: number[] } {
-  const [ax, ay, az] = svgToGl(topLeft[0], topLeft[1]);
-  const [bx, by, bz] = svgToGl(topRight[0], topRight[1]);
-  const [cx, cy, cz] = svgToGl(bottomRight[0], bottomRight[1]);
-  const [dx, dy, dz] = svgToGl(bottomLeft[0], bottomLeft[1]);
-  return {
-    positions: [ax, ay, az, bx, by, bz, cx, cy, cz, dx, dy, dz],
-    indices: [0, 1, 2, 0, 2, 3],
-  };
+/** Normalise a 3-vector in-place and return it. */
+function normalise(v: [number, number, number]): [number, number, number] {
+  const len = Math.sqrt(v[0] * v[0] + v[1] * v[1] + v[2] * v[2]) || 1;
+  v[0] /= len; v[1] /= len; v[2] /= len;
+  return v;
 }
 
-/** Build an ellipse-ish mesh from SVG center + radii (subdivided into triangles). */
-function ellipseMesh(
-  scx: number,
-  scy: number,
-  rx: number,
-  ry: number,
-  segments = 16,
-): { positions: number[]; indices: number[] } {
-  const positions: number[] = [];
-  const indices: number[] = [];
-  // centre vertex
-  const [ox, oy, oz] = svgToGl(scx, scy);
-  positions.push(ox, oy, oz);
+/* ── 3-D primitive builders ──────────────────────────────────────────── */
 
-  for (let i = 0; i < segments; i++) {
-    const a = (2 * Math.PI * i) / segments;
-    const [px, py, pz] = svgToGl(scx + Math.cos(a) * rx, scy + Math.sin(a) * ry);
-    positions.push(px, py, pz);
-    const next = i === segments - 1 ? 1 : i + 2;
-    indices.push(0, i + 1, next);
+interface RawMesh { positions: number[]; normals: number[]; indices: number[] }
+
+/**
+ * UV-sphere (ellipsoid).  Centre is at glTF (cx, cy, cz); radii are in
+ * glTF units.  `rings` latitude rings, `segs` longitude segments.
+ */
+function ellipsoidMesh(
+  cx: number, cy: number, cz: number,
+  rx: number, ry: number, rz: number,
+  rings = 10, segs = 16,
+): RawMesh {
+  const pos: number[] = [];
+  const nor: number[] = [];
+  const idx: number[] = [];
+
+  for (let r = 0; r <= rings; r++) {
+    const phi = (Math.PI * r) / rings;          // 0 … π  (pole-to-pole)
+    const sp = Math.sin(phi), cp = Math.cos(phi);
+    for (let s = 0; s <= segs; s++) {
+      const theta = (2 * Math.PI * s) / segs;   // 0 … 2π
+      const st = Math.sin(theta), ct = Math.cos(theta);
+      const nx = ct * sp, ny = cp, nz = st * sp;
+      pos.push(cx + rx * nx, cy + ry * ny, cz + rz * nz);
+      const n = normalise([nx / rx, ny / ry, nz / rz]);
+      nor.push(...n);
+    }
   }
-  return { positions, indices };
+  const stride = segs + 1;
+  for (let r = 0; r < rings; r++) {
+    for (let s = 0; s < segs; s++) {
+      const a = r * stride + s;
+      const b = a + stride;
+      idx.push(a, b, a + 1,  a + 1, b, b + 1);
+    }
+  }
+  return { positions: pos, normals: nor, indices: idx };
+}
+
+/**
+ * Tapered cylinder / truncated cone between two ring centres.
+ * Each centre is specified in glTF coords.  Depth is along Z.
+ * `rTop`/`rBot` are the SVG-space half-widths (auto-scaled).
+ * Returns capped cylinder with smooth normals on the barrel.
+ */
+function taperedCylinderMesh(
+  topCx: number, topCy: number, rTop: number, depthTop: number,
+  botCx: number, botCy: number, rBot: number, depthBot: number,
+  segs = 12,
+): RawMesh {
+  const pos: number[] = [];
+  const nor: number[] = [];
+  const idx: number[] = [];
+
+  const rtS = rTop * S;
+  const rbS = rBot * S;
+  const dtS = depthTop * S;
+  const dbS = depthBot * S;
+
+  // Barrel: two rings
+  for (let i = 0; i <= segs; i++) {
+    const a = (2 * Math.PI * i) / segs;
+    const ca = Math.cos(a), sa = Math.sin(a);
+    // top ring
+    pos.push(topCx + rtS * ca, topCy, dtS * sa);
+    // bottom ring
+    pos.push(botCx + rbS * ca, botCy, dbS * sa);
+
+    // Smooth normal: average direction outward
+    const n = normalise([ca, 0, sa]);
+    nor.push(...n, ...n);
+  }
+
+  const stride = 2; // top,bot alternating
+  for (let i = 0; i < segs; i++) {
+    const t0 = i * stride, b0 = t0 + 1;
+    const t1 = (i + 1) * stride, b1 = t1 + 1;
+    idx.push(t0, b0, t1,  t1, b0, b1);
+  }
+
+  // Top cap
+  const topCenter = pos.length / 3;
+  pos.push(topCx, topCy, 0);
+  nor.push(0, 1, 0);
+  for (let i = 0; i <= segs; i++) {
+    const a = (2 * Math.PI * i) / segs;
+    pos.push(topCx + rtS * Math.cos(a), topCy, dtS * Math.sin(a));
+    nor.push(0, 1, 0);
+  }
+  for (let i = 0; i < segs; i++) {
+    idx.push(topCenter, topCenter + 1 + i, topCenter + 2 + i);
+  }
+
+  // Bottom cap
+  const botCenter = pos.length / 3;
+  pos.push(botCx, botCy, 0);
+  nor.push(0, -1, 0);
+  for (let i = 0; i <= segs; i++) {
+    const a = (2 * Math.PI * i) / segs;
+    pos.push(botCx + rbS * Math.cos(a), botCy, dbS * Math.sin(a));
+    nor.push(0, -1, 0);
+  }
+  for (let i = 0; i < segs; i++) {
+    idx.push(botCenter, botCenter + 2 + i, botCenter + 1 + i); // reversed winding
+  }
+
+  return { positions: pos, normals: nor, indices: idx };
+}
+
+/**
+ * Extruded body cross-section: takes a series of SVG (x,y) profile points
+ * and extrudes them along Z with a given depth factor to create a 3D volume.
+ * The depth at each point can vary to create organic curvature.
+ */
+function extrudedBodyMesh(
+  profile: { sx: number; sy: number; depth: number }[],
+  segs = 12,
+): RawMesh {
+  const pos: number[] = [];
+  const nor: number[] = [];
+  const idx: number[] = [];
+  const viewW = 100, viewH = 225;
+
+  // For each profile row, create a ring of vertices
+  for (const pt of profile) {
+    const cx = (pt.sx - viewW / 2) * S;
+    const cy = (viewH / 2 - pt.sy) * S;
+    const rz = pt.depth * S;
+    for (let i = 0; i <= segs; i++) {
+      const a = (Math.PI * i) / segs;   // 0 … π (half-circle, front to back)
+      const sa = Math.sin(a), ca = Math.cos(a);
+      pos.push(cx, cy, rz * ca);
+      // Normal points outward along the half-circle
+      nor.push(0, 0, ca > 0 ? 1 : ca < 0 ? -1 : 0);
+    }
+  }
+
+  // Connect adjacent profile rings
+  const stride = segs + 1;
+  for (let r = 0; r < profile.length - 1; r++) {
+    for (let i = 0; i < segs; i++) {
+      const a = r * stride + i;
+      const b = a + stride;
+      idx.push(a, b, a + 1,  a + 1, b, b + 1);
+    }
+  }
+
+  return { positions: pos, normals: nor, indices: idx };
+}
+
+/** Merge multiple RawMesh into one. */
+function mergeRawMeshes(...meshes: RawMesh[]): RawMesh {
+  const pos: number[] = [];
+  const nor: number[] = [];
+  const idx: number[] = [];
+  for (const m of meshes) {
+    const offset = pos.length / 3;
+    pos.push(...m.positions);
+    nor.push(...m.normals);
+    idx.push(...m.indices.map(i => i + offset));
+  }
+  return { positions: pos, normals: nor, indices: idx };
 }
 
 /* ── main body-part mesh builders ────────────────────────────────────── */
@@ -79,67 +212,110 @@ function ellipseMesh(
 interface MeshData {
   name: string;
   positions: Float32Array;
+  normals: Float32Array;
   indices: Uint16Array;
   color: [number, number, number, number];
 }
 
-function buildHeadMesh(geom: BodyGeom, s: SpriteState, skinHex: string): MeshData {
-  const m = ellipseMesh(s.cx, s.headCY, geom.headRX, geom.headRY, 24);
+function toMeshData(name: string, raw: RawMesh, skinHex: string): MeshData {
   return {
-    name: 'Head',
-    positions: new Float32Array(m.positions),
-    indices: new Uint16Array(m.indices),
+    name,
+    positions: new Float32Array(raw.positions),
+    normals: new Float32Array(raw.normals),
+    indices: new Uint16Array(raw.indices),
     color: hexToRgba(skinHex),
   };
+}
+
+function buildHeadMesh(geom: BodyGeom, s: SpriteState, skinHex: string): MeshData {
+  const [cx, cy] = svgToGl(s.cx, s.headCY);
+  // Head depth ≈ 80% of width for a natural skull shape
+  const depthR = geom.headRX * 0.8;
+  const m = ellipsoidMesh(cx, cy, 0, geom.headRX * S, geom.headRY * S, depthR * S, 12, 20);
+  return toMeshData('Head', m, skinHex);
 }
 
 function buildNeckMesh(geom: BodyGeom, s: SpriteState, skinHex: string): MeshData {
   const nw = geom.headRX * 0.45;
-  const q = quadFromCorners(
-    [s.cx - nw, s.neckTopY],
-    [s.cx + nw, s.neckTopY],
-    [s.cx + nw * 1.1, s.neckBotY],
-    [s.cx - nw * 1.1, s.neckBotY],
-  );
-  return {
-    name: 'Neck',
-    positions: new Float32Array(q.positions),
-    indices: new Uint16Array(q.indices),
-    color: hexToRgba(skinHex),
-  };
+  const [topCx, topCy] = svgToGl(s.cx, s.neckTopY);
+  const [botCx, botCy] = svgToGl(s.cx, s.neckBotY);
+  const depth = nw * 0.7; // neck depth
+  const m = taperedCylinderMesh(topCx, topCy, nw, depth, botCx, botCy, nw * 1.1, depth * 1.1, 10);
+  return toMeshData('Neck', m, skinHex);
 }
 
 function buildTorsoMesh(geom: BodyGeom, s: SpriteState, skinHex: string): MeshData {
-  // Simplified torso: shoulder → waist → hip → crotch as a tapered polygon
-  const pts: [number, number][] = [
-    [s.cx - geom.shoulderHW, s.shldY],          // 0 top-left
-    [s.cx + geom.shoulderHW, s.shldY],          // 1 top-right
-    [s.cx + geom.waistHW, s.waistY],            // 2 waist-right
-    [s.cx + geom.hipHW, s.hipTopY],             // 3 hip-right
-    [s.cx + geom.hipHW * 0.5, s.crotchY],       // 4 crotch-right
-    [s.cx - geom.hipHW * 0.5, s.crotchY],       // 5 crotch-left
-    [s.cx - geom.hipHW, s.hipTopY],             // 6 hip-left
-    [s.cx - geom.waistHW, s.waistY],            // 7 waist-left
+  // Build torso as an extruded cross-section through shoulder→waist→hip→crotch
+  // Use left half-width; we mirror by creating full ring around Z axis
+  const viewW = 100, viewH = 225;
+
+  // Profile rows: each row has SVG center-x, SVG y, and SVG half-widths
+  const rows: { y: number; hw: number; depth: number }[] = [
+    { y: s.shldY,   hw: geom.shoulderHW, depth: geom.shoulderHW * 0.45 },
+    { y: s.shldY + (s.waistY - s.shldY) * 0.33, hw: geom.shoulderHW * 0.92, depth: geom.shoulderHW * 0.42 },
+    { y: s.shldY + (s.waistY - s.shldY) * 0.66, hw: (geom.shoulderHW + geom.waistHW) / 2, depth: (geom.shoulderHW * 0.45 + geom.waistHW * 0.5) / 2 },
+    { y: s.waistY,  hw: geom.waistHW,    depth: geom.waistHW * 0.5 },
+    { y: s.hipTopY, hw: geom.hipHW,       depth: geom.hipHW * 0.4 },
+    { y: s.crotchY, hw: geom.hipHW * 0.5, depth: geom.hipHW * 0.35 },
   ];
 
-  const positions: number[] = [];
-  for (const [px, py] of pts) {
-    const [gx, gy, gz] = svgToGl(px, py);
-    positions.push(gx, gy, gz);
+  const segs = 12;
+  const pos: number[] = [];
+  const nor: number[] = [];
+  const idx: number[] = [];
+
+  // Build rings around the torso cross-section
+  for (const row of rows) {
+    const cy = (viewH / 2 - row.y) * S;
+    const rxS = row.hw * S;
+    const rzS = row.depth * S;
+    for (let i = 0; i <= segs; i++) {
+      const a = (2 * Math.PI * i) / segs;
+      const ca = Math.cos(a), sa = Math.sin(a);
+      pos.push(rxS * ca, cy, rzS * sa);
+      const n = normalise([ca / row.hw, 0, sa / row.depth]);
+      nor.push(...n);
+    }
   }
 
-  // Fan triangulation from vertex 0
-  const indices: number[] = [];
-  for (let i = 1; i < pts.length - 1; i++) {
-    indices.push(0, i, i + 1);
+  // Connect adjacent rings
+  const stride = segs + 1;
+  for (let r = 0; r < rows.length - 1; r++) {
+    for (let i = 0; i < segs; i++) {
+      const a = r * stride + i;
+      const b = a + stride;
+      idx.push(a, b, a + 1,  a + 1, b, b + 1);
+    }
   }
 
-  return {
-    name: 'Torso',
-    positions: new Float32Array(positions),
-    indices: new Uint16Array(indices),
-    color: hexToRgba(skinHex),
-  };
+  // Top cap (shoulders)
+  const topC = pos.length / 3;
+  pos.push(0, (viewH / 2 - rows[0].y) * S, 0);
+  nor.push(0, 1, 0);
+  for (let i = 0; i <= segs; i++) {
+    const a = (2 * Math.PI * i) / segs;
+    pos.push(rows[0].hw * S * Math.cos(a), (viewH / 2 - rows[0].y) * S, rows[0].depth * S * Math.sin(a));
+    nor.push(0, 1, 0);
+  }
+  for (let i = 0; i < segs; i++) {
+    idx.push(topC, topC + 1 + i, topC + 2 + i);
+  }
+
+  // Bottom cap (crotch)
+  const botR = rows[rows.length - 1];
+  const botC = pos.length / 3;
+  pos.push(0, (viewH / 2 - botR.y) * S, 0);
+  nor.push(0, -1, 0);
+  for (let i = 0; i <= segs; i++) {
+    const a = (2 * Math.PI * i) / segs;
+    pos.push(botR.hw * S * Math.cos(a), (viewH / 2 - botR.y) * S, botR.depth * S * Math.sin(a));
+    nor.push(0, -1, 0);
+  }
+  for (let i = 0; i < segs; i++) {
+    idx.push(botC, botC + 2 + i, botC + 1 + i);
+  }
+
+  return toMeshData('Torso', { positions: pos, normals: nor, indices: idx }, skinHex);
 }
 
 function buildArmMesh(
@@ -154,39 +330,31 @@ function buildArmMesh(
   const hw  = geom.upperArmW / 2;
   const fw  = geom.forearmW / 2;
 
-  // Upper arm quad
-  const upper = quadFromCorners(
-    [shX - hw, s.shldY],
-    [shX + hw, s.shldY],
-    [elX + hw * 0.9, s.elY],
-    [elX - hw * 0.9, s.elY],
-  );
-  // Forearm quad
-  const fore = quadFromCorners(
-    [elX - fw, s.elY],
-    [elX + fw, s.elY],
-    [wrX + fw * 0.8, s.wrY],
-    [wrX - fw * 0.8, s.wrY],
-  );
-  // Hand ellipse
-  const hand = ellipseMesh(wrX, s.handCY, geom.handW / 2, geom.handH / 2, 12);
+  const [shGx, shGy] = svgToGl(shX, s.shldY);
+  const [elGx, elGy] = svgToGl(elX, s.elY);
+  const [wrGx, wrGy] = svgToGl(wrX, s.wrY);
+  const [hdGx, hdGy] = svgToGl(wrX, s.handCY);
 
-  // Merge
-  const allPos: number[] = [...upper.positions, ...fore.positions, ...hand.positions];
-  const upperLen = upper.positions.length / 3;
-  const foreLen  = fore.positions.length / 3;
-  const allIdx: number[] = [
-    ...upper.indices,
-    ...fore.indices.map(i => i + upperLen),
-    ...hand.indices.map(i => i + upperLen + foreLen),
-  ];
+  // Upper arm: tapered cylinder
+  const upper = taperedCylinderMesh(
+    shGx, shGy, hw, hw * 0.85,
+    elGx, elGy, hw * 0.9, hw * 0.75,
+    8,
+  );
+  // Forearm: tapered cylinder
+  const fore = taperedCylinderMesh(
+    elGx, elGy, fw, fw * 0.85,
+    wrGx, wrGy, fw * 0.8, fw * 0.7,
+    8,
+  );
+  // Hand: small ellipsoid
+  const hand = ellipsoidMesh(
+    hdGx, hdGy, 0,
+    geom.handW / 2 * S, geom.handH / 2 * S, geom.handW / 3 * S,
+    6, 8,
+  );
 
-  return {
-    name: `Arm_${side}`,
-    positions: new Float32Array(allPos),
-    indices: new Uint16Array(allIdx),
-    color: hexToRgba(skinHex),
-  };
+  return toMeshData(`Arm_${side}`, mergeRawMeshes(upper, fore, hand), skinHex);
 }
 
 function buildLegMesh(
@@ -195,42 +363,35 @@ function buildLegMesh(
   s: SpriteState,
   skinHex: string,
 ): MeshData {
-  const lx  = side === 'left' ? s.legLX : s.legRX;
-  const tw  = geom.thighW / 2;
-  const cw  = geom.calfW / 2;
+  const lx = side === 'left' ? s.legLX : s.legRX;
+  const tw = geom.thighW / 2;
+  const cw = geom.calfW / 2;
 
-  // Thigh quad
-  const thigh = quadFromCorners(
-    [lx - tw, s.crotchY],
-    [lx + tw, s.crotchY],
-    [lx + tw * 0.85, s.kneeY],
-    [lx - tw * 0.85, s.kneeY],
+  const [crGx, crGy] = svgToGl(lx, s.crotchY);
+  const [knGx, knGy] = svgToGl(lx, s.kneeY);
+  const [anGx, anGy] = svgToGl(lx, s.ankleY);
+  const [ftGx, ftGy] = svgToGl(lx, s.footBotY - geom.footH / 2);
+
+  // Thigh: tapered cylinder
+  const thigh = taperedCylinderMesh(
+    crGx, crGy, tw, tw * 0.8,
+    knGx, knGy, tw * 0.85, tw * 0.7,
+    8,
   );
-  // Calf quad
-  const calf = quadFromCorners(
-    [lx - cw, s.kneeY],
-    [lx + cw, s.kneeY],
-    [lx + cw * 0.7, s.ankleY],
-    [lx - cw * 0.7, s.ankleY],
+  // Calf: tapered cylinder
+  const calf = taperedCylinderMesh(
+    knGx, knGy, cw, cw * 0.8,
+    anGx, anGy, cw * 0.7, cw * 0.6,
+    8,
   );
-  // Foot ellipse
-  const foot = ellipseMesh(lx, s.footBotY - geom.footH / 2, geom.footW / 2, geom.footH / 2, 12);
+  // Foot: elongated ellipsoid (longer front-to-back)
+  const foot = ellipsoidMesh(
+    ftGx, ftGy, geom.footW * 0.15 * S,  // foot offset forward slightly
+    geom.footW / 2 * S, geom.footH / 2 * S, geom.footW * 0.4 * S,
+    6, 8,
+  );
 
-  const allPos: number[] = [...thigh.positions, ...calf.positions, ...foot.positions];
-  const thighLen = thigh.positions.length / 3;
-  const calfLen  = calf.positions.length / 3;
-  const allIdx: number[] = [
-    ...thigh.indices,
-    ...calf.indices.map(i => i + thighLen),
-    ...foot.indices.map(i => i + thighLen + calfLen),
-  ];
-
-  return {
-    name: `Leg_${side}`,
-    positions: new Float32Array(allPos),
-    indices: new Uint16Array(allIdx),
-    color: hexToRgba(skinHex),
-  };
+  return toMeshData(`Leg_${side}`, mergeRawMeshes(thigh, calf, foot), skinHex);
 }
 
 /* ── Skeleton bone nodes ─────────────────────────────────────────────── */
@@ -243,8 +404,6 @@ interface GltfNode {
 }
 
 function buildSkeletonNodes(s: SpriteState): GltfNode[] {
-  // Build a node hierarchy that can serve as armature/skeleton.
-  // Indices are stable so meshes can reference them.
   return [
     // 0 - root
     { name: 'Armature', translation: [0, 0, 0], children: [1] },
@@ -278,6 +437,22 @@ function toBase64(arr: ArrayBuffer): string {
   return btoa(chunks.join(''));
 }
 
+function addBufferToGltf(
+  data: ArrayBuffer,
+  buffers: { uri: string; byteLength: number }[],
+  bufferViews: object[],
+  target: number,
+  bufferIndex: { v: number },
+  bvIndex: { v: number },
+): number {
+  const b64 = toBase64(data);
+  const bi = bufferIndex.v++;
+  buffers.push({ uri: `data:application/octet-stream;base64,${b64}`, byteLength: data.byteLength });
+  const bvi = bvIndex.v++;
+  bufferViews.push({ buffer: bi, byteOffset: 0, byteLength: data.byteLength, target });
+  return bvi;
+}
+
 function buildGltfJson(meshes: MeshData[], skeletonNodes: GltfNode[]): object {
   const buffers: { uri: string; byteLength: number }[] = [];
   const bufferViews: object[] = [];
@@ -286,8 +461,8 @@ function buildGltfJson(meshes: MeshData[], skeletonNodes: GltfNode[]): object {
   const materials: object[] = [];
   const gltfNodes: object[] = [];
 
-  let bufferIndex = 0;
-  let bvIndex = 0;
+  const bufferIndex = { v: 0 };
+  const bvIndex = { v: 0 };
 
   // Add skeleton nodes first
   for (const sn of skeletonNodes) {
@@ -298,7 +473,6 @@ function buildGltfJson(meshes: MeshData[], skeletonNodes: GltfNode[]): object {
     });
   }
 
-  // Mesh node start index
   const meshNodeStart = gltfNodes.length;
 
   for (let mi = 0; mi < meshes.length; mi++) {
@@ -313,30 +487,12 @@ function buildGltfJson(meshes: MeshData[], skeletonNodes: GltfNode[]): object {
         metallicFactor: 0.0,
         roughnessFactor: 0.8,
       },
-      doubleSided: true,
     });
 
-    // Positions buffer
-    const posBytes = md.positions.buffer.slice(
-      md.positions.byteOffset,
-      md.positions.byteOffset + md.positions.byteLength,
-    );
-    const posB64 = toBase64(posBytes);
-    const posBufIdx = bufferIndex++;
-    buffers.push({
-      uri: `data:application/octet-stream;base64,${posB64}`,
-      byteLength: posBytes.byteLength,
-    });
+    // Positions
+    const posBytes = md.positions.buffer.slice(md.positions.byteOffset, md.positions.byteOffset + md.positions.byteLength);
+    const posBvIdx = addBufferToGltf(posBytes, buffers, bufferViews, 34962, bufferIndex, bvIndex);
 
-    const posBvIdx = bvIndex++;
-    bufferViews.push({
-      buffer: posBufIdx,
-      byteOffset: 0,
-      byteLength: posBytes.byteLength,
-      target: 34962, // ARRAY_BUFFER
-    });
-
-    // Compute bounds
     let minX = Infinity, minY = Infinity, minZ = Infinity;
     let maxX = -Infinity, maxY = -Infinity, maxZ = -Infinity;
     for (let i = 0; i < md.positions.length; i += 3) {
@@ -351,37 +507,31 @@ function buildGltfJson(meshes: MeshData[], skeletonNodes: GltfNode[]): object {
     const posAccIdx = accessors.length;
     accessors.push({
       bufferView: posBvIdx,
-      componentType: 5126, // FLOAT
+      componentType: 5126,
       count: md.positions.length / 3,
       type: 'VEC3',
       min: [minX, minY, minZ],
       max: [maxX, maxY, maxZ],
     });
 
-    // Indices buffer
-    const idxBytes = md.indices.buffer.slice(
-      md.indices.byteOffset,
-      md.indices.byteOffset + md.indices.byteLength,
-    );
-    const idxB64 = toBase64(idxBytes);
-    const idxBufIdx = bufferIndex++;
-    buffers.push({
-      uri: `data:application/octet-stream;base64,${idxB64}`,
-      byteLength: idxBytes.byteLength,
+    // Normals
+    const norBytes = md.normals.buffer.slice(md.normals.byteOffset, md.normals.byteOffset + md.normals.byteLength);
+    const norBvIdx = addBufferToGltf(norBytes, buffers, bufferViews, 34962, bufferIndex, bvIndex);
+    const norAccIdx = accessors.length;
+    accessors.push({
+      bufferView: norBvIdx,
+      componentType: 5126,
+      count: md.normals.length / 3,
+      type: 'VEC3',
     });
 
-    const idxBvIdx = bvIndex++;
-    bufferViews.push({
-      buffer: idxBufIdx,
-      byteOffset: 0,
-      byteLength: idxBytes.byteLength,
-      target: 34963, // ELEMENT_ARRAY_BUFFER
-    });
-
+    // Indices
+    const idxBytes = md.indices.buffer.slice(md.indices.byteOffset, md.indices.byteOffset + md.indices.byteLength);
+    const idxBvIdx = addBufferToGltf(idxBytes, buffers, bufferViews, 34963, bufferIndex, bvIndex);
     const idxAccIdx = accessors.length;
     accessors.push({
       bufferView: idxBvIdx,
-      componentType: 5123, // UNSIGNED_SHORT
+      componentType: 5123,
       count: md.indices.length,
       type: 'SCALAR',
     });
@@ -389,24 +539,17 @@ function buildGltfJson(meshes: MeshData[], skeletonNodes: GltfNode[]): object {
     // Mesh
     gltfMeshes.push({
       name: md.name,
-      primitives: [
-        {
-          attributes: { POSITION: posAccIdx },
-          indices: idxAccIdx,
-          material: matIdx,
-          mode: 4, // TRIANGLES
-        },
-      ],
+      primitives: [{
+        attributes: { POSITION: posAccIdx, NORMAL: norAccIdx },
+        indices: idxAccIdx,
+        material: matIdx,
+        mode: 4,
+      }],
     });
 
-    // Mesh node
-    gltfNodes.push({
-      name: `Node_${md.name}`,
-      mesh: mi,
-    });
+    gltfNodes.push({ name: `Node_${md.name}`, mesh: mi });
   }
 
-  // Scene root children: armature root + all mesh nodes
   const sceneChildren = [0, ...Array.from({ length: meshes.length }, (_, i) => meshNodeStart + i)];
 
   return {
@@ -415,12 +558,7 @@ function buildGltfJson(meshes: MeshData[], skeletonNodes: GltfNode[]): object {
       generator: 'DoL SVG-to-glTF Converter',
     },
     scene: 0,
-    scenes: [
-      {
-        name: 'CharacterScene',
-        nodes: sceneChildren,
-      },
-    ],
+    scenes: [{ name: 'CharacterScene', nodes: sceneChildren }],
     nodes: gltfNodes,
     meshes: gltfMeshes,
     materials,
