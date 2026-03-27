@@ -1,4 +1,5 @@
 import React from 'react';
+import { motion } from 'motion/react';
 import { useGameStore } from '../store/gameStore';
 
 export const EncounterUI: React.FC = () => {
@@ -7,32 +8,39 @@ export const EncounterUI: React.FC = () => {
   if (!activeEncounter) return null;
 
   return (
-    <div className="bg-stone-200 dark:bg-stone-800 p-6 rounded-lg shadow-lg border border-stone-300 dark:border-stone-700 max-w-2xl mx-auto mt-8">
-      <h2 className="text-3xl font-bold mb-2 text-red-600 dark:text-red-400">Encounter: {activeEncounter.name}</h2>
-      <div className="mb-4 flex space-x-4 text-sm text-stone-500 dark:text-stone-400">
-        <span>Turn: {activeEncounter.turn}</span>
+    <motion.div
+      initial={{ opacity: 0, scale: 0.98 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ duration: 0.4 }}
+      className="bg-slate-900/80 p-6 rounded-xl shadow-2xl border border-red-900/50 max-w-2xl mx-auto backdrop-blur-sm"
+    >
+      <h2 className="text-3xl font-bold font-serif mb-2 text-red-500 tracking-tight drop-shadow-md">
+        Encounter: {activeEncounter.name}
+      </h2>
+      <div className="mb-4 flex space-x-4 text-sm text-slate-500">
+        <span className="bg-slate-800 px-2 py-0.5 rounded-full border border-slate-700 font-mono">Turn: {activeEncounter.turn}</span>
         {activeEncounter.enemyHealth !== undefined && (
-           <span>Enemy Health: {activeEncounter.enemyHealth}</span>
+           <span className="bg-slate-800 px-2 py-0.5 rounded-full border border-slate-700 font-mono">Enemy HP: {activeEncounter.enemyHealth}</span>
         )}
         {activeEncounter.enemyLust !== undefined && (
-           <span>Enemy Lust: {activeEncounter.enemyLust}</span>
+           <span className="bg-slate-800 px-2 py-0.5 rounded-full border border-slate-700 font-mono">Enemy Lust: {activeEncounter.enemyLust}</span>
         )}
       </div>
 
       {activeEncounter.image && (
-        <div className="mb-6 rounded overflow-hidden">
+        <div className="mb-6 rounded-lg overflow-hidden border border-slate-800">
           <img src={activeEncounter.image} alt={activeEncounter.name} className="w-full h-auto" />
         </div>
       )}
 
-      <p className="mb-8 text-lg">{activeEncounter.description}</p>
+      <p className="mb-8 text-lg text-slate-300 font-serif leading-relaxed tracking-wide">{activeEncounter.description}</p>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {activeEncounter.choices.map((choice, idx) => {
           const isAvailable = !choice.statReq || (stats[choice.statReq.stat] as number) >= choice.statReq.min;
 
           return (
-            <button
+            <motion.button
               key={idx}
               onClick={() => {
                 if (isAvailable) {
@@ -40,21 +48,23 @@ export const EncounterUI: React.FC = () => {
                 }
               }}
               disabled={!isAvailable}
-              className={`p-4 text-left rounded shadow transition-transform ${
+              whileHover={isAvailable ? { scale: 1.02 } : {}}
+              whileTap={isAvailable ? { scale: 0.98 } : {}}
+              className={`p-4 text-left rounded-lg shadow transition-all ${
                 isAvailable
-                  ? 'bg-stone-100 dark:bg-stone-900 hover:-translate-y-1 hover:shadow-md cursor-pointer border border-stone-300 dark:border-stone-700'
-                  : 'bg-stone-300 dark:bg-stone-700 opacity-50 cursor-not-allowed border-dashed border-stone-400 dark:border-stone-600'
+                  ? 'bg-slate-800 hover:bg-slate-700 cursor-pointer border border-slate-700 hover:border-amber-600'
+                  : 'bg-slate-800/50 opacity-40 cursor-not-allowed border border-dashed border-slate-700'
               }`}
             >
-              <div className="font-bold text-lg">{choice.label}</div>
-              <div className="text-sm mt-1">{choice.description}</div>
+              <div className={`font-bold text-lg ${isAvailable ? 'text-amber-500' : 'text-slate-500'}`}>{choice.label}</div>
+              <div className="text-sm mt-1 text-slate-400">{choice.description}</div>
 
               {!isAvailable && choice.statReq && (
-                <div className="text-xs text-red-500 mt-2 font-bold uppercase">
+                <div className="text-xs text-red-500 mt-2 font-bold uppercase tracking-wider">
                   Requires {choice.statReq.stat}: {choice.statReq.min}
                 </div>
               )}
-            </button>
+            </motion.button>
           );
         })}
       </div>
@@ -63,11 +73,11 @@ export const EncounterUI: React.FC = () => {
       <div className="mt-8 text-right">
         <button
           onClick={() => endEncounter("You fled the encounter in a panic.")}
-          className="text-xs text-stone-500 hover:text-red-500"
+          className="text-xs text-slate-600 hover:text-red-500 transition-colors"
         >
           [Debug: Force End]
         </button>
       </div>
-    </div>
+    </motion.div>
   );
 };

@@ -1,6 +1,4 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
 
 @layer utilities {
   .scrollbar-thin {
@@ -16,11 +14,81 @@
 }
 
 @keyframes breathe {
-  0% { transform: scale(1, 1); }
-  50% { transform: scale(1.02, 1.05); }
-  100% { transform: scale(1, 1); }
+  0% { transform: scaleY(1) translateY(0); }
+  40% { transform: scaleY(1.012) translateY(-0.5px); }
+  60% { transform: scaleY(1.012) translateY(-0.5px); }
+  100% { transform: scaleY(1) translateY(0); }
 }
 
 .animate-breathe {
-  animation: breathe 3s ease-in-out infinite;
+  animation: breathe 3.5s ease-in-out infinite;
+  transform-origin: center bottom;
+}
+
+/* Eye blink animation (occasional) */
+@keyframes eyeBlink {
+  0%, 95% { transform: scaleY(1); }
+  97% { transform: scaleY(0.05); }
+  99% { transform: scaleY(0.05); }
+  100% { transform: scaleY(1); }
+}
+
+/* Hair/mane sway */
+@keyframes hairSway {
+  0% { transform: rotate(0deg); }
+  25% { transform: rotate(0.5deg); }
+  50% { transform: rotate(0deg); }
+  75% { transform: rotate(-0.5deg); }
+  100% { transform: rotate(0deg); }
+}
+
+/* Tail wag for Khajiit/Argonian */
+@keyframes tailWag {
+  0% { transform: rotate(0deg); }
+  25% { transform: rotate(3deg); }
+  50% { transform: rotate(0deg); }
+  75% { transform: rotate(-3deg); }
+  100% { transform: rotate(0deg); }
+}
+
+/* Whisker twitch */
+@keyframes whiskerTwitch {
+  0%, 90% { transform: scaleX(1); }
+  93% { transform: scaleX(1.05); }
+  96% { transform: scaleX(0.97); }
+  100% { transform: scaleX(1); }
+}
+
+/* Sweat drip animation */
+@keyframes sweatDrip {
+  0% { transform: translateY(0); opacity: 0.8; }
+  80% { opacity: 0.6; }
+  100% { transform: translateY(12px); opacity: 0; }
+}
+
+/* Pulse for corruption veins */
+@keyframes corruptionPulse {
+  0% { opacity: 0.2; }
+  50% { opacity: 0.4; }
+  100% { opacity: 0.2; }
+}
+
+/* --- Animation utility classes for SVG model --- */
+.anim-tail-wag {
+  animation: tailWag 4s ease-in-out infinite;
+}
+.anim-hair-sway {
+  animation: hairSway 5s ease-in-out infinite;
+}
+.anim-whisker-twitch {
+  animation: whiskerTwitch 6s ease-in-out infinite;
+}
+.anim-sweat-drip {
+  animation: sweatDrip 2.5s ease-in infinite;
+}
+.anim-sweat-drip-delay {
+  animation: sweatDrip 3s ease-in infinite 0.5s;
+}
+.anim-corruption-pulse {
+  animation: corruptionPulse 2s ease-in-out infinite;
 }
