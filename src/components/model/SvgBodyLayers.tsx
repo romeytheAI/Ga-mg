@@ -248,82 +248,172 @@ export const SvgPlayerModel: React.FC<ModelProps> = ({ stats, clothing, xrayMode
             </feMerge>
           </filter>
 
+          {/* --- SUBSURFACE SCATTERING FILTER (warm light through skin) --- */}
+          <filter id="sss-filter" x="-20%" y="-20%" width="140%" height="140%">
+            <feGaussianBlur in="SourceAlpha" stdDeviation="4" result="sssBlur" />
+            <feFlood floodColor={isArgonian ? '#2a5030' : isKhajiit ? '#c08050' : '#ff6040'} floodOpacity="0.12" result="sssColor" />
+            <feComposite in="sssColor" in2="sssBlur" operator="in" result="sssGlow" />
+            <feMerge>
+              <feMergeNode in="sssGlow" />
+              <feMergeNode in="SourceGraphic" />
+            </feMerge>
+          </filter>
+
+          {/* --- SKIN TEXTURE PATTERN (subtle noise) --- */}
+          <filter id="skin-texture" x="0%" y="0%" width="100%" height="100%">
+            <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="4" seed="3" result="noise" />
+            <feColorMatrix in="noise" type="saturate" values="0" result="bwNoise" />
+            <feBlend in="SourceGraphic" in2="bwNoise" mode="overlay" />
+          </filter>
+
+          {/* --- SCALE PATTERN FOR ARGONIAN --- */}
+          <pattern id="scale-pattern" x="0" y="0" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(15)">
+            <path d="M 0 4 Q 4 0 8 4 Q 4 8 0 4 Z" fill="none" stroke={colors.shadow} strokeWidth="0.3" opacity="0.4" />
+          </pattern>
+
+          {/* --- FUR STRIPE PATTERN FOR KHAJIIT --- */}
+          <pattern id="fur-stripe" x="0" y="0" width="12" height="16" patternUnits="userSpaceOnUse" patternTransform="rotate(-5)">
+            <path d="M 6 0 Q 4 8 6 16" stroke={colors.deepShadow} strokeWidth="1.5" fill="none" opacity="0.15" />
+          </pattern>
+
+          {/* --- IRIS GRADIENT (layered detail) --- */}
+          <radialGradient id="iris-l" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stopColor={colors.eyeBase} stopOpacity="0.3" />
+            <stop offset="30%" stopColor={colors.eyeBase} />
+            <stop offset="70%" stopColor={colors.eyeBase} />
+            <stop offset="85%" stopColor={colors.deepShadow} stopOpacity="0.6" />
+            <stop offset="100%" stopColor="#000" stopOpacity="0.8" />
+          </radialGradient>
+          <radialGradient id="iris-r" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stopColor={colors.eyeBase} stopOpacity="0.3" />
+            <stop offset="30%" stopColor={colors.eyeBase} />
+            <stop offset="70%" stopColor={colors.eyeBase} />
+            <stop offset="85%" stopColor={colors.deepShadow} stopOpacity="0.6" />
+            <stop offset="100%" stopColor="#000" stopOpacity="0.8" />
+          </radialGradient>
+
+          {/* --- SCLERA GRADIENT (not pure white) --- */}
+          <radialGradient id="sclera-l" cx="50%" cy="45%" r="60%">
+            <stop offset="0%" stopColor="#F0F0F0" />
+            <stop offset="60%" stopColor="#E8E4E0" />
+            <stop offset="100%" stopColor="#D0C8C0" />
+          </radialGradient>
+          <radialGradient id="sclera-r" cx="50%" cy="45%" r="60%">
+            <stop offset="0%" stopColor="#F0F0F0" />
+            <stop offset="60%" stopColor="#E8E4E0" />
+            <stop offset="100%" stopColor="#D0C8C0" />
+          </radialGradient>
+
+          {/* --- CORNEAL HIGHLIGHT --- */}
+          <radialGradient id="corneal-shine" cx="35%" cy="30%" r="45%">
+            <stop offset="0%" stopColor="#FFFFFF" stopOpacity="0.9" />
+            <stop offset="50%" stopColor="#FFFFFF" stopOpacity="0.3" />
+            <stop offset="100%" stopColor="#FFFFFF" stopOpacity="0" />
+          </radialGradient>
+
+          {/* --- LIP GRADIENT --- */}
+          <radialGradient id="lip-grad" cx="50%" cy="40%" r="60%">
+            <stop offset="0%" stopColor={isArgonian ? colors.midHighlight : '#E87878'} />
+            <stop offset="50%" stopColor={isArgonian ? colors.base : '#D06060'} />
+            <stop offset="100%" stopColor={isArgonian ? colors.shadow : '#8C3333'} />
+          </radialGradient>
+
+          {/* --- NAIL BED --- */}
+          <linearGradient id="nail-grad" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stopColor={isArgonian ? colors.shadow : '#F0D0D0'} />
+            <stop offset="50%" stopColor={isArgonian ? colors.deepShadow : '#E8C0C0'} />
+            <stop offset="100%" stopColor={isArgonian ? colors.shadow : '#D8B0B0'} />
+          </linearGradient>
+
           {/* --- HIGH FIDELITY GRADIENTS --- */}
 
           {/* Torso Cylinder/Sphere Mapping */}
           <radialGradient id="torso-f" cx="50%" cy="40%" r="70%" fx="50%" fy="30%">
             <stop offset="0%" stopColor={colors.midHighlight} />
-            <stop offset="30%" stopColor={colors.base} />
-            <stop offset="70%" stopColor={colors.shadow} />
+            <stop offset="20%" stopColor={colors.base} />
+            <stop offset="50%" stopColor={colors.base} />
+            <stop offset="75%" stopColor={colors.shadow} />
             <stop offset="100%" stopColor={colors.deepShadow} />
           </radialGradient>
 
           <radialGradient id="torso-m" cx="50%" cy="30%" r="80%" fx="50%" fy="20%">
             <stop offset="0%" stopColor={colors.midHighlight} />
-            <stop offset="40%" stopColor={colors.base} />
+            <stop offset="25%" stopColor={colors.base} />
+            <stop offset="55%" stopColor={colors.base} />
             <stop offset="80%" stopColor={colors.shadow} />
             <stop offset="100%" stopColor={colors.deepShadow} />
           </radialGradient>
 
-          {/* Breast Sphere Mapping (Extremely 3D) */}
+          {/* Breast Sphere Mapping */}
           <radialGradient id="breast-l" cx="45%" cy="40%" r="60%" fx="35%" fy="35%">
             <stop offset="0%" stopColor={colors.highLight} />
-            <stop offset="15%" stopColor={colors.midHighlight} />
-            <stop offset="45%" stopColor={colors.base} />
-            <stop offset="85%" stopColor={colors.shadow} />
+            <stop offset="12%" stopColor={colors.midHighlight} />
+            <stop offset="40%" stopColor={colors.base} />
+            <stop offset="75%" stopColor={colors.shadow} />
+            <stop offset="95%" stopColor={colors.deepShadow} />
             <stop offset="100%" stopColor={colors.deepShadow} />
           </radialGradient>
           <radialGradient id="breast-r" cx="55%" cy="40%" r="60%" fx="65%" fy="35%">
             <stop offset="0%" stopColor={colors.highLight} />
-            <stop offset="15%" stopColor={colors.midHighlight} />
-            <stop offset="45%" stopColor={colors.base} />
-            <stop offset="85%" stopColor={colors.shadow} />
+            <stop offset="12%" stopColor={colors.midHighlight} />
+            <stop offset="40%" stopColor={colors.base} />
+            <stop offset="75%" stopColor={colors.shadow} />
+            <stop offset="95%" stopColor={colors.deepShadow} />
             <stop offset="100%" stopColor={colors.deepShadow} />
           </radialGradient>
 
-          {/* Limb Cylinders */}
+          {/* Limb Cylinders (more gradient stops for 3D wrap) */}
           <linearGradient id="arm-l" x1="100%" y1="0%" x2="0%" y2="0%">
-            <stop offset="0%" stopColor={colors.base} />
-            <stop offset="30%" stopColor={colors.midHighlight} />
-            <stop offset="70%" stopColor={colors.shadow} />
+            <stop offset="0%" stopColor={colors.midHighlight} />
+            <stop offset="15%" stopColor={colors.base} />
+            <stop offset="40%" stopColor={colors.base} />
+            <stop offset="65%" stopColor={colors.shadow} />
+            <stop offset="85%" stopColor={colors.deepShadow} />
             <stop offset="100%" stopColor={colors.deepShadow} />
           </linearGradient>
 
           <linearGradient id="arm-r" x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%" stopColor={colors.base} />
-            <stop offset="30%" stopColor={colors.midHighlight} />
-            <stop offset="70%" stopColor={colors.shadow} />
+            <stop offset="0%" stopColor={colors.midHighlight} />
+            <stop offset="15%" stopColor={colors.base} />
+            <stop offset="40%" stopColor={colors.base} />
+            <stop offset="65%" stopColor={colors.shadow} />
+            <stop offset="85%" stopColor={colors.deepShadow} />
             <stop offset="100%" stopColor={colors.deepShadow} />
           </linearGradient>
 
           <linearGradient id="leg-l" x1="100%" y1="0%" x2="0%" y2="0%">
-            <stop offset="0%" stopColor={colors.shadow} />
-            <stop offset="20%" stopColor={colors.base} />
-            <stop offset="60%" stopColor={colors.midHighlight} />
-            <stop offset="90%" stopColor={colors.shadow} />
+            <stop offset="0%" stopColor={colors.deepShadow} />
+            <stop offset="10%" stopColor={colors.shadow} />
+            <stop offset="30%" stopColor={colors.base} />
+            <stop offset="55%" stopColor={colors.midHighlight} />
+            <stop offset="80%" stopColor={colors.shadow} />
             <stop offset="100%" stopColor={colors.deepShadow} />
           </linearGradient>
 
           <linearGradient id="leg-r" x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%" stopColor={colors.shadow} />
-            <stop offset="20%" stopColor={colors.base} />
-            <stop offset="60%" stopColor={colors.midHighlight} />
-            <stop offset="90%" stopColor={colors.shadow} />
+            <stop offset="0%" stopColor={colors.deepShadow} />
+            <stop offset="10%" stopColor={colors.shadow} />
+            <stop offset="30%" stopColor={colors.base} />
+            <stop offset="55%" stopColor={colors.midHighlight} />
+            <stop offset="80%" stopColor={colors.shadow} />
             <stop offset="100%" stopColor={colors.deepShadow} />
           </linearGradient>
 
           {/* Neck Cylinder with chin shadow */}
           <linearGradient id="neck" x1="0%" y1="0%" x2="0%" y2="100%">
             <stop offset="0%" stopColor={colors.deepShadow} />
-            <stop offset="20%" stopColor={colors.shadow} />
-            <stop offset="70%" stopColor={colors.base} />
+            <stop offset="15%" stopColor={colors.shadow} />
+            <stop offset="50%" stopColor={colors.base} />
+            <stop offset="85%" stopColor={colors.base} />
             <stop offset="100%" stopColor={colors.midHighlight} />
           </linearGradient>
 
           <linearGradient id="neck-curve" x1="0%" y1="0%" x2="100%" y2="0%">
             <stop offset="0%" stopColor={colors.deepShadow} />
-            <stop offset="20%" stopColor={colors.base} />
-            <stop offset="80%" stopColor={colors.base} />
+            <stop offset="15%" stopColor={colors.shadow} />
+            <stop offset="30%" stopColor={colors.base} />
+            <stop offset="70%" stopColor={colors.base} />
+            <stop offset="85%" stopColor={colors.shadow} />
             <stop offset="100%" stopColor={colors.deepShadow} />
           </linearGradient>
 
@@ -337,6 +427,16 @@ export const SvgPlayerModel: React.FC<ModelProps> = ({ stats, clothing, xrayMode
           <filter id="blur-lg" x="-50%" y="-50%" width="200%" height="200%">
             <feGaussianBlur stdDeviation="8" />
           </filter>
+          <filter id="blur-xs" x="-10%" y="-10%" width="120%" height="120%">
+            <feGaussianBlur stdDeviation="1" />
+          </filter>
+
+          {/* Goosebump texture filter */}
+          <filter id="goosebumps" x="0%" y="0%" width="100%" height="100%">
+            <feTurbulence type="turbulence" baseFrequency="1.8" numOctaves="2" seed="5" result="bumps" />
+            <feColorMatrix in="bumps" type="saturate" values="0" result="bwBumps" />
+            <feBlend in="SourceGraphic" in2="bwBumps" mode="soft-light" />
+          </filter>
 
         </defs>
 
@@ -344,7 +444,7 @@ export const SvgPlayerModel: React.FC<ModelProps> = ({ stats, clothing, xrayMode
 
            {/* --- TAIL (behind body for Khajiit/Argonian) --- */}
            {hasTail && (
-             <g id="tail" opacity="0.9">
+             <g id="tail" opacity="0.9" style={{ animation: 'tailWag 4s ease-in-out infinite', transformOrigin: '105px 290px' }}>
                {isKhajiit ? (
                  <path d={`M 105 290 Q 140 310 150 350 Q 155 380 145 400`}
                    fill="none" stroke={colors.base} strokeWidth="5" strokeLinecap="round" />
@@ -360,55 +460,126 @@ export const SvgPlayerModel: React.FC<ModelProps> = ({ stats, clothing, xrayMode
              </g>
            )}
 
-           {/* --- ARMS --- */}
+           {/* --- ARMS (with SSS and detailed anatomy) --- */}
            {/* Left Arm */}
-           <g id="arm-l" filter="url(#rim-light)">
-              {/* Shoulder/Deltoid */}
+           <g id="arm-l" filter="url(#sss-filter)">
+              {/* Shoulder/Deltoid with muscle contour */}
               <path d="M 64 110 C 30 110, 30 150, 40 220 L 45 220 C 40 160, 50 140, 72 135 Z" fill="url(#arm-l)" />
-              <circle cx="56" cy="130" r="12" fill={colors.highLight} opacity="0.3" filter="url(#blur-md)" />
+              {/* Deltoid highlight (round muscle) */}
+              <circle cx="56" cy="128" r="13" fill={colors.highLight} opacity="0.25" filter="url(#blur-md)" />
+              {/* Deltoid separation line */}
+              <path d="M 52 115 Q 48 130 42 148" stroke={colors.shadow} strokeWidth="1" fill="none" opacity="0.35" filter="url(#blur-xs)" />
+              {/* Bicep highlight */}
+              <ellipse cx="44" cy="165" rx="6" ry="14" fill={colors.highLight} opacity="0.15" filter="url(#blur-sm)" />
+              {/* Tricep shadow */}
+              <path d="M 36 145 Q 32 165 36 185" stroke={colors.deepShadow} strokeWidth="2" fill="none" opacity="0.25" filter="url(#blur-sm)" />
               {/* Elbow crease */}
-              <path d="M 38 175 Q 42 180 46 175" stroke={colors.deepShadow} strokeWidth="1.5" fill="none" opacity="0.4" />
-              {/* Wrist bone hint */}
-              <ellipse cx="42" cy="218" rx="3" ry="2" fill={colors.highLight} opacity="0.3" />
-              {/* Left Hand */}
+              <path d="M 37 175 Q 42 182 47 175" stroke={colors.deepShadow} strokeWidth="1.5" fill="none" opacity="0.5" />
+              {/* Elbow bone */}
+              <ellipse cx="35" cy="178" rx="2" ry="3" fill={colors.highLight} opacity="0.25" />
+              {/* Forearm tendon lines */}
+              <path d="M 42 185 Q 41 200 42 215" stroke={colors.shadow} strokeWidth="0.8" fill="none" opacity="0.3" filter="url(#blur-xs)" />
+              <path d="M 45 185 Q 44 200 44 215" stroke={colors.shadow} strokeWidth="0.5" fill="none" opacity="0.2" />
+              {/* Wrist bones (ulna/radius) */}
+              <ellipse cx="41" cy="217" rx="3" ry="2" fill={colors.highLight} opacity="0.35" />
+              <ellipse cx="44" cy="218" rx="2" ry="1.5" fill={colors.highLight} opacity="0.25" />
+              {/* Inner wrist vein hint */}
+              <path d="M 43 210 Q 42 215 43 220" stroke="#6688AA" strokeWidth="0.5" fill="none" opacity="0.2" />
+              {/* Left Hand - detailed */}
               <g id="hand-l" transform="translate(35, 218)">
+                {/* Palm */}
                 <ellipse cx="7" cy="5" rx="7" ry="6" fill="url(#hand-grad)" />
-                {/* Thumb */}
+                {/* Palm crease lines */}
+                <path d="M 2 3 Q 7 6 12 4" stroke={colors.shadow} strokeWidth="0.3" fill="none" opacity="0.3" />
+                <path d="M 1 6 Q 5 8 10 6" stroke={colors.shadow} strokeWidth="0.3" fill="none" opacity="0.25" />
+                {/* Thumb with joints */}
                 <path d="M 13 3 Q 17 0 18 4 Q 18 8 14 7" fill={colors.base} stroke={colors.shadow} strokeWidth="0.5" />
-                {/* Fingers */}
-                <path d="M 3 10 Q 2 17 3 18" stroke={colors.base} strokeWidth="2.5" strokeLinecap="round" fill="none" />
-                <path d="M 6 10 Q 5 19 6 20" stroke={colors.base} strokeWidth="2.5" strokeLinecap="round" fill="none" />
-                <path d="M 9 10 Q 9 18 10 19" stroke={colors.base} strokeWidth="2.5" strokeLinecap="round" fill="none" />
-                <path d="M 12 9 Q 13 16 13 17" stroke={colors.base} strokeWidth="2" strokeLinecap="round" fill="none" />
+                <path d="M 15 2 Q 16 3 15 4" stroke={colors.shadow} strokeWidth="0.3" fill="none" opacity="0.4" />
+                <ellipse cx="17" cy="3" rx="1.5" ry="1" fill="url(#nail-grad)" stroke={colors.shadow} strokeWidth="0.2" />
+                {/* Index finger */}
+                <path d="M 3 10 Q 2 15 2 17 Q 2 19 3 19" stroke={colors.base} strokeWidth="2.5" strokeLinecap="round" fill="none" />
+                <path d="M 2.5 14 Q 3 14.5 3.5 14" stroke={colors.shadow} strokeWidth="0.3" fill="none" opacity="0.5" />
+                <ellipse cx="2.5" cy="18.5" rx="1.3" ry="0.8" fill="url(#nail-grad)" stroke={colors.shadow} strokeWidth="0.2" />
+                {/* Middle finger */}
+                <path d="M 6 10 Q 5 16 5 19 Q 5 21 6 21" stroke={colors.base} strokeWidth="2.5" strokeLinecap="round" fill="none" />
+                <path d="M 5.5 15 Q 6 15.5 6.5 15" stroke={colors.shadow} strokeWidth="0.3" fill="none" opacity="0.5" />
+                <ellipse cx="5.5" cy="20.5" rx="1.3" ry="0.8" fill="url(#nail-grad)" stroke={colors.shadow} strokeWidth="0.2" />
+                {/* Ring finger */}
+                <path d="M 9 10 Q 9 16 9 18 Q 9 20 10 20" stroke={colors.base} strokeWidth="2.5" strokeLinecap="round" fill="none" />
+                <path d="M 8.5 15 Q 9 15.5 9.5 15" stroke={colors.shadow} strokeWidth="0.3" fill="none" opacity="0.5" />
+                <ellipse cx="9.5" cy="19.5" rx="1.2" ry="0.7" fill="url(#nail-grad)" stroke={colors.shadow} strokeWidth="0.2" />
+                {/* Pinky */}
+                <path d="M 12 9 Q 13 14 13 16 Q 13 18 13 18" stroke={colors.base} strokeWidth="2" strokeLinecap="round" fill="none" />
+                <ellipse cx="13" cy="17.5" rx="1" ry="0.6" fill="url(#nail-grad)" stroke={colors.shadow} strokeWidth="0.2" />
                 {/* Knuckle highlights */}
-                <circle cx="3" cy="10" r="1" fill={colors.highLight} opacity="0.3" />
-                <circle cx="6" cy="10" r="1" fill={colors.highLight} opacity="0.3" />
-                <circle cx="9" cy="10" r="1" fill={colors.highLight} opacity="0.3" />
+                <circle cx="3" cy="10" r="1.2" fill={colors.highLight} opacity="0.35" />
+                <circle cx="6" cy="10" r="1.2" fill={colors.highLight} opacity="0.35" />
+                <circle cx="9" cy="10" r="1.2" fill={colors.highLight} opacity="0.35" />
+                <circle cx="12" cy="9" r="1" fill={colors.highLight} opacity="0.3" />
+                {/* Fingertip pads (subtle shadow) */}
+                <circle cx="3" cy="18" r="1" fill={colors.shadow} opacity="0.15" />
+                <circle cx="5.5" cy="20" r="1" fill={colors.shadow} opacity="0.15" />
+                <circle cx="9.5" cy="19" r="1" fill={colors.shadow} opacity="0.15" />
               </g>
            </g>
 
            {/* Right Arm */}
-           <g id="arm-r" filter="url(#rim-light)">
+           <g id="arm-r" filter="url(#sss-filter)">
               <path d="M 136 110 C 170 110, 170 150, 160 220 L 155 220 C 160 160, 150 140, 128 135 Z" fill="url(#arm-r)" />
-              <circle cx="144" cy="130" r="12" fill={colors.highLight} opacity="0.3" filter="url(#blur-md)" />
+              {/* Deltoid highlight */}
+              <circle cx="144" cy="128" r="13" fill={colors.highLight} opacity="0.25" filter="url(#blur-md)" />
+              {/* Deltoid separation */}
+              <path d="M 148 115 Q 152 130 158 148" stroke={colors.shadow} strokeWidth="1" fill="none" opacity="0.35" filter="url(#blur-xs)" />
+              {/* Bicep highlight */}
+              <ellipse cx="156" cy="165" rx="6" ry="14" fill={colors.highLight} opacity="0.15" filter="url(#blur-sm)" />
+              {/* Tricep shadow */}
+              <path d="M 164 145 Q 168 165 164 185" stroke={colors.deepShadow} strokeWidth="2" fill="none" opacity="0.25" filter="url(#blur-sm)" />
               {/* Elbow crease */}
-              <path d="M 154 175 Q 158 180 162 175" stroke={colors.deepShadow} strokeWidth="1.5" fill="none" opacity="0.4" />
-              {/* Wrist bone hint */}
-              <ellipse cx="158" cy="218" rx="3" ry="2" fill={colors.highLight} opacity="0.3" />
-              {/* Right Hand */}
+              <path d="M 153 175 Q 158 182 163 175" stroke={colors.deepShadow} strokeWidth="1.5" fill="none" opacity="0.5" />
+              {/* Elbow bone */}
+              <ellipse cx="165" cy="178" rx="2" ry="3" fill={colors.highLight} opacity="0.25" />
+              {/* Forearm tendon lines */}
+              <path d="M 158 185 Q 159 200 158 215" stroke={colors.shadow} strokeWidth="0.8" fill="none" opacity="0.3" filter="url(#blur-xs)" />
+              <path d="M 155 185 Q 156 200 156 215" stroke={colors.shadow} strokeWidth="0.5" fill="none" opacity="0.2" />
+              {/* Wrist bones */}
+              <ellipse cx="159" cy="217" rx="3" ry="2" fill={colors.highLight} opacity="0.35" />
+              <ellipse cx="156" cy="218" rx="2" ry="1.5" fill={colors.highLight} opacity="0.25" />
+              {/* Inner wrist vein */}
+              <path d="M 157 210 Q 158 215 157 220" stroke="#6688AA" strokeWidth="0.5" fill="none" opacity="0.2" />
+              {/* Right Hand - detailed */}
               <g id="hand-r" transform="translate(151, 218)">
                 <ellipse cx="7" cy="5" rx="7" ry="6" fill="url(#hand-grad)" />
+                {/* Palm crease lines */}
+                <path d="M 2 4 Q 7 6 12 3" stroke={colors.shadow} strokeWidth="0.3" fill="none" opacity="0.3" />
+                <path d="M 4 6 Q 8 8 12 6" stroke={colors.shadow} strokeWidth="0.3" fill="none" opacity="0.25" />
                 {/* Thumb */}
                 <path d="M 1 3 Q -3 0 -4 4 Q -4 8 0 7" fill={colors.base} stroke={colors.shadow} strokeWidth="0.5" />
-                {/* Fingers */}
-                <path d="M 2 10 Q 1 17 2 18" stroke={colors.base} strokeWidth="2.5" strokeLinecap="round" fill="none" />
-                <path d="M 5 10 Q 5 19 6 20" stroke={colors.base} strokeWidth="2.5" strokeLinecap="round" fill="none" />
-                <path d="M 8 10 Q 9 18 9 19" stroke={colors.base} strokeWidth="2.5" strokeLinecap="round" fill="none" />
-                <path d="M 11 9 Q 12 16 12 17" stroke={colors.base} strokeWidth="2" strokeLinecap="round" fill="none" />
+                <path d="M -1 2 Q -2 3 -1 4" stroke={colors.shadow} strokeWidth="0.3" fill="none" opacity="0.4" />
+                <ellipse cx="-3" cy="3" rx="1.5" ry="1" fill="url(#nail-grad)" stroke={colors.shadow} strokeWidth="0.2" />
+                {/* Index */}
+                <path d="M 2 10 Q 1 15 1 17 Q 1 19 2 19" stroke={colors.base} strokeWidth="2.5" strokeLinecap="round" fill="none" />
+                <path d="M 1.5 14 Q 2 14.5 2.5 14" stroke={colors.shadow} strokeWidth="0.3" fill="none" opacity="0.5" />
+                <ellipse cx="1.5" cy="18.5" rx="1.3" ry="0.8" fill="url(#nail-grad)" stroke={colors.shadow} strokeWidth="0.2" />
+                {/* Middle */}
+                <path d="M 5 10 Q 5 16 5 19 Q 5 21 6 21" stroke={colors.base} strokeWidth="2.5" strokeLinecap="round" fill="none" />
+                <path d="M 4.5 15 Q 5 15.5 5.5 15" stroke={colors.shadow} strokeWidth="0.3" fill="none" opacity="0.5" />
+                <ellipse cx="5.5" cy="20.5" rx="1.3" ry="0.8" fill="url(#nail-grad)" stroke={colors.shadow} strokeWidth="0.2" />
+                {/* Ring */}
+                <path d="M 8 10 Q 9 16 9 18 Q 9 20 9 20" stroke={colors.base} strokeWidth="2.5" strokeLinecap="round" fill="none" />
+                <path d="M 8 15 Q 8.5 15.5 9 15" stroke={colors.shadow} strokeWidth="0.3" fill="none" opacity="0.5" />
+                <ellipse cx="9" cy="19.5" rx="1.2" ry="0.7" fill="url(#nail-grad)" stroke={colors.shadow} strokeWidth="0.2" />
+                {/* Pinky */}
+                <path d="M 11 9 Q 12 14 12 16 Q 12 18 12 18" stroke={colors.base} strokeWidth="2" strokeLinecap="round" fill="none" />
+                <ellipse cx="12" cy="17.5" rx="1" ry="0.6" fill="url(#nail-grad)" stroke={colors.shadow} strokeWidth="0.2" />
                 {/* Knuckle highlights */}
-                <circle cx="2" cy="10" r="1" fill={colors.highLight} opacity="0.3" />
-                <circle cx="5" cy="10" r="1" fill={colors.highLight} opacity="0.3" />
-                <circle cx="8" cy="10" r="1" fill={colors.highLight} opacity="0.3" />
+                <circle cx="2" cy="10" r="1.2" fill={colors.highLight} opacity="0.35" />
+                <circle cx="5" cy="10" r="1.2" fill={colors.highLight} opacity="0.35" />
+                <circle cx="8" cy="10" r="1.2" fill={colors.highLight} opacity="0.35" />
+                <circle cx="11" cy="9" r="1" fill={colors.highLight} opacity="0.3" />
+                {/* Fingertip pads */}
+                <circle cx="1.5" cy="18" r="1" fill={colors.shadow} opacity="0.15" />
+                <circle cx="5.5" cy="20" r="1" fill={colors.shadow} opacity="0.15" />
+                <circle cx="9" cy="19" r="1" fill={colors.shadow} opacity="0.15" />
               </g>
            </g>
 
@@ -450,65 +621,106 @@ export const SvgPlayerModel: React.FC<ModelProps> = ({ stats, clothing, xrayMode
               {/* Philtrum (groove above lip) */}
               <path d="M 98 80 Q 100 84 102 80" stroke={colors.shadow} strokeWidth="1.5" fill="none" opacity="0.4" filter="url(#blur-sm)" />
 
-              {/* Lips Base */}
-              <path d={mouthPath} fill="#D96666" stroke="#5A1A1A" strokeWidth="1" strokeLinecap="round" />
-              {/* Upper Lip Shadow */}
-              <path d={mouthPath} fill="#8C3333" opacity="0.5" filter="url(#blur-sm)" />
-              {/* Lower Lip Highlight for Volume */}
-              <path d="M 90 90 Q 100 96 110 90" stroke={colors.highLight} strokeWidth="2" strokeLinecap="round" fill="none" opacity="0.6" filter="url(#blur-sm)" />
+              {/* ── HYPER-REALISTIC LIPS ── */}
+              {/* Lip base with gradient */}
+              <path d={mouthPath} fill="url(#lip-grad)" stroke="#3A1010" strokeWidth="0.8" strokeLinecap="round" />
+              {/* Upper lip vermillion border */}
+              <path d={mouthPath} stroke={colors.shadow} strokeWidth="0.5" fill="none" opacity="0.4" />
+              {/* Cupid's bow highlight */}
+              <path d="M 96 86 Q 100 84 104 86" stroke={colors.highLight} strokeWidth="0.8" strokeLinecap="round" fill="none" opacity="0.5" />
+              {/* Lower lip volume highlight */}
+              <path d="M 92 92 Q 100 97 108 92" stroke={colors.highLight} strokeWidth="2" strokeLinecap="round" fill="none" opacity="0.5" filter="url(#blur-xs)" />
+              {/* Lip crease center */}
+              <path d="M 96 88 Q 100 86 104 88" stroke={colors.deepShadow} strokeWidth="0.5" fill="none" opacity="0.3" />
+              {/* Lip moisture shine */}
+              <ellipse cx="100" cy="90" rx="4" ry="2" fill={colors.highLight} opacity="0.15" filter="url(#blur-xs)" />
 
-              {/* High-Fidelity Eyes */}
+              {/* ── HYPER-REALISTIC EYES ── */}
               <g className={isCrying ? 'opacity-70' : 'opacity-100'}>
-                 {/* Sclera Base (Not pure white, shaded at corners) */}
-                 <path d={eyeShape} fill="#E8E8E8" />
-                 <path d={eyeShapeR} fill="#E8E8E8" />
+                 {/* Sclera Base with natural gradient */}
+                 <path d={eyeShape} fill="url(#sclera-l)" />
+                 <path d={eyeShapeR} fill="url(#sclera-r)" />
 
-                 {/* Sclera Shadow (Top lid occlusion) */}
-                 <path d="M 62 55 Q 74 45 86 55" stroke={colors.shadow} strokeWidth="2" fill="none" opacity="0.5" filter="url(#blur-sm)" />
-                 <path d="M 138 55 Q 126 45 114 55" stroke={colors.shadow} strokeWidth="2" fill="none" opacity="0.5" filter="url(#blur-sm)" />
-
-                 {/* Tear Ducts */}
-                 <circle cx="85" cy="55" r="1.5" fill="#D98888" opacity="0.8" />
-                 <circle cx="115" cy="55" r="1.5" fill="#D98888" opacity="0.8" />
-
-                 {/* Irises with complex radial gradients (Using solid colors for now but deeply layered) */}
+                 {/* Sclera blood vessel hints */}
                  <g clipPath="url(#left-eye-clip)">
                     <clipPath id="left-eye-clip"><path d={eyeShape} /></clipPath>
-                    {/* Base Iris */}
-                    <circle cx="74" cy="55" r="6" fill={colors.eyeBase} />
-                    {/* Outer Iris Ring */}
-                    <circle cx="74" cy="55" r="6" stroke="#000" strokeWidth="1" fill="none" opacity="0.5" />
-                    {/* Inner Iris Highlight */}
-                    <circle cx="74" cy="55" r="3" fill={colors.highLight} opacity="0.3" filter="url(#blur-sm)" />
-                    {/* Pupil */}
-                    <circle cx="74" cy="55" r={pupilSize * 2} fill="#000" />
-                    {/* Hard Catchlight (Reflection) */}
-                    <circle cx="72" cy="53" r="1.5" fill="#FFF" opacity="0.9" />
-                    <circle cx="76" cy="57" r="0.5" fill="#FFF" opacity="0.6" />
+                    <path d="M 63 54 Q 65 53 67 55" stroke="#CC8888" strokeWidth="0.3" fill="none" opacity="0.25" />
+                    <path d="M 64 56 Q 66 55 68 56" stroke="#CC8888" strokeWidth="0.2" fill="none" opacity="0.2" />
+                    {/* Lid shadow occlusion */}
+                    <path d="M 62 54 Q 74 44 86 54" fill={colors.shadow} opacity="0.15" />
+                    {/* Limbal Ring */}
+                    <circle cx="74" cy="55" r="7" stroke="#1a1a1a" strokeWidth="0.8" fill="none" opacity="0.7" />
+                    {/* Iris with radial gradient */}
+                    <circle cx="74" cy="55" r="6" fill="url(#iris-l)" />
+                    {/* Iris fiber detail */}
+                    <g opacity="0.2">
+                      <line x1="74" y1="49" x2="74" y2="53" stroke={colors.highLight} strokeWidth="0.3" />
+                      <line x1="71" y1="50" x2="72" y2="53" stroke={colors.highLight} strokeWidth="0.3" />
+                      <line x1="77" y1="50" x2="76" y2="53" stroke={colors.highLight} strokeWidth="0.3" />
+                      <line x1="69" y1="52" x2="71" y2="54" stroke={colors.highLight} strokeWidth="0.3" />
+                      <line x1="79" y1="52" x2="77" y2="54" stroke={colors.highLight} strokeWidth="0.3" />
+                      <line x1="69" y1="57" x2="71" y2="56" stroke={colors.highLight} strokeWidth="0.3" />
+                      <line x1="79" y1="57" x2="77" y2="56" stroke={colors.highLight} strokeWidth="0.3" />
+                    </g>
+                    {/* Pupil (slitted for Khajiit/Argonian) */}
+                    {(isKhajiit || isArgonian) ? (
+                      <ellipse cx="74" cy="55" rx={pupilSize * 0.6} ry={pupilSize * 2.2} fill="#000" />
+                    ) : (
+                      <circle cx="74" cy="55" r={pupilSize * 1.8} fill="#000" />
+                    )}
+                    {/* Hard Catchlight */}
+                    <circle cx="72" cy="52.5" r="1.8" fill="#FFF" opacity="0.95" />
+                    <circle cx="76" cy="57.5" r="0.7" fill="#FFF" opacity="0.6" />
+                    <path d="M 71 51 Q 73 50 75 51" stroke="#FFF" strokeWidth="0.5" fill="none" opacity="0.3" />
                  </g>
+
+                 {/* Tear Duct (left) */}
+                 <circle cx="85" cy="55.5" r="1.2" fill="#CC7777" opacity="0.7" />
 
                  <g clipPath="url(#right-eye-clip)">
                     <clipPath id="right-eye-clip"><path d={eyeShapeR} /></clipPath>
-                    <circle cx="126" cy="55" r="6" fill={colors.eyeBase} />
-                    <circle cx="126" cy="55" r="6" stroke="#000" strokeWidth="1" fill="none" opacity="0.5" />
-                    <circle cx="126" cy="55" r="3" fill={colors.highLight} opacity="0.3" filter="url(#blur-sm)" />
-                    <circle cx="126" cy="55" r={pupilSize * 2} fill="#000" />
-                    <circle cx="124" cy="53" r="1.5" fill="#FFF" opacity="0.9" />
-                    <circle cx="128" cy="57" r="0.5" fill="#FFF" opacity="0.6" />
+                    <path d="M 137 54 Q 135 53 133 55" stroke="#CC8888" strokeWidth="0.3" fill="none" opacity="0.25" />
+                    <path d="M 138 54 Q 126 44 114 54" fill={colors.shadow} opacity="0.15" />
+                    <circle cx="126" cy="55" r="7" stroke="#1a1a1a" strokeWidth="0.8" fill="none" opacity="0.7" />
+                    <circle cx="126" cy="55" r="6" fill="url(#iris-r)" />
+                    <g opacity="0.2">
+                      <line x1="126" y1="49" x2="126" y2="53" stroke={colors.highLight} strokeWidth="0.3" />
+                      <line x1="123" y1="50" x2="124" y2="53" stroke={colors.highLight} strokeWidth="0.3" />
+                      <line x1="129" y1="50" x2="128" y2="53" stroke={colors.highLight} strokeWidth="0.3" />
+                      <line x1="121" y1="52" x2="123" y2="54" stroke={colors.highLight} strokeWidth="0.3" />
+                      <line x1="131" y1="52" x2="129" y2="54" stroke={colors.highLight} strokeWidth="0.3" />
+                    </g>
+                    {(isKhajiit || isArgonian) ? (
+                      <ellipse cx="126" cy="55" rx={pupilSize * 0.6} ry={pupilSize * 2.2} fill="#000" />
+                    ) : (
+                      <circle cx="126" cy="55" r={pupilSize * 1.8} fill="#000" />
+                    )}
+                    <circle cx="124" cy="52.5" r="1.8" fill="#FFF" opacity="0.95" />
+                    <circle cx="128" cy="57.5" r="0.7" fill="#FFF" opacity="0.6" />
+                    <path d="M 123 51 Q 125 50 127 51" stroke="#FFF" strokeWidth="0.5" fill="none" opacity="0.3" />
                  </g>
 
-                 {/* Upper Eyelid & Eyelashes */}
-                 <path d="M 60 55 Q 74 42 88 55" stroke="#000" strokeWidth="2.5" strokeLinecap="round" fill="none" />
-                 {/* Lashes Left */}
-                 <path d="M 62 52 L 58 48 M 66 48 L 64 43 M 72 46 L 72 40" stroke="#000" strokeWidth="1" fill="none" />
+                 {/* Tear Duct (right) */}
+                 <circle cx="115" cy="55.5" r="1.2" fill="#CC7777" opacity="0.7" />
 
-                 <path d="M 140 55 Q 126 42 112 55" stroke="#000" strokeWidth="2.5" strokeLinecap="round" fill="none" />
-                 {/* Lashes Right */}
-                 <path d="M 138 52 L 142 48 M 134 48 L 136 43 M 128 46 L 128 40" stroke="#000" strokeWidth="1" fill="none" />
-
-                 {/* Eye Bags / Lower Lid Shadow */}
-                 <path d="M 64 58 Q 74 64 84 58" stroke={colors.deepShadow} strokeWidth="1.5" fill="none" opacity="0.4" filter="url(#blur-sm)" />
-                 <path d="M 136 58 Q 126 64 116 58" stroke={colors.deepShadow} strokeWidth="1.5" fill="none" opacity="0.4" filter="url(#blur-sm)" />
+                 {/* Lid crease shadow */}
+                 <path d="M 60 48 Q 74 38 88 48" stroke={colors.shadow} strokeWidth="2" fill="none" opacity="0.3" filter="url(#blur-sm)" />
+                 <path d="M 140 48 Q 126 38 112 48" stroke={colors.shadow} strokeWidth="2" fill="none" opacity="0.3" filter="url(#blur-sm)" />
+                 {/* Upper Eyelid line */}
+                 <path d="M 60 55 Q 74 42 88 55" stroke="#1a0a0a" strokeWidth="2.5" strokeLinecap="round" fill="none" />
+                 <path d="M 140 55 Q 126 42 112 55" stroke="#1a0a0a" strokeWidth="2.5" strokeLinecap="round" fill="none" />
+                 {/* Eyelashes (varied lengths) */}
+                 <path d="M 62 52 L 58 46 M 65 49 L 62 43 M 68 47 L 66 41 M 72 46 L 72 39 M 76 47 L 77 41 M 80 49 L 82 44" stroke="#0a0505" strokeWidth="0.8" fill="none" />
+                 <path d="M 138 52 L 142 46 M 135 49 L 138 43 M 132 47 L 134 41 M 128 46 L 128 39 M 124 47 L 123 41 M 120 49 L 118 44" stroke="#0a0505" strokeWidth="0.8" fill="none" />
+                 {/* Lower lash line */}
+                 <path d="M 64 58 Q 74 62 84 58" stroke="#2a1010" strokeWidth="0.8" fill="none" opacity="0.6" />
+                 <path d="M 136 58 Q 126 62 116 58" stroke="#2a1010" strokeWidth="0.8" fill="none" opacity="0.6" />
+                 {/* Eye bag shadow */}
+                 <path d="M 63 59 Q 74 66 85 59" stroke={colors.deepShadow} strokeWidth="1.5" fill="none" opacity="0.35" filter="url(#blur-sm)" />
+                 <path d="M 137 59 Q 126 66 115 59" stroke={colors.deepShadow} strokeWidth="1.5" fill="none" opacity="0.35" filter="url(#blur-sm)" />
+                 {/* Lower lid water line */}
+                 <path d="M 64 57.5 Q 74 62 84 57.5" stroke={colors.highLight} strokeWidth="0.5" fill="none" opacity="0.3" />
+                 <path d="M 136 57.5 Q 126 62 116 57.5" stroke={colors.highLight} strokeWidth="0.5" fill="none" opacity="0.3" />
               </g>
 
               {/* Eyebrows (Dynamic & Detailed) */}
@@ -562,7 +774,7 @@ export const SvgPlayerModel: React.FC<ModelProps> = ({ stats, clothing, xrayMode
 
               {/* --- WHISKER MARKINGS (Khajiit) --- */}
               {hasWhiskers && (
-                <g opacity="0.6">
+                <g opacity="0.6" style={{ animation: 'whiskerTwitch 6s ease-in-out infinite', transformOrigin: '100px 76px' }}>
                   {/* Left whiskers */}
                   <line x1="70" y1="72" x2="48" y2="68" stroke={colors.hairBase} strokeWidth="0.8" />
                   <line x1="70" y1="76" x2="46" y2="76" stroke={colors.hairBase} strokeWidth="0.8" />
@@ -577,7 +789,7 @@ export const SvgPlayerModel: React.FC<ModelProps> = ({ stats, clothing, xrayMode
            </g>
 
            {/* --- HAIR (rendered on top of head, after head group closes) --- */}
-           <g id="hair">
+           <g id="hair" style={{ animation: 'hairSway 5s ease-in-out infinite', transformOrigin: '100px 0px' }}>
              {isFemale ? (
                <>
                  {/* Long flowing hair */}
@@ -705,29 +917,63 @@ export const SvgPlayerModel: React.FC<ModelProps> = ({ stats, clothing, xrayMode
              </g>
            )}
 
-           {/* --- FEET --- */}
-           <g id="feet">
+           {/* --- FEET (anatomically detailed) --- */}
+           <g id="feet" filter="url(#sss-filter)">
              {/* Left Foot */}
              <path d={isFemale
                ? "M 84 492 Q 82 498 78 500 L 94 500 Q 96 496 92 492 Z"
                : "M 80 492 Q 78 498 74 500 L 96 500 Q 98 496 95 492 Z"}
                fill="url(#foot-grad)" />
-             <ellipse cx={isFemale ? 84 : 82} cy={492} rx="2" ry="1.5" fill={colors.highLight} opacity="0.4" />
+             {/* Ankle bone (lateral malleolus) */}
+             <ellipse cx={isFemale ? 84 : 82} cy={490} rx="2.5" ry="2" fill={colors.highLight} opacity="0.4" />
+             <ellipse cx={isFemale ? 90 : 92} cy={491} rx="2" ry="1.5" fill={colors.highLight} opacity="0.25" />
+             {/* Achilles tendon */}
              <path d={isFemale
-               ? "M 80 499 Q 86 501 92 499"
-               : "M 76 499 Q 84 501 94 499"}
-               stroke={colors.deepShadow} strokeWidth="0.8" fill="none" opacity="0.4" />
+               ? "M 88 484 Q 87 488 86 492"
+               : "M 86 484 Q 85 488 84 492"}
+               stroke={colors.shadow} strokeWidth="1.5" fill="none" opacity="0.3" />
+             {/* Toe lines */}
+             <path d={isFemale
+               ? "M 80 499 L 80 500 M 83 499 L 83 500 M 86 499 L 86 500 M 89 499 L 89 500 M 91 499 L 91 500"
+               : "M 76 499 L 76 500 M 80 499 L 80 500 M 84 499 L 84 500 M 88 499 L 88 500 M 92 499 L 92 500"}
+               stroke={colors.deepShadow} strokeWidth="0.6" fill="none" opacity="0.4" />
+             {/* Toenails */}
+             {[0,1,2,3,4].map(i => (
+               <ellipse key={`tnl-${i}`} cx={(isFemale ? 80 : 76) + i * (isFemale ? 3 : 4)} cy={498.5} rx={i === 0 ? 1.5 : 1} ry="0.6" fill="url(#nail-grad)" stroke={colors.shadow} strokeWidth="0.15" opacity="0.7" />
+             ))}
+             {/* Arch shadow */}
+             <path d={isFemale
+               ? "M 84 498 Q 86 496 90 498"
+               : "M 80 498 Q 84 496 90 498"}
+               stroke={colors.deepShadow} strokeWidth="1" fill="none" opacity="0.25" filter="url(#blur-xs)" />
 
              {/* Right Foot */}
              <path d={isFemale
                ? "M 108 492 Q 106 498 106 500 L 120 500 Q 120 496 116 492 Z"
                : "M 105 492 Q 104 498 104 500 L 124 500 Q 122 496 118 492 Z"}
                fill="url(#foot-grad)" />
-             <ellipse cx={isFemale ? 116 : 118} cy={492} rx="2" ry="1.5" fill={colors.highLight} opacity="0.4" />
+             {/* Ankle bone */}
+             <ellipse cx={isFemale ? 116 : 118} cy={490} rx="2.5" ry="2" fill={colors.highLight} opacity="0.4" />
+             <ellipse cx={isFemale ? 110 : 108} cy={491} rx="2" ry="1.5" fill={colors.highLight} opacity="0.25" />
+             {/* Achilles */}
              <path d={isFemale
-               ? "M 108 499 Q 114 501 118 499"
-               : "M 106 499 Q 114 501 122 499"}
-               stroke={colors.deepShadow} strokeWidth="0.8" fill="none" opacity="0.4" />
+               ? "M 112 484 Q 113 488 114 492"
+               : "M 114 484 Q 115 488 116 492"}
+               stroke={colors.shadow} strokeWidth="1.5" fill="none" opacity="0.3" />
+             {/* Toe lines */}
+             <path d={isFemale
+               ? "M 108 499 L 108 500 M 111 499 L 111 500 M 114 499 L 114 500 M 117 499 L 117 500 M 119 499 L 119 500"
+               : "M 106 499 L 106 500 M 110 499 L 110 500 M 114 499 L 114 500 M 118 499 L 118 500 M 122 499 L 122 500"}
+               stroke={colors.deepShadow} strokeWidth="0.6" fill="none" opacity="0.4" />
+             {/* Toenails */}
+             {[0,1,2,3,4].map(i => (
+               <ellipse key={`tnr-${i}`} cx={(isFemale ? 108 : 106) + i * (isFemale ? 3 : 4)} cy={498.5} rx={i === 0 ? 1.5 : 1} ry="0.6" fill="url(#nail-grad)" stroke={colors.shadow} strokeWidth="0.15" opacity="0.7" />
+             ))}
+             {/* Arch shadow */}
+             <path d={isFemale
+               ? "M 110 498 Q 114 496 118 498"
+               : "M 108 498 Q 114 496 120 498"}
+               stroke={colors.deepShadow} strokeWidth="1" fill="none" opacity="0.25" filter="url(#blur-xs)" />
            </g>
 
            {/* --- TORSO --- */}
@@ -915,16 +1161,94 @@ export const SvgPlayerModel: React.FC<ModelProps> = ({ stats, clothing, xrayMode
              <path d="M 128 108 Q 120 115 112 110" stroke={colors.deepShadow} strokeWidth="4" fill="none" filter="url(#blur-md)" />
            </g>
 
-           {/* --- BODY RIM LIGHT (left edge) --- */}
-           <g id="rim-body" opacity="0.2" style={{ mixBlendMode: 'screen' as const }}>
+           {/* --- RACE-SPECIFIC BODY TEXTURE --- */}
+           {isArgonian && (
+             <g id="scale-overlay" opacity="0.2">
+               {/* Scale pattern on torso */}
+               <rect x="70" y="120" width="60" height="170" fill="url(#scale-pattern)" rx="10" />
+               {/* Larger belly scales */}
+               {[150, 170, 190, 210, 230, 250].map((sy, i) => (
+                 <path key={`bs-${i}`} d={`M ${85 + (i % 2) * 5} ${sy} Q 100 ${sy + 4} ${115 - (i % 2) * 5} ${sy}`}
+                   stroke={colors.midHighlight} strokeWidth="0.5" fill="none" opacity="0.3" />
+               ))}
+               {/* Scale pattern on limbs */}
+               <rect x="30" y="130" width="20" height="90" fill="url(#scale-pattern)" />
+               <rect x="150" y="130" width="20" height="90" fill="url(#scale-pattern)" />
+               <rect x="75" y="290" width="20" height="180" fill="url(#scale-pattern)" />
+               <rect x="105" y="290" width="20" height="180" fill="url(#scale-pattern)" />
+             </g>
+           )}
+           {isKhajiit && (
+             <g id="fur-overlay" opacity="0.15">
+               {/* Fur stripe pattern on torso */}
+               <rect x="70" y="120" width="60" height="170" fill="url(#fur-stripe)" rx="10" />
+               {/* Fur stripe on limbs */}
+               <rect x="30" y="130" width="20" height="90" fill="url(#fur-stripe)" />
+               <rect x="150" y="130" width="20" height="90" fill="url(#fur-stripe)" />
+               <rect x="75" y="290" width="20" height="180" fill="url(#fur-stripe)" />
+               <rect x="105" y="290" width="20" height="180" fill="url(#fur-stripe)" />
+               {/* Chest tuft/ruff */}
+               <g opacity="0.3">
+                 <path d="M 80 128 Q 90 135 85 145" stroke={colors.hairBase} strokeWidth="1.5" fill="none" />
+                 <path d="M 120 128 Q 110 135 115 145" stroke={colors.hairBase} strokeWidth="1.5" fill="none" />
+                 <path d="M 85 130 Q 95 138 90 148" stroke={colors.hairBase} strokeWidth="1" fill="none" />
+                 <path d="M 115 130 Q 105 138 110 148" stroke={colors.hairBase} strokeWidth="1" fill="none" />
+               </g>
+             </g>
+           )}
+
+           {/* --- SKIN VEIN HINTS (visible on lighter skin/thin areas) --- */}
+           {!isArgonian && !isKhajiit && (
+             <g id="vein-hints" opacity="0.08">
+               {/* Wrist veins */}
+               <path d="M 40 205 Q 42 210 41 218" stroke="#6688AA" strokeWidth="0.5" fill="none" />
+               <path d="M 160 205 Q 158 210 159 218" stroke="#6688AA" strokeWidth="0.5" fill="none" />
+               {/* Inner elbow */}
+               <path d="M 42 170 Q 40 175 43 180" stroke="#6688AA" strokeWidth="0.4" fill="none" />
+               <path d="M 158 170 Q 160 175 157 180" stroke="#6688AA" strokeWidth="0.4" fill="none" />
+               {/* Temple veins */}
+               <path d="M 64 35 Q 62 40 63 48" stroke="#7799BB" strokeWidth="0.3" fill="none" />
+               <path d="M 136 35 Q 138 40 137 48" stroke="#7799BB" strokeWidth="0.3" fill="none" />
+             </g>
+           )}
+
+           {/* --- BODY RIM LIGHT (enhanced dual-edge) --- */}
+           <g id="rim-body" opacity="0.25" style={{ mixBlendMode: 'screen' as const }}>
              {isFemale ? (
-               <path d="M 72 115 C 55 180, 65 250, 75 280 C 85 290, 90 290, 95 290"
-                 stroke={colors.highLight} strokeWidth="2" fill="none" filter="url(#blur-sm)" />
+               <>
+                 {/* Left rim (main light) */}
+                 <path d="M 72 115 C 55 180, 65 250, 75 280 C 85 290, 90 290, 95 290"
+                   stroke={colors.highLight} strokeWidth="2.5" fill="none" filter="url(#blur-sm)" />
+                 {/* Right rim (fill light, dimmer) */}
+                 <path d="M 128 115 C 145 180, 135 250, 125 280 C 115 290, 110 290, 105 290"
+                   stroke={colors.highLight} strokeWidth="1" fill="none" filter="url(#blur-sm)" opacity="0.4" />
+                 {/* Leg rim lights */}
+                 <path d="M 80 300 Q 78 380 78 480" stroke={colors.highLight} strokeWidth="1.5" fill="none" filter="url(#blur-sm)" />
+                 <path d="M 120 300 Q 122 380 122 480" stroke={colors.highLight} strokeWidth="1" fill="none" filter="url(#blur-sm)" opacity="0.4" />
+               </>
              ) : (
-               <path d="M 64 115 C 68 180, 75 250, 80 280 C 85 290, 90 290, 95 290"
-                 stroke={colors.highLight} strokeWidth="2" fill="none" filter="url(#blur-sm)" />
+               <>
+                 <path d="M 64 115 C 68 180, 75 250, 80 280 C 85 290, 90 290, 95 290"
+                   stroke={colors.highLight} strokeWidth="2.5" fill="none" filter="url(#blur-sm)" />
+                 <path d="M 136 115 C 132 180, 125 250, 120 280 C 115 290, 110 290, 105 290"
+                   stroke={colors.highLight} strokeWidth="1" fill="none" filter="url(#blur-sm)" opacity="0.4" />
+                 <path d="M 84 300 Q 82 380 83 480" stroke={colors.highLight} strokeWidth="1.5" fill="none" filter="url(#blur-sm)" />
+                 <path d="M 116 300 Q 118 380 117 480" stroke={colors.highLight} strokeWidth="1" fill="none" filter="url(#blur-sm)" opacity="0.4" />
+               </>
              )}
            </g>
+
+           {/* --- GOOSEBUMP OVERLAY (cold/stress/arousal) --- */}
+           {(stats.stress > stats.maxStress * 0.8 || stats.arousal > stats.maxArousal * 0.6) && (
+             <g id="goosebumps" opacity="0.06">
+               {/* Scattered bumps on exposed skin */}
+               {[...Array(20)].map((_, i) => {
+                 const bx = 65 + (i * 17) % 70;
+                 const by = 120 + (i * 23) % 360;
+                 return <circle key={`gb-${i}`} cx={bx} cy={by} r="0.5" fill={colors.highLight} />;
+               })}
+             </g>
+           )}
 
            {/* --- EMOTIONAL STATE OVERLAYS --- */}
            {/* Blush (cheeks and ears) */}
@@ -962,8 +1286,8 @@ export const SvgPlayerModel: React.FC<ModelProps> = ({ stats, clothing, xrayMode
            {/* Sweat */}
            {isSweating && (
              <g id="sweat" opacity={heavySweat ? 0.7 : 0.4}>
-               <circle cx="80" cy="22" r="1" fill="#88DDFF" />
-               <circle cx="90" cy="18" r="0.8" fill="#88DDFF" />
+               <circle cx="80" cy="22" r="1" fill="#88DDFF" style={{ animation: 'sweatDrip 2.5s ease-in infinite' }} />
+               <circle cx="90" cy="18" r="0.8" fill="#88DDFF" style={{ animation: 'sweatDrip 3s ease-in infinite 0.5s' }} />
                <path d="M 66 40 Q 64 48 66 55" stroke="#88DDFF" strokeWidth="1" fill="none" />
                {heavySweat && (
                  <>
@@ -995,7 +1319,7 @@ export const SvgPlayerModel: React.FC<ModelProps> = ({ stats, clothing, xrayMode
 
            {/* Corruption veins */}
            {isCorrupted && (
-             <g id="corruption-veins" opacity="0.3" className="animate-pulse">
+             <g id="corruption-veins" style={{ animation: 'corruptionPulse 2s ease-in-out infinite' }}>
                <path d="M 90 130 Q 85 160 88 190 Q 90 220 85 250" stroke="#6B21A8" strokeWidth="1" fill="none" />
                <path d="M 110 130 Q 115 160 112 190 Q 110 220 115 250" stroke="#6B21A8" strokeWidth="1" fill="none" />
                <path d="M 95 140 Q 92 150 96 160" stroke="#7C3AED" strokeWidth="0.8" fill="none" />
