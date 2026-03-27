@@ -1,17 +1,23 @@
 import React from 'react';
 import { useGameStore } from '../../store/gameStore';
 import { StatBar } from '../ui/StatBar';
+import { AnimationWindow } from '../AnimationWindow';
 import { Clock, Shield, Coins, AlertTriangle, User } from 'lucide-react';
 
 export const Sidebar: React.FC = () => {
-  const { stats, time, clothing, isLateGame } = useGameStore();
+  const { stats, time, clothing, isLateGame, log } = useGameStore();
 
   const formatTime = (hour: number, minute: number) => {
     return `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
   };
 
   return (
-    <div className="w-80 bg-slate-900 border-r border-slate-800 h-screen p-4 flex flex-col gap-6 overflow-y-auto text-slate-300">
+    <div className="w-80 bg-slate-900 border-r border-slate-800 h-screen p-4 flex flex-col gap-6 overflow-y-auto text-slate-300 scrollbar-thin scrollbar-thumb-slate-700 scrollbar-track-slate-900">
+
+      {/* Character Model */}
+      <div className="flex-shrink-0">
+        <AnimationWindow />
+      </div>
 
       {/* Identity & Bio */}
       <div className="flex flex-col gap-1 p-3 bg-slate-950 rounded-lg border border-slate-800 shadow-md">
@@ -61,7 +67,7 @@ export const Sidebar: React.FC = () => {
       </div>
 
       {/* Clothing */}
-      <div className="flex flex-col gap-3 pb-4">
+      <div className="flex flex-col gap-3">
         <h3 className="text-sm font-bold uppercase tracking-widest text-slate-500 border-b border-slate-800 pb-1 font-serif flex items-center gap-2">
           <Shield size={16} /> Attire
         </h3>
@@ -89,6 +95,24 @@ export const Sidebar: React.FC = () => {
             </div>
           )
         ))}
+      </div>
+
+      {/* Log */}
+      <div className="flex flex-col gap-2 flex-1 min-h-0 pb-4">
+        <h3 className="text-sm font-bold uppercase tracking-widest text-slate-500 border-b border-slate-800 pb-1 font-serif flex-shrink-0">Log</h3>
+        <div className="space-y-1 text-xs overflow-y-auto pr-1 flex-1 scrollbar-thin scrollbar-thumb-slate-700 scrollbar-track-slate-900">
+          {log.map((msg) => (
+            <div key={msg.id} className={`leading-relaxed ${
+              msg.type === 'good' ? 'text-green-400' :
+              msg.type === 'bad' ? 'text-red-400' :
+              msg.type === 'combat' ? 'text-orange-400' :
+              msg.type === 'lewd' ? 'text-pink-400' :
+              'text-slate-500'
+            }`}>
+              • {msg.text}
+            </div>
+          ))}
+        </div>
       </div>
 
     </div>

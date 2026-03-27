@@ -22,7 +22,7 @@ export const AnimationWindow: React.FC = () => {
   const isCorrupted = stats.corruption > 1000;
 
   return (
-    <div className="w-full aspect-square bg-stone-300 dark:bg-stone-800 rounded-lg overflow-hidden border-4 border-stone-400 dark:border-stone-700 relative flex flex-col">
+    <div className="w-full aspect-square bg-slate-950 rounded-lg overflow-hidden border border-slate-800 relative flex flex-col shadow-md">
        {/* Background based on corruption/hallucination */}
        <div
          className="absolute inset-0 opacity-50 transition-colors duration-1000"
@@ -38,11 +38,11 @@ export const AnimationWindow: React.FC = () => {
        </div>
 
        {/* UI Feedback Overlay */}
-       <div className="relative z-20 bg-stone-200/90 dark:bg-stone-900/90 border-t border-stone-400 dark:border-stone-700 p-2 text-center text-xs backdrop-blur-sm flex justify-between px-4">
-          <span className="font-bold uppercase tracking-widest text-stone-500 dark:text-stone-400">
+       <div className="relative z-20 bg-slate-900/90 border-t border-slate-800 p-2 text-center text-xs backdrop-blur-sm flex justify-between px-4">
+          <span className={`font-bold uppercase tracking-widest ${isNaked ? 'text-red-400' : 'text-slate-500'}`}>
              {isNaked ? 'Exposed' : 'Clothed'}
           </span>
-          <span className="font-mono text-stone-600 dark:text-stone-300 font-bold">
+          <span className="font-mono text-slate-400 font-bold">
             Integrity: {Math.floor(100 - exposedValue)}%
           </span>
        </div>
@@ -54,7 +54,7 @@ export const AnimationWindow: React.FC = () => {
          className={`absolute top-2 left-2 z-40 px-2 py-1 text-xs font-bold rounded border transition-all ${
             xrayMode
               ? 'bg-pink-500/80 text-white border-pink-300 shadow-[0_0_10px_#ec4899]'
-              : 'bg-stone-800/50 text-stone-400 border-stone-600 hover:bg-stone-700/50'
+              : 'bg-slate-800/70 text-slate-400 border-slate-700 hover:bg-slate-700/70 hover:text-slate-300'
          }`}
        >
          X-RAY
