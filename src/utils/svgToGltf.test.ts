@@ -4,7 +4,6 @@ import { BodyGeom, SpriteState } from '../components/dol/sprite/utils';
 
 /**
  * Minimal BodyGeom and SpriteState for a female human at default proportions.
- * Mirrors the values DoLCharacterSprite would compute.
  */
 function makeTestFixture(): SvgToGltfOptions {
   const geom: BodyGeom = {
@@ -71,12 +70,16 @@ function makeTestFixture(): SvgToGltfOptions {
   return { geom, spriteState, skinColor: '#f4d5b0' };
 }
 
+// Helper: get vertex count for a named mesh
+function meshVertCount(gltf: any, name: string): number {
+  const mesh = gltf.meshes.find((m: any) => m.name === name);
+  const posAccIdx = mesh.primitives[0].attributes.POSITION;
+  return gltf.accessors[posAccIdx].count;
+}
+
 describe('svgToGltf', () => {
   it('produces valid glTF 2.0 JSON', () => {
-    const opts = makeTestFixture();
-    const json = convertSvgToGltf(opts);
-    const gltf = JSON.parse(json);
-
+    const gltf = JSON.parse(convertSvgToGltf(makeTestFixture()));
     expect(gltf.asset).toBeDefined();
     expect(gltf.asset.version).toBe('2.0');
     expect(gltf.asset.generator).toContain('SVG-to-glTF');
@@ -85,7 +88,6 @@ describe('svgToGltf', () => {
   it('contains exactly 7 meshes (head, neck, torso, 2 arms, 2 legs)', () => {
     const gltf = JSON.parse(convertSvgToGltf(makeTestFixture()));
     expect(gltf.meshes).toHaveLength(7);
-
     const names = gltf.meshes.map((m: { name: string }) => m.name);
     expect(names).toContain('Head');
     expect(names).toContain('Neck');
@@ -99,7 +101,6 @@ describe('svgToGltf', () => {
   it('contains skeleton bone nodes', () => {
     const gltf = JSON.parse(convertSvgToGltf(makeTestFixture()));
     const nodeNames = gltf.nodes.map((n: { name: string }) => n.name);
-
     expect(nodeNames).toContain('Armature');
     expect(nodeNames).toContain('Bone_Hips');
     expect(nodeNames).toContain('Bone_Spine');
@@ -148,19 +149,16 @@ describe('svgToGltf', () => {
     }
   });
 
+  // ── AAA quality tests ──────────────────────────────────────────
+
   it('meshes have 3D depth (non-zero Z coordinates)', () => {
     const gltf = JSON.parse(convertSvgToGltf(makeTestFixture()));
-    // Position accessors should have non-zero Z range for 3D volume
     const posAccessors = gltf.accessors.filter(
       (a: { type: string; min?: number[] }) => a.type === 'VEC3' && a.min
     );
-    let hasDepth = false;
-    for (const acc of posAccessors) {
-      if (acc.min[2] !== acc.max[2]) {
-        hasDepth = true;
-        break;
-      }
-    }
+    const hasDepth = posAccessors.some(
+      (acc: any) => acc.min[2] !== acc.max[2]
+    );
     expect(hasDepth).toBe(true);
   });
 
@@ -174,24 +172,66 @@ describe('svgToGltf', () => {
     }
   });
 
-  it('head mesh has significantly more vertices than a flat disc (3D sphere)', () => {
+  it('meshes include TEXCOORD_0 attribute for UV mapping', () => {
     const gltf = JSON.parse(convertSvgToGltf(makeTestFixture()));
-    const headMesh = gltf.meshes.find((m: { name: string }) => m.name === 'Head');
-    expect(headMesh).toBeDefined();
-    const posAccIdx = headMesh.primitives[0].attributes.POSITION;
-    const posAcc = gltf.accessors[posAccIdx];
-    // A 12-ring × 20-segment sphere = (12+1)*(20+1) = 273 vertices
-    // This is much more than the old 25 (flat disc)
-    expect(posAcc.count).toBeGreaterThan(100);
+    for (const mesh of gltf.meshes) {
+      for (const prim of mesh.primitives) {
+        expect(prim.attributes.TEXCOORD_0).toBeDefined();
+        expect(typeof prim.attributes.TEXCOORD_0).toBe('number');
+      }
+    }
   });
 
-  it('torso mesh has significant vertex count for 3D volume', () => {
+  it('head mesh has AAA vertex count (800+ for high-res UV sphere + chin)', () => {
     const gltf = JSON.parse(convertSvgToGltf(makeTestFixture()));
-    const torso = gltf.meshes.find((m: { name: string }) => m.name === 'Torso');
-    expect(torso).toBeDefined();
-    const posAccIdx = torso.primitives[0].attributes.POSITION;
-    const posAcc = gltf.accessors[posAccIdx];
-    // 6 profile rows × 13 ring verts + 2 caps = much more than old 8
-    expect(posAcc.count).toBeGreaterThan(50);
+    const count = meshVertCount(gltf, 'Head');
+    // 24-ring × 32-seg sphere = (24+1)*(32+1) = 825, plus chin ellipsoid
+    expect(count).toBeGreaterThan(800);
+  });
+
+  it('torso mesh has AAA vertex count (1000+ for multi-ring profiled tube)', () => {
+    const gltf = JSON.parse(convertSvgToGltf(makeTestFixture()));
+    const count = meshVertCount(gltf, 'Torso');
+    // 10 control rings × 4 subdivisions × 33 segment verts + caps
+    expect(count).toBeGreaterThan(1000);
+  });
+
+  it('arm meshes have high vertex count (500+ for multi-section tubes + hand)', () => {
+    const gltf = JSON.parse(convertSvgToGltf(makeTestFixture()));
+    const leftCount = meshVertCount(gltf, 'Arm_left');
+    const rightCount = meshVertCount(gltf, 'Arm_right');
+    expect(leftCount).toBeGreaterThan(500);
+    expect(rightCount).toBeGreaterThan(500);
+    // Left and right should have same vertex count (symmetric)
+    expect(leftCount).toBe(rightCount);
+  });
+
+  it('leg meshes have high vertex count (500+ for multi-section tubes + foot)', () => {
+    const gltf = JSON.parse(convertSvgToGltf(makeTestFixture()));
+    const leftCount = meshVertCount(gltf, 'Leg_left');
+    const rightCount = meshVertCount(gltf, 'Leg_right');
+    expect(leftCount).toBeGreaterThan(500);
+    expect(rightCount).toBeGreaterThan(500);
+    expect(leftCount).toBe(rightCount);
+  });
+
+  it('total model polygon count exceeds 5000 vertices', () => {
+    const gltf = JSON.parse(convertSvgToGltf(makeTestFixture()));
+    let totalVerts = 0;
+    for (const mesh of gltf.meshes) {
+      const posAccIdx = mesh.primitives[0].attributes.POSITION;
+      totalVerts += gltf.accessors[posAccIdx].count;
+    }
+    expect(totalVerts).toBeGreaterThan(5000);
+  });
+
+  it('uses Uint32 indices (componentType 5125) for high-poly meshes', () => {
+    const gltf = JSON.parse(convertSvgToGltf(makeTestFixture()));
+    for (const mesh of gltf.meshes) {
+      const idxAccIdx = mesh.primitives[0].indices;
+      const idxAcc = gltf.accessors[idxAccIdx];
+      // 5125 = UNSIGNED_INT (Uint32), required for >65535 vertex meshes
+      expect(idxAcc.componentType).toBe(5125);
+    }
   });
 });
