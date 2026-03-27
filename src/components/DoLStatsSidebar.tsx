@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { motion } from 'motion/react';
 import { Heart, Wind, Shield, Flame, Droplets, Sun, Moon, Zap, Coffee, Users, Star } from 'lucide-react';
 import { GameState, StatKey, Incubation } from '../types';
@@ -76,6 +76,26 @@ const SKILL_COLOR: Record<string, string> = {
   school_grades: 'bg-blue-600',
 };
 
+/** Sprite with inline X-Ray toggle button */
+const SpriteWithXRay: React.FC<{ state: GameState }> = ({ state }) => {
+  const [xrayOn, setXrayOn] = useState(false);
+  return (
+    <div className="relative">
+      <DoLCharacterSprite state={state} compact={false} showXRay={xrayOn} />
+      <button
+        onClick={() => setXrayOn(!xrayOn)}
+        className={`absolute top-1 left-1 text-[7px] tracking-widest uppercase px-1.5 py-0.5 rounded-sm border transition-all ${
+          xrayOn
+            ? 'bg-cyan-500/20 border-cyan-400/50 text-cyan-300'
+            : 'bg-black/40 border-white/10 text-white/40 hover:text-white/70 hover:border-white/25'
+        }`}
+      >
+        X-RAY
+      </button>
+    </div>
+  );
+};
+
 export const DoLStatsSidebar: React.FC<DoLStatsSidebarProps> = ({
   state, dispatch, onOpenStats, onOpenInventory
 }) => {
@@ -107,9 +127,9 @@ export const DoLStatsSidebar: React.FC<DoLStatsSidebarProps> = ({
         </div>
       </div>
 
-      {/* Character Sprite */}
-      <div className="flex justify-center py-3 border-b border-white/[0.06] bg-black/30">
-        <DoLCharacterSprite state={state} compact={false} />
+      {/* Character Sprite with X-Ray toggle */}
+      <div className="relative flex justify-center py-3 border-b border-white/[0.06] bg-black/30">
+        <SpriteWithXRay state={state} />
       </div>
 
       {/* Location / Time */}

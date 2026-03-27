@@ -11,18 +11,20 @@ import {
 } from './dol/sprite/utils';
 import { SpriteDefs, deriveSkinTones, deriveHairHighlight } from './dol/sprite/SpriteDefs';
 import { BaseBody } from './dol/sprite/BaseBody';
-import { FaceAndHair } from './dol/sprite/FaceAndHair';
+import { FaceAndHair, deriveExpression } from './dol/sprite/FaceAndHair';
 import { GenitalsAndChest } from './dol/sprite/GenitalsAndChest';
 import { SkinPatterns } from './dol/sprite/SkinPatterns';
 import { Clothing } from './dol/sprite/Clothing';
 import { StatusEffects } from './dol/sprite/StatusEffects';
+import { XRayOverlay } from './dol/sprite/XRayOverlay';
 
 interface DoLCharacterSpriteProps {
   state: GameState;
   compact?: boolean;
+  showXRay?: boolean;
 }
 
-export const DoLCharacterSprite: React.FC<DoLCharacterSpriteProps> = ({ state, compact = false }) => {
+export const DoLCharacterSprite: React.FC<DoLCharacterSpriteProps> = ({ state, compact = false, showXRay = false }) => {
   const { clothing, identity, cosmetics, stats, biology } = state.player;
   const raceDef   = resolveRace(identity.race);
   const gender    = identity.gender || 'female';
@@ -119,6 +121,9 @@ export const DoLCharacterSprite: React.FC<DoLCharacterSpriteProps> = ({ state, c
   const showHeartOverlay = stats.lust > 70 || stats.arousal > 75;
   const showCorruptionFx = stats.corruption > 50;
 
+  // ── Expression system (DoL-parity 6+ states) ──────────────────────────
+  const expression = deriveExpression(stats);
+
   // ── Encounter / combat animation state ─────────────────────────────────
   const encounter      = state.world.active_encounter;
   const combatAnim     = state.ui.combat_animation;
@@ -191,7 +196,7 @@ export const DoLCharacterSprite: React.FC<DoLCharacterSpriteProps> = ({ state, c
 
           <BaseBody geom={geom} s={s} skin={skin} accentClr={accentClr} raceDef={raceDef} isMale={isMale} isFemale={isFemale} isChestExposed={isChestExposed} pregnancyBump={pregnancyBump} clothing={clothing} />
 
-          <FaceAndHair geom={geom} s={s} skin={skin} eyeClr={eyeClr} hairClr={hairClr} accentClr={accentClr} raceDef={raceDef} isMale={isMale} isFemale={isFemale} cosmetics={cos} />
+          <FaceAndHair geom={geom} s={s} skin={skin} eyeClr={eyeClr} hairClr={hairClr} accentClr={accentClr} raceDef={raceDef} isMale={isMale} isFemale={isFemale} cosmetics={cos} expression={expression} />
 
           <GenitalsAndChest geom={geom} s={s} skin={skin} hairClr={hairClr} raceDef={raceDef} isMale={isMale} isFemale={isFemale} isChestExposed={isChestExposed} isGroinExposed={isGroinExposed} isLegsExposed={isLegsExposed} isAroused={isAroused} isLactating={isLactating} nippleClr={nippleClr} />
 
@@ -200,6 +205,17 @@ export const DoLCharacterSprite: React.FC<DoLCharacterSpriteProps> = ({ state, c
           <Clothing geom={geom} s={s} skin={skin} clothing={clothing} />
 
           <StatusEffects geom={geom} s={s} raceDef={raceDef} isChestExposed={isChestExposed} isLegsExposed={isLegsExposed} blushIntensity={blushIntensity} isSweating={isSweating} showHeartOverlay={showHeartOverlay} showCorruptionFx={showCorruptionFx} inEncounter={inEncounter} targetedPart={targetedPart} playerStance={playerStance} combatAnim={combatAnim} compact={compact} svgW={svgW} svgH={svgH} lowHealth={lowHealth} corruption={corruption} hallucination={stats.hallucination} parasites={biology.parasites} />
+
+          {/* ── X-RAY OVERLAY (internal skeleton + organs view) ── */}
+          {showXRay && (
+            <XRayOverlay
+              geom={geom}
+              s={s}
+              isFemale={isFemale}
+              organs={state.player.anatomy.organs}
+              bones_integrity={state.player.anatomy.bones_integrity}
+            />
+          )}
 
         </g>
       </motion.svg>

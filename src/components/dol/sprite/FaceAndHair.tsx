@@ -3,6 +3,8 @@ import { BodyGeom, SpriteState } from './utils';
 import { RacialBodyFeatures } from '../../../data/races';
 import { Cosmetics } from '../../../types';
 
+export type ExpressionState = 'normal' | 'stress' | 'fear' | 'heavyArousal' | 'softArousal' | 'exhausted' | 'pain' | 'ecstasy';
+
 interface FaceAndHairProps {
   geom: BodyGeom;
   s: SpriteState;
@@ -14,11 +16,24 @@ interface FaceAndHairProps {
   isMale: boolean;
   isFemale: boolean;
   cosmetics: Partial<Cosmetics>;
+  expression?: ExpressionState;
 }
 
 const IRIS_FIBER_ANGLES = [0, 45, 90, 135, 180, 225, 270, 315];
 
-export const FaceAndHair: React.FC<FaceAndHairProps> = ({ geom, s, skin, eyeClr, hairClr, accentClr, raceDef, isMale, isFemale, cosmetics }) => {
+/** Derive expression from game stats */
+export function deriveExpression(stats: { arousal: number; lust: number; stress: number; pain: number; health: number; stamina: number; corruption: number }): ExpressionState {
+  if (stats.pain > 70) return 'pain';
+  if (stats.arousal > 85 || stats.lust > 90) return 'ecstasy';
+  if (stats.arousal > 60 || stats.lust > 70) return 'heavyArousal';
+  if (stats.arousal > 35 || stats.lust > 45) return 'softArousal';
+  if (stats.stress > 70 || stats.health < 25) return 'fear';
+  if (stats.stress > 45) return 'stress';
+  if (stats.stamina < 20 || stats.health < 40) return 'exhausted';
+  return 'normal';
+}
+
+export const FaceAndHair: React.FC<FaceAndHairProps> = ({ geom, s, skin, eyeClr, hairClr, accentClr, raceDef, isMale, isFemale, cosmetics, expression = 'normal' }) => {
   const makeup = cosmetics?.makeup;
   const lipColor = makeup?.lipstick || (isFemale ? '#c06868' : undefined);
   const hasEyeliner = !!makeup?.eyeliner;
@@ -391,6 +406,107 @@ export const FaceAndHair: React.FC<FaceAndHairProps> = ({ geom, s, skin, eyeClr,
             <line x1={s.cx + 5} y1={s.headCY + 8} x2={s.cx + 17} y2={s.headCY + 9} stroke={skin} strokeWidth="0.7" opacity="0.5" />
           </g>
         </>
+      )}
+
+      {/* ══════════════════════════════════════════════════════════════
+          EXPRESSION OVERLAYS (DoL-parity 6-state expression system)
+         ══════════════════════════════════════════════════════════════ */}
+
+      {/* Half-lid overlay for arousal + exhaustion */}
+      {(expression === 'heavyArousal' || expression === 'softArousal' || expression === 'exhausted' || expression === 'ecstasy') && (
+        <g>
+          {/* Left eye half-lid */}
+          <path d={`M ${eyeL - eyeRX - 0.3},${eyeY - eyeRY * 0.2}
+            Q ${eyeL},${eyeY - eyeRY * (expression === 'ecstasy' ? 0.1 : expression === 'heavyArousal' ? 0.3 : 0.5)}
+              ${eyeL + eyeRX + 0.3},${eyeY - eyeRY * 0.2}
+            L ${eyeL + eyeRX + 0.3},${eyeY - eyeRY - 1}
+            L ${eyeL - eyeRX - 0.3},${eyeY - eyeRY - 1} Z`}
+            fill={skin} />
+          {/* Right eye half-lid */}
+          <path d={`M ${eyeR - eyeRX - 0.3},${eyeY - eyeRY * 0.2}
+            Q ${eyeR},${eyeY - eyeRY * (expression === 'ecstasy' ? 0.1 : expression === 'heavyArousal' ? 0.3 : 0.5)}
+              ${eyeR + eyeRX + 0.3},${eyeY - eyeRY * 0.2}
+            L ${eyeR + eyeRX + 0.3},${eyeY - eyeRY - 1}
+            L ${eyeR - eyeRX - 0.3},${eyeY - eyeRY - 1} Z`}
+            fill={skin} />
+        </g>
+      )}
+
+      {/* Wide-open eyes for fear */}
+      {expression === 'fear' && (
+        <g>
+          {/* Enlarged white sclera reveal above iris */}
+          <ellipse cx={eyeL} cy={eyeY - 0.8} rx={eyeRX + 0.5} ry={eyeRY + 1}
+            fill="none" stroke="rgba(255,255,255,0.15)" strokeWidth="0.5" />
+          <ellipse cx={eyeR} cy={eyeY - 0.8} rx={eyeRX + 0.5} ry={eyeRY + 1}
+            fill="none" stroke="rgba(255,255,255,0.15)" strokeWidth="0.5" />
+          {/* Contracted pupils (tiny) */}
+          <circle cx={eyeL} cy={eyeY} r="0.5" fill="#000" />
+          <circle cx={eyeR} cy={eyeY} r="0.5" fill="#000" />
+        </g>
+      )}
+
+      {/* Stress eyebrow furrow */}
+      {(expression === 'stress' || expression === 'pain') && (
+        <g>
+          {/* Furrowed brow lines */}
+          <line x1={s.cx - 2} y1={s.headCY - 8} x2={s.cx - 1} y2={s.headCY - 7}
+            stroke={`${skin}80`} strokeWidth="0.5" />
+          <line x1={s.cx + 2} y1={s.headCY - 8} x2={s.cx + 1} y2={s.headCY - 7}
+            stroke={`${skin}80`} strokeWidth="0.5" />
+        </g>
+      )}
+
+      {/* Pain expression: squinted eyes + grimace */}
+      {expression === 'pain' && (
+        <g>
+          {/* Squint overlay – covers bottom part of eyes */}
+          <path d={`M ${eyeL - eyeRX - 0.3},${eyeY + eyeRY * 0.3}
+            Q ${eyeL},${eyeY + eyeRY * 0.1} ${eyeL + eyeRX + 0.3},${eyeY + eyeRY * 0.3}
+            L ${eyeL + eyeRX + 0.3},${eyeY + eyeRY + 1}
+            L ${eyeL - eyeRX - 0.3},${eyeY + eyeRY + 1} Z`}
+            fill={skin} />
+          <path d={`M ${eyeR - eyeRX - 0.3},${eyeY + eyeRY * 0.3}
+            Q ${eyeR},${eyeY + eyeRY * 0.1} ${eyeR + eyeRX + 0.3},${eyeY + eyeRY * 0.3}
+            L ${eyeR + eyeRX + 0.3},${eyeY + eyeRY + 1}
+            L ${eyeR - eyeRX - 0.3},${eyeY + eyeRY + 1} Z`}
+            fill={skin} />
+          {/* Top squint too */}
+          <path d={`M ${eyeL - eyeRX - 0.3},${eyeY - eyeRY * 0.1}
+            Q ${eyeL},${eyeY - eyeRY * 0.4} ${eyeL + eyeRX + 0.3},${eyeY - eyeRY * 0.1}
+            L ${eyeL + eyeRX + 0.3},${eyeY - eyeRY - 1}
+            L ${eyeL - eyeRX - 0.3},${eyeY - eyeRY - 1} Z`}
+            fill={skin} />
+          <path d={`M ${eyeR - eyeRX - 0.3},${eyeY - eyeRY * 0.1}
+            Q ${eyeR},${eyeY - eyeRY * 0.4} ${eyeR + eyeRX + 0.3},${eyeY - eyeRY * 0.1}
+            L ${eyeR + eyeRX + 0.3},${eyeY - eyeRY - 1}
+            L ${eyeR - eyeRX - 0.3},${eyeY - eyeRY - 1} Z`}
+            fill={skin} />
+        </g>
+      )}
+
+      {/* Ecstasy: mouth open, tongue hint */}
+      {expression === 'ecstasy' && !raceDef.has_muzzle && (
+        <g>
+          {/* Open mouth */}
+          <ellipse cx={s.cx} cy={s.headCY + 8} rx="3" ry="2.2"
+            fill="rgba(40,0,0,0.6)" />
+          {/* Tongue */}
+          <ellipse cx={s.cx} cy={s.headCY + 9} rx="1.8" ry="1"
+            fill="rgba(200,80,80,0.5)" />
+        </g>
+      )}
+
+      {/* Tears (fear / pain / ecstasy) */}
+      {(expression === 'fear' || expression === 'pain' || expression === 'ecstasy') && (
+        <g className="sprite-drip">
+          <ellipse cx={eyeL - eyeRX + 0.5} cy={eyeY + eyeRY + 2} rx="0.5" ry="1.2"
+            fill="rgba(150,200,255,0.45)" />
+          {expression === 'pain' && (
+            <ellipse cx={eyeR + eyeRX - 0.5} cy={eyeY + eyeRY + 3} rx="0.4" ry="1"
+              fill="rgba(150,200,255,0.35)" />
+          )}
+        </g>
       )}
     </>
   );

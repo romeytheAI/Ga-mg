@@ -546,4 +546,63 @@
   .race-badge-orsimer    { color: #90b060; border-color: #305018; }
   .race-badge-khajiit    { color: #d4b880; border-color: #886030; }
   .race-badge-argonian   { color: #80c090; border-color: #306040; }
+
+  /* ── DoL-parity idle sway (gentle body motion when standing) ── */
+  @keyframes sprite-idle-sway {
+    0%, 100% { transform: translateX(0) rotate(0deg); }
+    25%      { transform: translateX(0.3px) rotate(0.15deg); }
+    50%      { transform: translateX(-0.2px) rotate(-0.1deg); }
+    75%      { transform: translateX(0.1px) rotate(0.05deg); }
+  }
+  .sprite-idle-sway {
+    animation: sprite-idle-sway 6s ease-in-out infinite;
+  }
+
+  /* ── DoL-parity ecstasy tremor (heavy full-body shake) ── */
+  @keyframes sprite-ecstasy {
+    0%, 100% { transform: translate(0, 0) rotate(0deg); }
+    10%      { transform: translate(-0.5px, 0.3px) rotate(-0.4deg); }
+    20%      { transform: translate(0.6px, -0.2px) rotate(0.5deg); }
+    30%      { transform: translate(-0.4px, 0.1px) rotate(-0.3deg); }
+    40%      { transform: translate(0.3px, -0.4px) rotate(0.2deg); }
+    50%      { transform: translate(-0.6px, 0.2px) rotate(-0.5deg); }
+    60%      { transform: translate(0.5px, 0.3px) rotate(0.4deg); }
+    70%      { transform: translate(-0.3px, -0.1px) rotate(-0.2deg); }
+    80%      { transform: translate(0.4px, 0.4px) rotate(0.3deg); }
+    90%      { transform: translate(-0.2px, -0.3px) rotate(-0.1deg); }
+  }
+  .sprite-ecstasy {
+    animation: sprite-ecstasy 0.35s ease-in-out infinite;
+  }
+
+  /* ── X-ray scan line sweep ── */
+  @keyframes xray-scan {
+    0%   { transform: translateY(0); }
+    100% { transform: translateY(225px); }
+  }
+  .xray-scan-line {
+    animation: xray-scan 3s linear infinite;
+  }
+
+  /* ── Sweat drip fall (second variant with delay) ── */
+  @keyframes sprite-sweat-fall-b {
+    0%   { transform: translateY(0); opacity: 0.3; }
+    80%  { transform: translateY(8px); opacity: 0.15; }
+    100% { transform: translateY(12px); opacity: 0; }
+  }
+  .sprite-sweat-fall-b {
+    animation: sprite-sweat-fall-b 2.8s ease-in infinite;
+    animation-delay: 0.8s;
+  }
+
+  /* ── Lactation drip variant with offset delay ── */
+  @keyframes sprite-drip-delay {
+    0%   { transform: translateY(0); opacity: 0.3; }
+    70%  { transform: translateY(6px); opacity: 0.2; }
+    100% { transform: translateY(10px); opacity: 0; }
+  }
+  .sprite-drip-delay {
+    animation: sprite-drip-delay 3.5s ease-in infinite;
+    animation-delay: 1.2s;
+  }
 }
