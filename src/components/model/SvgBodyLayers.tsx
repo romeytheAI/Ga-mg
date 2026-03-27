@@ -522,7 +522,12 @@ export const SvgPlayerModel: React.FC<ModelProps> = ({ stats, clothing, xrayMode
            {/* Left Arm */}
            <g id="arm-l" filter="url(#sss-filter)">
               {/* Shoulder/Deltoid with muscle contour */}
-              <path d="M 64 110 C 30 110, 30 150, 40 220 L 45 220 C 40 160, 50 140, 72 135 Z" fill="url(#arm-l)" filter="url(#skin-texture)" />
+              {/* Arm silhouette — gender-variant width and bicep shape */}
+               <path d={
+                 isFemale
+                   ? "M 68 112 C 52 112, 30 148, 32 182 C 33 202, 36 216, 40 224 L 50 222 C 50 210, 52 196, 52 180 C 54 152, 62 124, 72 118 Z"
+                   : "M 66 112 C 48 112, 26 148, 28 182 C 29 202, 32 218, 36 226 L 48 224 C 48 210, 50 196, 50 180 C 52 150, 60 122, 70 118 Z"
+               } fill="url(#arm-l)" filter="url(#skin-texture)" />
               {/* Deltoid highlight (round muscle) */}
               <circle cx="56" cy="128" r="13" fill={colors.highLight} opacity="0.25" filter="url(#blur-md)" />
               {/* Deltoid separation line */}
@@ -583,7 +588,11 @@ export const SvgPlayerModel: React.FC<ModelProps> = ({ stats, clothing, xrayMode
 
            {/* Right Arm */}
            <g id="arm-r" filter="url(#sss-filter)">
-              <path d="M 136 110 C 170 110, 170 150, 160 220 L 155 220 C 160 160, 150 140, 128 135 Z" fill="url(#arm-r)" filter="url(#skin-texture)" />
+              <path d={
+                 isFemale
+                   ? "M 132 112 C 148 112, 170 148, 168 182 C 167 202, 164 216, 160 224 L 150 222 C 150 210, 148 196, 148 180 C 146 152, 138 124, 128 118 Z"
+                   : "M 134 112 C 152 112, 174 148, 172 182 C 171 202, 168 218, 164 226 L 152 224 C 152 210, 150 196, 150 180 C 148 150, 140 122, 130 118 Z"
+               } fill="url(#arm-r)" filter="url(#skin-texture)" />
               {/* Deltoid highlight */}
               <circle cx="144" cy="128" r="13" fill={colors.highLight} opacity="0.25" filter="url(#blur-md)" />
               {/* Deltoid separation */}
@@ -644,7 +653,12 @@ export const SvgPlayerModel: React.FC<ModelProps> = ({ stats, clothing, xrayMode
            {/* --- HEAD & NECK --- */}
            <g id="head" className="origin-[100px_100px]" filter="url(#sss-filter)">
               {/* Neck Cylinder */}
-              <rect x="88" y="80" width="24" height="40" fill="url(#neck)" filter="url(#skin-texture)" />
+              {/* Neck — tapered: slightly wider at chin, narrower at collar */}
+              <path
+                d={isFemale
+                  ? "M 87 80 Q 88 100 89 120 L 111 120 Q 112 100 113 80 Z"
+                  : "M 85 80 Q 86 100 87 120 L 113 120 Q 114 100 115 80 Z"}
+                fill="url(#neck)" filter="url(#skin-texture)" />
               {/* Sternocleidomastoid muscles */}
               <path d="M 88 80 Q 94 100 96 120" stroke={colors.shadow} strokeWidth="1.5" fill="none" opacity="0.5" filter="url(#blur-sm)" />
               <path d="M 112 80 Q 106 100 104 120" stroke={colors.shadow} strokeWidth="1.5" fill="none" opacity="0.5" filter="url(#blur-sm)" />
@@ -1019,53 +1033,112 @@ export const SvgPlayerModel: React.FC<ModelProps> = ({ stats, clothing, xrayMode
            {/* --- LEGS --- */}
            {isFemale ? (
              <g id="legs-f" filter="url(#sss-filter)">
-                {/* Left Leg: Thigh -> Knee -> Calf */}
-                <path d="M 94 280 C 80 320, 80 370, 85 410 C 85 440, 80 470, 78 480 C 76 490, 85 495, 90 495 C 96 495, 98 485, 96 470 C 100 440, 102 380, 100 280 Z" fill="url(#leg-l)" filter="url(#skin-texture)" />
-                {/* Right Leg */}
-                <path d="M 106 280 C 120 320, 120 370, 115 410 C 115 440, 120 470, 122 480 C 124 490, 115 495, 110 495 C 104 495, 102 485, 104 470 C 100 440, 98 380, 100 280 Z" fill="url(#leg-r)" filter="url(#skin-texture)" />
+                 {/* Left Leg — wide thigh (~22px), S-shaped silhouette */}
+                 <path d={
+                   "M 90 285 " +
+                   "C 82 308, 70 335, 70 360 " +
+                   "C 70 385, 74 404, 78 415 " +
+                   "C 78 432, 76 450, 80 470 " +
+                   "C 80 482, 82 490, 84 492 " +
+                   "L 92 492 " +
+                   "C 92 488, 92 480, 94 470 " +
+                   "C 94 450, 92 432, 92 415 " +
+                   "C 92 404, 92 385, 92 360 " +
+                   "C 92 335, 90 308, 90 285 Z"
+                 } fill="url(#leg-l)" filter="url(#skin-texture)" />
 
-                {/* Anatomical Overlays (Knees, Calves) */}
-                <ellipse cx="86" cy="395" rx="6" ry="8" fill={colors.highLight} filter="url(#blur-sm)" opacity="0.3" />
-                <path d="M 83 400 Q 86 405 90 400" stroke={colors.deepShadow} strokeWidth="1" fill="none" opacity="0.4" filter="url(#blur-sm)" />
+                 {/* Right Leg — mirror */}
+                 <path d={
+                   "M 110 285 " +
+                   "C 118 308, 130 335, 130 360 " +
+                   "C 130 385, 126 404, 122 415 " +
+                   "C 122 432, 124 450, 120 470 " +
+                   "C 120 482, 118 490, 116 492 " +
+                   "L 108 492 " +
+                   "C 108 488, 108 480, 106 470 " +
+                   "C 106 450, 108 432, 108 415 " +
+                   "C 108 404, 108 385, 108 360 " +
+                   "C 108 335, 110 308, 110 285 Z"
+                 } fill="url(#leg-r)" filter="url(#skin-texture)" />
 
-                <ellipse cx="114" cy="395" rx="6" ry="8" fill={colors.highLight} filter="url(#blur-sm)" opacity="0.3" />
-                <path d="M 110 400 Q 114 405 117 400" stroke={colors.deepShadow} strokeWidth="1" fill="none" opacity="0.4" filter="url(#blur-sm)" />
+                 {/* Outer thigh / hip highlights */}
+                 <ellipse cx="72" cy="332" rx="5" ry="15" fill={colors.highLight} opacity="0.12" filter="url(#blur-md)" />
+                 <ellipse cx="128" cy="332" rx="5" ry="15" fill={colors.highLight} opacity="0.12" filter="url(#blur-md)" />
 
-                {/* Thigh gaps / Inner thigh shading */}
-                <path d="M 97 280 L 100 320 L 103 280 Z" fill={colors.deepShadow} opacity="0.6" filter="url(#blur-md)" />
+                 {/* Knee highlights */}
+                 <ellipse cx="80" cy="408" rx="6" ry="7" fill={colors.highLight} filter="url(#blur-sm)" opacity="0.3" />
+                 <path d="M 77 413 Q 80 418 84 413" stroke={colors.deepShadow} strokeWidth="1" fill="none" opacity="0.4" filter="url(#blur-sm)" />
+                 <ellipse cx="120" cy="408" rx="6" ry="7" fill={colors.highLight} filter="url(#blur-sm)" opacity="0.3" />
+                 <path d="M 116 413 Q 120 418 124 413" stroke={colors.deepShadow} strokeWidth="1" fill="none" opacity="0.4" filter="url(#blur-sm)" />
 
-                {/* Ankle definition */}
-                <ellipse cx="84" cy="480" rx="4" ry="2" fill={colors.highLight} opacity="0.3" />
-                <ellipse cx="116" cy="480" rx="4" ry="2" fill={colors.highLight} opacity="0.3" />
+                 {/* Inner thigh shadows (thigh gap) */}
+                 <path d="M 90 292 C 90 318, 91 345, 92 375" stroke={colors.deepShadow} strokeWidth="3.5" fill="none" opacity="0.42" filter="url(#blur-md)" />
+                 <path d="M 110 292 C 110 318, 109 345, 108 375" stroke={colors.deepShadow} strokeWidth="3.5" fill="none" opacity="0.42" filter="url(#blur-md)" />
 
-                {/* Calf muscle highlight */}
-                <ellipse cx="84" cy="440" rx="5" ry="12" fill={colors.highLight} opacity="0.15" filter="url(#blur-sm)" />
-                <ellipse cx="116" cy="440" rx="5" ry="12" fill={colors.highLight} opacity="0.15" filter="url(#blur-sm)" />
-             </g>
+                 {/* Ankle highlights */}
+                 <ellipse cx="82" cy="480" rx="4" ry="2" fill={colors.highLight} opacity="0.32" />
+                 <ellipse cx="118" cy="480" rx="4" ry="2" fill={colors.highLight} opacity="0.32" />
+
+                 {/* Calf muscle highlight */}
+                 <ellipse cx="78" cy="444" rx="4" ry="12" fill={colors.highLight} opacity="0.15" filter="url(#blur-sm)" />
+                 <ellipse cx="122" cy="444" rx="4" ry="12" fill={colors.highLight} opacity="0.15" filter="url(#blur-sm)" />
+
+                 {/* Outer hip/glute contour */}
+                 <ellipse cx="68" cy="312" rx="5" ry="20" fill={colors.midHighlight} opacity="0.18" filter="url(#blur-md)" transform="rotate(-6 68 312)" />
+                 <ellipse cx="132" cy="312" rx="5" ry="20" fill={colors.midHighlight} opacity="0.18" filter="url(#blur-md)" transform="rotate(6 132 312)" />
+              </g>
            ) : (
              <g id="legs-m" filter="url(#sss-filter)">
-                {/* Thicker, straighter legs */}
-                <path d="M 94 280 C 85 330, 85 380, 88 420 C 88 450, 85 470, 83 480 C 80 490, 88 495, 93 495 C 99 495, 100 485, 98 470 C 102 440, 103 380, 100 280 Z" fill="url(#leg-l)" filter="url(#skin-texture)" />
-                <path d="M 106 280 C 115 330, 115 380, 112 420 C 112 450, 115 470, 117 480 C 120 490, 112 495, 107 495 C 101 495, 100 485, 102 470 C 98 440, 97 380, 100 280 Z" fill="url(#leg-r)" filter="url(#skin-texture)" />
+                 {/* Male Left Leg — muscular, wider thighs, prominent calf bulge */}
+                 <path d={
+                   "M 92 285 " +
+                   "C 84 308, 72 332, 72 358 " +
+                   "C 72 384, 76 404, 80 415 " +
+                   "C 80 432, 76 450, 78 468 " +
+                   "C 78 480, 82 490, 84 492 " +
+                   "L 94 492 " +
+                   "C 96 490, 96 480, 96 468 " +
+                   "C 94 450, 94 432, 94 415 " +
+                   "C 94 404, 94 384, 94 360 " +
+                   "C 94 335, 92 308, 92 285 Z"
+                 } fill="url(#leg-l)" filter="url(#skin-texture)" />
 
-                {/* Musculature (Quads, Calves) */}
-                <path d="M 90 310 Q 94 340 88 370" stroke={colors.shadow} strokeWidth="2" fill="none" opacity="0.4" filter="url(#blur-sm)" />
-                <path d="M 110 310 Q 106 340 112 370" stroke={colors.shadow} strokeWidth="2" fill="none" opacity="0.4" filter="url(#blur-sm)" />
+                 {/* Male Right Leg — mirror */}
+                 <path d={
+                   "M 108 285 " +
+                   "C 116 308, 128 332, 128 358 " +
+                   "C 128 384, 124 404, 120 415 " +
+                   "C 120 432, 124 450, 122 468 " +
+                   "C 122 480, 118 490, 116 492 " +
+                   "L 106 492 " +
+                   "C 104 490, 104 480, 104 468 " +
+                   "C 106 450, 106 432, 106 415 " +
+                   "C 106 404, 106 384, 106 360 " +
+                   "C 106 335, 108 308, 108 285 Z"
+                 } fill="url(#leg-r)" filter="url(#skin-texture)" />
 
-                {/* Knees */}
-                <ellipse cx="88" cy="405" rx="5" ry="6" fill={colors.highLight} filter="url(#blur-sm)" opacity="0.3" />
-                <path d="M 85 410 Q 88 415 92 410" stroke={colors.deepShadow} strokeWidth="1.5" fill="none" opacity="0.4" filter="url(#blur-sm)" />
-                <ellipse cx="112" cy="405" rx="5" ry="6" fill={colors.highLight} filter="url(#blur-sm)" opacity="0.3" />
-                <path d="M 108 410 Q 112 415 115 410" stroke={colors.deepShadow} strokeWidth="1.5" fill="none" opacity="0.4" filter="url(#blur-sm)" />
+                 {/* Quad definition lines */}
+                 <path d="M 88 310 Q 82 345, 84 375" stroke={colors.shadow} strokeWidth="1.5" fill="none" opacity="0.4" filter="url(#blur-sm)" />
+                 <path d="M 112 310 Q 118 345, 116 375" stroke={colors.shadow} strokeWidth="1.5" fill="none" opacity="0.4" filter="url(#blur-sm)" />
 
-                {/* Calf muscle bulge */}
-                <ellipse cx="88" cy="435" rx="4" ry="10" fill={colors.highLight} opacity="0.15" filter="url(#blur-sm)" />
-                <ellipse cx="112" cy="435" rx="4" ry="10" fill={colors.highLight} opacity="0.15" filter="url(#blur-sm)" />
+                 {/* Knees */}
+                 <ellipse cx="80" cy="410" rx="6" ry="7" fill={colors.highLight} filter="url(#blur-sm)" opacity="0.3" />
+                 <path d="M 76 415 Q 80 420 84 415" stroke={colors.deepShadow} strokeWidth="1.5" fill="none" opacity="0.4" filter="url(#blur-sm)" />
+                 <ellipse cx="120" cy="410" rx="6" ry="7" fill={colors.highLight} filter="url(#blur-sm)" opacity="0.3" />
+                 <path d="M 116 415 Q 120 420 124 415" stroke={colors.deepShadow} strokeWidth="1.5" fill="none" opacity="0.4" filter="url(#blur-sm)" />
 
-                {/* Ankle definition */}
-                <ellipse cx="87" cy="478" rx="3" ry="2" fill={colors.highLight} opacity="0.3" />
-                <ellipse cx="113" cy="478" rx="3" ry="2" fill={colors.highLight} opacity="0.3" />
-             </g>
+                 {/* Calf muscle highlight */}
+                 <ellipse cx="77" cy="442" rx="4" ry="12" fill={colors.highLight} opacity="0.18" filter="url(#blur-sm)" />
+                 <ellipse cx="123" cy="442" rx="4" ry="12" fill={colors.highLight} opacity="0.18" filter="url(#blur-sm)" />
+
+                 {/* Ankle definition */}
+                 <ellipse cx="82" cy="478" rx="4" ry="2" fill={colors.highLight} opacity="0.3" />
+                 <ellipse cx="118" cy="478" rx="4" ry="2" fill={colors.highLight} opacity="0.3" />
+
+                 {/* Inner thigh shadow */}
+                 <path d="M 92 292 C 92 320, 93 348, 94 375" stroke={colors.deepShadow} strokeWidth="2.5" fill="none" opacity="0.38" filter="url(#blur-md)" />
+                 <path d="M 108 292 C 108 320, 107 348, 106 375" stroke={colors.deepShadow} strokeWidth="2.5" fill="none" opacity="0.38" filter="url(#blur-md)" />
+              </g>
            )}
 
            {/* --- FEET (anatomically detailed) --- */}
@@ -1131,7 +1204,19 @@ export const SvgPlayerModel: React.FC<ModelProps> = ({ stats, clothing, xrayMode
            {isFemale ? (
              <g id="torso-f" filter="url(#sss-filter)">
                 {/* Main Trunk */}
-                <path d="M 72 110 C 72 110, 55 180, 65 250 C 75 280, 85 290, 100 290 C 115 290, 125 280, 135 250 C 145 180, 128 110, 128 110 Z" fill="url(#torso-f)" filter="url(#skin-texture)" />
+                {/* Female torso — hourglass S-curve */}
+            <path d={
+              "M 68 112 " +
+              "C 68 138, 72 162, 74 186 " +
+              "C 74 204, 76 218, 76 232 " +
+              "C 74 252, 68 264, 66 274 " +
+              "C 66 282, 74 290, 86 292 " +
+              "L 114 292 " +
+              "C 126 290, 134 282, 134 274 " +
+              "C 132 264, 126 252, 124 232 " +
+              "C 124 218, 126 204, 126 186 " +
+              "C 128 162, 132 138, 132 112 Z"
+            } fill="url(#torso-f)" filter="url(#skin-texture)" />
 
                 {/* Clavicles */}
                 <path d="M 74 125 Q 85 135 97 130" stroke={colors.deepShadow} strokeWidth="1" fill="none" opacity="0.4" filter="url(#blur-sm)" />
@@ -1166,9 +1251,10 @@ export const SvgPlayerModel: React.FC<ModelProps> = ({ stats, clothing, xrayMode
                 {/* High-Fidelity Breasts */}
                 {/* Left Breast */}
                 <g>
-                  <circle cx="82" cy="160" r="18" fill="url(#breast-l)" />
+                  {/* Teardrop-oval breast — gravity-lowered center, slightly taller */}
+                   <ellipse cx="82" cy="164" rx="19" ry="22" fill="url(#breast-l)" />
                   {/* Underboob ambient occlusion */}
-                  <path d="M 64 160 C 64 185, 95 185, 100 160" stroke={colors.deepShadow} strokeWidth="4" fill="none" opacity="0.5" filter="url(#blur-md)" />
+                  <path d="M 63 162 C 63 192, 98 192, 101 162" stroke={colors.deepShadow} strokeWidth="4" fill="none" opacity="0.5" filter="url(#blur-md)" />
                   {/* Areola & Nipple (Only if naked, but keeping anatomical for DoL logic) */}
                   <circle cx="80" cy="163" r="4" fill={colors.deepShadow} opacity="0.4" filter="url(#blur-sm)" />
                   <circle cx="80" cy="163" r="1" fill={colors.deepShadow} opacity="0.6" />
@@ -1177,8 +1263,8 @@ export const SvgPlayerModel: React.FC<ModelProps> = ({ stats, clothing, xrayMode
 
                 {/* Right Breast */}
                 <g>
-                  <circle cx="118" cy="160" r="18" fill="url(#breast-r)" />
-                  <path d="M 100 160 C 105 185, 136 185, 136 160" stroke={colors.deepShadow} strokeWidth="4" fill="none" opacity="0.5" filter="url(#blur-md)" />
+                  <ellipse cx="118" cy="164" rx="19" ry="22" fill="url(#breast-r)" />
+                  <path d="M 99 162 C 102 192, 137 192, 137 162" stroke={colors.deepShadow} strokeWidth="4" fill="none" opacity="0.5" filter="url(#blur-md)" />
                   <circle cx="120" cy="163" r="4" fill={colors.deepShadow} opacity="0.4" filter="url(#blur-sm)" />
                   <circle cx="120" cy="163" r="1" fill={colors.deepShadow} opacity="0.6" />
                   <circle cx="119" cy="162" r="0.5" fill={colors.highLight} opacity="0.5" />
@@ -1191,7 +1277,19 @@ export const SvgPlayerModel: React.FC<ModelProps> = ({ stats, clothing, xrayMode
            ) : (
              <g id="torso-m" filter="url(#sss-filter)">
                 {/* Main Trunk (V-Taper) */}
-                <path d="M 64 110 C 64 110, 68 180, 75 250 C 80 280, 85 290, 100 290 C 115 290, 120 280, 125 250 C 132 180, 136 110, 136 110 Z" fill="url(#torso-m)" filter="url(#skin-texture)" />
+                {/* Male torso — V-taper */}
+            <path d={
+              "M 64 110 " +
+              "C 64 138, 66 162, 72 186 " +
+              "C 76 204, 78 218, 78 232 " +
+              "C 78 250, 80 264, 80 276 " +
+              "C 81 284, 86 290, 90 292 " +
+              "L 110 292 " +
+              "C 114 290, 119 284, 120 276 " +
+              "C 120 264, 122 250, 122 232 " +
+              "C 122 218, 124 204, 128 186 " +
+              "C 134 162, 136 138, 136 110 Z"
+            } fill="url(#torso-m)" filter="url(#skin-texture)" />
 
                 {/* Clavicles (Sharper) */}
                 <path d="M 66 122 Q 85 130 96 125" stroke={colors.deepShadow} strokeWidth="2" fill="none" opacity="0.5" filter="url(#blur-sm)" />
