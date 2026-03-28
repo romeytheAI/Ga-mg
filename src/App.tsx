@@ -994,7 +994,7 @@ Example: { "health": 50, "allure": 20 }`;
                       'absolute w-1 h-1 bg-white/20 rounded-full blur-[1px]'
                     }
                     initial={{
-                      x: Math.random() * 800,
+                      left: `${Math.random() * 100}%`,
                       y: -20 - Math.random() * 100,
                       opacity: isRain ? 0.3 : isSnow ? 0.5 : isFog ? 0.06 : 0.2,
                     }}

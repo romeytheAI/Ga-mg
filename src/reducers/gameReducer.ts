@@ -231,6 +231,9 @@ export function gameReducer(state: GameState, action: any): GameState {
       if (intent === 'neutral' && (actionText?.toLowerCase().includes('eat') || actionText?.toLowerCase().includes('food') || actionText?.toLowerCase().includes('bread'))) {
         newNeeds.hunger = Math.min(100, newNeeds.hunger + 25);
       }
+      if (intent === 'neutral' && (actionText?.toLowerCase().includes('drink') || actionText?.toLowerCase().includes('water') || actionText?.toLowerCase().includes('ale') || actionText?.toLowerCase().includes('milk'))) {
+        newNeeds.thirst = Math.min(100, newNeeds.thirst + 30);
+      }
       if (intent === 'neutral' && (actionText?.toLowerCase().includes('swim') || actionText?.toLowerCase().includes('wash') || actionText?.toLowerCase().includes('bath'))) {
         newNeeds.hygiene = Math.min(100, newNeeds.hygiene + 40);
       }
