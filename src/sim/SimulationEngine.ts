@@ -286,16 +286,16 @@ function tickNpc(
 
   // 19. Tick addiction (withdrawal & recovery)
   let addiction_state = tickAddiction(npc.addiction_state, world.turn, HOURS_PER_TICK);
-  const wdStress = withdrawalStress(addiction_state);
-  if (wdStress > 0) {
-    corruption_state = { ...corruption_state, stress: Math.min(100, corruption_state.stress + wdStress * 0.1) };
+  const addictionWithdrawalStress = withdrawalStress(addiction_state);
+  if (addictionWithdrawalStress > 0) {
+    corruption_state = { ...corruption_state, stress: Math.min(100, corruption_state.stress + addictionWithdrawalStress * 0.1) };
   }
 
   // 20. Tick diseases
   let disease_state = tickDisease(npc.disease_state, HOURS_PER_TICK);
-  const dHealthDrain = diseaseHealthDrain(disease_state);
-  if (dHealthDrain > 0) {
-    stats = { ...stats, health: Math.max(0, stats.health - dHealthDrain * 0.1) };
+  const diseaseHealthDrainAmount = diseaseHealthDrain(disease_state);
+  if (diseaseHealthDrainAmount > 0) {
+    stats = { ...stats, health: Math.max(0, stats.health - diseaseHealthDrainAmount * 0.1) };
   }
 
   // 21. Tick arcane (mana regen, enchantment durations)
@@ -303,9 +303,9 @@ function tickNpc(
 
   // 22. Tick parasites
   let parasite_state = tickParasite(npc.parasite_state, HOURS_PER_TICK);
-  const pCorruption = totalCorruptionBuff(parasite_state);
-  if (pCorruption > 0) {
-    corruption_state = { ...corruption_state, corruption: Math.min(100, corruption_state.corruption + pCorruption * 0.05) };
+  const parasiteCorruptionBuff = totalCorruptionBuff(parasite_state);
+  if (parasiteCorruptionBuff > 0) {
+    corruption_state = { ...corruption_state, corruption: Math.min(100, corruption_state.corruption + parasiteCorruptionBuff * 0.05) };
   }
 
   // 23. Tick companions
@@ -322,9 +322,9 @@ function tickNpc(
 
   // 25. Tick restraints
   let restraint_state = tickRestraints(npc.restraint_state, HOURS_PER_TICK);
-  const rStress = restraintStress(restraint_state);
-  if (rStress > 0) {
-    corruption_state = { ...corruption_state, stress: Math.min(100, corruption_state.stress + rStress * 0.1) };
+  const restraintStressAmount = restraintStress(restraint_state);
+  if (restraintStressAmount > 0) {
+    corruption_state = { ...corruption_state, stress: Math.min(100, corruption_state.stress + restraintStressAmount * 0.1) };
   }
 
   // 26. Tick transformation / ascension
