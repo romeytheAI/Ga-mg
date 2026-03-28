@@ -105,6 +105,16 @@ export function gameReducer(state: GameState, action: any): GameState {
         }
       }
 
+      // 4b. Convert Gold Coins to gold currency
+      let goldEarned = 0;
+      newInventory = newInventory.filter(item => {
+        if (item.name === 'Gold Coin' && item.type === 'misc') {
+          goldEarned += item.value || 1;
+          return false;
+        }
+        return true;
+      });
+
       // 5. Equipment integrity degradation
       if (typeof parsedText.equipment_integrity_delta === 'number' && parsedText.equipment_integrity_delta !== 0) {
         newInventory = newInventory.map(item => {
@@ -302,6 +312,7 @@ export function gameReducer(state: GameState, action: any): GameState {
           quests: newQuests,
           psych_profile: newPsych,
           life_sim: newLifeSim,
+          gold: state.player.gold + goldEarned,
         },
         world: {
           ...state.world,
@@ -782,6 +793,74 @@ export function gameReducer(state: GameState, action: any): GameState {
       return {
         ...state,
         memory_graph: [summary, ...trimmed],
+      };
+    }
+
+    case 'BUY_ITEM': {
+      const { item, cost } = action.payload as { item: any; cost: number };
+      if (state.player.gold < cost) return state;
+      const newItem = { ...item, id: `${item.id}-${Date.now()}` };
+      return {
+        ...state,
+        player: {
+          ...state.player,
+          gold: state.player.gold - cost,
+          inventory: [...state.player.inventory, newItem],
+        },
+      };
+    }
+
+    case 'SELL_ITEM': {
+      const { itemId, price } = action.payload as { itemId: string; price: number };
+      const itemIndex = state.player.inventory.findIndex(i => i.id === itemId);
+      if (itemIndex === -1) return state;
+      const soldItem = state.player.inventory[itemIndex];
+      if (soldItem.is_equipped) return state; // Cannot sell equipped items
+      return {
+        ...state,
+        player: {
+          ...state.player,
+          gold: state.player.gold + price,
+          inventory: state.player.inventory.filter(i => i.id !== itemId),
+        },
+      };
+    }
+
+    case 'REPAIR_ITEM': {
+      const repairId = (action.payload as { itemId: string; cost: number }).itemId;
+      const repairCost = (action.payload as { itemId: string; cost: number }).cost;
+      if (state.player.gold < repairCost) return state;
+      return {
+        ...state,
+        player: {
+          ...state.player,
+          gold: state.player.gold - repairCost,
+          inventory: state.player.inventory.map(i =>
+            i.id === repairId ? { ...i, integrity: i.max_integrity ?? 100 } : i
+          ),
+        },
+      };
+    }
+
+    case 'ADD_GOLD': {
+      return {
+        ...state,
+        player: {
+          ...state.player,
+          gold: Math.max(0, state.player.gold + (action.payload as number)),
+        },
+      };
+    }
+
+    case 'ADD_FAME': {
+      const { fame: fameAmt, notoriety: notAmt } = action.payload as { fame?: number; notoriety?: number };
+      return {
+        ...state,
+        player: {
+          ...state.player,
+          fame: Math.max(0, Math.min(100, state.player.fame + (fameAmt ?? 0))),
+          notoriety: Math.max(0, Math.min(100, state.player.notoriety + (notAmt ?? 0))),
+        },
       };
     }
 

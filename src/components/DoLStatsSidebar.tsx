@@ -76,6 +76,9 @@ const SKILL_COLOR: Record<string, string> = {
   dancing: 'bg-purple-500',
   housekeeping: 'bg-amber-700',
   school_grades: 'bg-blue-600',
+  tending: 'bg-lime-600',
+  cooking: 'bg-orange-600',
+  foraging: 'bg-emerald-700',
 };
 
 /** Sprite with inline X-Ray toggle button */
@@ -325,6 +328,27 @@ export const DoLStatsSidebar: React.FC<DoLStatsSidebarProps> = ({
           pulseLow
         />
 
+        {/* Gold & Reputation */}
+        <SectionHeader label="Standing" />
+        <div className="flex items-center gap-1.5 mb-1">
+          <span className="text-[8px] uppercase tracking-wider text-amber-400/50 w-12 shrink-0">Gold</span>
+          <span className="text-sm font-mono text-amber-400">{state.player.gold}</span>
+        </div>
+        <div className="flex items-center gap-1.5 mb-0.5">
+          <span className="text-[8px] uppercase tracking-wider text-white/35 w-12 shrink-0">Fame</span>
+          <div className="flex-1 h-1 bg-white/[0.05] rounded-full overflow-hidden">
+            <motion.div className="h-full rounded-full bg-amber-500" initial={{ width: 0 }} animate={{ width: `${state.player.fame}%` }} transition={{ duration: 0.4 }} />
+          </div>
+          <span className="text-[8px] font-mono text-white/30 w-5 text-right shrink-0">{state.player.fame}</span>
+        </div>
+        <div className="flex items-center gap-1.5 mb-0.5">
+          <span className="text-[8px] uppercase tracking-wider text-white/35 w-12 shrink-0">Infamy</span>
+          <div className="flex-1 h-1 bg-white/[0.05] rounded-full overflow-hidden">
+            <motion.div className="h-full rounded-full bg-red-700" initial={{ width: 0 }} animate={{ width: `${state.player.notoriety}%` }} transition={{ duration: 0.4 }} />
+          </div>
+          <span className="text-[8px] font-mono text-white/30 w-5 text-right shrink-0">{state.player.notoriety}</span>
+        </div>
+
         {/* Skills */}
         <SectionHeader label="Skills" />
         {Object.entries(skills).map(([skill, levelRaw]) => {
@@ -440,18 +464,42 @@ export const DoLStatsSidebar: React.FC<DoLStatsSidebarProps> = ({
       </div>
 
       {/* Footer quick buttons */}
-      <div className="p-2 border-t border-white/[0.06] flex gap-1.5">
+      <div className="p-2 border-t border-white/[0.06] grid grid-cols-3 gap-1">
         <button
           onClick={onOpenStats}
-          className="flex-1 py-1.5 text-[8px] uppercase tracking-widest text-white/40 hover:text-white/80 border border-white/[0.06] hover:border-white/20 rounded-sm transition-colors bg-white/[0.01] hover:bg-white/[0.04]"
+          className="py-1.5 text-[7px] uppercase tracking-widest text-white/40 hover:text-white/80 border border-white/[0.06] hover:border-white/20 rounded-sm transition-colors bg-white/[0.01] hover:bg-white/[0.04]"
         >
           Stats
         </button>
         <button
           onClick={onOpenInventory}
-          className="flex-1 py-1.5 text-[8px] uppercase tracking-widest text-white/40 hover:text-white/80 border border-white/[0.06] hover:border-white/20 rounded-sm transition-colors bg-white/[0.01] hover:bg-white/[0.04]"
+          className="py-1.5 text-[7px] uppercase tracking-widest text-white/40 hover:text-white/80 border border-white/[0.06] hover:border-white/20 rounded-sm transition-colors bg-white/[0.01] hover:bg-white/[0.04]"
         >
           Items
+        </button>
+        <button
+          onClick={() => dispatch({ type: 'TOGGLE_UI_SETTING', payload: { key: 'show_shop', value: true } })}
+          className="py-1.5 text-[7px] uppercase tracking-widest text-amber-400/50 hover:text-amber-400 border border-white/[0.06] hover:border-amber-900/40 rounded-sm transition-colors bg-white/[0.01] hover:bg-amber-950/20"
+        >
+          Shop
+        </button>
+        <button
+          onClick={() => dispatch({ type: 'TOGGLE_UI_SETTING', payload: { key: 'show_wardrobe', value: true } })}
+          className="py-1.5 text-[7px] uppercase tracking-widest text-indigo-400/50 hover:text-indigo-400 border border-white/[0.06] hover:border-indigo-900/40 rounded-sm transition-colors bg-white/[0.01] hover:bg-indigo-950/20"
+        >
+          Wardrobe
+        </button>
+        <button
+          onClick={() => dispatch({ type: 'TOGGLE_UI_SETTING', payload: { key: 'show_social', value: true } })}
+          className="py-1.5 text-[7px] uppercase tracking-widest text-pink-400/50 hover:text-pink-400 border border-white/[0.06] hover:border-pink-900/40 rounded-sm transition-colors bg-white/[0.01] hover:bg-pink-950/20"
+        >
+          Social
+        </button>
+        <button
+          onClick={() => dispatch({ type: 'TOGGLE_UI_SETTING', payload: { key: 'show_map', value: true } })}
+          className="py-1.5 text-[7px] uppercase tracking-widest text-white/40 hover:text-white/80 border border-white/[0.06] hover:border-white/20 rounded-sm transition-colors bg-white/[0.01] hover:bg-white/[0.04]"
+        >
+          Map
         </button>
       </div>
     </div>

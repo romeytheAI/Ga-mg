@@ -4,7 +4,8 @@ import {
   Heart, Wind, Moon, Settings, X, BookOpen, User, Map as MapIcon, 
   Shield, Sword, Zap, Droplets, AlertTriangle, Ghost, Sparkles, 
   Layers, ShoppingBag, Eye, EyeOff, Thermometer, Clock, Calendar, RefreshCw, Book,
-  Cloud, Sun, Snowflake, CloudRain, CloudLightning, CloudDrizzle, CloudFog, Flame
+  Cloud, Sun, Snowflake, CloudRain, CloudLightning, CloudDrizzle, CloudFog, Flame,
+  Coins, Shirt, Users, Star
 } from 'lucide-react';
 import { GoogleGenAI, Type } from "@google/genai";
 import { CharacterModel } from './components/CharacterModel';
@@ -21,6 +22,9 @@ import { MemoriesModal } from './components/modals/MemoriesModal';
 import { InventoryModal } from './components/modals/InventoryModal';
 import { DeveloperModeModal } from './components/modals/DeveloperModeModal';
 import { SettingsModal } from './components/modals/SettingsModal';
+import { ShopModal } from './components/modals/ShopModal';
+import { WardrobeModal } from './components/modals/WardrobeModal';
+import { SocialModal } from './components/modals/SocialModal';
 import { SemanticText } from './components/TextComponents';
 import { GameState, Item, StatKey, ActiveEncounter } from './types';
 import { LOCATIONS } from './data/locations';
@@ -864,6 +868,30 @@ Example: { "health": 50, "allure": 20 }`;
             >
               <Book className="w-4 h-4 text-white/40 group-hover:text-white/80" />
               <span className="text-[10px] tracking-widest uppercase text-white/50 group-hover:text-white/90">Journal</span>
+            </motion.button>
+            <motion.button 
+              whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
+              onClick={() => dispatch({ type: 'TOGGLE_UI_SETTING', payload: { key: 'show_shop', value: true } })}
+              className="group flex items-center gap-2 px-3 py-1.5 border border-white/10 hover:border-white/30 transition-all rounded-sm"
+            >
+              <Coins className="w-4 h-4 text-amber-400/40 group-hover:text-amber-400/80" />
+              <span className="text-[10px] tracking-widest uppercase text-white/50 group-hover:text-white/90">Shop</span>
+            </motion.button>
+            <motion.button 
+              whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
+              onClick={() => dispatch({ type: 'TOGGLE_UI_SETTING', payload: { key: 'show_wardrobe', value: true } })}
+              className="group flex items-center gap-2 px-3 py-1.5 border border-white/10 hover:border-white/30 transition-all rounded-sm"
+            >
+              <Shirt className="w-4 h-4 text-indigo-400/40 group-hover:text-indigo-400/80" />
+              <span className="text-[10px] tracking-widest uppercase text-white/50 group-hover:text-white/90">Wardrobe</span>
+            </motion.button>
+            <motion.button 
+              whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
+              onClick={() => dispatch({ type: 'TOGGLE_UI_SETTING', payload: { key: 'show_social', value: true } })}
+              className="group flex items-center gap-2 px-3 py-1.5 border border-white/10 hover:border-white/30 transition-all rounded-sm"
+            >
+              <Users className="w-4 h-4 text-pink-400/40 group-hover:text-pink-400/80" />
+              <span className="text-[10px] tracking-widest uppercase text-white/50 group-hover:text-white/90">Social</span>
             </motion.button>
             <motion.button 
               whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
@@ -2033,6 +2061,21 @@ Example: { "health": 50, "allure": 20 }`;
             </motion.div>
           </motion.div>
         )}
+      </AnimatePresence>
+
+      {/* Shop Modal */}
+      <AnimatePresence>
+        {state.ui.show_shop && <ShopModal state={state} dispatch={dispatch} />}
+      </AnimatePresence>
+
+      {/* Wardrobe Modal */}
+      <AnimatePresence>
+        {state.ui.show_wardrobe && <WardrobeModal state={state} dispatch={dispatch} />}
+      </AnimatePresence>
+
+      {/* Social Modal */}
+      <AnimatePresence>
+        {state.ui.show_social && <SocialModal state={state} dispatch={dispatch} />}
       </AnimatePresence>
 
 

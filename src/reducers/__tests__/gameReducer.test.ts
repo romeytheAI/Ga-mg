@@ -171,8 +171,8 @@ describe('gameReducer', () => {
         type: 'RESOLVE_TEXT',
         payload: {
           parsedText: {
-            narrative_text: 'You found a coin.',
-            new_items: [{ name: 'Gold Coin', type: 'misc', rarity: 'common', description: 'Shiny.' }],
+            narrative_text: 'You found a potion.',
+            new_items: [{ name: 'Healing Potion', type: 'consumable', rarity: 'common', description: 'Restores health.' }],
           },
           actionText: 'Scavenge',
         },
@@ -180,8 +180,29 @@ describe('gameReducer', () => {
       const next = gameReducer(initialState, action);
       expect(next.player.inventory.length).toBe(initialState.player.inventory.length + 1);
       const added = next.player.inventory[next.player.inventory.length - 1];
-      expect(added.name).toBe('Gold Coin');
+      expect(added.name).toBe('Healing Potion');
       expect(added.id).toBeTruthy();
+    });
+
+    it('should convert Gold Coin items to gold currency', () => {
+      const action = {
+        type: 'RESOLVE_TEXT',
+        payload: {
+          parsedText: {
+            narrative_text: 'You found some coins.',
+            new_items: [
+              { name: 'Gold Coin', type: 'misc', rarity: 'common', description: 'Shiny.', value: 1 },
+              { name: 'Gold Coin', type: 'misc', rarity: 'common', description: 'Shiny.', value: 1 },
+            ],
+          },
+          actionText: 'Scavenge',
+        },
+      };
+      const next = gameReducer(initialState, action);
+      // Gold coins should not appear in inventory
+      expect(next.player.inventory.filter(i => i.name === 'Gold Coin').length).toBe(0);
+      // Gold should increase
+      expect(next.player.gold).toBe(initialState.player.gold + 2);
     });
 
     it('should change location when new_location is provided', () => {
@@ -742,6 +763,101 @@ describe('gameReducer', () => {
       const ids = ENCOUNTERS.map((e: any) => e.id);
       expect(ids).toContain('school_bully');
       expect(ids).toContain('wolf_pack');
+    });
+
+    it('home safehouse location should exist with actions', () => {
+      expect(LOCATIONS.home).toBeDefined();
+      expect(LOCATIONS.home.name).toBe('Your Safehouse');
+      expect(LOCATIONS.home.danger).toBe(0);
+      expect(LOCATIONS.home.actions.length).toBeGreaterThanOrEqual(6);
+    });
+  });
+
+  describe('Commerce and economy', () => {
+    it('should handle BUY_ITEM when player has enough gold', () => {
+      const richState: GameState = {
+        ...initialState,
+        player: { ...initialState.player, gold: 100 },
+      };
+      const item = { id: 'test-item', name: 'Potion', type: 'consumable', rarity: 'common', description: 'A potion.', value: 10, weight: 0.1 };
+      const action = { type: 'BUY_ITEM', payload: { item, cost: 15 } };
+      const next = gameReducer(richState, action);
+      expect(next.player.gold).toBe(85);
+      expect(next.player.inventory.length).toBe(richState.player.inventory.length + 1);
+    });
+
+    it('should reject BUY_ITEM when player cannot afford', () => {
+      const poorState: GameState = {
+        ...initialState,
+        player: { ...initialState.player, gold: 5 },
+      };
+      const item = { id: 'expensive', name: 'Sword', type: 'weapon', rarity: 'rare', description: 'Expensive.', value: 100, weight: 3 };
+      const action = { type: 'BUY_ITEM', payload: { item, cost: 50 } };
+      const next = gameReducer(poorState, action);
+      expect(next.player.gold).toBe(5);
+      expect(next.player.inventory.length).toBe(poorState.player.inventory.length);
+    });
+
+    it('should handle SELL_ITEM and add gold', () => {
+      const stateWithItem: GameState = {
+        ...initialState,
+        player: { ...initialState.player, gold: 10 },
+      };
+      const sellableId = stateWithItem.player.inventory.find(i => !i.is_equipped)?.id;
+      if (!sellableId) return; // no sellable item
+      const action = { type: 'SELL_ITEM', payload: { itemId: sellableId, price: 25 } };
+      const next = gameReducer(stateWithItem, action);
+      expect(next.player.gold).toBe(35);
+      expect(next.player.inventory.find(i => i.id === sellableId)).toBeUndefined();
+    });
+
+    it('should not sell equipped items', () => {
+      const equippedId = initialState.player.inventory.find(i => i.is_equipped)?.id;
+      if (!equippedId) return;
+      const action = { type: 'SELL_ITEM', payload: { itemId: equippedId, price: 10 } };
+      const next = gameReducer(initialState, action);
+      expect(next.player.inventory.find(i => i.id === equippedId)).toBeDefined();
+    });
+
+    it('should handle REPAIR_ITEM', () => {
+      const damagedState: GameState = {
+        ...initialState,
+        player: {
+          ...initialState.player,
+          gold: 50,
+          inventory: initialState.player.inventory.map(i =>
+            i.id === 'orphan-rags' ? { ...i, integrity: 30, max_integrity: 100 } : i
+          ),
+        },
+      };
+      const action = { type: 'REPAIR_ITEM', payload: { itemId: 'orphan-rags', cost: 7 } };
+      const next = gameReducer(damagedState, action);
+      expect(next.player.gold).toBe(43);
+      expect(next.player.inventory.find(i => i.id === 'orphan-rags')?.integrity).toBe(100);
+    });
+
+    it('should handle ADD_GOLD', () => {
+      const action = { type: 'ADD_GOLD', payload: 25 };
+      const next = gameReducer(initialState, action);
+      expect(next.player.gold).toBe(initialState.player.gold + 25);
+    });
+
+    it('should handle ADD_FAME', () => {
+      const action = { type: 'ADD_FAME', payload: { fame: 10, notoriety: 5 } };
+      const next = gameReducer(initialState, action);
+      expect(next.player.fame).toBe(initialState.player.fame + 10);
+      expect(next.player.notoriety).toBe(initialState.player.notoriety + 5);
+    });
+
+    it('should clamp fame and notoriety to 0-100', () => {
+      const maxState: GameState = {
+        ...initialState,
+        player: { ...initialState.player, fame: 95, notoriety: 98 },
+      };
+      const action = { type: 'ADD_FAME', payload: { fame: 20, notoriety: 10 } };
+      const next = gameReducer(maxState, action);
+      expect(next.player.fame).toBe(100);
+      expect(next.player.notoriety).toBe(100);
     });
   });
 });
