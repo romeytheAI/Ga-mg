@@ -204,22 +204,28 @@ export interface Incubation {
 /** DoL-parity encounter action — describes what is actively happening to the player sprite. */
 export type EncounterAction =
   | 'none'
-  | 'grabbed'       // enemy seizes player — arms pulled back
-  | 'groped'        // enemy fondling — subtle body squeeze
-  | 'thrust'        // rhythmic penetration motion
-  | 'oral'          // head bob animation
-  | 'kissed'        // face-to-face contact
-  | 'climax'        // orgasm tremor — intense shudder
-  | 'resist_break'  // resistance overwhelmed — slump
-  | 'clothing_tear' // garment ripped away — flash
-  | 'leg_spread'    // legs forced apart
-  | 'arms_pinned'   // arms held above head
-  | 'prone'         // face-down position
-  | 'bent_over'     // bent at waist
-  | 'lifted'        // lifted off feet
-  | 'caressed'      // gentle stroking — soft sway
-  | 'bitten'        // bite — sharp flinch
-  | 'spanked';      // impact — quick jolt
+  | 'grabbed'         // enemy seizes player — arms pulled back
+  | 'groped'          // enemy fondling — subtle body squeeze
+  | 'thrust'          // rhythmic penetration motion
+  | 'oral'            // head bob animation
+  | 'kissed'          // face-to-face contact
+  | 'climax'          // orgasm tremor — intense shudder
+  | 'resist_break'    // resistance overwhelmed — slump
+  | 'clothing_tear'   // garment ripped away — flash
+  | 'leg_spread'      // legs forced apart
+  | 'arms_pinned'     // arms held above head
+  | 'prone'           // face-down position
+  | 'bent_over'       // bent at waist
+  | 'lifted'          // lifted off feet
+  | 'caressed'        // gentle stroking — soft sway
+  | 'bitten'          // bite — sharp flinch
+  | 'spanked'         // impact — quick jolt
+  | 'choked'          // neck constriction — gasp
+  | 'hair_pulled'     // head yanked back by hair
+  | 'scratched'       // claw rake across skin
+  | 'licked'          // tongue contact — wet trail
+  | 'restrained_tied' // bound with rope/vines — immobilised
+  | 'mounted';        // pinned under weight — compressed
 
 export interface ActiveEncounter {
   id: string;

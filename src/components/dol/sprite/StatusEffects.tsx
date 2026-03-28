@@ -509,6 +509,137 @@ export const StatusEffects: React.FC<StatusEffectsProps> = ({ geom, s, raceDef, 
                 stroke="rgba(255,100,100,0.2)" strokeWidth="0.4" strokeLinecap="round" />
             </g>
           )}
+
+          {/* ── CHOKED: hand on throat + constriction rings ── */}
+          {encounterAction === 'choked' && (
+            <g className="sprite-enc-hand-pulse">
+              {/* Throat grip */}
+              <ellipse cx={s.cx} cy={s.neckTopY + 5} rx="5" ry="3.5"
+                fill="rgba(80,0,0,0.15)" stroke="rgba(80,0,0,0.35)" strokeWidth="0.8" />
+              {/* Finger pressure marks */}
+              {[-3, -1.5, 1.5, 3].map((dx, i) => (
+                <circle key={`choke-${i}`} cx={s.cx + dx} cy={s.neckTopY + 5 - 2}
+                  r="0.7" fill="rgba(120,0,0,0.25)" />
+              ))}
+              {/* Gasp indicator lines */}
+              <line x1={s.cx - 2} y1={s.headCY + geom.headRY * 0.6}
+                    x2={s.cx - 4} y2={s.headCY + geom.headRY * 0.6 - 3}
+                stroke="rgba(200,200,255,0.15)" strokeWidth="0.4" strokeLinecap="round" />
+              <line x1={s.cx + 2} y1={s.headCY + geom.headRY * 0.6}
+                    x2={s.cx + 4} y2={s.headCY + geom.headRY * 0.6 - 3}
+                stroke="rgba(200,200,255,0.15)" strokeWidth="0.4" strokeLinecap="round" />
+            </g>
+          )}
+
+          {/* ── HAIR PULLED: grip on hair + tension line ── */}
+          {encounterAction === 'hair_pulled' && (
+            <g>
+              {/* Hand in hair */}
+              <ellipse cx={s.cx + 2} cy={s.headCY - geom.headRY * 0.5} rx="4" ry="3.5"
+                fill="rgba(80,0,0,0.15)" stroke="rgba(80,0,0,0.25)" strokeWidth="0.6"
+                className="sprite-enc-hand-pulse" />
+              {/* Tension lines from hair */}
+              <line x1={s.cx + 2} y1={s.headCY - geom.headRY * 0.5}
+                    x2={s.cx + 10} y2={s.headCY - geom.headRY - 5}
+                stroke="rgba(120,80,40,0.2)" strokeWidth="0.6" strokeLinecap="round" />
+              <line x1={s.cx - 1} y1={s.headCY - geom.headRY * 0.4}
+                    x2={s.cx + 8} y2={s.headCY - geom.headRY - 3}
+                stroke="rgba(120,80,40,0.15)" strokeWidth="0.4" strokeLinecap="round" />
+              {/* Pain stars */}
+              <text x={s.cx - 8} y={s.headCY - geom.headRY - 2}
+                fill="rgba(255,200,100,0.35)" fontSize="3">✦</text>
+            </g>
+          )}
+
+          {/* ── SCRATCHED: claw rake marks ── */}
+          {encounterAction === 'scratched' && (
+            <g>
+              {/* Three parallel scratch lines across torso */}
+              {[0, 1, 2].map(i => (
+                <line key={`scratch-${i}`}
+                  x1={s.cx - geom.shoulderHW * 0.4 + i * 3}
+                  y1={s.shldY + 10 + i * 2}
+                  x2={s.cx + geom.shoulderHW * 0.2 + i * 2}
+                  y2={s.waistY - 5 + i * 3}
+                  stroke="rgba(200,0,0,0.3)" strokeWidth="0.6" strokeLinecap="round" />
+              ))}
+              {/* Blood droplets */}
+              {[[4, 18], [-2, 25], [6, 22]].map(([ox, oy], i) => (
+                <circle key={`blood-${i}`}
+                  cx={s.cx + ox} cy={s.shldY + oy}
+                  r="0.6" fill="rgba(200,0,0,0.35)" />
+              ))}
+              {/* Impact flash */}
+              <circle cx={s.cx} cy={s.waistY - 10} r="8"
+                fill="none" stroke="rgba(255,100,100,0.15)" strokeWidth="0.5"
+                className="sprite-enc-impact-ring" />
+            </g>
+          )}
+
+          {/* ── LICKED: wet trail + saliva droplets ── */}
+          {encounterAction === 'licked' && (
+            <g className="sprite-enc-hand-pulse" opacity="0.7">
+              {/* Wet trail along neck/shoulder */}
+              <path d={`M ${s.cx + geom.shoulderHW * 0.2},${s.neckBotY}
+                Q ${s.cx + geom.shoulderHW * 0.4},${s.shldY + 8}
+                  ${s.cx + geom.shoulderHW * 0.3},${s.shldY + 18}`}
+                fill="none" stroke="rgba(180,200,255,0.2)" strokeWidth="1.2" strokeLinecap="round" />
+              {/* Saliva sheen */}
+              <ellipse cx={s.cx + geom.shoulderHW * 0.3} cy={s.shldY + 12} rx="3" ry="5"
+                fill="rgba(180,200,255,0.06)" />
+              {/* Drip */}
+              <g className="sprite-enc-fluid-drip">
+                <ellipse cx={s.cx + geom.shoulderHW * 0.3} cy={s.shldY + 18} rx="0.5" ry="1.5"
+                  fill="rgba(180,200,255,0.25)" />
+              </g>
+            </g>
+          )}
+
+          {/* ── RESTRAINED TIED: rope/vine binding marks ── */}
+          {encounterAction === 'restrained_tied' && (
+            <g className="sprite-enc-hand-pulse">
+              {/* Wrist bindings */}
+              <ellipse cx={s.wrLX} cy={s.wrY} rx={geom.upperArmW + 0.5} ry="2"
+                fill="none" stroke="rgba(120,80,30,0.4)" strokeWidth="1" />
+              <ellipse cx={s.wrRX} cy={s.wrY} rx={geom.upperArmW + 0.5} ry="2"
+                fill="none" stroke="rgba(120,80,30,0.4)" strokeWidth="1" />
+              {/* Connecting rope between wrists */}
+              <path d={`M ${s.wrLX},${s.wrY}
+                Q ${s.cx},${s.wrY - 8} ${s.wrRX},${s.wrY}`}
+                fill="none" stroke="rgba(120,80,30,0.25)" strokeWidth="0.8"
+                strokeDasharray="2 1.5" />
+              {/* Ankle bindings */}
+              <ellipse cx={s.legLX} cy={s.ankleY} rx="3" ry="1.8"
+                fill="none" stroke="rgba(120,80,30,0.35)" strokeWidth="0.8" />
+              <ellipse cx={s.legRX} cy={s.ankleY} rx="3" ry="1.8"
+                fill="none" stroke="rgba(120,80,30,0.35)" strokeWidth="0.8" />
+              {/* Strain marks */}
+              <circle cx={s.wrLX} cy={s.wrY} r="1" fill="rgba(255,80,80,0.15)" />
+              <circle cx={s.wrRX} cy={s.wrY} r="1" fill="rgba(255,80,80,0.15)" />
+            </g>
+          )}
+
+          {/* ── MOUNTED: weight shadow + compression indicators ── */}
+          {encounterAction === 'mounted' && (
+            <g>
+              {/* Heavy weight pressing down on torso */}
+              <ellipse cx={s.cx} cy={s.waistY - 8} rx={geom.shoulderHW * 0.8} ry="12"
+                fill="rgba(60,0,0,0.08)" className="sprite-enc-hand-pulse" />
+              {/* Grip hands on shoulders */}
+              <ellipse cx={s.shLX + 3} cy={s.shldY + 2} rx="4" ry="3"
+                fill="rgba(80,0,0,0.12)" stroke="rgba(80,0,0,0.2)" strokeWidth="0.5" />
+              <ellipse cx={s.shRX - 3} cy={s.shldY + 2} rx="4" ry="3"
+                fill="rgba(80,0,0,0.12)" stroke="rgba(80,0,0,0.2)" strokeWidth="0.5" />
+              {/* Ground shadow (pinned to floor) */}
+              <ellipse cx={s.cx} cy={s.footBotY + 4} rx="28" ry="3.5"
+                fill="rgba(0,0,0,0.12)" />
+              {/* Compression pressure lines */}
+              <line x1={s.cx - 10} y1={s.shldY - 2} x2={s.cx + 10} y2={s.shldY - 2}
+                stroke="rgba(255,60,60,0.1)" strokeWidth="0.4" />
+              <line x1={s.cx - 8} y1={s.shldY - 4} x2={s.cx + 8} y2={s.shldY - 4}
+                stroke="rgba(255,60,60,0.07)" strokeWidth="0.3" />
+            </g>
+          )}
         </g>
       )}
     </>

@@ -748,6 +748,71 @@
     animation: sprite-enc-impact-ring 0.6s ease-out;
   }
 
+  /* ── Choked — throat constriction gasp ── */
+  @keyframes sprite-enc-choked {
+    0%, 100% { transform: translateY(-1px) scaleX(0.97) scaleY(1.02); }
+    20%      { transform: translateY(0) scaleX(0.99) scaleY(0.98); }
+    50%      { transform: translateY(-2px) scaleX(0.96) scaleY(1.03); }
+    70%      { transform: translateY(-0.5px) scaleX(0.98) scaleY(1.01); }
+  }
+  .sprite-enc-choked {
+    animation: sprite-enc-choked 0.8s ease-in-out infinite;
+  }
+
+  /* ── Hair pulled — head yanked backward ── */
+  @keyframes sprite-enc-hair-pulled {
+    0%   { transform: rotate(0deg) translateY(0); }
+    30%  { transform: rotate(2deg) translateY(-2px); }
+    60%  { transform: rotate(3deg) translateY(-1px); }
+    100% { transform: rotate(2.5deg) translateY(-1.5px); }
+  }
+  .sprite-enc-hair-pulled {
+    animation: sprite-enc-hair-pulled 0.5s ease-out forwards;
+  }
+
+  /* ── Scratched — sharp lateral rake ── */
+  @keyframes sprite-enc-scratched {
+    0%   { transform: translate(0, 0) scale(1); filter: brightness(1); }
+    15%  { transform: translate(2px, -0.5px) scale(1.01); filter: brightness(1.4); }
+    35%  { transform: translate(-1.5px, 0.5px) scale(0.99); filter: brightness(0.85); }
+    60%  { transform: translate(0.5px, 0) scale(1); filter: brightness(1.1); }
+    100% { transform: translate(0, 0) scale(1); filter: brightness(1); }
+  }
+  .sprite-enc-scratched {
+    animation: sprite-enc-scratched 0.35s ease-out;
+  }
+
+  /* ── Licked — slow wet contact sway ── */
+  @keyframes sprite-enc-licked {
+    0%, 100% { transform: translate(0, 0) rotate(0deg); }
+    25%      { transform: translate(0.2px, -0.3px) rotate(0.15deg); }
+    50%      { transform: translate(-0.15px, 0.2px) rotate(-0.1deg); }
+    75%      { transform: translate(0.1px, -0.1px) rotate(0.08deg); }
+  }
+  .sprite-enc-licked {
+    animation: sprite-enc-licked 1.8s ease-in-out infinite;
+  }
+
+  /* ── Restrained tied — bound immobile with subtle strain ── */
+  @keyframes sprite-enc-restrained-tied {
+    0%, 100% { transform: scaleX(0.95) scaleY(0.97) translateY(1px); }
+    30%      { transform: scaleX(0.96) scaleY(0.96) translateY(1.5px); }
+    60%      { transform: scaleX(0.94) scaleY(0.98) translateY(0.5px); }
+  }
+  .sprite-enc-restrained-tied {
+    animation: sprite-enc-restrained-tied 2.5s ease-in-out infinite;
+  }
+
+  /* ── Mounted — compressed under weight with rhythmic pressure ── */
+  @keyframes sprite-enc-mounted {
+    0%, 100% { transform: scaleY(0.92) scaleX(1.04) translateY(3px) rotate(0.5deg); }
+    40%      { transform: scaleY(0.90) scaleX(1.05) translateY(4px) rotate(0.8deg); }
+    70%      { transform: scaleY(0.93) scaleX(1.03) translateY(2.5px) rotate(0.3deg); }
+  }
+  .sprite-enc-mounted {
+    animation: sprite-enc-mounted 1.2s ease-in-out infinite;
+  }
+
   /* DoL racial name badge colors */
   .race-badge-nord       { color: #a0c8f0; border-color: #3860a0; }
   .race-badge-imperial   { color: #d4a870; border-color: #8a6030; }
