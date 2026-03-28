@@ -85,9 +85,10 @@ export function gameReducer(state: GameState, action: any): GameState {
       // 4. Add new items to inventory
       let newInventory = [...state.player.inventory];
       if (parsedText.new_items && Array.isArray(parsedText.new_items)) {
-        for (const item of parsedText.new_items) {
+        for (let i = 0; i < parsedText.new_items.length; i++) {
+          const item = parsedText.new_items[i];
           newInventory.push({
-            id: item.id || `item_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
+            id: item.id || `item_${Date.now()}_${i}_${Math.random().toString(36).slice(2, 7)}`,
             name: item.name || 'Unknown Item',
             type: item.type || 'misc',
             slot: item.slot || undefined,
