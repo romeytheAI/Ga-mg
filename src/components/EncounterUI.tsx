@@ -198,6 +198,30 @@ export const EncounterUI: React.FC<EncounterUIProps> = ({ encounter, playerStats
         >
           Escape
         </motion.button>
+        <motion.button 
+          whileHover={{ scale: 1.02, backgroundColor: "rgba(160, 40, 40, 0.6)" }}
+          whileTap={{ scale: 0.98 }}
+          onClick={() => onAction("Resist with all your strength", "resist", targetedPart || undefined)}
+          className="p-3 border border-red-800/50 bg-red-900/20 text-red-300 text-xs uppercase tracking-widest transition-colors"
+        >
+          Resist
+        </motion.button>
+        <motion.button 
+          whileHover={{ scale: 1.02, backgroundColor: "rgba(120, 60, 20, 0.6)" }}
+          whileTap={{ scale: 0.98 }}
+          onClick={() => onAction("Endure and wait for an opening", "endure", targetedPart || undefined)}
+          className="p-3 border border-amber-900/50 bg-amber-950/20 text-amber-200 text-xs uppercase tracking-widest transition-colors"
+        >
+          Endure
+        </motion.button>
+        <motion.button 
+          whileHover={{ scale: 1.02, backgroundColor: "rgba(180, 40, 80, 0.6)" }}
+          whileTap={{ scale: 0.98 }}
+          onClick={() => onAction("Cry out for help", "cry_out", targetedPart || undefined)}
+          className="p-3 border border-rose-800/50 bg-rose-950/20 text-rose-200 text-xs uppercase tracking-widest transition-colors col-span-2"
+        >
+          Cry Out
+        </motion.button>
       </div>
     </motion.div>
   );

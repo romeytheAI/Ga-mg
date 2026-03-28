@@ -201,6 +201,26 @@ export interface Incubation {
   days_remaining: number;
 }
 
+/** DoL-parity encounter action — describes what is actively happening to the player sprite. */
+export type EncounterAction =
+  | 'none'
+  | 'grabbed'       // enemy seizes player — arms pulled back
+  | 'groped'        // enemy fondling — subtle body squeeze
+  | 'thrust'        // rhythmic penetration motion
+  | 'oral'          // head bob animation
+  | 'kissed'        // face-to-face contact
+  | 'climax'        // orgasm tremor — intense shudder
+  | 'resist_break'  // resistance overwhelmed — slump
+  | 'clothing_tear' // garment ripped away — flash
+  | 'leg_spread'    // legs forced apart
+  | 'arms_pinned'   // arms held above head
+  | 'prone'         // face-down position
+  | 'bent_over'     // bent at waist
+  | 'lifted'        // lifted off feet
+  | 'caressed'      // gentle stroking — soft sway
+  | 'bitten'        // bite — sharp flinch
+  | 'spanked';      // impact — quick jolt
+
 export interface ActiveEncounter {
   id: string;
   enemy_name: string;
@@ -212,6 +232,8 @@ export interface ActiveEncounter {
   enemy_anger: number;
   enemy_max_anger: number;
   player_stance: 'neutral' | 'defensive' | 'aggressive' | 'submissive';
+  /** Current DoL-parity encounter action affecting the player sprite. */
+  encounter_action?: EncounterAction;
   turn: number;
   log: string[];
   image_url?: string;

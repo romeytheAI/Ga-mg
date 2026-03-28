@@ -130,6 +130,7 @@ export const DoLCharacterSprite: React.FC<DoLCharacterSpriteProps> = ({ state, c
   const inEncounter    = !!encounter;
   const playerStance   = encounter?.player_stance || 'neutral';
   const targetedPart   = encounter?.targeted_part || state.ui.targeted_part;
+  const encounterAction = encounter?.encounter_action || 'none';
   const hasDebuff      = (type: string) => encounter?.debuffs?.some(d => d.type === type) ?? false;
 
   // Map combat_animation to CSS class
@@ -140,8 +141,32 @@ export const DoLCharacterSprite: React.FC<DoLCharacterSpriteProps> = ({ state, c
     spellcast: 'sprite-spellcast',
     lust_action: 'sprite-submit',
     parry: 'sprite-parry',
+    hit_received: 'sprite-hit-received',
+    struggle: 'sprite-struggle',
+    restrained: 'sprite-restrained',
   };
   const combatAnimClass = combatAnim ? COMBAT_ANIM_CLASSES[combatAnim] || '' : '';
+
+  // DoL encounter action → CSS class (body-part specific animations)
+  const ENC_ACTION_CLASSES: Record<string, string> = {
+    grabbed:       'sprite-enc-grabbed',
+    groped:        'sprite-enc-groped',
+    thrust:        'sprite-enc-thrust',
+    oral:          'sprite-enc-oral',
+    kissed:        'sprite-enc-kissed',
+    climax:        'sprite-enc-climax',
+    resist_break:  'sprite-enc-resist-break',
+    clothing_tear: 'sprite-enc-clothing-tear',
+    leg_spread:    'sprite-enc-leg-spread',
+    arms_pinned:   'sprite-enc-arms-pinned',
+    prone:         'sprite-enc-prone',
+    bent_over:     'sprite-enc-bent-over',
+    lifted:        'sprite-enc-lifted',
+    caressed:      'sprite-enc-caressed',
+    bitten:        'sprite-enc-bitten',
+    spanked:       'sprite-enc-spanked',
+  };
+  const encActionClass = encounterAction !== 'none' ? ENC_ACTION_CLASSES[encounterAction] || '' : '';
 
   // Stance CSS class (persistent posture during encounter)
   const stanceClass = inEncounter
@@ -159,10 +184,11 @@ export const DoLCharacterSprite: React.FC<DoLCharacterSpriteProps> = ({ state, c
 
   // Body animation CSS classes
   const bodyAnimClass = [
-    !combatAnimClass ? 'sprite-breathe' : '',     // breathing pauses during combat anims
+    !combatAnimClass && !encActionClass ? 'sprite-breathe' : '',     // breathing pauses during combat/encounter anims
     showTremble ? 'sprite-arousal-tremble' : '',
     showPainFlinch && !combatAnimClass ? 'sprite-pain-flinch' : '',
     combatAnimClass,
+    encActionClass,
     stanceClass,
     debuffClass,
     inEncounter ? 'sprite-danger-aura' : '',
@@ -204,7 +230,7 @@ export const DoLCharacterSprite: React.FC<DoLCharacterSpriteProps> = ({ state, c
 
           <Clothing geom={geom} s={s} skin={skin} clothing={clothing} />
 
-          <StatusEffects geom={geom} s={s} raceDef={raceDef} isChestExposed={isChestExposed} isLegsExposed={isLegsExposed} blushIntensity={blushIntensity} isSweating={isSweating} showHeartOverlay={showHeartOverlay} showCorruptionFx={showCorruptionFx} inEncounter={inEncounter} targetedPart={targetedPart} playerStance={playerStance} combatAnim={combatAnim} compact={compact} svgW={svgW} svgH={svgH} lowHealth={lowHealth} corruption={corruption} hallucination={stats.hallucination} parasites={biology.parasites} />
+          <StatusEffects geom={geom} s={s} raceDef={raceDef} isChestExposed={isChestExposed} isLegsExposed={isLegsExposed} blushIntensity={blushIntensity} isSweating={isSweating} showHeartOverlay={showHeartOverlay} showCorruptionFx={showCorruptionFx} inEncounter={inEncounter} targetedPart={targetedPart} playerStance={playerStance} combatAnim={combatAnim} encounterAction={encounterAction} compact={compact} svgW={svgW} svgH={svgH} lowHealth={lowHealth} corruption={corruption} hallucination={stats.hallucination} parasites={biology.parasites} />
 
           {/* ── X-RAY OVERLAY (internal skeleton + organs view) ── */}
           {showXRay && (
