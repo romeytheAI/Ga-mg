@@ -9,19 +9,22 @@ import {
   STRESS_BLUSH_WEIGHT, MAX_BODY_WRITING_CHARS, normalizeScar, normalizeTattoo,
   normalizePiercing, getNippleColor, SpriteState
 } from './dol/sprite/utils';
+import { SpriteDefs, deriveSkinTones, deriveHairHighlight } from './dol/sprite/SpriteDefs';
 import { BaseBody } from './dol/sprite/BaseBody';
-import { FaceAndHair } from './dol/sprite/FaceAndHair';
+import { FaceAndHair, deriveExpression } from './dol/sprite/FaceAndHair';
 import { GenitalsAndChest } from './dol/sprite/GenitalsAndChest';
 import { SkinPatterns } from './dol/sprite/SkinPatterns';
 import { Clothing } from './dol/sprite/Clothing';
 import { StatusEffects } from './dol/sprite/StatusEffects';
+import { XRayOverlay } from './dol/sprite/XRayOverlay';
 
 interface DoLCharacterSpriteProps {
   state: GameState;
   compact?: boolean;
+  showXRay?: boolean;
 }
 
-export const DoLCharacterSprite: React.FC<DoLCharacterSpriteProps> = ({ state, compact = false }) => {
+export const DoLCharacterSprite: React.FC<DoLCharacterSpriteProps> = ({ state, compact = false, showXRay = false }) => {
   const { clothing, identity, cosmetics, stats, biology } = state.player;
   const raceDef   = resolveRace(identity.race);
   const gender    = identity.gender || 'female';
@@ -30,6 +33,10 @@ export const DoLCharacterSprite: React.FC<DoLCharacterSpriteProps> = ({ state, c
   const eyeClr    = resolveEyeColor(raceDef, cosmetics?.eye_color || '');
   const hairClr   = resolveHairColor(raceDef, cosmetics?.hair_color || '');
   const accentClr = raceDef.accent_colors[0] || skin;
+
+  // Hikari-quality derived tones for gradient shading
+  const skinTones   = deriveSkinTones(skin);
+  const hairHiClr   = deriveHairHighlight(hairClr);
 
   const hasExposure  = !clothing.chest && !clothing.underwear;
   const arousalHigh  = stats.arousal > 40 || stats.lust > 50;
@@ -114,12 +121,16 @@ export const DoLCharacterSprite: React.FC<DoLCharacterSpriteProps> = ({ state, c
   const showHeartOverlay = stats.lust > 70 || stats.arousal > 75;
   const showCorruptionFx = stats.corruption > 50;
 
+  // ── Expression system (DoL-parity 6+ states) ──────────────────────────
+  const expression = deriveExpression(stats);
+
   // ── Encounter / combat animation state ─────────────────────────────────
   const encounter      = state.world.active_encounter;
   const combatAnim     = state.ui.combat_animation;
   const inEncounter    = !!encounter;
   const playerStance   = encounter?.player_stance || 'neutral';
   const targetedPart   = encounter?.targeted_part || state.ui.targeted_part;
+  const encounterAction = encounter?.encounter_action || 'none';
   const hasDebuff      = (type: string) => encounter?.debuffs?.some(d => d.type === type) ?? false;
 
   // Map combat_animation to CSS class
@@ -130,8 +141,32 @@ export const DoLCharacterSprite: React.FC<DoLCharacterSpriteProps> = ({ state, c
     spellcast: 'sprite-spellcast',
     lust_action: 'sprite-submit',
     parry: 'sprite-parry',
+    hit_received: 'sprite-hit-received',
+    struggle: 'sprite-struggle',
+    restrained: 'sprite-restrained',
   };
   const combatAnimClass = combatAnim ? COMBAT_ANIM_CLASSES[combatAnim] || '' : '';
+
+  // DoL encounter action → CSS class (body-part specific animations)
+  const ENC_ACTION_CLASSES: Record<string, string> = {
+    grabbed:       'sprite-enc-grabbed',
+    groped:        'sprite-enc-groped',
+    thrust:        'sprite-enc-thrust',
+    oral:          'sprite-enc-oral',
+    kissed:        'sprite-enc-kissed',
+    climax:        'sprite-enc-climax',
+    resist_break:  'sprite-enc-resist-break',
+    clothing_tear: 'sprite-enc-clothing-tear',
+    leg_spread:    'sprite-enc-leg-spread',
+    arms_pinned:   'sprite-enc-arms-pinned',
+    prone:         'sprite-enc-prone',
+    bent_over:     'sprite-enc-bent-over',
+    lifted:        'sprite-enc-lifted',
+    caressed:      'sprite-enc-caressed',
+    bitten:        'sprite-enc-bitten',
+    spanked:       'sprite-enc-spanked',
+  };
+  const encActionClass = encounterAction !== 'none' ? ENC_ACTION_CLASSES[encounterAction] || '' : '';
 
   // Stance CSS class (persistent posture during encounter)
   const stanceClass = inEncounter
@@ -149,10 +184,11 @@ export const DoLCharacterSprite: React.FC<DoLCharacterSpriteProps> = ({ state, c
 
   // Body animation CSS classes
   const bodyAnimClass = [
-    !combatAnimClass ? 'sprite-breathe' : '',     // breathing pauses during combat anims
+    !combatAnimClass && !encActionClass ? 'sprite-breathe' : '',     // breathing pauses during combat/encounter anims
     showTremble ? 'sprite-arousal-tremble' : '',
     showPainFlinch && !combatAnimClass ? 'sprite-pain-flinch' : '',
     combatAnimClass,
+    encActionClass,
     stanceClass,
     debuffClass,
     inEncounter ? 'sprite-danger-aura' : '',
@@ -171,12 +207,22 @@ export const DoLCharacterSprite: React.FC<DoLCharacterSpriteProps> = ({ state, c
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.45 }}
       >
+        {/* ── Hikari-quality SVG definitions (gradients, filters) ── */}
+        <SpriteDefs
+          skin={skin}
+          skinShadow={skinTones.shadow}
+          skinHighlight={skinTones.highlight}
+          hairClr={hairClr}
+          hairHighlight={hairHiClr}
+          eyeClr={eyeClr}
+        />
+
         {/* ── BODY ANIMATION WRAPPER (breathing / tremble / flinch) ── */}
         <g className={bodyAnimClass}>
 
           <BaseBody geom={geom} s={s} skin={skin} accentClr={accentClr} raceDef={raceDef} isMale={isMale} isFemale={isFemale} isChestExposed={isChestExposed} pregnancyBump={pregnancyBump} clothing={clothing} />
 
-          <FaceAndHair geom={geom} s={s} skin={skin} eyeClr={eyeClr} hairClr={hairClr} accentClr={accentClr} raceDef={raceDef} isMale={isMale} isFemale={isFemale} cosmetics={cos} />
+          <FaceAndHair geom={geom} s={s} skin={skin} eyeClr={eyeClr} hairClr={hairClr} accentClr={accentClr} raceDef={raceDef} isMale={isMale} isFemale={isFemale} cosmetics={cos} expression={expression} />
 
           <GenitalsAndChest geom={geom} s={s} skin={skin} hairClr={hairClr} raceDef={raceDef} isMale={isMale} isFemale={isFemale} isChestExposed={isChestExposed} isGroinExposed={isGroinExposed} isLegsExposed={isLegsExposed} isAroused={isAroused} isLactating={isLactating} nippleClr={nippleClr} />
 
@@ -184,7 +230,18 @@ export const DoLCharacterSprite: React.FC<DoLCharacterSpriteProps> = ({ state, c
 
           <Clothing geom={geom} s={s} skin={skin} clothing={clothing} />
 
-          <StatusEffects geom={geom} s={s} raceDef={raceDef} isChestExposed={isChestExposed} isLegsExposed={isLegsExposed} blushIntensity={blushIntensity} isSweating={isSweating} showHeartOverlay={showHeartOverlay} showCorruptionFx={showCorruptionFx} inEncounter={inEncounter} targetedPart={targetedPart} playerStance={playerStance} combatAnim={combatAnim} compact={compact} svgW={svgW} svgH={svgH} lowHealth={lowHealth} corruption={corruption} hallucination={stats.hallucination} parasites={biology.parasites} />
+          <StatusEffects geom={geom} s={s} raceDef={raceDef} isChestExposed={isChestExposed} isLegsExposed={isLegsExposed} blushIntensity={blushIntensity} isSweating={isSweating} showHeartOverlay={showHeartOverlay} showCorruptionFx={showCorruptionFx} inEncounter={inEncounter} targetedPart={targetedPart} playerStance={playerStance} combatAnim={combatAnim} encounterAction={encounterAction} compact={compact} svgW={svgW} svgH={svgH} lowHealth={lowHealth} corruption={corruption} hallucination={stats.hallucination} parasites={biology.parasites} />
+
+          {/* ── X-RAY OVERLAY (internal skeleton + organs view) ── */}
+          {showXRay && (
+            <XRayOverlay
+              geom={geom}
+              s={s}
+              isFemale={isFemale}
+              organs={state.player.anatomy.organs}
+              bones_integrity={state.player.anatomy.bones_integrity}
+            />
+          )}
 
         </g>
       </motion.svg>

@@ -26,11 +26,17 @@ export const GenitalsAndChest: React.FC<GenitalsAndChestProps> = ({ geom, s, ski
         <circle cx={s.cx} cy={geom.navelY} r="1.3" fill={`${skin}60`} />
       )}
 
-      {/* Female bust (with bounce animation) */}
+      {/* Female bust (with bounce animation, Hikari-quality shading) */}
       {geom.bustR > 0 && isChestExposed && (
         <g className="sprite-bust-bounce" style={{ transformOrigin: `${s.cx}px ${geom.bustY - geom.bustR}px` }}>
-          <ellipse cx={s.cx - geom.shoulderHW * 0.38} cy={geom.bustY} rx={geom.bustR} ry={geom.bustR * 0.82} fill={skin} />
-          <ellipse cx={s.cx + geom.shoulderHW * 0.38} cy={geom.bustY} rx={geom.bustR} ry={geom.bustR * 0.82} fill={skin} />
+          {/* Base bust shapes with radial gradients */}
+          <ellipse cx={s.cx - geom.shoulderHW * 0.38} cy={geom.bustY} rx={geom.bustR} ry={geom.bustR * 0.82} fill="url(#bust-shade-l)" />
+          <ellipse cx={s.cx + geom.shoulderHW * 0.38} cy={geom.bustY} rx={geom.bustR} ry={geom.bustR * 0.82} fill="url(#bust-shade-r)" />
+          {/* Top-side highlight (specular) */}
+          <ellipse cx={s.cx - geom.shoulderHW * 0.38 - geom.bustR * 0.15} cy={geom.bustY - geom.bustR * 0.25}
+            rx={geom.bustR * 0.3} ry={geom.bustR * 0.2} fill="rgba(255,255,255,0.12)" />
+          <ellipse cx={s.cx + geom.shoulderHW * 0.38 - geom.bustR * 0.1} cy={geom.bustY - geom.bustR * 0.25}
+            rx={geom.bustR * 0.3} ry={geom.bustR * 0.2} fill="rgba(255,255,255,0.12)" />
         </g>
       )}
       {/* Male pec lines */}

@@ -1,6 +1,7 @@
 import React from 'react';
 import { BodyGeom, SpriteState } from './utils';
 import { RacialBodyFeatures } from '../../../data/races';
+import { EncounterAction } from '../../../types';
 
 interface StatusEffectsProps {
   geom: BodyGeom;
@@ -16,6 +17,8 @@ interface StatusEffectsProps {
   targetedPart: string | null;
   playerStance: string;
   combatAnim: string | null;
+  /** Active DoL encounter action affecting the player sprite. */
+  encounterAction: EncounterAction | string;
   compact: boolean;
   svgW: number;
   svgH: number;
@@ -25,7 +28,7 @@ interface StatusEffectsProps {
   parasites: any[];
 }
 
-export const StatusEffects: React.FC<StatusEffectsProps> = ({ geom, s, raceDef, isChestExposed, isLegsExposed, blushIntensity, isSweating, showHeartOverlay, showCorruptionFx, inEncounter, targetedPart, playerStance, combatAnim, compact, svgW, svgH, lowHealth, corruption, hallucination, parasites }) => {
+export const StatusEffects: React.FC<StatusEffectsProps> = ({ geom, s, raceDef, isChestExposed, isLegsExposed, blushIntensity, isSweating, showHeartOverlay, showCorruptionFx, inEncounter, targetedPart, playerStance, combatAnim, encounterAction, compact, svgW, svgH, lowHealth, corruption, hallucination, parasites }) => {
   return (
     <>
       {/* ── MULTI-ZONE BLUSH/FLUSH (DoL parity) ── */}
@@ -223,6 +226,290 @@ export const StatusEffects: React.FC<StatusEffectsProps> = ({ geom, s, raceDef, 
       {/* ── ENCOUNTER: HIT FLASH EFFECT ── */}
       {combatAnim === 'parry' && (
         <rect x="0" y="0" width={svgW} height={svgH} fill="rgba(255,255,255,0.08)" />
+      )}
+
+      {/* ═══════════════════════════════════════════════════════════════════
+           DoL-parity encounter ACTION overlays — high-fidelity contact
+           indicators, enemy hand silhouettes, fluid FX, impact rings
+         ═══════════════════════════════════════════════════════════════════ */}
+      {inEncounter && encounterAction !== 'none' && !compact && (
+        <g>
+          {/* ── GRABBED: enemy hand silhouettes on arms ── */}
+          {encounterAction === 'grabbed' && (
+            <g className="sprite-enc-hand-pulse">
+              {/* Left wrist grip */}
+              <ellipse cx={s.shLX} cy={s.wrY - 4} rx={geom.upperArmW + 1} ry="3.5"
+                fill="none" stroke="rgba(80,0,0,0.35)" strokeWidth="1.2" />
+              <ellipse cx={s.shLX} cy={s.wrY - 4} rx={geom.upperArmW - 0.5} ry="2.5"
+                fill="rgba(80,0,0,0.12)" />
+              {/* Right wrist grip */}
+              <ellipse cx={s.shRX} cy={s.wrY - 4} rx={geom.upperArmW + 1} ry="3.5"
+                fill="none" stroke="rgba(80,0,0,0.35)" strokeWidth="1.2" />
+              <ellipse cx={s.shRX} cy={s.wrY - 4} rx={geom.upperArmW - 0.5} ry="2.5"
+                fill="rgba(80,0,0,0.12)" />
+              {/* Finger impression marks */}
+              {[0, 1, 2, 3].map(i => (
+                <circle key={`grip-l-${i}`} cx={s.shLX - geom.upperArmW + i * 2} cy={s.wrY - 4 - 1.5}
+                  r="0.8" fill="rgba(100,0,0,0.2)" />
+              ))}
+              {[0, 1, 2, 3].map(i => (
+                <circle key={`grip-r-${i}`} cx={s.shRX - geom.upperArmW + i * 2} cy={s.wrY - 4 - 1.5}
+                  r="0.8" fill="rgba(100,0,0,0.2)" />
+              ))}
+            </g>
+          )}
+
+          {/* ── GROPED: pressure zones on torso/chest ── */}
+          {encounterAction === 'groped' && (
+            <g className="sprite-enc-hand-pulse">
+              {/* Hand shape on torso side */}
+              <ellipse cx={s.cx + geom.shoulderHW * 0.6} cy={s.waistY - 6} rx="4.5" ry="6"
+                fill="rgba(180,40,60,0.12)" stroke="rgba(180,40,60,0.2)" strokeWidth="0.6" />
+              {/* Finger tips */}
+              {[0, 1, 2, 3, 4].map(i => (
+                <circle key={`grope-f-${i}`}
+                  cx={s.cx + geom.shoulderHW * 0.6 - 3 + i * 1.5}
+                  cy={s.waistY - 11}
+                  r="0.6" fill="rgba(180,40,60,0.25)" />
+              ))}
+              {/* Opposite side subtle touch */}
+              <ellipse cx={s.cx - geom.shoulderHW * 0.5} cy={s.shldY + 18} rx="3.5" ry="5"
+                fill="rgba(180,40,60,0.08)" />
+            </g>
+          )}
+
+          {/* ── THRUST: rhythmic impact indicators at pelvis ── */}
+          {encounterAction === 'thrust' && (
+            <g>
+              {/* Impact zone glow */}
+              <ellipse cx={s.cx} cy={s.crotchY} rx="8" ry="5"
+                fill="rgba(255,80,120,0.15)" className="sprite-enc-hand-pulse" />
+              {/* Motion lines */}
+              <line x1={s.cx - 12} y1={s.crotchY + 2} x2={s.cx - 8} y2={s.crotchY}
+                stroke="rgba(255,100,100,0.2)" strokeWidth="0.5" strokeLinecap="round" />
+              <line x1={s.cx + 8} y1={s.crotchY} x2={s.cx + 12} y2={s.crotchY + 2}
+                stroke="rgba(255,100,100,0.2)" strokeWidth="0.5" strokeLinecap="round" />
+              {/* Contact pressure indicator */}
+              <ellipse cx={s.cx + 2} cy={s.crotchY - 3} rx="3" ry="2"
+                fill="rgba(255,60,100,0.1)" className="sprite-enc-hand-pulse" />
+            </g>
+          )}
+
+          {/* ── ORAL: hand on head + pressure zone ── */}
+          {encounterAction === 'oral' && (
+            <g className="sprite-enc-hand-pulse">
+              {/* Hand gripping head */}
+              <ellipse cx={s.cx + geom.headRX * 0.7} cy={s.headCY - 2} rx="4" ry="5.5"
+                fill="rgba(80,0,0,0.1)" stroke="rgba(80,0,0,0.2)" strokeWidth="0.6" />
+              {/* Jaw pressure */}
+              <ellipse cx={s.cx} cy={s.headCY + geom.headRY * 0.7} rx="4" ry="2.5"
+                fill="rgba(255,80,80,0.1)" />
+            </g>
+          )}
+
+          {/* ── KISSED: lip contact marks ── */}
+          {encounterAction === 'kissed' && (
+            <g>
+              <ellipse cx={s.cx + 1} cy={s.headCY + geom.headRY * 0.45} rx="2.5" ry="1.5"
+                fill="rgba(255,80,120,0.25)" className="sprite-enc-hand-pulse" />
+              {/* Breath wisps */}
+              <ellipse cx={s.cx + 6} cy={s.headCY + geom.headRY * 0.3} rx="2" ry="1"
+                fill="rgba(255,200,200,0.1)" />
+            </g>
+          )}
+
+          {/* ── CLIMAX: full-body flush + fluid effects ── */}
+          {encounterAction === 'climax' && (
+            <g>
+              {/* Full-body flush */}
+              <ellipse cx={s.cx} cy={s.waistY} rx={geom.shoulderHW + 5} ry="40"
+                fill="rgba(255,60,100,0.08)" />
+              {/* Fluid drip effects */}
+              <g className="sprite-enc-fluid-drip">
+                <ellipse cx={s.cx - 3} cy={s.crotchY + 5} rx="0.8" ry="2"
+                  fill="rgba(255,220,230,0.35)" />
+              </g>
+              <g className="sprite-enc-fluid-drip-b">
+                <ellipse cx={s.cx + 2} cy={s.crotchY + 8} rx="0.6" ry="1.5"
+                  fill="rgba(255,220,230,0.3)" />
+              </g>
+              {/* Ecstasy stars */}
+              {[[-8, -18], [10, -15], [-5, -22], [7, -20]].map(([ox, oy], i) => (
+                <text key={`star-${i}`} x={s.cx + ox} y={s.headCY + oy}
+                  fill={`rgba(255,200,220,${0.3 + i * 0.1})`} fontSize="4"
+                  className="animate-ping" style={{ animationDelay: `${i * 0.2}s` }}>✦</text>
+              ))}
+            </g>
+          )}
+
+          {/* ── RESIST BREAK: cracks + broken shield ── */}
+          {encounterAction === 'resist_break' && (
+            <g>
+              {/* Shatter lines radiating from center */}
+              {[[-15, -8], [12, -5], [-8, 10], [14, 8], [0, -12]].map(([ox, oy], i) => (
+                <line key={`crack-${i}`}
+                  x1={s.cx} y1={s.waistY}
+                  x2={s.cx + ox} y2={s.waistY + oy}
+                  stroke="rgba(255,255,255,0.25)" strokeWidth="0.5" strokeLinecap="round" />
+              ))}
+              {/* Impact ring */}
+              <circle cx={s.cx} cy={s.waistY} r="12"
+                fill="none" stroke="rgba(255,200,100,0.3)" strokeWidth="0.8"
+                className="sprite-enc-impact-ring" />
+            </g>
+          )}
+
+          {/* ── CLOTHING TEAR: rip lines + fabric shards ── */}
+          {encounterAction === 'clothing_tear' && (
+            <g>
+              {/* Tear lines across torso */}
+              <line x1={s.cx - geom.shoulderHW * 0.3} y1={s.shldY + 10}
+                    x2={s.cx + geom.shoulderHW * 0.5} y2={s.waistY - 5}
+                stroke="rgba(255,255,255,0.4)" strokeWidth="0.6" strokeDasharray="2 1.5" />
+              <line x1={s.cx + geom.shoulderHW * 0.2} y1={s.shldY + 8}
+                    x2={s.cx - geom.shoulderHW * 0.4} y2={s.waistY}
+                stroke="rgba(255,255,255,0.3)" strokeWidth="0.5" strokeDasharray="1.5 2" />
+              {/* Fabric shards flying */}
+              {[[5, -6, 2], [-7, -4, 1.5], [8, -2, 1.8], [-4, -8, 1.2]].map(([ox, oy, sz], i) => (
+                <rect key={`shard-${i}`}
+                  x={s.cx + ox} y={s.waistY + oy} width={sz} height={sz * 0.6}
+                  fill="rgba(200,180,160,0.35)" transform={`rotate(${45 + i * 30} ${s.cx + ox} ${s.waistY + oy})`}
+                  className="animate-ping" style={{ animationDelay: `${i * 0.1}s` }} />
+              ))}
+            </g>
+          )}
+
+          {/* ── LEG SPREAD: inner thigh highlights ── */}
+          {encounterAction === 'leg_spread' && (
+            <g className="sprite-enc-hand-pulse">
+              {/* Inner thigh pressure zones */}
+              <ellipse cx={s.legLX + geom.thighW * 0.3} cy={s.crotchY + 12} rx="4" ry="8"
+                fill="rgba(255,80,100,0.1)" stroke="rgba(255,80,100,0.15)" strokeWidth="0.5" />
+              <ellipse cx={s.legRX - geom.thighW * 0.3} cy={s.crotchY + 12} rx="4" ry="8"
+                fill="rgba(255,80,100,0.1)" stroke="rgba(255,80,100,0.15)" strokeWidth="0.5" />
+              {/* Hands on knees */}
+              <ellipse cx={s.legLX - 1} cy={s.kneeY - 3} rx="3.5" ry="4"
+                fill="rgba(80,0,0,0.1)" stroke="rgba(80,0,0,0.15)" strokeWidth="0.5" />
+              <ellipse cx={s.legRX + 1} cy={s.kneeY - 3} rx="3.5" ry="4"
+                fill="rgba(80,0,0,0.1)" stroke="rgba(80,0,0,0.15)" strokeWidth="0.5" />
+            </g>
+          )}
+
+          {/* ── ARMS PINNED: wrist binding marks ── */}
+          {encounterAction === 'arms_pinned' && (
+            <g className="sprite-enc-hand-pulse">
+              {/* Wrist bindings above head */}
+              <ellipse cx={s.cx} cy={s.headCY - geom.headRY - 6} rx="8" ry="3"
+                fill="rgba(80,0,0,0.15)" stroke="rgba(80,0,0,0.3)" strokeWidth="0.8" />
+              {/* Rope/binding lines */}
+              <line x1={s.shLX + 2} y1={s.shldY - 2} x2={s.cx - 3} y2={s.headCY - geom.headRY - 6}
+                stroke="rgba(120,80,40,0.25)" strokeWidth="0.8" strokeLinecap="round" />
+              <line x1={s.shRX - 2} y1={s.shldY - 2} x2={s.cx + 3} y2={s.headCY - geom.headRY - 6}
+                stroke="rgba(120,80,40,0.25)" strokeWidth="0.8" strokeLinecap="round" />
+              {/* Strain marks at shoulders */}
+              <circle cx={s.shLX + 1} cy={s.shldY} r="1.5" fill="rgba(255,80,80,0.15)" />
+              <circle cx={s.shRX - 1} cy={s.shldY} r="1.5" fill="rgba(255,80,80,0.15)" />
+            </g>
+          )}
+
+          {/* ── PRONE: ground shadow + weight ── */}
+          {encounterAction === 'prone' && (
+            <g>
+              {/* Ground shadow */}
+              <ellipse cx={s.cx} cy={s.footBotY + 3} rx="30" ry="3"
+                fill="rgba(0,0,0,0.15)" />
+              {/* Weight on back */}
+              <ellipse cx={s.cx + 2} cy={s.waistY - 5} rx="12" ry="8"
+                fill="rgba(80,0,0,0.08)" className="sprite-enc-hand-pulse" />
+            </g>
+          )}
+
+          {/* ── BENT OVER: hand on back ── */}
+          {encounterAction === 'bent_over' && (
+            <g className="sprite-enc-hand-pulse">
+              {/* Hand pressing on lower back */}
+              <ellipse cx={s.cx + 3} cy={s.waistY + 2} rx="5" ry="4"
+                fill="rgba(80,0,0,0.12)" stroke="rgba(80,0,0,0.2)" strokeWidth="0.5" />
+              {/* Hip grip */}
+              <ellipse cx={s.cx - geom.hipHW * 0.6} cy={s.hipTopY + 3} rx="3.5" ry="4.5"
+                fill="rgba(80,0,0,0.1)" />
+              <ellipse cx={s.cx + geom.hipHW * 0.6} cy={s.hipTopY + 3} rx="3.5" ry="4.5"
+                fill="rgba(80,0,0,0.1)" />
+            </g>
+          )}
+
+          {/* ── LIFTED: no-ground indicator + grip ── */}
+          {encounterAction === 'lifted' && (
+            <g>
+              {/* Ground gone - gap indicator */}
+              <line x1={s.cx - 15} y1={s.footBotY + 8} x2={s.cx + 15} y2={s.footBotY + 8}
+                stroke="rgba(255,255,255,0.1)" strokeWidth="0.5" strokeDasharray="2 3" />
+              {/* Supporting grips on thighs */}
+              <ellipse cx={s.legLX} cy={s.crotchY + 15} rx="5" ry="3.5"
+                fill="rgba(80,0,0,0.12)" className="sprite-enc-hand-pulse" />
+              <ellipse cx={s.legRX} cy={s.crotchY + 15} rx="5" ry="3.5"
+                fill="rgba(80,0,0,0.12)" className="sprite-enc-hand-pulse" />
+            </g>
+          )}
+
+          {/* ── CARESSED: gentle touch indicators ── */}
+          {encounterAction === 'caressed' && (
+            <g className="sprite-enc-hand-pulse" opacity="0.7">
+              {/* Gentle finger trails */}
+              <path d={`M ${s.cx + geom.shoulderHW * 0.8},${s.shldY + 5} Q ${s.cx + geom.shoulderHW * 0.4},${s.shldY + 15} ${s.cx + geom.shoulderHW * 0.6},${s.waistY - 8}`}
+                fill="none" stroke="rgba(255,180,200,0.2)" strokeWidth="0.6" strokeLinecap="round" />
+              {/* Touch warmth zones */}
+              <ellipse cx={s.cx + geom.shoulderHW * 0.5} cy={s.shldY + 12} rx="3" ry="4"
+                fill="rgba(255,180,200,0.08)" />
+              {isChestExposed && (
+                <ellipse cx={s.cx - 4} cy={s.shldY + 20} rx="3.5" ry="3"
+                  fill="rgba(255,180,200,0.06)" />
+              )}
+            </g>
+          )}
+
+          {/* ── BITTEN: bite mark ── */}
+          {encounterAction === 'bitten' && (
+            <g>
+              {/* Bite mark on neck/shoulder */}
+              <ellipse cx={s.cx + geom.shoulderHW * 0.3} cy={s.neckBotY + 2} rx="2.5" ry="1.8"
+                fill="rgba(200,0,0,0.2)" stroke="rgba(200,0,0,0.35)" strokeWidth="0.5" />
+              {/* Tooth marks */}
+              {[-1.5, -0.5, 0.5, 1.5].map((dx, i) => (
+                <circle key={`bite-${i}`}
+                  cx={s.cx + geom.shoulderHW * 0.3 + dx} cy={s.neckBotY + 2 - 1.2}
+                  r="0.3" fill="rgba(200,0,0,0.35)" />
+              ))}
+              {[-1, 0, 1].map((dx, i) => (
+                <circle key={`bite-b-${i}`}
+                  cx={s.cx + geom.shoulderHW * 0.3 + dx} cy={s.neckBotY + 2 + 1.2}
+                  r="0.25" fill="rgba(200,0,0,0.3)" />
+              ))}
+              {/* Pain reaction flash */}
+              <circle cx={s.cx + geom.shoulderHW * 0.3} cy={s.neckBotY + 2} r="5"
+                fill="none" stroke="rgba(255,100,100,0.2)" strokeWidth="0.5"
+                className="sprite-enc-impact-ring" />
+            </g>
+          )}
+
+          {/* ── SPANKED: impact mark on rear ── */}
+          {encounterAction === 'spanked' && (
+            <g>
+              {/* Impact zone */}
+              <ellipse cx={s.cx + 4} cy={s.hipTopY + 8} rx="5" ry="4"
+                fill="rgba(255,60,60,0.2)" />
+              {/* Impact ring */}
+              <circle cx={s.cx + 4} cy={s.hipTopY + 8} r="6"
+                fill="none" stroke="rgba(255,100,100,0.25)" strokeWidth="0.6"
+                className="sprite-enc-impact-ring" />
+              {/* Motion lines */}
+              <line x1={s.cx + 14} y1={s.hipTopY + 4} x2={s.cx + 8} y2={s.hipTopY + 7}
+                stroke="rgba(255,100,100,0.25)" strokeWidth="0.5" strokeLinecap="round" />
+              <line x1={s.cx + 15} y1={s.hipTopY + 9} x2={s.cx + 9} y2={s.hipTopY + 10}
+                stroke="rgba(255,100,100,0.2)" strokeWidth="0.4" strokeLinecap="round" />
+            </g>
+          )}
+        </g>
       )}
     </>
   );
