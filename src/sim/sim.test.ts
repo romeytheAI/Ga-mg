@@ -15,6 +15,14 @@ import { npcToParticipant, createCombatEncounter, resolveCombatTurn, simulateFul
 import { mentalFortitude, canResist, stressFromNeeds, decisionQuality, applyDefeatConsequences, applyVictoryConsequences } from './WillpowerSystem';
 import { shouldTravel, encounterChance, dangerLabel, getNpcsAtLocation } from './LocationSystem';
 import { defaultRomanceState, calculateCompatibility, calculateAttraction, applyRomanticInteraction, evaluateRomanceProgression, tickRomance, wantsRomanticInteraction, romanceStageLabel, romanceUtilityScore } from './RomanceSystem';
+import { defaultTransformationState } from './TransformationSystem';
+import { defaultAddictionState } from './AddictionSystem';
+import { defaultDiseaseState } from './DiseaseSystem';
+import { defaultArcaneState } from './ArcaneSystem';
+import { defaultParasiteState } from './ParasiteSystem';
+import { defaultCompanionState } from './CompanionSystem';
+import { defaultAllureState } from './AllureSystem';
+import { defaultRestraintState } from './RestraintSystem';
 import { SimNpc, SimWorld } from './types';
 
 // ── Fixture helpers ──────────────────────────────────────────────────────────
@@ -41,6 +49,14 @@ function makeNpc(overrides: Partial<SimNpc> = {}): SimNpc {
     stats: { health: 100, stamina: 100, gold: 20 },
     schedule: buildDefaultSchedule('merchant'),
     dialogue_cache: {},
+    transformation: defaultTransformationState(),
+    addiction_state: defaultAddictionState(),
+    disease_state: defaultDiseaseState(),
+    arcane_state: defaultArcaneState(),
+    parasite_state: defaultParasiteState(),
+    companion_state: defaultCompanionState(),
+    allure_state: defaultAllureState(),
+    restraint_state: defaultRestraintState(),
     ...overrides,
   };
 }

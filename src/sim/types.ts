@@ -167,6 +167,14 @@ export interface SimNpc {
   schedule: DailySchedule;
   backstory?: string;   // async filled by AI Horde
   dialogue_cache: Record<string, string>;
+  transformation: TransformationState;
+  addiction_state: AddictionState;
+  disease_state: DiseaseState;
+  arcane_state: ArcaneState;
+  parasite_state: ParasiteState;
+  companion_state: CompanionState;
+  allure_state: AllureState;
+  restraint_state: RestraintState;
 }
 
 // ── Schedule ─────────────────────────────────────────────────────────────────
@@ -230,4 +238,146 @@ export interface HordeRequest {
   retries: number;
   horde_job_id?: string;
   result?: string;
+}
+
+// ── Transformation ──────────────────────────────────────────────────────────
+export type AscensionPath = 'none' | 'pure_soul' | 'void_lord' | 'broodmother' | 'beast_kin' | 'arcane_vessel';
+
+export interface TransformationState {
+  ascension: AscensionPath;
+  ascension_progress: number; // 0-100
+  body_changes: BodyChange[];
+  mutation_resistance: number; // 0-100
+}
+
+export interface BodyChange {
+  id: string;
+  type: 'cosmetic' | 'structural' | 'supernatural';
+  description: string;
+  turn_acquired: number;
+  permanent: boolean;
+  stat_effects: Partial<Record<'health' | 'stamina' | 'willpower' | 'allure' | 'corruption', number>>;
+}
+
+// ── Addiction ────────────────────────────────────────────────────────────────
+export type SubstanceType = 'alcohol' | 'moonsugar' | 'skooma' | 'bloodwine' | 'dreamdust' | 'void_essence';
+
+export interface AddictionEntry {
+  substance: SubstanceType;
+  dependency: number;   // 0-100, 0 = clean
+  tolerance: number;    // 0-100, higher = needs more
+  withdrawal: number;   // 0-100, active withdrawal severity
+  last_use_turn: number;
+  total_uses: number;
+}
+
+export interface AddictionState {
+  addictions: AddictionEntry[];
+  overall_dependency: number; // 0-100
+}
+
+// ── Disease ──────────────────────────────────────────────────────────────────
+export type DiseaseType = 'plague' | 'rot' | 'mind_fever' | 'blood_curse' | 'swamp_blight' | 'chill_pox';
+
+export interface DiseaseEntry {
+  disease: DiseaseType;
+  severity: number;       // 0-100
+  duration_turns: number;  // how long infected
+  treated: boolean;
+  immunity: number;       // 0-100, resistance after recovery
+}
+
+export interface DiseaseState {
+  active_diseases: DiseaseEntry[];
+  immunities: Partial<Record<DiseaseType, number>>; // 0-100 per disease
+  overall_health_penalty: number; // 0-100
+}
+
+// ── Arcane ───────────────────────────────────────────────────────────────────
+export type SpellSchool = 'restoration' | 'destruction' | 'illusion' | 'conjuration' | 'ward' | 'hex';
+export type EnchantmentType = 'blessing' | 'curse';
+
+export interface Enchantment {
+  id: string;
+  name: string;
+  type: EnchantmentType;
+  school: SpellSchool;
+  potency: number;     // 0-100
+  duration_remaining: number; // turns, -1 = permanent
+  stat_effects: Partial<Record<'health' | 'stamina' | 'willpower' | 'corruption' | 'stress' | 'luck', number>>;
+}
+
+export interface ArcaneState {
+  mana: number;          // 0-100
+  mana_regen: number;    // per tick
+  spell_affinity: Partial<Record<SpellSchool, number>>; // 0-100 per school
+  enchantments: Enchantment[];
+  arcane_corruption: number; // 0-100, risk from overuse
+}
+
+// ── Parasite ─────────────────────────────────────────────────────────────────
+export type ParasiteSpecies = 'brain_worm' | 'blood_leech' | 'void_tick' | 'dream_moth' | 'marrow_grub';
+
+export interface ParasiteEntry {
+  species: ParasiteSpecies;
+  maturity: number;       // 0-100, growth stage
+  symbiosis: number;      // 0-100, 0 = hostile, 100 = mutualistic
+  health_drain: number;   // per tick
+  stamina_drain: number;  // per tick
+  corruption_buff: number; // corruption added per tick
+  turn_acquired: number;
+}
+
+export interface ParasiteState {
+  parasites: ParasiteEntry[];
+  infestation_level: number; // 0-100
+  symbiotic_benefits: number; // 0-100
+}
+
+// ── Companion ────────────────────────────────────────────────────────────────
+export type CompanionRole = 'fighter' | 'healer' | 'scout' | 'pack_mule' | 'familiar';
+
+export interface CompanionEntry {
+  id: string;
+  name: string;
+  role: CompanionRole;
+  loyalty: number;       // 0-100
+  morale: number;        // 0-100
+  health: number;        // 0-100
+  stamina: number;       // 0-100
+  combat_skill: number;  // 0-100
+  bond: number;          // 0-100, emotional connection
+  turns_together: number;
+}
+
+export interface CompanionState {
+  companions: CompanionEntry[];
+  max_party_size: number;
+  party_synergy: number; // 0-100
+}
+
+// ── Allure ───────────────────────────────────────────────────────────────────
+export interface AllureState {
+  base_allure: number;      // 0-100
+  effective_allure: number; // computed from base + modifiers
+  noticeability: number;    // 0-100, how much attention drawn
+  intimidation: number;     // 0-100, physical threat level
+}
+
+// ── Restraint ────────────────────────────────────────────────────────────────
+export type RestraintSlot = 'wrists' | 'ankles' | 'neck' | 'waist' | 'mouth';
+
+export interface RestraintEntry {
+  slot: RestraintSlot;
+  name: string;
+  strength: number;     // 0-100, difficulty to escape
+  comfort: number;      // 0-100, 0 = painful
+  turn_applied: number;
+}
+
+export interface RestraintState {
+  restraints: RestraintEntry[];
+  escape_progress: number; // 0-100
+  movement_penalty: number; // 0-1, fraction of movement lost
+  action_penalty: number;   // 0-1, fraction of action effectiveness lost
 }

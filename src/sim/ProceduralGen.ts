@@ -9,6 +9,14 @@ import { defaultSkills } from './SkillsSystem';
 import { defaultCorruptionState } from './CorruptionSystem';
 import { defaultFame } from './FameSystem';
 import { defaultClothingLoadout } from './ClothingSystem';
+import { defaultTransformationState } from './TransformationSystem';
+import { defaultAddictionState } from './AddictionSystem';
+import { defaultDiseaseState } from './DiseaseSystem';
+import { defaultArcaneState } from './ArcaneSystem';
+import { defaultParasiteState } from './ParasiteSystem';
+import { defaultCompanionState } from './CompanionSystem';
+import { defaultAllureState } from './AllureSystem';
+import { defaultRestraintState } from './RestraintSystem';
 
 // ── Name tables ────────────────────────────────────────────────────────────
 const FIRST_NAMES_MALE = [
@@ -128,6 +136,14 @@ export function generateNpc(seed: number, locationId: string): SimNpc {
     },
     schedule,
     dialogue_cache: {},
+    transformation: defaultTransformationState(),
+    addiction_state: defaultAddictionState(),
+    disease_state: defaultDiseaseState(),
+    arcane_state: defaultArcaneState(),
+    parasite_state: defaultParasiteState(),
+    companion_state: defaultCompanionState(),
+    allure_state: defaultAllureState(),
+    restraint_state: defaultRestraintState(),
   };
 }
 
