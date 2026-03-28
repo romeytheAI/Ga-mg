@@ -818,4 +818,227 @@
     animation: sprite-drip-delay 3.5s ease-in infinite;
     animation-delay: 1.2s;
   }
+
+  /* ── DoL-parity activity animations ── */
+  
+  /* Walking — rhythmic step bounce + lateral sway */
+  @keyframes sprite-walk {
+    0%, 100% { transform: translateY(0) rotate(0deg); }
+    15%      { transform: translateY(-1.5px) rotate(-0.5deg); }
+    30%      { transform: translateY(0.5px) rotate(0.3deg); }
+    50%      { transform: translateY(-1.8px) rotate(0.5deg); }
+    65%      { transform: translateY(0.3px) rotate(-0.3deg); }
+    80%      { transform: translateY(-1px) rotate(0.2deg); }
+  }
+  .sprite-walk {
+    animation: sprite-walk 0.8s ease-in-out infinite;
+  }
+
+  /* Sleeping — slow gentle rise/fall with slight tilt */
+  @keyframes sprite-sleep {
+    0%, 100% { transform: translateY(4px) scaleY(0.95) rotate(2deg); }
+    50%      { transform: translateY(5px) scaleY(0.94) rotate(2.5deg); }
+  }
+  .sprite-sleep {
+    animation: sprite-sleep 4s ease-in-out infinite;
+  }
+
+  /* Swimming — bobbing up/down with lateral motion */
+  @keyframes sprite-swim {
+    0%, 100% { transform: translateY(0) rotate(0deg) scaleY(0.97); }
+    25%      { transform: translateY(-2px) rotate(1deg) scaleY(0.98); }
+    50%      { transform: translateY(1px) rotate(-0.5deg) scaleY(0.96); }
+    75%      { transform: translateY(-1px) rotate(0.5deg) scaleY(0.97); }
+  }
+  .sprite-swim {
+    animation: sprite-swim 2s ease-in-out infinite;
+  }
+
+  /* Working — heavy rhythmic labor motion */
+  @keyframes sprite-work {
+    0%, 100% { transform: translateY(0) rotate(0deg); }
+    20%      { transform: translateY(-1px) rotate(-1deg); }
+    40%      { transform: translateY(1px) rotate(0.5deg); }
+    60%      { transform: translateY(-0.5px) rotate(-0.5deg); }
+    80%      { transform: translateY(0.5px) rotate(0.3deg); }
+  }
+  .sprite-work {
+    animation: sprite-work 1.2s ease-in-out infinite;
+  }
+
+  /* Exercising — energetic bounce */
+  @keyframes sprite-exercise {
+    0%, 100% { transform: translateY(0) scaleY(1); }
+    25%      { transform: translateY(-3px) scaleY(1.02); }
+    50%      { transform: translateY(0) scaleY(0.98); }
+    75%      { transform: translateY(-2px) scaleY(1.01); }
+  }
+  .sprite-exercise {
+    animation: sprite-exercise 0.6s ease-in-out infinite;
+  }
+
+  /* Eating/drinking — gentle head nod */
+  @keyframes sprite-eat {
+    0%, 100% { transform: translateY(0) rotate(0deg); }
+    30%      { transform: translateY(1px) rotate(-0.5deg); }
+    60%      { transform: translateY(-0.5px) rotate(0.3deg); }
+  }
+  .sprite-eat {
+    animation: sprite-eat 1.5s ease-in-out infinite;
+  }
+
+  /* Studying/reading — subtle stillness with micro-nods */
+  @keyframes sprite-study {
+    0%, 100% { transform: translateY(0) rotate(0deg); }
+    50%      { transform: translateY(0.3px) rotate(-0.2deg); }
+  }
+  .sprite-study {
+    animation: sprite-study 5s ease-in-out infinite;
+  }
+
+  /* Sneaking — low crouch with careful steps */
+  @keyframes sprite-sneak {
+    0%, 100% { transform: translateY(2px) scaleY(0.96) scaleX(0.98); }
+    50%      { transform: translateY(1.5px) scaleY(0.97) scaleX(0.99); }
+  }
+  .sprite-sneak {
+    animation: sprite-sneak 1.8s ease-in-out infinite;
+  }
+
+  /* ── DoL-parity weather-reactive animations ── */
+  
+  /* Shivering — cold weather tremor */
+  @keyframes sprite-shiver {
+    0%, 100% { transform: translate(0, 0) rotate(0deg) scaleX(0.99); }
+    10%      { transform: translate(-0.4px, 0) rotate(-0.3deg) scaleX(1); }
+    20%      { transform: translate(0.5px, 0.2px) rotate(0.2deg) scaleX(0.99); }
+    30%      { transform: translate(-0.3px, -0.1px) rotate(-0.2deg) scaleX(1); }
+    40%      { transform: translate(0.4px, 0) rotate(0.3deg) scaleX(0.99); }
+    50%      { transform: translate(-0.5px, 0.1px) rotate(-0.2deg) scaleX(1); }
+    60%      { transform: translate(0.3px, -0.1px) rotate(0.2deg) scaleX(0.99); }
+    70%      { transform: translate(-0.4px, 0.2px) rotate(-0.3deg) scaleX(1); }
+    80%      { transform: translate(0.5px, 0) rotate(0.2deg) scaleX(0.99); }
+    90%      { transform: translate(-0.3px, -0.2px) rotate(-0.1deg) scaleX(1); }
+  }
+  .sprite-shiver {
+    animation: sprite-shiver 0.5s linear infinite;
+  }
+
+  /* Heat exhaustion — wilting droop */
+  @keyframes sprite-heat-wilt {
+    0%, 100% { transform: translateY(1px) scaleY(0.98) rotate(0.5deg); }
+    50%      { transform: translateY(2px) scaleY(0.97) rotate(1deg); }
+  }
+  .sprite-heat-wilt {
+    animation: sprite-heat-wilt 3s ease-in-out infinite;
+  }
+
+  /* Wet/rained on — drip visual pulse */
+  @keyframes sprite-wet {
+    0%, 100% { filter: brightness(0.92) saturate(0.9); }
+    50%      { filter: brightness(0.95) saturate(0.85); }
+  }
+  .sprite-wet {
+    animation: sprite-wet 2.5s ease-in-out infinite;
+  }
+
+  /* ── DoL-parity status-reactive animations ── */
+  
+  /* Exhaustion droop — stamina critically low */
+  @keyframes sprite-exhausted {
+    0%, 100% { transform: translateY(2px) scaleY(0.97) rotate(0.3deg); }
+    50%      { transform: translateY(3px) scaleY(0.96) rotate(0.8deg); }
+  }
+  .sprite-exhausted {
+    animation: sprite-exhausted 3.5s ease-in-out infinite;
+  }
+
+  /* Fear tremor — high trauma/stress */
+  @keyframes sprite-fear-tremble {
+    0%, 100% { transform: translate(0, 0) scaleX(0.99); }
+    12%      { transform: translate(-0.3px, 0.1px) scaleX(1); }
+    25%      { transform: translate(0.2px, -0.1px) scaleX(0.99); }
+    37%      { transform: translate(-0.2px, 0) scaleX(1); }
+    50%      { transform: translate(0.3px, 0.1px) scaleX(0.99); }
+    62%      { transform: translate(-0.1px, -0.1px) scaleX(1); }
+    75%      { transform: translate(0.2px, 0) scaleX(0.99); }
+    87%      { transform: translate(-0.3px, 0.1px) scaleX(1); }
+  }
+  .sprite-fear-tremble {
+    animation: sprite-fear-tremble 0.6s linear infinite;
+  }
+
+  /* Limping — injured uneven gait */
+  @keyframes sprite-limp {
+    0%, 100% { transform: translateY(0) rotate(0deg); }
+    25%      { transform: translateY(-1px) rotate(-1.5deg); }
+    50%      { transform: translateY(2px) rotate(0.5deg); }
+    75%      { transform: translateY(-0.5px) rotate(-0.3deg); }
+  }
+  .sprite-limp {
+    animation: sprite-limp 1.2s ease-in-out infinite;
+  }
+
+  /* Drunk/drugged sway — wobbly movement */
+  @keyframes sprite-drunk {
+    0%, 100% { transform: rotate(0deg) translateX(0); }
+    20%      { transform: rotate(1.5deg) translateX(1px); }
+    40%      { transform: rotate(-1deg) translateX(-0.5px); }
+    60%      { transform: rotate(2deg) translateX(1.5px); }
+    80%      { transform: rotate(-1.5deg) translateX(-1px); }
+  }
+  .sprite-drunk {
+    animation: sprite-drunk 2.5s ease-in-out infinite;
+  }
+
+  /* Hunger weakness — slight sag */
+  @keyframes sprite-hungry {
+    0%, 100% { transform: translateY(0.5px) scaleY(0.99); }
+    50%      { transform: translateY(1px) scaleY(0.98); }
+  }
+  .sprite-hungry {
+    animation: sprite-hungry 4s ease-in-out infinite;
+  }
+
+  /* ── Additional debuff animations ── */
+  
+  /* Stunned — spinning stars effect via brightness pulse */
+  @keyframes sprite-debuff-stunned {
+    0%, 100% { filter: brightness(1) contrast(1); }
+    25%      { filter: brightness(1.2) contrast(0.9); }
+    50%      { filter: brightness(0.85) contrast(1.1); }
+    75%      { filter: brightness(1.1) contrast(0.95); }
+  }
+  .sprite-debuff-stunned {
+    animation: sprite-debuff-stunned 1s ease-in-out infinite;
+  }
+
+  /* Poisoned — green tint pulse */
+  .sprite-debuff-poisoned {
+    filter: hue-rotate(90deg) saturate(0.8);
+    animation: sprite-debuff-poison-pulse 1.5s ease-in-out infinite;
+  }
+  @keyframes sprite-debuff-poison-pulse {
+    0%, 100% { filter: hue-rotate(90deg) saturate(0.8) brightness(1); }
+    50%      { filter: hue-rotate(90deg) saturate(0.9) brightness(1.05); }
+  }
+
+  /* Bleeding — red tint pulse */
+  .sprite-debuff-bleeding {
+    animation: sprite-debuff-bleed-pulse 1.2s ease-in-out infinite;
+  }
+  @keyframes sprite-debuff-bleed-pulse {
+    0%, 100% { filter: brightness(1) drop-shadow(0 0 0 transparent); }
+    50%      { filter: brightness(0.95) drop-shadow(0 0 3px rgba(200,0,0,0.3)); }
+  }
+
+  /* ── Location transition animation ── */
+  @keyframes sprite-location-enter {
+    0%   { transform: translateX(-15px); opacity: 0; }
+    50%  { transform: translateX(3px); opacity: 1; }
+    100% { transform: translateX(0); opacity: 1; }
+  }
+  .sprite-location-enter {
+    animation: sprite-location-enter 0.6s ease-out;
+  }
 }
