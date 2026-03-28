@@ -2,6 +2,8 @@ import { describe, it, expect } from 'vitest';
 import { gameReducer } from '../gameReducer';
 import { initialState } from '../../state/initialState';
 import { GameState } from '../../types';
+import { LOCATIONS } from '../../data/locations';
+import { ENCOUNTERS } from '../../data/encounters';
 
 describe('gameReducer', () => {
   it('should handle SET_PLAYER_AVATAR', () => {
@@ -458,6 +460,288 @@ describe('gameReducer', () => {
       const action = { type: 'UPDATE_ACTIVE_ENCOUNTER', payload: { enemy_health: 50 } };
       const next = gameReducer(initialState, action);
       expect(next.world.active_encounter).toBeNull();
+    });
+  });
+
+  // ── NEEDS DECAY ────────────────────────────────────────────────────────
+
+  describe('Player needs decay in RESOLVE_TEXT', () => {
+    it('should drain hunger/thirst/energy/hygiene/social per turn', () => {
+      const action = {
+        type: 'RESOLVE_TEXT',
+        payload: {
+          parsedText: { narrative_text: 'Time passes.', hours_passed: 2 },
+          actionText: 'Wait around',
+        },
+      };
+      const next = gameReducer(initialState, action);
+      // Passive drain: hunger -3/hr, thirst -4/hr, energy -2/hr, hygiene -1.5/hr, social -1/hr
+      expect(next.player.life_sim.needs.hunger).toBeLessThan(initialState.player.life_sim.needs.hunger);
+      expect(next.player.life_sim.needs.thirst).toBeLessThan(initialState.player.life_sim.needs.thirst);
+      expect(next.player.life_sim.needs.energy).toBeLessThan(initialState.player.life_sim.needs.energy);
+      expect(next.player.life_sim.needs.hygiene).toBeLessThan(initialState.player.life_sim.needs.hygiene);
+      expect(next.player.life_sim.needs.social).toBeLessThan(initialState.player.life_sim.needs.social);
+    });
+
+    it('should drain faster during work intent', () => {
+      const baseState: GameState = {
+        ...initialState,
+        world: { ...initialState.world, last_intent: 'work' },
+      };
+      const action = {
+        type: 'RESOLVE_TEXT',
+        payload: {
+          parsedText: { narrative_text: 'You work hard.', hours_passed: 1 },
+          actionText: 'Work at stall',
+        },
+      };
+      const next = gameReducer(baseState, action);
+      // Work adds extra drain: hunger -5/hr, energy -5/hr, hygiene -3/hr (on top of base)
+      const hungDrop = initialState.player.life_sim.needs.hunger - next.player.life_sim.needs.hunger;
+      expect(hungDrop).toBeGreaterThanOrEqual(8); // 3 base + 5 work
+    });
+
+    it('should restore energy on sleep action', () => {
+      const lowEnergy: GameState = {
+        ...initialState,
+        player: {
+          ...initialState.player,
+          life_sim: {
+            ...initialState.player.life_sim,
+            needs: { ...initialState.player.life_sim.needs, energy: 30 },
+          },
+        },
+        world: { ...initialState.world, last_intent: 'neutral' },
+      };
+      const action = {
+        type: 'RESOLVE_TEXT',
+        payload: {
+          parsedText: { narrative_text: 'You sleep.', hours_passed: 1 },
+          actionText: 'Sleep in your cot',
+        },
+      };
+      const next = gameReducer(lowEnergy, action);
+      // Sleep restores +30/hr, minus 2/hr passive drain = net +28
+      expect(next.player.life_sim.needs.energy).toBeGreaterThan(lowEnergy.player.life_sim.needs.energy);
+    });
+
+    it('should restore hygiene on wash/bath action', () => {
+      const dirtyState: GameState = {
+        ...initialState,
+        player: {
+          ...initialState.player,
+          life_sim: {
+            ...initialState.player.life_sim,
+            needs: { ...initialState.player.life_sim.needs, hygiene: 20 },
+          },
+        },
+        world: { ...initialState.world, last_intent: 'neutral' },
+      };
+      const action = {
+        type: 'RESOLVE_TEXT',
+        payload: {
+          parsedText: { narrative_text: 'You wash.', hours_passed: 1 },
+          actionText: 'Wash yourself at the water pump',
+        },
+      };
+      const next = gameReducer(dirtyState, action);
+      expect(next.player.life_sim.needs.hygiene).toBeGreaterThan(dirtyState.player.life_sim.needs.hygiene);
+    });
+
+    it('should apply stat penalties when hunger critically low', () => {
+      const starvingState: GameState = {
+        ...initialState,
+        player: {
+          ...initialState.player,
+          life_sim: {
+            ...initialState.player.life_sim,
+            needs: { ...initialState.player.life_sim.needs, hunger: 10, thirst: 100, energy: 100, hygiene: 100, social: 100 },
+          },
+        },
+      };
+      const action = {
+        type: 'RESOLVE_TEXT',
+        payload: {
+          parsedText: { narrative_text: 'Hunger gnaws.', hours_passed: 1 },
+          actionText: 'Wait',
+        },
+      };
+      const next = gameReducer(starvingState, action);
+      // Low hunger → health -2, stamina -3
+      expect(next.player.stats.health).toBeLessThan(starvingState.player.stats.health);
+      expect(next.player.stats.stamina).toBeLessThan(starvingState.player.stats.stamina);
+    });
+
+    it('should apply stat penalties when thirst critically low', () => {
+      const dehydrated: GameState = {
+        ...initialState,
+        player: {
+          ...initialState.player,
+          life_sim: {
+            ...initialState.player.life_sim,
+            needs: { ...initialState.player.life_sim.needs, thirst: 5, hunger: 100, energy: 100, hygiene: 100, social: 100 },
+          },
+        },
+      };
+      const action = {
+        type: 'RESOLVE_TEXT',
+        payload: {
+          parsedText: { narrative_text: 'You feel faint.', hours_passed: 1 },
+          actionText: 'Wait',
+        },
+      };
+      const next = gameReducer(dehydrated, action);
+      expect(next.player.stats.health).toBeLessThan(dehydrated.player.stats.health);
+    });
+
+    it('should not let needs go below 0', () => {
+      const emptyNeeds: GameState = {
+        ...initialState,
+        player: {
+          ...initialState.player,
+          life_sim: {
+            ...initialState.player.life_sim,
+            needs: { hunger: 1, thirst: 1, energy: 1, hygiene: 1, social: 1 },
+          },
+        },
+      };
+      const action = {
+        type: 'RESOLVE_TEXT',
+        payload: {
+          parsedText: { narrative_text: 'Hours pass.', hours_passed: 10 },
+          actionText: 'Wait a long time',
+        },
+      };
+      const next = gameReducer(emptyNeeds, action);
+      expect(next.player.life_sim.needs.hunger).toBeGreaterThanOrEqual(0);
+      expect(next.player.life_sim.needs.thirst).toBeGreaterThanOrEqual(0);
+      expect(next.player.life_sim.needs.energy).toBeGreaterThanOrEqual(0);
+      expect(next.player.life_sim.needs.hygiene).toBeGreaterThanOrEqual(0);
+      expect(next.player.life_sim.needs.social).toBeGreaterThanOrEqual(0);
+    });
+  });
+
+  // ── WEATHER EFFECTS ──────────────────────────────────────────────────
+
+  describe('Weather effects in RESOLVE_TEXT', () => {
+    function stateWithWeather(weather: string): GameState {
+      return {
+        ...initialState,
+        world: { ...initialState.world, weather },
+      };
+    }
+
+    it('should drain stamina in blizzard weather', () => {
+      const s = stateWithWeather('Blizzard');
+      const action = {
+        type: 'RESOLVE_TEXT',
+        payload: {
+          parsedText: { narrative_text: 'The cold bites.', hours_passed: 2 },
+          actionText: 'Endure the cold',
+        },
+      };
+      const next = gameReducer(s, action);
+      // Blizzard: stamina -5/hr, health -2/hr (on top of normal drain)
+      expect(next.player.stats.stamina).toBeLessThan(s.player.stats.stamina);
+    });
+
+    it('should increase stress in scorching weather', () => {
+      const s = stateWithWeather('Scorching');
+      const action = {
+        type: 'RESOLVE_TEXT',
+        payload: {
+          parsedText: { narrative_text: 'The heat is oppressive.', hours_passed: 2 },
+          actionText: 'Swelter',
+        },
+      };
+      const next = gameReducer(s, action);
+      expect(next.player.stats.stress).toBeGreaterThan(s.player.stats.stress);
+    });
+
+    it('should increase stress in thunderstorm', () => {
+      const s = stateWithWeather('Thunderstorm');
+      const action = {
+        type: 'RESOLVE_TEXT',
+        payload: {
+          parsedText: { narrative_text: 'Lightning flashes.', hours_passed: 1 },
+          actionText: 'Shelter',
+        },
+      };
+      const next = gameReducer(s, action);
+      expect(next.player.stats.stress).toBeGreaterThan(s.player.stats.stress);
+    });
+
+    it('should not apply weather effects for mild weather', () => {
+      const s = stateWithWeather('Mild');
+      const action = {
+        type: 'RESOLVE_TEXT',
+        payload: {
+          parsedText: { narrative_text: 'A calm day.', hours_passed: 1 },
+          actionText: 'Walk',
+        },
+      };
+      const next = gameReducer(s, action);
+      // Mild weather has no additional drain beyond needs
+      // stamina should only decrease from needs effects (if any)
+      const staminaDrop = s.player.stats.stamina - next.player.stats.stamina;
+      expect(staminaDrop).toBeLessThanOrEqual(5); // Only needs-based, no weather
+    });
+  });
+
+  // ── LOCATIONS & ENCOUNTERS ──────────────────────────────────────────
+
+  describe('Locations and encounters data integrity', () => {
+    it('all locations should have valid actions with required fields', () => {
+      for (const [id, loc] of Object.entries(LOCATIONS) as [string, any][]) {
+        expect(loc.id).toBe(id);
+        expect(loc.name).toBeTruthy();
+        expect(loc.actions).toBeInstanceOf(Array);
+        expect(loc.actions.length).toBeGreaterThan(0);
+        for (const action of loc.actions) {
+          expect(action.id).toBeTruthy();
+          expect(action.label).toBeTruthy();
+          expect(action.intent).toBeTruthy();
+        }
+      }
+    });
+
+    it('all location travel actions should reference valid locations', () => {
+      const locationIds = new Set(Object.keys(LOCATIONS));
+      for (const [, loc] of Object.entries(LOCATIONS) as [string, any][]) {
+        for (const action of loc.actions) {
+          if (action.new_location) {
+            expect(locationIds.has(action.new_location)).toBe(true);
+          }
+        }
+      }
+    });
+
+    it('new locations lake and beach should exist with actions', () => {
+      expect(LOCATIONS.lake).toBeDefined();
+      expect(LOCATIONS.lake.actions.length).toBeGreaterThanOrEqual(4);
+      expect(LOCATIONS.beach).toBeDefined();
+      expect(LOCATIONS.beach.actions.length).toBeGreaterThanOrEqual(4);
+    });
+
+    it('all encounters should have required fields', () => {
+      for (const enc of ENCOUNTERS) {
+        expect(enc.id).toBeTruthy();
+        expect(typeof enc.condition).toBe('function');
+        expect(enc.outcome).toBeTruthy();
+        expect(enc.anatomy).toBeDefined();
+      }
+    });
+
+    it('lake and beach encounters should exist', () => {
+      const ids = ENCOUNTERS.map((e: any) => e.id);
+      expect(ids).toContain('lake_lurker');
+      expect(ids).toContain('beach_scavenger');
+    });
+
+    it('school and wolf encounters should exist', () => {
+      const ids = ENCOUNTERS.map((e: any) => e.id);
+      expect(ids).toContain('school_bully');
+      expect(ids).toContain('wolf_pack');
     });
   });
 });

@@ -157,7 +157,7 @@ export const DoLStatsSidebar: React.FC<DoLStatsSidebarProps> = ({
         <SpriteWithXRay state={state} />
       </div>
 
-      {/* Location / Time */}
+      {/* Location / Time / Weather */}
       <div className="px-3 py-2 border-b border-white/[0.06] bg-black/20">
         <div className="flex justify-between items-center">
           <span className="text-[9px] text-white/50 truncate max-w-[110px]">
@@ -171,6 +171,42 @@ export const DoLStatsSidebar: React.FC<DoLStatsSidebarProps> = ({
           <span className="text-[8px] text-white/25 uppercase tracking-widest">Day {state.world.day}</span>
           <span className="text-[8px] text-white/35">{state.world.weather}</span>
         </div>
+        {/* Season badge */}
+        {state.sim_world && (
+          <div className="flex items-center justify-between mt-1">
+            <span className={`text-[7px] uppercase tracking-widest px-1.5 py-0.5 rounded-sm border ${
+              state.sim_world.season === 'spring' ? 'text-green-400/60 border-green-900/30 bg-green-950/10' :
+              state.sim_world.season === 'summer' ? 'text-amber-400/60 border-amber-900/30 bg-amber-950/10' :
+              state.sim_world.season === 'autumn' ? 'text-orange-400/60 border-orange-900/30 bg-orange-950/10' :
+              'text-cyan-400/60 border-cyan-900/30 bg-cyan-950/10'
+            }`}>
+              {state.sim_world.season}
+            </span>
+            {/* Danger level in sidebar */}
+            <span className={`text-[7px] uppercase tracking-widest ${
+              state.world.current_location.danger > 60 ? 'text-red-400/70' :
+              state.world.current_location.danger > 30 ? 'text-amber-400/50' :
+              'text-emerald-400/40'
+            }`}>
+              {state.world.current_location.danger > 60 ? '☠ Dangerous' :
+               state.world.current_location.danger > 30 ? '⚠ Risky' : '✓ Safe'}
+            </span>
+          </div>
+        )}
+        {/* Low needs warnings in sidebar */}
+        {(life_sim.needs.hunger <= 20 || life_sim.needs.thirst <= 15 || life_sim.needs.energy <= 20) && (
+          <div className="mt-1.5 flex flex-wrap gap-1">
+            {life_sim.needs.hunger <= 20 && (
+              <span className="text-[7px] uppercase tracking-widest px-1 py-0.5 rounded-sm border border-amber-700/40 bg-amber-950/20 text-amber-400/80 animate-pulse">Starving</span>
+            )}
+            {life_sim.needs.thirst <= 15 && (
+              <span className="text-[7px] uppercase tracking-widest px-1 py-0.5 rounded-sm border border-cyan-700/40 bg-cyan-950/20 text-cyan-400/80 animate-pulse">Dehydrated</span>
+            )}
+            {life_sim.needs.energy <= 20 && (
+              <span className="text-[7px] uppercase tracking-widest px-1 py-0.5 rounded-sm border border-yellow-700/40 bg-yellow-950/20 text-yellow-400/80 animate-pulse">Exhausted</span>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Stats panels */}

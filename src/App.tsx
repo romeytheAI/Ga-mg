@@ -3,7 +3,8 @@ import { motion, AnimatePresence } from 'motion/react';
 import { 
   Heart, Wind, Moon, Settings, X, BookOpen, User, Map as MapIcon, 
   Shield, Sword, Zap, Droplets, AlertTriangle, Ghost, Sparkles, 
-  Layers, ShoppingBag, Eye, EyeOff, Thermometer, Clock, Calendar, RefreshCw, Book
+  Layers, ShoppingBag, Eye, EyeOff, Thermometer, Clock, Calendar, RefreshCw, Book,
+  Cloud, Sun, Snowflake, CloudRain, CloudLightning, CloudDrizzle, CloudFog, Flame
 } from 'lucide-react';
 import { GoogleGenAI, Type } from "@google/genai";
 import { CharacterModel } from './components/CharacterModel';
@@ -972,6 +973,48 @@ Example: { "health": 50, "allure": 20 }`;
             />
           )}
 
+          {/* Weather Ambient Overlay */}
+          {(() => {
+            const w = state.world.weather;
+            const isRain = w === 'Rainy' || w === 'Cold Rain' || w === 'Drizzle' || w === 'Thunderstorm';
+            const isSnow = w === 'Blizzard' || w === 'Light Snow';
+            const isFog = w === 'Foggy';
+            const isWindy = w === 'Windy';
+            if (!isRain && !isSnow && !isFog && !isWindy) return null;
+            const count = isRain ? 40 : isSnow ? 25 : isFog ? 8 : 12;
+            return (
+              <div className="absolute inset-0 overflow-hidden pointer-events-none z-[5]">
+                {[...Array(count)].map((_, i) => (
+                  <motion.div
+                    key={`wx-${i}`}
+                    className={
+                      isRain ? 'absolute w-[1px] h-3 bg-blue-300/30 rounded-full' :
+                      isSnow ? 'absolute w-1.5 h-1.5 bg-white/40 rounded-full blur-[0.5px]' :
+                      isFog ? 'absolute w-32 h-16 bg-white/[0.04] rounded-full blur-xl' :
+                      'absolute w-1 h-1 bg-white/20 rounded-full blur-[1px]'
+                    }
+                    initial={{
+                      x: Math.random() * 800,
+                      y: -20 - Math.random() * 100,
+                      opacity: isRain ? 0.3 : isSnow ? 0.5 : isFog ? 0.06 : 0.2,
+                    }}
+                    animate={{
+                      y: [null, 600 + Math.random() * 200],
+                      x: isSnow ? [null, Math.random() * 100 - 50] : isWindy ? [null, Math.random() * 200] : undefined,
+                      opacity: isFog ? [0.03, 0.08, 0.03] : undefined,
+                    }}
+                    transition={{
+                      duration: isRain ? 0.8 + Math.random() * 0.5 : isSnow ? 4 + Math.random() * 3 : isFog ? 8 + Math.random() * 5 : 2 + Math.random() * 2,
+                      repeat: Infinity,
+                      ease: isRain ? 'linear' : 'easeInOut',
+                      delay: Math.random() * 3,
+                    }}
+                  />
+                ))}
+              </div>
+            );
+          })()}
+
           {/* Ambient Particles */}
           <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-20 z-0">
             {[...Array(15)].map((_, i) => (
@@ -1038,10 +1081,60 @@ Example: { "health": 50, "allure": 20 }`;
                 <div>
                   <h2 className="font-serif text-2xl text-white/90">{state.world.current_location.name}</h2>
                   <p className="text-xs tracking-widest uppercase text-white/50 mt-2">{state.world.current_location.atmosphere}</p>
+                  {/* Danger indicator */}
+                  {state.world.current_location.danger > 0 && (
+                    <div className="flex items-center gap-1.5 mt-2">
+                      <div className={`h-1.5 rounded-full ${state.world.current_location.danger > 60 ? 'bg-red-500 animate-pulse' : state.world.current_location.danger > 30 ? 'bg-amber-500' : 'bg-emerald-500/60'}`} style={{ width: `${Math.min(80, state.world.current_location.danger)}px` }} />
+                      <span className={`text-[9px] uppercase tracking-widest ${state.world.current_location.danger > 60 ? 'text-red-400/80' : state.world.current_location.danger > 30 ? 'text-amber-400/60' : 'text-emerald-400/50'}`}>
+                        {state.world.current_location.danger > 60 ? 'Dangerous' : state.world.current_location.danger > 30 ? 'Risky' : 'Safe'}
+                      </span>
+                    </div>
+                  )}
                 </div>
                 <div className="text-right">
                   <p className="text-xs tracking-widest uppercase text-white/50">Day {state.world.day}</p>
                   <p className="font-serif text-xl text-white/80 mt-1">{state.world.hour}:00</p>
+                  {/* Weather & Season Widget */}
+                  <div className="flex items-center justify-end gap-2 mt-2">
+                    {(() => {
+                      const w = state.world.weather;
+                      const iconClass = "w-3.5 h-3.5";
+                      if (w === 'Blizzard' || w === 'Light Snow' || w === 'Freezing') return <Snowflake className={`${iconClass} text-cyan-300/80`} />;
+                      if (w === 'Thunderstorm') return <CloudLightning className={`${iconClass} text-yellow-300/80`} />;
+                      if (w === 'Rainy' || w === 'Cold Rain') return <CloudRain className={`${iconClass} text-blue-300/80`} />;
+                      if (w === 'Drizzle') return <CloudDrizzle className={`${iconClass} text-blue-200/60`} />;
+                      if (w === 'Foggy') return <CloudFog className={`${iconClass} text-gray-300/60`} />;
+                      if (w === 'Scorching' || w === 'Hot') return <Flame className={`${iconClass} text-orange-400/80`} />;
+                      if (w === 'Clear' || w === 'Sunny') return <Sun className={`${iconClass} text-yellow-300/80`} />;
+                      if (w === 'Overcast' || w === 'Partly Cloudy') return <Cloud className={`${iconClass} text-gray-400/60`} />;
+                      return <Cloud className={`${iconClass} text-white/40`} />;
+                    })()}
+                    <span className="text-[9px] text-white/50">{state.world.weather}</span>
+                    {state.sim_world && (
+                      <span className={`text-[8px] uppercase tracking-widest px-1.5 py-0.5 rounded-sm border ${
+                        state.sim_world.season === 'spring' ? 'text-green-400/70 border-green-900/40 bg-green-950/20' :
+                        state.sim_world.season === 'summer' ? 'text-amber-400/70 border-amber-900/40 bg-amber-950/20' :
+                        state.sim_world.season === 'autumn' ? 'text-orange-400/70 border-orange-900/40 bg-orange-950/20' :
+                        'text-cyan-400/70 border-cyan-900/40 bg-cyan-950/20'
+                      }`}>
+                        {state.sim_world.season}
+                      </span>
+                    )}
+                  </div>
+                  {/* Low needs warnings */}
+                  {(state.player.life_sim.needs.hunger <= 20 || state.player.life_sim.needs.thirst <= 15 || state.player.life_sim.needs.energy <= 20) && (
+                    <div className="flex flex-col items-end gap-0.5 mt-2">
+                      {state.player.life_sim.needs.hunger <= 20 && (
+                        <span className="text-[8px] uppercase tracking-widest text-amber-400/90 animate-pulse">⚠ Starving</span>
+                      )}
+                      {state.player.life_sim.needs.thirst <= 15 && (
+                        <span className="text-[8px] uppercase tracking-widest text-cyan-400/90 animate-pulse">⚠ Dehydrated</span>
+                      )}
+                      {state.player.life_sim.needs.energy <= 20 && (
+                        <span className="text-[8px] uppercase tracking-widest text-yellow-400/90 animate-pulse">⚠ Exhausted</span>
+                      )}
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
