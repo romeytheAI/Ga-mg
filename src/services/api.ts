@@ -1,4 +1,3 @@
-import { GoogleGenAI } from "@google/genai";
 import { STABLE_API, DEFAULT_API_KEY } from '../constants';
 import { getRelevantLore } from '../lore';
 import { imageWorker } from '../utils/workers';
@@ -200,6 +199,7 @@ export async function generateImage(prompt: string, apiKey: string, hordeApiKey:
 
   // Fallback to Gemini Image (if available)
   if (!apiKey || apiKey.startsWith('sk-or-')) throw new Error("No API key available for fallback generation");
+  const { GoogleGenAI } = await import("@google/genai");
   const ai = new GoogleGenAI({ apiKey });
   const response = await ai.models.generateContent({
     model: "gemini-2.5-flash-image",

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useReducer, createContext, useCallback, Component } from 'react';
+import React, { useState, useEffect, useRef, useReducer, createContext, useCallback, Component, Suspense } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
   Heart, Wind, Moon, Settings, X, BookOpen, User, Map as MapIcon, 
@@ -7,24 +7,7 @@ import {
   Cloud, Sun, Snowflake, CloudRain, CloudLightning, CloudDrizzle, CloudFog, Flame,
   Coins, Shirt, Users, Star
 } from 'lucide-react';
-import { GoogleGenAI, Type } from "@google/genai";
-import { CharacterModel } from './components/CharacterModel';
-import { SaveLoadModal } from './components/SaveLoadModal';
-import { XRayView } from './components/XRayView';
 import { ErrorBoundary } from './components/ErrorBoundary';
-import { NarrativePanel } from './components/NarrativePanel';
-import { JournalModal } from './components/modals/JournalModal';
-import { MapModal } from './components/modals/MapModal';
-import { XRayModal } from './components/modals/XRayModal';
-import { StatsModal } from './components/modals/StatsModal';
-import { StatusModal } from './components/modals/StatusModal';
-import { MemoriesModal } from './components/modals/MemoriesModal';
-import { InventoryModal } from './components/modals/InventoryModal';
-import { DeveloperModeModal } from './components/modals/DeveloperModeModal';
-import { SettingsModal } from './components/modals/SettingsModal';
-import { ShopModal } from './components/modals/ShopModal';
-import { WardrobeModal } from './components/modals/WardrobeModal';
-import { SocialModal } from './components/modals/SocialModal';
 import { SemanticText } from './components/TextComponents';
 import { GameState, Item, StatKey, ActiveEncounter } from './types';
 import { LOCATIONS } from './data/locations';
@@ -39,14 +22,35 @@ import { generateText, generateImage, generateLegendaryStats } from './services/
 import { buildTextPromptAsync, buildImagePrompt, getVisualEffectClasses, imageWorker } from './utils/workers';
 import { getSynergies, getAgeTag, getFallbackResponse, getHealthSemantic, getStaminaSemantic, getTraumaSemantic } from './utils/gameLogic';
 import { useEncounterBuffer } from './hooks/useEncounterBuffer';
-
-// --- Main Component ---
-import { ImmersiveStartMenu } from './components/ImmersiveStartMenu';
-import { EncounterUI } from './components/EncounterUI';
-import { NarrativeLog } from './components/NarrativeLog';
 import { saveGame } from './utils/saveManager';
 import { FloatingDeltas } from './components/TextComponents';
-import { DoLStatsSidebar } from './components/DoLStatsSidebar';
+
+// ── Lazy-loaded modals (only fetched when opened) ───────────────────────
+const SaveLoadModal = React.lazy(() => import('./components/SaveLoadModal').then(m => ({ default: m.SaveLoadModal })));
+const JournalModal = React.lazy(() => import('./components/modals/JournalModal').then(m => ({ default: m.JournalModal })));
+const MapModal = React.lazy(() => import('./components/modals/MapModal').then(m => ({ default: m.MapModal })));
+const XRayModal = React.lazy(() => import('./components/modals/XRayModal').then(m => ({ default: m.XRayModal })));
+const StatsModal = React.lazy(() => import('./components/modals/StatsModal').then(m => ({ default: m.StatsModal })));
+const StatusModal = React.lazy(() => import('./components/modals/StatusModal').then(m => ({ default: m.StatusModal })));
+const MemoriesModal = React.lazy(() => import('./components/modals/MemoriesModal').then(m => ({ default: m.MemoriesModal })));
+const InventoryModal = React.lazy(() => import('./components/modals/InventoryModal').then(m => ({ default: m.InventoryModal })));
+const DeveloperModeModal = React.lazy(() => import('./components/modals/DeveloperModeModal').then(m => ({ default: m.DeveloperModeModal })));
+const SettingsModal = React.lazy(() => import('./components/modals/SettingsModal').then(m => ({ default: m.SettingsModal })));
+const ShopModal = React.lazy(() => import('./components/modals/ShopModal').then(m => ({ default: m.ShopModal })));
+const WardrobeModal = React.lazy(() => import('./components/modals/WardrobeModal').then(m => ({ default: m.WardrobeModal })));
+const SocialModal = React.lazy(() => import('./components/modals/SocialModal').then(m => ({ default: m.SocialModal })));
+
+// ── Lazy-loaded heavy components ────────────────────────────────────────
+const CharacterModel = React.lazy(() => import('./components/CharacterModel').then(m => ({ default: m.CharacterModel })));
+const XRayView = React.lazy(() => import('./components/XRayView').then(m => ({ default: m.XRayView })));
+const NarrativePanel = React.lazy(() => import('./components/NarrativePanel').then(m => ({ default: m.NarrativePanel })));
+const ImmersiveStartMenu = React.lazy(() => import('./components/ImmersiveStartMenu').then(m => ({ default: m.ImmersiveStartMenu })));
+const EncounterUI = React.lazy(() => import('./components/EncounterUI').then(m => ({ default: m.EncounterUI })));
+const NarrativeLog = React.lazy(() => import('./components/NarrativeLog').then(m => ({ default: m.NarrativeLog })));
+const DoLStatsSidebar = React.lazy(() => import('./components/DoLStatsSidebar').then(m => ({ default: m.DoLStatsSidebar })));
+
+/** Minimal fallback for Suspense boundaries */
+const ChunkFallback = () => <div className="animate-pulse text-white/20 text-[9px] text-center p-2">Loading…</div>;
 
 const SettingsContext = createContext<any>(null);
 const HordeNetworkContext = createContext<any>(null);
@@ -85,6 +89,7 @@ function App({ state, dispatch }: { state: GameState, dispatch: React.Dispatch<a
   const generatePlayerAvatar = async () => {
     setIsGeneratingAvatar(true);
     try {
+      const { GoogleGenAI } = await import("@google/genai");
       const ai = new GoogleGenAI({ apiKey: state.ui.apiKey });
       const prompt = `A highly detailed, dark fantasy portrait of a ${getAgeTag(state.player.age_days, state.player.identity.race)} ${state.player.identity.race} ${state.player.identity.gender}. ${AGE_APPEARANCE[Math.floor(state.player.age_days / 365)] || ''} ${state.player.cosmetics.hair_length} ${state.player.cosmetics.eye_color} eyes. Dark, gritty, atmospheric lighting.`;
       
@@ -285,6 +290,7 @@ function App({ state, dispatch }: { state: GameState, dispatch: React.Dispatch<a
     if (state.ui.isGeneratingAvatar) return;
     dispatch({ type: 'START_AVATAR_GENERATION' });
     try {
+      const { GoogleGenAI } = await import("@google/genai");
       const ai = new GoogleGenAI({ apiKey: state.ui.apiKey });
       const prompt = `A highly detailed, dark fantasy portrait of a ${getAgeTag(state.player.age_days, state.player.identity.race)} ${state.player.identity.race} ${state.player.identity.gender}. ${AGE_APPEARANCE[Math.floor(state.player.age_days / 365)] || ''} ${state.player.cosmetics.hair_length} ${state.player.cosmetics.eye_color} eyes. Dark, gritty, atmospheric lighting.`;
       
@@ -812,7 +818,7 @@ Example: { "health": 50, "allure": 20 }`;
   }, []);
 
   if (!hasStarted) {
-    return <ImmersiveStartMenu onStartGame={handleStartGame} onLoadGame={handleLoadGame} />;
+    return <Suspense fallback={<ChunkFallback />}><ImmersiveStartMenu onStartGame={handleStartGame} onLoadGame={handleLoadGame} /></Suspense>;
   }
 
   return (
@@ -970,21 +976,25 @@ Example: { "health": 50, "allure": 20 }`;
         )}
       </AnimatePresence>
       {state.ui.show_save_load && (
+        <Suspense fallback={<ChunkFallback />}>
         <SaveLoadModal 
           onClose={() => dispatch({ type: 'TOGGLE_UI_SETTING', payload: { key: 'show_save_load', value: false } })}
           onLoad={(state: GameState) => dispatch({ type: 'LOAD_GAME', payload: state })}
           currentState={state}
         />
+        </Suspense>
       )}
       {/* Main Content */}
       <main className="flex-1 flex overflow-hidden relative">
         {/* DoL Stats Sidebar - always visible */}
+        <Suspense fallback={<ChunkFallback />}>
         <DoLStatsSidebar
           state={state}
           dispatch={dispatch}
           onOpenStats={() => dispatch({ type: 'TOGGLE_UI_SETTING', payload: { key: 'show_stats', value: true } })}
           onOpenInventory={() => dispatch({ type: 'TOGGLE_UI_SETTING', payload: { key: 'show_inventory', value: true } })}
         />
+        </Suspense>
 
         {/* Left: Visuals */}
         <div className="flex-1 relative flex items-center justify-center p-12" onMouseMove={handleMouseMove}>
@@ -1170,6 +1180,7 @@ Example: { "health": 50, "allure": 20 }`;
         </div>
 
         {/* Right: Narrative Panel */}
+        <Suspense fallback={<ChunkFallback />}>
         <NarrativePanel
           state={state}
           handleAction={handleAction}
@@ -1177,6 +1188,7 @@ Example: { "health": 50, "allure": 20 }`;
           setCustomAction={setCustomAction}
           NarrativeLog={NarrativeLog}
         />
+        </Suspense>
       </main>
 
       {/* Horde Monitor UI */}
@@ -1225,22 +1237,22 @@ Example: { "health": 50, "allure": 20 }`;
 
       {/* Status Modal */}
       <AnimatePresence>
-        {showStatus && <StatusModal state={state} onClose={() => setShowStatus(false)} />}
+        {showStatus && <Suspense fallback={<ChunkFallback />}><StatusModal state={state} onClose={() => setShowStatus(false)} /></Suspense>}
       </AnimatePresence>
 
       {/* Memory Graph Modal */}
       <AnimatePresence>
-        {showMemories && <MemoriesModal state={state} onClose={() => setShowMemories(false)} />}
+        {showMemories && <Suspense fallback={<ChunkFallback />}><MemoriesModal state={state} onClose={() => setShowMemories(false)} /></Suspense>}
       </AnimatePresence>
 
       {/* Map Modal */}
       <AnimatePresence>
-        {showMap && <MapModal state={state} onClose={() => setShowMap(false)} />}
+        {showMap && <Suspense fallback={<ChunkFallback />}><MapModal state={state} onClose={() => setShowMap(false)} /></Suspense>}
       </AnimatePresence>
 
       {/* Developer Mode Modal */}
       <AnimatePresence>
-        {showDeveloperMode && <DeveloperModeModal state={state} dispatch={dispatch} onClose={() => setShowDeveloperMode(false)} />}
+        {showDeveloperMode && <Suspense fallback={<ChunkFallback />}><DeveloperModeModal state={state} dispatch={dispatch} onClose={() => setShowDeveloperMode(false)} /></Suspense>}
       </AnimatePresence>
 
       {/* Map Modal */}
@@ -1462,7 +1474,7 @@ Example: { "health": 50, "allure": 20 }`;
               className="max-w-2xl w-full relative"
             >
               <button onClick={() => dispatch({ type: 'TOGGLE_UI_SETTING', payload: { key: 'show_xray', value: false } })} className="absolute top-6 right-6 text-white/40 hover:text-white z-10"><X className="w-6 h-6" /></button>
-              <XRayView anatomy={state.player.anatomy} highlightedPart={state.ui.highlighted_part || undefined} />
+              <Suspense fallback={<ChunkFallback />}><XRayView anatomy={state.player.anatomy} highlightedPart={state.ui.highlighted_part || undefined} /></Suspense>
             </motion.div>
           </motion.div>
         )}
@@ -1508,7 +1520,7 @@ Example: { "health": 50, "allure": 20 }`;
               <h2 className="text-2xl font-serif text-white/90 mb-8 border-b border-white/10 pb-4 tracking-widest uppercase">Character Essence</h2>
               
               <div className="grid grid-cols-2 gap-8">
-                <CharacterModel anatomy={state.player.anatomy} isPlayer={true} />
+                <Suspense fallback={<ChunkFallback />}><CharacterModel anatomy={state.player.anatomy} isPlayer={true} /></Suspense>
                 <div className="space-y-6">
                   <h3 className="text-xs tracking-widest uppercase text-white/40 mb-2">Vitals</h3>
                   {['health', 'stamina', 'willpower', 'purity'].map((key) => (
@@ -1952,6 +1964,7 @@ Example: { "health": 50, "allure": 20 }`;
 
       <AnimatePresence>
         {showSettings && (
+          <Suspense fallback={<ChunkFallback />}>
           <SettingsModal
             state={state}
             dispatch={dispatch}
@@ -1962,6 +1975,7 @@ Example: { "health": 50, "allure": 20 }`;
             setShowDeveloperMode={setShowDeveloperMode}
             toggleFullscreen={toggleFullscreen}
           />
+          </Suspense>
         )}
       </AnimatePresence>
 
@@ -2065,17 +2079,17 @@ Example: { "health": 50, "allure": 20 }`;
 
       {/* Shop Modal */}
       <AnimatePresence>
-        {state.ui.show_shop && <ShopModal state={state} dispatch={dispatch} />}
+        {state.ui.show_shop && <Suspense fallback={<ChunkFallback />}><ShopModal state={state} dispatch={dispatch} /></Suspense>}
       </AnimatePresence>
 
       {/* Wardrobe Modal */}
       <AnimatePresence>
-        {state.ui.show_wardrobe && <WardrobeModal state={state} dispatch={dispatch} />}
+        {state.ui.show_wardrobe && <Suspense fallback={<ChunkFallback />}><WardrobeModal state={state} dispatch={dispatch} /></Suspense>}
       </AnimatePresence>
 
       {/* Social Modal */}
       <AnimatePresence>
-        {state.ui.show_social && <SocialModal state={state} dispatch={dispatch} />}
+        {state.ui.show_social && <Suspense fallback={<ChunkFallback />}><SocialModal state={state} dispatch={dispatch} /></Suspense>}
       </AnimatePresence>
 
 

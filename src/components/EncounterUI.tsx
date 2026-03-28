@@ -1,8 +1,9 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { CharacterModel } from './CharacterModel';
-import { GltfViewer3D } from './GltfViewer3D';
 import { GameState, ActiveEncounter } from '../types';
+
+const GltfViewer3D = React.lazy(() => import('./GltfViewer3D').then(m => ({ default: m.GltfViewer3D })));
 
 interface EncounterUIProps {
   encounter: ActiveEncounter;
@@ -58,11 +59,13 @@ export const EncounterUI: React.FC<EncounterUIProps> = ({ encounter, playerStats
       <div className="flex justify-center my-4 relative z-10">
         {state && show3D ? (
           <div className="w-full">
+            <React.Suspense fallback={<div className="text-white/20 text-xs text-center p-4">Loading 3D…</div>}>
             <GltfViewer3D
               state={state}
               height="280px"
               combatAnimation={state.ui.combat_animation}
             />
+            </React.Suspense>
           </div>
         ) : (
           <CharacterModel anatomy={encounter.anatomy} isPlayer={false} />

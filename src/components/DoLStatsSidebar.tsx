@@ -3,8 +3,9 @@ import { motion } from 'motion/react';
 import { Heart, Wind, Shield, Flame, Droplets, Sun, Moon, Zap, Coffee, Users, Star } from 'lucide-react';
 import { GameState, StatKey, Incubation } from '../types';
 import { DoLCharacterSprite } from './DoLCharacterSprite';
-import { GltfExportButton } from './GltfExportButton';
-import { GltfViewer3D } from './GltfViewer3D';
+
+const GltfExportButton = React.lazy(() => import('./GltfExportButton').then(m => ({ default: m.GltfExportButton })));
+const GltfViewer3D = React.lazy(() => import('./GltfViewer3D').then(m => ({ default: m.GltfViewer3D })));
 
 interface DoLStatsSidebarProps {
   state: GameState;
@@ -88,11 +89,13 @@ const SpriteWithXRay: React.FC<{ state: GameState }> = ({ state }) => {
   return (
     <div className="relative">
       {view3D ? (
+        <React.Suspense fallback={<div className="text-white/20 text-xs text-center p-4">Loading 3D…</div>}>
         <GltfViewer3D
           state={state}
           height="225px"
           combatAnimation={state.ui.combat_animation}
         />
+        </React.Suspense>
       ) : (
         <DoLCharacterSprite state={state} compact={false} showXRay={xrayOn} />
       )}
@@ -118,7 +121,7 @@ const SpriteWithXRay: React.FC<{ state: GameState }> = ({ state }) => {
         >
           3D
         </button>
-        <GltfExportButton state={state} />
+        <React.Suspense fallback={null}><GltfExportButton state={state} /></React.Suspense>
       </div>
     </div>
   );
