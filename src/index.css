@@ -1041,4 +1041,231 @@
   .sprite-location-enter {
     animation: sprite-location-enter 0.6s ease-out;
   }
+
+  /* ═══════════════════════════════════════════════════════════════════
+     DoL-parity X-ray internal organ animations
+     ═══════════════════════════════════════════════════════════════════ */
+
+  /* Heart — systole/diastole beating cycle */
+  @keyframes xray-heart-beat {
+    0%   { transform: scale(1); }
+    8%   { transform: scale(1.18); }
+    14%  { transform: scale(0.95); }
+    22%  { transform: scale(1.12); }
+    30%  { transform: scale(1); }
+    100% { transform: scale(1); }
+  }
+  .xray-heart {
+    transform-origin: center;
+    animation: xray-heart-beat 0.85s ease-in-out infinite;
+  }
+  .xray-heart-damaged {
+    transform-origin: center;
+    animation: xray-heart-beat 1.1s ease-in-out infinite;
+    animation-timing-function: steps(4, end);
+  }
+
+  /* Lungs — breathing expansion/contraction */
+  @keyframes xray-lung-breathe-l {
+    0%, 100% { transform: scaleX(1) scaleY(1); }
+    40%      { transform: scaleX(1.08) scaleY(1.06); }
+    60%      { transform: scaleX(1.06) scaleY(1.04); }
+  }
+  @keyframes xray-lung-breathe-r {
+    0%, 100% { transform: scaleX(1) scaleY(1); }
+    40%      { transform: scaleX(1.08) scaleY(1.06); }
+    60%      { transform: scaleX(1.06) scaleY(1.04); }
+  }
+  .xray-lung-l {
+    transform-origin: right center;
+    animation: xray-lung-breathe-l 3.2s ease-in-out infinite;
+  }
+  .xray-lung-r {
+    transform-origin: left center;
+    animation: xray-lung-breathe-r 3.2s ease-in-out infinite;
+  }
+  .xray-lung-l-damaged {
+    transform-origin: right center;
+    animation: xray-lung-breathe-l 2.2s ease-in-out infinite;
+  }
+  .xray-lung-r-damaged {
+    transform-origin: left center;
+    animation: xray-lung-breathe-r 2.2s ease-in-out infinite;
+  }
+
+  /* Brain — neural activity shimmer */
+  @keyframes xray-brain-pulse {
+    0%, 100% { opacity: 0.3; filter: brightness(1); }
+    30%      { opacity: 0.45; filter: brightness(1.2); }
+    60%      { opacity: 0.35; filter: brightness(1.1); }
+  }
+  .xray-brain {
+    animation: xray-brain-pulse 2.5s ease-in-out infinite;
+  }
+  @keyframes xray-brain-spark {
+    0%, 85%, 100% { opacity: 0; }
+    88%           { opacity: 0.8; }
+    92%           { opacity: 0; }
+    95%           { opacity: 0.6; }
+  }
+  .xray-brain-spark {
+    animation: xray-brain-spark 3s ease-in-out infinite;
+  }
+  .xray-brain-spark-b {
+    animation: xray-brain-spark 3s ease-in-out 1.5s infinite;
+  }
+
+  /* Stomach — digestion churning / peristalsis */
+  @keyframes xray-stomach-churn {
+    0%, 100% { transform: scaleX(1) scaleY(1) rotate(0deg); }
+    25%      { transform: scaleX(1.04) scaleY(0.97) rotate(0.5deg); }
+    50%      { transform: scaleX(0.97) scaleY(1.03) rotate(-0.3deg); }
+    75%      { transform: scaleX(1.02) scaleY(0.99) rotate(0.2deg); }
+  }
+  .xray-stomach {
+    transform-origin: center;
+    animation: xray-stomach-churn 4s ease-in-out infinite;
+  }
+  .xray-stomach-damaged {
+    transform-origin: center;
+    animation: xray-stomach-churn 2.5s ease-in-out infinite;
+  }
+  /* Stomach acid bubble */
+  @keyframes xray-stomach-bubble {
+    0%       { transform: translateY(0) scale(1); opacity: 0.4; }
+    50%      { transform: translateY(-2px) scale(1.3); opacity: 0.6; }
+    100%     { transform: translateY(-4px) scale(0.5); opacity: 0; }
+  }
+  .xray-stomach-bubble {
+    animation: xray-stomach-bubble 3s ease-in-out infinite;
+  }
+  .xray-stomach-bubble-b {
+    animation: xray-stomach-bubble 3s ease-in-out 1s infinite;
+  }
+  .xray-stomach-bubble-c {
+    animation: xray-stomach-bubble 3s ease-in-out 2s infinite;
+  }
+
+  /* Intestines — peristaltic wave */
+  @keyframes xray-intestine-wave {
+    0%, 100% { stroke-dashoffset: 0; }
+    50%      { stroke-dashoffset: -8; }
+  }
+  .xray-intestine {
+    animation: xray-intestine-wave 5s linear infinite;
+  }
+  .xray-intestine-b {
+    animation: xray-intestine-wave 5s linear 1.5s infinite;
+  }
+
+  /* Liver — filtration pulse */
+  @keyframes xray-liver-filter {
+    0%, 100% { opacity: 0.4; transform: scale(1); }
+    50%      { opacity: 0.55; transform: scale(1.02); }
+  }
+  .xray-liver {
+    transform-origin: center;
+    animation: xray-liver-filter 4.5s ease-in-out infinite;
+  }
+  .xray-liver-damaged {
+    transform-origin: center;
+    animation: xray-liver-filter 2.8s ease-in-out infinite;
+  }
+
+  /* Kidneys — filtration pulsation */
+  @keyframes xray-kidney-pulse {
+    0%, 100% { transform: scale(1); opacity: 0.4; }
+    40%      { transform: scale(1.06); opacity: 0.55; }
+    60%      { transform: scale(0.97); opacity: 0.45; }
+  }
+  .xray-kidney-l {
+    transform-origin: center;
+    animation: xray-kidney-pulse 3.8s ease-in-out infinite;
+  }
+  .xray-kidney-r {
+    transform-origin: center;
+    animation: xray-kidney-pulse 3.8s ease-in-out 0.5s infinite;
+  }
+
+  /* Bladder — fill-level pulsing */
+  @keyframes xray-bladder-pulse {
+    0%, 100% { transform: scaleY(1) scaleX(1); }
+    50%      { transform: scaleY(1.05) scaleX(1.03); }
+  }
+  .xray-bladder {
+    transform-origin: center bottom;
+    animation: xray-bladder-pulse 5s ease-in-out infinite;
+  }
+
+  /* Uterus — subtle contraction cycle */
+  @keyframes xray-uterus-contract {
+    0%, 100% { transform: scaleX(1) scaleY(1); }
+    30%      { transform: scaleX(0.97) scaleY(1.02); }
+    70%      { transform: scaleX(1.02) scaleY(0.98); }
+  }
+  .xray-uterus {
+    transform-origin: center top;
+    animation: xray-uterus-contract 6s ease-in-out infinite;
+  }
+
+  /* Ovary — follicle pulse */
+  @keyframes xray-ovary-pulse {
+    0%, 100% { transform: scale(1); opacity: 0.4; }
+    50%      { transform: scale(1.15); opacity: 0.55; }
+  }
+  .xray-ovary-l {
+    transform-origin: center;
+    animation: xray-ovary-pulse 4s ease-in-out infinite;
+  }
+  .xray-ovary-r {
+    transform-origin: center;
+    animation: xray-ovary-pulse 4s ease-in-out 2s infinite;
+  }
+
+  /* Circulatory — blood flow pulse along vessels */
+  @keyframes xray-blood-pulse {
+    0%, 100% { opacity: 0.3; stroke-width: 0.8; }
+    30%      { opacity: 0.55; stroke-width: 1.2; }
+    60%      { opacity: 0.35; stroke-width: 0.9; }
+  }
+  .xray-artery {
+    animation: xray-blood-pulse 0.85s ease-in-out infinite;
+  }
+  .xray-artery-delay {
+    animation: xray-blood-pulse 0.85s ease-in-out 0.12s infinite;
+  }
+  .xray-artery-delay-b {
+    animation: xray-blood-pulse 0.85s ease-in-out 0.24s infinite;
+  }
+  @keyframes xray-vein-pulse {
+    0%, 100% { opacity: 0.35; }
+    50%      { opacity: 0.5; }
+  }
+  .xray-vein {
+    animation: xray-vein-pulse 1.2s ease-in-out infinite;
+  }
+
+  /* Scan line glow trail */
+  @keyframes xray-scan-glow {
+    0%   { transform: translateY(0); opacity: 0.2; }
+    100% { transform: translateY(225px); opacity: 0; }
+  }
+  .xray-scan-glow {
+    animation: xray-scan-glow 4s linear 0.3s infinite;
+  }
+
+  /* Nerve impulse flash along spine */
+  @keyframes xray-nerve-impulse {
+    0%, 90%, 100% { opacity: 0; }
+    5%  { opacity: 0.7; }
+    30% { opacity: 0; }
+    35% { opacity: 0.5; }
+    50% { opacity: 0; }
+  }
+  .xray-nerve-impulse {
+    animation: xray-nerve-impulse 2.5s ease-in-out infinite;
+  }
+  .xray-nerve-impulse-b {
+    animation: xray-nerve-impulse 2.5s ease-in-out 1.2s infinite;
+  }
 }

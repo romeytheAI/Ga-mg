@@ -24,7 +24,11 @@ function boneColor(v: number): string {
 /**
  * X-ray overlay that draws directly on top of the DoL sprite.
  * Uses the same viewBox "0 0 100 225" coordinate system.
- * Renders a translucent skeleton + organ system.
+ * Renders a fully-animated translucent skeleton + organ system with
+ * DoL-parity internal organ animations: heartbeat, lung breathing,
+ * stomach churning, intestinal peristalsis, kidney filtration,
+ * brain neural activity, bladder pulsing, uterine contractions,
+ * circulatory blood flow pulses, and nerve impulses along the spine.
  */
 export const XRayOverlay: React.FC<XRayOverlayProps> = ({ geom, s, isFemale, organs, bones_integrity }) => {
   const cx = s.cx; // 50
@@ -37,6 +41,12 @@ export const XRayOverlay: React.FC<XRayOverlayProps> = ({ geom, s, isFemale, org
   for (let i = 0; i <= 12; i++) {
     vertebrae.push(spineTop + (spineLen * i) / 12);
   }
+
+  // Damage thresholds for organ animation variants
+  const heartDamaged = organs.heart < 50;
+  const lungsDamaged = organs.lungs < 50;
+  const stomachDamaged = organs.stomach < 50;
+  const liverDamaged = organs.liver < 50;
 
   return (
     <g>
@@ -78,6 +88,11 @@ export const XRayOverlay: React.FC<XRayOverlayProps> = ({ geom, s, isFemale, org
           x1={cx - 3.5} y1={vy} x2={cx + 3.5} y2={vy}
           stroke={boneColor(bones_integrity.spine)} strokeWidth="0.8" />
       ))}
+      {/* Nerve impulses along spine */}
+      <line x1={cx - 1} y1={spineTop} x2={cx - 1} y2={spineBot}
+        stroke="rgba(120,200,255,0.6)" strokeWidth="0.4" className="xray-nerve-impulse" />
+      <line x1={cx + 1} y1={spineTop} x2={cx + 1} y2={spineBot}
+        stroke="rgba(120,200,255,0.5)" strokeWidth="0.3" className="xray-nerve-impulse-b" />
       {/* Coccyx / sacrum */}
       <path d={`M ${cx},${spineBot} L ${cx},${s.crotchY + 4}`}
         stroke={boneColor(bones_integrity.spine)} strokeWidth="1" />
@@ -213,49 +228,61 @@ export const XRayOverlay: React.FC<XRayOverlayProps> = ({ geom, s, isFemale, org
       ))}
 
       {/* ══════════════════════════════════════════════════════════════
-          ORGANS
+          ORGANS (fully animated — DoL X-ray parity)
          ══════════════════════════════════════════════════════════════ */}
 
-      {/* ── Brain (uses average organ health as proxy since no dedicated brain field) ── */}
+      {/* ── Brain — neural activity shimmer + synaptic sparks ── */}
       {(() => {
         const organValues = Object.values(organs);
         const brainHealth = Math.round(organValues.reduce((sum, v) => sum + v, 0) / organValues.length);
         return (
           <>
             <ellipse cx={cx} cy={s.headCY - 2} rx={geom.headRX * 0.5} ry={geom.headRY * 0.45}
-              fill={healthColor(brainHealth)} opacity="0.3" />
+              fill={healthColor(brainHealth)} className="xray-brain" />
             {/* Brain folds */}
             <path d={`M ${cx - 3},${s.headCY - 6} Q ${cx},${s.headCY - 8} ${cx + 3},${s.headCY - 6}`}
-              fill="none" stroke={healthColor(brainHealth)} strokeWidth="0.4" opacity="0.5" />
+              fill="none" stroke={healthColor(brainHealth)} strokeWidth="0.4" opacity="0.5" className="xray-brain" />
             <path d={`M ${cx - 4},${s.headCY - 4} Q ${cx},${s.headCY - 6.5} ${cx + 4},${s.headCY - 4}`}
-              fill="none" stroke={healthColor(brainHealth)} strokeWidth="0.4" opacity="0.5" />
+              fill="none" stroke={healthColor(brainHealth)} strokeWidth="0.4" opacity="0.5" className="xray-brain" />
+            {/* Synaptic spark flashes */}
+            <circle cx={cx - 3} cy={s.headCY - 4} r="0.8"
+              fill="rgba(160,220,255,0.8)" className="xray-brain-spark" />
+            <circle cx={cx + 2} cy={s.headCY - 6} r="0.6"
+              fill="rgba(160,220,255,0.7)" className="xray-brain-spark-b" />
           </>
         );
       })()}
 
-      {/* ── Heart ── */}
-      <g className="animate-pulse">
+      {/* ── Heart — systole/diastole beating ── */}
+      <g className={heartDamaged ? 'xray-heart-damaged' : 'xray-heart'}>
         <path d={`M ${cx - 3},${s.shldY + 20}
           C ${cx - 8},${s.shldY + 14} ${cx - 8},${s.shldY + 10} ${cx - 3},${s.shldY + 14}
           C ${cx + 2},${s.shldY + 10} ${cx + 2},${s.shldY + 14} ${cx - 3},${s.shldY + 20} Z`}
           fill={healthColor(organs.heart)} opacity="0.7" />
+        {/* Aortic root */}
+        <line x1={cx - 2} y1={s.shldY + 12} x2={cx - 1} y2={s.shldY + 8}
+          stroke={healthColor(organs.heart)} strokeWidth="0.6" opacity="0.5" />
       </g>
 
-      {/* ── Lungs ── */}
+      {/* ── Lungs — breathing expansion/contraction ── */}
       {/* Left lung */}
-      <path d={`M ${cx - 4},${s.shldY + 10}
-        Q ${cx - geom.shoulderHW * 0.65},${s.shldY + 12}
-          ${cx - geom.shoulderHW * 0.6},${s.shldY + 28}
-        Q ${cx - geom.shoulderHW * 0.55},${s.shldY + 42}
-          ${cx - 4},${s.shldY + 42} Z`}
-        fill={healthColor(organs.lungs)} opacity="0.35" />
+      <g className={lungsDamaged ? 'xray-lung-l-damaged' : 'xray-lung-l'}>
+        <path d={`M ${cx - 4},${s.shldY + 10}
+          Q ${cx - geom.shoulderHW * 0.65},${s.shldY + 12}
+            ${cx - geom.shoulderHW * 0.6},${s.shldY + 28}
+          Q ${cx - geom.shoulderHW * 0.55},${s.shldY + 42}
+            ${cx - 4},${s.shldY + 42} Z`}
+          fill={healthColor(organs.lungs)} opacity="0.35" />
+      </g>
       {/* Right lung */}
-      <path d={`M ${cx + 4},${s.shldY + 10}
-        Q ${cx + geom.shoulderHW * 0.65},${s.shldY + 12}
-          ${cx + geom.shoulderHW * 0.6},${s.shldY + 28}
-        Q ${cx + geom.shoulderHW * 0.55},${s.shldY + 42}
-          ${cx + 4},${s.shldY + 42} Z`}
-        fill={healthColor(organs.lungs)} opacity="0.35" />
+      <g className={lungsDamaged ? 'xray-lung-r-damaged' : 'xray-lung-r'}>
+        <path d={`M ${cx + 4},${s.shldY + 10}
+          Q ${cx + geom.shoulderHW * 0.65},${s.shldY + 12}
+            ${cx + geom.shoulderHW * 0.6},${s.shldY + 28}
+          Q ${cx + geom.shoulderHW * 0.55},${s.shldY + 42}
+            ${cx + 4},${s.shldY + 42} Z`}
+          fill={healthColor(organs.lungs)} opacity="0.35" />
+      </g>
       {/* Bronchial tree */}
       <path d={`M ${cx},${s.shldY + 10} L ${cx - 5},${s.shldY + 18}`}
         stroke={healthColor(organs.lungs)} strokeWidth="0.5" opacity="0.5" />
@@ -266,53 +293,69 @@ export const XRayOverlay: React.FC<XRayOverlayProps> = ({ geom, s, isFemale, org
       <path d={`M ${cx + 5},${s.shldY + 18} L ${cx + 8},${s.shldY + 25}`}
         stroke={healthColor(organs.lungs)} strokeWidth="0.4" opacity="0.4" />
 
-      {/* ── Stomach ── */}
-      <path d={`M ${cx - 4},${s.shldY + 44}
-        Q ${cx - 10},${s.shldY + 50} ${cx - 6},${s.shldY + 56}
-        Q ${cx - 2},${s.shldY + 58} ${cx + 2},${s.shldY + 54}
-        L ${cx + 2},${s.shldY + 48}
-        Q ${cx},${s.shldY + 44} ${cx - 4},${s.shldY + 44} Z`}
-        fill={healthColor(organs.stomach)} opacity="0.4" />
+      {/* ── Stomach — digestion churning + acid bubbles ── */}
+      <g className={stomachDamaged ? 'xray-stomach-damaged' : 'xray-stomach'}>
+        <path d={`M ${cx - 4},${s.shldY + 44}
+          Q ${cx - 10},${s.shldY + 50} ${cx - 6},${s.shldY + 56}
+          Q ${cx - 2},${s.shldY + 58} ${cx + 2},${s.shldY + 54}
+          L ${cx + 2},${s.shldY + 48}
+          Q ${cx},${s.shldY + 44} ${cx - 4},${s.shldY + 44} Z`}
+          fill={healthColor(organs.stomach)} opacity="0.4" />
+        {/* Acid bubbles inside stomach */}
+        <circle cx={cx - 3} cy={s.shldY + 52} r="0.8"
+          fill="rgba(180,255,60,0.35)" className="xray-stomach-bubble" />
+        <circle cx={cx - 1} cy={s.shldY + 50} r="0.6"
+          fill="rgba(180,255,60,0.3)" className="xray-stomach-bubble-b" />
+        <circle cx={cx + 1} cy={s.shldY + 53} r="0.5"
+          fill="rgba(180,255,60,0.25)" className="xray-stomach-bubble-c" />
+      </g>
 
-      {/* ── Liver ── */}
-      <path d={`M ${cx + 3},${s.shldY + 44}
-        Q ${cx + geom.shoulderHW * 0.45},${s.shldY + 42}
-          ${cx + geom.shoulderHW * 0.5},${s.shldY + 50}
-        Q ${cx + geom.shoulderHW * 0.4},${s.shldY + 56}
-          ${cx + 3},${s.shldY + 54} Z`}
-        fill={healthColor(organs.liver)} opacity="0.4" />
+      {/* ── Liver — filtration pulse ── */}
+      <g className={liverDamaged ? 'xray-liver-damaged' : 'xray-liver'}>
+        <path d={`M ${cx + 3},${s.shldY + 44}
+          Q ${cx + geom.shoulderHW * 0.45},${s.shldY + 42}
+            ${cx + geom.shoulderHW * 0.5},${s.shldY + 50}
+          Q ${cx + geom.shoulderHW * 0.4},${s.shldY + 56}
+            ${cx + 3},${s.shldY + 54} Z`}
+          fill={healthColor(organs.liver)} />
+      </g>
 
-      {/* ── Kidneys ── */}
+      {/* ── Kidneys — filtration pulsation (staggered L/R) ── */}
       <ellipse cx={cx - 7} cy={s.waistY - 4} rx="3.5" ry="5"
-        fill={healthColor(organs.kidneys)} opacity="0.4" />
+        fill={healthColor(organs.kidneys)} className="xray-kidney-l" />
       <ellipse cx={cx + 7} cy={s.waistY - 4} rx="3.5" ry="5"
-        fill={healthColor(organs.kidneys)} opacity="0.4" />
+        fill={healthColor(organs.kidneys)} className="xray-kidney-r" />
 
-      {/* ── Intestines (simplified coil) ── */}
+      {/* ── Intestines — peristaltic wave motion ── */}
       <path d={`M ${cx - 6},${s.waistY + 4}
         Q ${cx - 8},${s.waistY + 8} ${cx - 4},${s.waistY + 10}
         Q ${cx + 2},${s.waistY + 12} ${cx + 6},${s.waistY + 8}
         Q ${cx + 8},${s.waistY + 4} ${cx + 4},${s.waistY + 2}
         Q ${cx},${s.waistY} ${cx - 4},${s.waistY + 2}`}
-        fill="none" stroke={healthColor(organs.stomach)} strokeWidth="1.2" opacity="0.3" />
+        fill="none" stroke={healthColor(organs.stomach)} strokeWidth="1.2" opacity="0.3"
+        strokeDasharray="2 1.5" className="xray-intestine" />
       <path d={`M ${cx - 5},${s.hipTopY}
         Q ${cx},${s.hipTopY + 4} ${cx + 5},${s.hipTopY}
         Q ${cx + 8},${s.hipTopY + 6} ${cx + 3},${s.hipTopY + 8}
         Q ${cx - 2},${s.hipTopY + 10} ${cx - 5},${s.hipTopY + 6}`}
-        fill="none" stroke={healthColor(organs.stomach)} strokeWidth="0.8" opacity="0.25" />
+        fill="none" stroke={healthColor(organs.stomach)} strokeWidth="0.8" opacity="0.25"
+        strokeDasharray="1.5 1" className="xray-intestine-b" />
 
-      {/* ── Bladder ── */}
+      {/* ── Bladder — fill-level pulsing ── */}
       <ellipse cx={cx} cy={s.crotchY - 8} rx="4" ry="3.5"
-        fill="rgba(100,180,255,0.3)" stroke="rgba(100,180,255,0.4)" strokeWidth="0.5" />
+        fill="rgba(100,180,255,0.3)" stroke="rgba(100,180,255,0.4)" strokeWidth="0.5"
+        className="xray-bladder" />
 
-      {/* ── Reproductive organs (female: uterus) ── */}
+      {/* ── Reproductive organs (female: uterus with contractions) ── */}
       {isFemale && (
         <g>
-          {/* Uterus */}
-          <path d={`M ${cx - 5},${s.crotchY - 12}
-            Q ${cx - 6},${s.crotchY - 6} ${cx},${s.crotchY - 3}
-            Q ${cx + 6},${s.crotchY - 6} ${cx + 5},${s.crotchY - 12} Z`}
-            fill="rgba(255,130,160,0.35)" stroke="rgba(255,130,160,0.45)" strokeWidth="0.5" />
+          {/* Uterus — subtle contraction cycle */}
+          <g className="xray-uterus">
+            <path d={`M ${cx - 5},${s.crotchY - 12}
+              Q ${cx - 6},${s.crotchY - 6} ${cx},${s.crotchY - 3}
+              Q ${cx + 6},${s.crotchY - 6} ${cx + 5},${s.crotchY - 12} Z`}
+              fill="rgba(255,130,160,0.35)" stroke="rgba(255,130,160,0.45)" strokeWidth="0.5" />
+          </g>
           {/* Fallopian tubes */}
           <path d={`M ${cx - 5},${s.crotchY - 12}
             Q ${cx - 10},${s.crotchY - 16} ${cx - 12},${s.crotchY - 14}`}
@@ -320,54 +363,71 @@ export const XRayOverlay: React.FC<XRayOverlayProps> = ({ geom, s, isFemale, org
           <path d={`M ${cx + 5},${s.crotchY - 12}
             Q ${cx + 10},${s.crotchY - 16} ${cx + 12},${s.crotchY - 14}`}
             fill="none" stroke="rgba(255,130,160,0.4)" strokeWidth="0.6" />
-          {/* Ovaries */}
+          {/* Ovaries — follicle pulse (staggered L/R) */}
           <ellipse cx={cx - 12} cy={s.crotchY - 14} rx="2" ry="1.5"
-            fill="rgba(255,130,160,0.4)" />
+            fill="rgba(255,130,160,0.4)" className="xray-ovary-l" />
           <ellipse cx={cx + 12} cy={s.crotchY - 14} rx="2" ry="1.5"
-            fill="rgba(255,130,160,0.4)" />
+            fill="rgba(255,130,160,0.4)" className="xray-ovary-r" />
         </g>
       )}
 
       {/* ══════════════════════════════════════════════════════════════
-          CIRCULATORY SYSTEM (major blood vessels)
+          CIRCULATORY SYSTEM — animated blood flow pulses
          ══════════════════════════════════════════════════════════════ */}
-      <g opacity="0.3">
-        {/* Aorta */}
+      <g>
+        {/* Aortic arch — pulsing with heartbeat */}
         <path d={`M ${cx - 3},${s.shldY + 16}
           Q ${cx - 2},${s.shldY + 10} ${cx + 2},${s.shldY + 8}
           Q ${cx + 6},${s.shldY + 10} ${cx + 4},${s.shldY + 16}`}
-          fill="none" stroke="rgba(255,40,40,0.6)" strokeWidth="1" />
+          fill="none" stroke="rgba(255,40,40,0.6)" strokeWidth="1" className="xray-artery" />
+        {/* Descending aorta */}
         <line x1={cx} y1={s.shldY + 16} x2={cx} y2={s.hipTopY}
-          stroke="rgba(255,40,40,0.5)" strokeWidth="0.8" />
-        {/* Iliac arteries */}
+          stroke="rgba(255,40,40,0.5)" strokeWidth="0.8" className="xray-artery-delay" />
+        {/* Iliac arteries — delayed pulse wave */}
         <line x1={cx} y1={s.hipTopY} x2={cx - 6} y2={s.crotchY - 2}
-          stroke="rgba(255,40,40,0.4)" strokeWidth="0.6" />
+          stroke="rgba(255,40,40,0.4)" strokeWidth="0.6" className="xray-artery-delay-b" />
         <line x1={cx} y1={s.hipTopY} x2={cx + 6} y2={s.crotchY - 2}
-          stroke="rgba(255,40,40,0.4)" strokeWidth="0.6" />
+          stroke="rgba(255,40,40,0.4)" strokeWidth="0.6" className="xray-artery-delay-b" />
         {/* Carotid arteries */}
         <line x1={cx - 2} y1={s.shldY + 8} x2={cx - 2} y2={s.neckTopY}
-          stroke="rgba(255,40,40,0.4)" strokeWidth="0.5" />
+          stroke="rgba(255,40,40,0.4)" strokeWidth="0.5" className="xray-artery" />
         <line x1={cx + 2} y1={s.shldY + 8} x2={cx + 2} y2={s.neckTopY}
-          stroke="rgba(255,40,40,0.4)" strokeWidth="0.5" />
+          stroke="rgba(255,40,40,0.4)" strokeWidth="0.5" className="xray-artery" />
         {/* Arm arteries */}
         <line x1={s.shLX + 1} y1={s.shldY + 5} x2={s.elLX + 1} y2={s.elY}
-          stroke="rgba(255,40,40,0.3)" strokeWidth="0.4" />
+          stroke="rgba(255,40,40,0.3)" strokeWidth="0.4" className="xray-artery-delay" />
         <line x1={s.shRX - 1} y1={s.shldY + 5} x2={s.elRX - 1} y2={s.elY}
-          stroke="rgba(255,40,40,0.3)" strokeWidth="0.4" />
-        {/* Veins (blue) */}
+          stroke="rgba(255,40,40,0.3)" strokeWidth="0.4" className="xray-artery-delay" />
+        {/* Veins (blue — slower return pulse) */}
         <line x1={cx - 1} y1={s.shldY + 16} x2={cx - 1} y2={s.hipTopY}
-          stroke="rgba(60,60,255,0.4)" strokeWidth="0.6" />
+          stroke="rgba(60,60,255,0.4)" strokeWidth="0.6" className="xray-vein" />
+        <line x1={s.elLX - 1} y1={s.elY} x2={s.shLX - 1} y2={s.shldY + 5}
+          stroke="rgba(60,60,255,0.3)" strokeWidth="0.3" className="xray-vein" />
+        <line x1={s.elRX + 1} y1={s.elY} x2={s.shRX + 1} y2={s.shldY + 5}
+          stroke="rgba(60,60,255,0.3)" strokeWidth="0.3" className="xray-vein" />
       </g>
 
       {/* ══════════════════════════════════════════════════════════════
-          X-RAY SCAN LINES (aesthetic animated effect)
+          X-RAY SCAN EFFECTS (aesthetic animated scan lines)
          ══════════════════════════════════════════════════════════════ */}
       <g opacity="0.15">
+        {/* Primary scan line */}
         <line x1="0" y1="0" x2="100" y2="0" stroke="cyan" strokeWidth="0.3">
           <animate attributeName="y1" values="0;225;0" dur="4s" repeatCount="indefinite" />
           <animate attributeName="y2" values="0;225;0" dur="4s" repeatCount="indefinite" />
         </line>
+        {/* Secondary glow trail */}
+        <rect x="0" y="0" width="100" height="8" fill="url(#xray-scan-grad)" className="xray-scan-glow">
+          <animate attributeName="y" values="0;225;0" dur="4s" repeatCount="indefinite" />
+        </rect>
       </g>
+      {/* Scan gradient definition */}
+      <defs>
+        <linearGradient id="xray-scan-grad" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="cyan" stopOpacity="0.3" />
+          <stop offset="100%" stopColor="cyan" stopOpacity="0" />
+        </linearGradient>
+      </defs>
 
       {/* ── ORGAN LABELS (tiny, at edges) ── */}
       <g opacity="0.7">
