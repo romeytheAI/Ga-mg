@@ -378,6 +378,7 @@ function App({ state, dispatch }: { state: GameState, dispatch: React.Dispatch<a
           narrative += " The enemy retaliates!";
           stat_deltas.health = -15 + Math.floor(athletics / 20);
           stat_deltas.pain = 10;
+          encounterUpdates.encounter_action = 'grabbed';
         }
       } else if (intent === 'submissive') {
         triggerCombatFeedback('lust_action', false, null);
@@ -387,6 +388,7 @@ function App({ state, dispatch }: { state: GameState, dispatch: React.Dispatch<a
         stat_deltas.lust = 10;
         stat_deltas.purity = -5;
         narrative = "You submit to their advances. They take advantage of your compliance.";
+        encounterUpdates.encounter_action = 'groped';
         if (encounterUpdates.enemy_lust >= 100) {
           narrative += " They are satisfied and leave you alone.";
           endEncounter = true;
@@ -399,6 +401,7 @@ function App({ state, dispatch }: { state: GameState, dispatch: React.Dispatch<a
           encounterUpdates.enemy_lust = Math.min(100, encounter.enemy_lust + 30 + Math.floor(seduction / 5));
           narrative = "You successfully seduce them, increasing their lust.";
           skill_deltas.seduction = 2;
+          encounterUpdates.encounter_action = 'caressed';
           if (encounterUpdates.enemy_lust >= 100) {
             narrative += " They are completely enamored and let you go.";
             endEncounter = true;
@@ -408,6 +411,7 @@ function App({ state, dispatch }: { state: GameState, dispatch: React.Dispatch<a
           narrative = "Your seduction attempt fails. They are annoyed.";
           stat_deltas.health = -5;
           skill_deltas.seduction = 1;
+          encounterUpdates.encounter_action = 'grabbed';
         }
         stat_deltas.lust = 5;
       } else if (intent === 'flee') {
@@ -425,6 +429,72 @@ function App({ state, dispatch }: { state: GameState, dispatch: React.Dispatch<a
           skill_deltas.athletics = 1;
           encounterUpdates.enemy_anger = Math.min(100, encounter.enemy_anger + 10);
         }
+      } else if (intent === 'resist') {
+        triggerCombatFeedback('block', true, 'ribs');
+        const willpower = state.player.stats.willpower || 50;
+        const resistStrength = willpower + (state.player.skills?.athletics || 0) * 0.5;
+        const resistChance = resistStrength / 200;
+        if (Math.random() < resistChance) {
+          encounterUpdates.enemy_anger = Math.min(100, encounter.enemy_anger + 20);
+          encounterUpdates.enemy_lust = Math.max(0, encounter.enemy_lust - 10);
+          narrative = "You resist with all your strength! They are forced back, frustrated and angry.";
+          encounterUpdates.encounter_action = 'resist_break';
+          if (encounter.enemy_anger >= 90) {
+            narrative += " Enraged beyond reason, they give up and storm off!";
+            endEncounter = true;
+          }
+        } else {
+          narrative = "You try to resist, but they overpower you! Your body aches from the effort.";
+          stat_deltas.stamina = -20;
+          stat_deltas.pain = 15;
+          stat_deltas.stress = 10;
+          encounterUpdates.encounter_action = 'arms_pinned';
+        }
+        stat_deltas.willpower = -5;
+        skill_deltas.athletics = 1;
+      } else if (intent === 'endure') {
+        triggerCombatFeedback('defend', false, null);
+        const control = state.player.stats.control || 50;
+        const enduranceBonus = Math.floor(control / 20);
+        encounterUpdates.enemy_lust = Math.min(100, encounter.enemy_lust + 10);
+        encounterUpdates.enemy_anger = Math.max(0, encounter.enemy_anger - 5);
+        stat_deltas.stress = 10 - enduranceBonus;
+        stat_deltas.trauma = 3;
+        stat_deltas.pain = 5;
+        stat_deltas.stamina = 5; // resting / conserving energy
+        narrative = "You grit your teeth and endure, waiting for an opening. The ordeal takes its toll on your mind.";
+        encounterUpdates.encounter_action = 'grabbed';
+        // After enough enduring, enemy tires out
+        if (encounter.turn >= 8) {
+          const tiredChance = (encounter.turn - 7) * 0.15;
+          if (Math.random() < tiredChance) {
+            narrative += " They grow bored and wander off, leaving you shaken but alive.";
+            endEncounter = true;
+          }
+        }
+      } else if (intent === 'cry_out') {
+        triggerCombatFeedback('special', false, null);
+        const socialSkill = state.player.skills?.seduction || 0;
+        const rescueChance = 0.15 + (socialSkill * 0.003) + (state.world.current_location.danger < 30 ? 0.15 : 0);
+        if (Math.random() < rescueChance) {
+          narrative = "Your desperate cry echoes through the area! Someone hears you and rushes to help. Your attacker flees!";
+          endEncounter = true;
+        } else {
+          encounterUpdates.enemy_anger = Math.min(100, encounter.enemy_anger + 25);
+          narrative = "You cry out for help, but no one comes. Your attacker is furious at the noise!";
+          stat_deltas.health = -10;
+          stat_deltas.pain = 10;
+          stat_deltas.stress = 15;
+          encounterUpdates.encounter_action = 'grabbed';
+        }
+      }
+
+      // Tick debuff durations — decrement by 1 per turn, remove expired
+      if (encounterUpdates.debuffs || encounter.debuffs?.length) {
+        const currentDebuffs = encounterUpdates.debuffs || encounter.debuffs || [];
+        encounterUpdates.debuffs = currentDebuffs
+          .map((d: { type: string; duration: number }) => ({ ...d, duration: d.duration - 1 }))
+          .filter((d: { type: string; duration: number }) => d.duration > 0);
       }
 
       encounterUpdates.log = [...(encounter.log || []), narrative];

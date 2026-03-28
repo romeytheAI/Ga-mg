@@ -394,4 +394,70 @@ describe('gameReducer', () => {
       expect(next.memory_graph).toEqual(['[Summary]']);
     });
   });
+
+  // ── UPDATE_ACTIVE_ENCOUNTER ────────────────────────────────────────────
+
+  describe('UPDATE_ACTIVE_ENCOUNTER', () => {
+    const baseEncounter = {
+      id: 'test_enc',
+      enemy_name: 'Bandit',
+      enemy_type: 'bandit',
+      enemy_health: 80,
+      enemy_max_health: 100,
+      enemy_lust: 20,
+      enemy_max_lust: 100,
+      enemy_anger: 30,
+      enemy_max_anger: 100,
+      player_stance: 'neutral' as const,
+      turn: 1,
+      log: ['The encounter begins.'],
+      debuffs: [{ type: 'slowed', duration: 2 }],
+      targeted_part: null,
+      anatomy: initialState.player.anatomy,
+    };
+
+    function stateWithEncounter(enc = baseEncounter): GameState {
+      return {
+        ...initialState,
+        world: { ...initialState.world, active_encounter: enc },
+      };
+    }
+
+    it('should update encounter_action on active encounter', () => {
+      const s = stateWithEncounter();
+      const action = { type: 'UPDATE_ACTIVE_ENCOUNTER', payload: { encounter_action: 'grabbed' } };
+      const next = gameReducer(s, action);
+      expect(next.world.active_encounter?.encounter_action).toBe('grabbed');
+    });
+
+    it('should merge encounter fields via spread', () => {
+      const s = stateWithEncounter();
+      const action = {
+        type: 'UPDATE_ACTIVE_ENCOUNTER',
+        payload: { enemy_health: 50, enemy_anger: 60, log: [...baseEncounter.log, 'You strike!'] },
+      };
+      const next = gameReducer(s, action);
+      expect(next.world.active_encounter?.enemy_health).toBe(50);
+      expect(next.world.active_encounter?.enemy_anger).toBe(60);
+      expect(next.world.active_encounter?.log).toHaveLength(2);
+      // Fields not in payload remain unchanged
+      expect(next.world.active_encounter?.enemy_lust).toBe(20);
+    });
+
+    it('should update debuffs list when provided', () => {
+      const s = stateWithEncounter();
+      const action = {
+        type: 'UPDATE_ACTIVE_ENCOUNTER',
+        payload: { debuffs: [{ type: 'weakened', duration: 3 }] },
+      };
+      const next = gameReducer(s, action);
+      expect(next.world.active_encounter?.debuffs).toEqual([{ type: 'weakened', duration: 3 }]);
+    });
+
+    it('should return state unchanged if no active encounter', () => {
+      const action = { type: 'UPDATE_ACTIVE_ENCOUNTER', payload: { enemy_health: 50 } };
+      const next = gameReducer(initialState, action);
+      expect(next.world.active_encounter).toBeNull();
+    });
+  });
 });
