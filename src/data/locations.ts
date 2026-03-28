@@ -88,6 +88,7 @@ export const LOCATIONS: Record<string, any> = {
       { id: 'forage', label: "Forage for ingredients", intent: "work", skill_check: { stat: "willpower", difficulty: 30 }, outcome: "You gather some useful herbs and mushrooms.", fail_outcome: "You wander aimlessly, getting scratched by thorns.", stat_deltas: { stamina: -15 }, fail_stat_deltas: { stamina: -20, pain: 5, stress: 10 }, new_items: [{ name: "Blue Mountain Flower", type: "consumable", rarity: "common", description: "Useful for alchemy." }] },
       { id: 'travel_temple', label: "Return to the City", intent: "travel", outcome: "You head back towards the safety of the town's walls.", stat_deltas: { stamina: -10 }, new_location: 'temple_gardens' },
       { id: 'travel_farm', label: "Walk to the Farm", intent: "travel", outcome: "You follow a dirt path towards the nearby farm.", stat_deltas: { stamina: -15 }, new_location: 'farm' },
+      { id: 'travel_lake', label: "Head to the Lake", intent: "travel", outcome: "You follow the sound of running water through the trees to a shimmering lake.", stat_deltas: { stamina: -10 }, new_location: 'lake' },
       { id: 'travel_swamp', label: "Venture towards the Swamps", intent: "travel", outcome: "The trees thin out as the ground grows soggy and foul-smelling.", stat_deltas: { stamina: -20, stress: 10 }, new_location: 'swamp' }
     ]
   },
@@ -142,6 +143,39 @@ export const LOCATIONS: Record<string, any> = {
     actions: [
       { id: 'gather_rare_herbs', label: "Search for rare swamp flora", intent: "work", skill_check: { stat: "willpower", difficulty: 70 }, outcome: "You find a glowing mushroom, carefully avoiding the toxic pools.", fail_outcome: "You step into a deep bog! Leeches attach to you before you can scramble out.", stat_deltas: { stamina: -20, stress: 15 }, fail_stat_deltas: { health: -20, pain: 20, stress: 30, trauma: 10, purity: -10 }, new_items: [{ name: "Glowing Mushroom", type: "consumable", rarity: "rare", description: "Pulses with strange energy." }] },
       { id: 'travel_wilds', label: "Flee back to the Forest", intent: "flee", outcome: "You scramble out of the muck, desperate for solid ground.", stat_deltas: { stamina: -15, stress: -5 }, new_location: 'forest' }
+    ]
+  },
+  'lake': {
+    id: 'lake',
+    name: "The Lake",
+    atmosphere: "serene, shimmering, smelling of fresh water and wildflowers",
+    danger: 25,
+    x: 92, y: 55,
+    npcs: [],
+    description: "A large, clear lake fed by mountain streams, hidden within the forest. Smooth grey stones line the shore, and tall reeds sway gently in the breeze. The water is crystal-clear in the shallows, darkening to an inky, unknowable depth at the center. Dragonflies hum over the surface. It is peaceful here, but the wilderness is never truly safe.",
+    actions: [
+      { id: 'swim_lake', label: "Swim in the lake", intent: "neutral", skill_check: { stat: "stamina", difficulty: 25 }, outcome: "You dive into the cool, refreshing water. The grime and tension of the city wash away as you float on your back, watching clouds drift by.", fail_outcome: "You wade in too deep and a sudden current pulls you under. You swallow water and barely drag yourself back to shore, coughing and shivering.", stat_deltas: { stamina: -10, stress: -15, purity: 5, hygiene: 10 }, fail_stat_deltas: { health: -10, stamina: -20, stress: 15, trauma: 5 }, skill_deltas: { swimming: 3 } },
+      { id: 'bathe_lake', label: "Bathe and wash yourself", intent: "neutral", outcome: "You strip down and scrub yourself clean in the cold but refreshing water. The dirt and sweat of days of hardship dissolve away, leaving your skin tingling.", stat_deltas: { stress: -10, hygiene: 15, purity: 3 }, hours_passed: 1 },
+      { id: 'fish_lake', label: "Fish from the shore", intent: "work", skill_check: { stat: "willpower", difficulty: 35 }, outcome: "After patient waiting, you hook a fat silver trout. Fresh food at last!", fail_outcome: "You sit for hours without a single bite. The mosquitoes feast on you instead.", stat_deltas: { stamina: -10, stress: 5 }, fail_stat_deltas: { stamina: -15, stress: 10, pain: 3 }, new_items: [{ name: "Silver Trout", type: "consumable", rarity: "common", description: "A fresh-caught fish, its scales gleaming. Eating it would restore energy and hunger." }] },
+      { id: 'travel_forest', label: "Return to the Forest", intent: "travel", outcome: "You follow the trail back through the trees.", stat_deltas: { stamina: -5 }, new_location: 'forest' },
+      { id: 'travel_beach', label: "Follow the shore to the Beach", intent: "travel", outcome: "You walk along the lakeshore until the trees thin and sand replaces stone.", stat_deltas: { stamina: -10 }, new_location: 'beach' }
+    ]
+  },
+  'beach': {
+    id: 'beach',
+    name: "The Beach",
+    atmosphere: "windswept, salty, the crashing of waves on coarse sand",
+    danger: 30,
+    x: 97, y: 50,
+    npcs: [],
+    description: "A desolate stretch of grey-brown sand where the lake meets a rocky cove. Driftwood and seaweed litter the shore. The wind here is constant and biting, carrying the tang of salt and decay. Tide pools hold strange, colourful creatures, and the distant cliffs are riddled with dark caves. It's exposed and lonely, but the vastness of the water offers a strange sense of freedom.",
+    actions: [
+      { id: 'beachcomb', label: "Comb the beach for valuables", intent: "work", skill_check: { stat: "willpower", difficulty: 30 }, outcome: "Between the pebbles you find a small, barnacle-encrusted chest wedged in the rocks. Inside is a handful of old coins.", fail_outcome: "You find nothing but damp sand and disappointment. A wave soaks you to the bone.", stat_deltas: { stamina: -10, stress: 5 }, fail_stat_deltas: { stamina: -15, stress: 10, hygiene: -5 }, new_items: [{ name: "Gold Coin", type: "misc", rarity: "common", description: "The currency of the realm." }, { name: "Gold Coin", type: "misc", rarity: "common", description: "The currency of the realm." }] },
+      { id: 'swim_beach', label: "Swim in the surf", intent: "neutral", skill_check: { stat: "stamina", difficulty: 40 }, outcome: "You plunge into the cold waves, fighting the current. It's exhilarating! Your body feels strong and clean.", fail_outcome: "A rogue wave slams you into the rocks! You gasp for air and crawl back to shore, scraped and bruised.", stat_deltas: { stamina: -15, stress: -10, hygiene: 10 }, fail_stat_deltas: { health: -15, pain: 15, stamina: -25, stress: 10, trauma: 3 }, skill_deltas: { swimming: 4, athletics: 2 } },
+      { id: 'sunbathe', label: "Rest in a sheltered cove", intent: "neutral", outcome: "You find a warm spot between the rocks, sheltered from the wind. The sun's warmth soaks into your aching muscles and you doze off to the sound of the waves.", stat_deltas: { stamina: 20, stress: -15, pain: -5 }, hours_passed: 2 },
+      { id: 'exercise_beach', label: "Run along the sand", intent: "neutral", outcome: "You run barefoot along the hard-packed sand near the waterline. Your lungs burn with the salt air, but you feel faster and stronger.", stat_deltas: { stamina: -20, stress: -5, pain: 3 }, skill_deltas: { athletics: 3 }, hours_passed: 1 },
+      { id: 'travel_lake', label: "Walk back to the Lake", intent: "travel", outcome: "You follow the shoreline back towards the treeline.", stat_deltas: { stamina: -10 }, new_location: 'lake' },
+      { id: 'travel_docks', label: "Head to the Docks", intent: "travel", outcome: "You follow the coast towards the town docks.", stat_deltas: { stamina: -15 }, new_location: 'docks' }
     ]
   }
 };

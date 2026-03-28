@@ -204,7 +204,84 @@ export function gameReducer(state: GameState, action: any): GameState {
         newPsych.submission_index = Math.min(100, newPsych.submission_index + appliedDeltas.corruption * 0.1);
       }
 
-      // 14. Tick simulation engine if available
+      // 14. Player needs decay (DoL-parity life-sim loop)
+      const newNeeds = { ...state.player.life_sim.needs };
+      const intent = state.world.last_intent;
+      const drainHours = hoursPassed;
+
+      // Passive drain per hour
+      newNeeds.hunger = Math.max(0, newNeeds.hunger - 3 * drainHours);
+      newNeeds.thirst = Math.max(0, newNeeds.thirst - 4 * drainHours);
+      newNeeds.energy = Math.max(0, newNeeds.energy - 2 * drainHours);
+      newNeeds.hygiene = Math.max(0, newNeeds.hygiene - 1.5 * drainHours);
+      newNeeds.social = Math.max(0, newNeeds.social - 1 * drainHours);
+
+      // Activity-specific modifiers
+      if (intent === 'work') {
+        newNeeds.hunger = Math.max(0, newNeeds.hunger - 5 * drainHours);
+        newNeeds.energy = Math.max(0, newNeeds.energy - 5 * drainHours);
+        newNeeds.hygiene = Math.max(0, newNeeds.hygiene - 3 * drainHours);
+      }
+      if (intent === 'social') {
+        newNeeds.social = Math.min(100, newNeeds.social + 15 * drainHours);
+      }
+      if (intent === 'neutral' && actionText?.toLowerCase().includes('sleep')) {
+        newNeeds.energy = Math.min(100, newNeeds.energy + 30 * drainHours);
+      }
+      if (intent === 'neutral' && (actionText?.toLowerCase().includes('eat') || actionText?.toLowerCase().includes('food') || actionText?.toLowerCase().includes('bread'))) {
+        newNeeds.hunger = Math.min(100, newNeeds.hunger + 25);
+      }
+      if (intent === 'neutral' && (actionText?.toLowerCase().includes('swim') || actionText?.toLowerCase().includes('wash') || actionText?.toLowerCase().includes('bath'))) {
+        newNeeds.hygiene = Math.min(100, newNeeds.hygiene + 40);
+      }
+
+      // Low needs → stat penalties (applied directly to newStats)
+      if (newNeeds.hunger <= 20) {
+        newStats.health = Math.max(0, newStats.health - 2);
+        newStats.stamina = Math.max(0, newStats.stamina - 3);
+      }
+      if (newNeeds.energy <= 20) {
+        newStats.willpower = Math.max(0, newStats.willpower - 3);
+        newStats.stamina = Math.max(0, newStats.stamina - 2);
+      }
+      if (newNeeds.hygiene <= 20) {
+        newStats.allure = Math.max(0, newStats.allure - 2);
+        newStats.stress = Math.min(100, newStats.stress + 2);
+      }
+      if (newNeeds.social <= 15) {
+        newStats.stress = Math.min(100, newStats.stress + 3);
+        newStats.willpower = Math.max(0, newStats.willpower - 1);
+      }
+      if (newNeeds.thirst <= 15) {
+        newStats.health = Math.max(0, newStats.health - 3);
+        newStats.stamina = Math.max(0, newStats.stamina - 5);
+      }
+
+      const newLifeSim = {
+        ...state.player.life_sim,
+        needs: newNeeds,
+      };
+
+      // 15. Weather effects on player stats (DoL-parity)
+      const weather = state.world.weather;
+      if (weather === 'Blizzard' || weather === 'Freezing') {
+        newStats.stamina = Math.max(0, newStats.stamina - 5 * drainHours);
+        newStats.health = Math.max(0, newStats.health - 2 * drainHours);
+      } else if (weather === 'Cold Rain' || weather === 'Light Snow' || weather === 'Clear and Cold') {
+        newStats.stamina = Math.max(0, newStats.stamina - 2 * drainHours);
+      }
+      if (weather === 'Rainy' || weather === 'Cold Rain' || weather === 'Drizzle') {
+        newNeeds.hygiene = Math.max(0, newNeeds.hygiene - 2 * drainHours);
+      }
+      if (weather === 'Scorching' || weather === 'Hot' || weather === 'Humid') {
+        newStats.stress = Math.min(100, newStats.stress + 2 * drainHours);
+        newNeeds.thirst = Math.max(0, newNeeds.thirst - 3 * drainHours);
+      }
+      if (weather === 'Thunderstorm') {
+        newStats.stress = Math.min(100, newStats.stress + 4 * drainHours);
+      }
+
+      // 16. Tick simulation engine if available
       let nextSimWorld = state.sim_world;
       if (nextSimWorld) {
         nextSimWorld = tickSimulation(nextSimWorld);
@@ -221,6 +298,7 @@ export function gameReducer(state: GameState, action: any): GameState {
           afflictions: newAfflictions,
           quests: newQuests,
           psych_profile: newPsych,
+          life_sim: newLifeSim,
         },
         world: {
           ...state.world,
