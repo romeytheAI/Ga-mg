@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { motion } from 'motion/react';
 import { GameState, Item, Cosmetics, CosmeticScar, CosmeticTattoo, CosmeticPiercing } from '../types';
 import { resolveRace, RacialBodyFeatures } from '../data/races';
@@ -188,7 +188,8 @@ export const DoLCharacterSprite: React.FC<DoLCharacterSpriteProps> = ({ state, c
   // ── Activity-based animation (DoL-parity: walking, sleeping, swimming, etc.) ──
   const lastIntent = state.world.last_intent;
   const logEntries = state.ui.currentLog;
-  const actionText = logEntries.length > 0 ? (logEntries[logEntries.length - 1].text?.toLowerCase() ?? '') : '';
+  const lastLogText = logEntries.length > 0 ? logEntries[logEntries.length - 1].text : '';
+  const actionText = useMemo(() => (lastLogText ?? '').toLowerCase(), [lastLogText]);
   const activityClass = (() => {
     if (inEncounter || combatAnimClass || encActionClass) return '';
     // Detect activity from last_intent + action text keywords
@@ -224,8 +225,9 @@ export const DoLCharacterSprite: React.FC<DoLCharacterSpriteProps> = ({ state, c
     if (needs.energy <= 15 || stats.stamina < 15) return 'sprite-exhausted';
     // Fear tremor — high trauma or extreme stress
     if (stats.trauma > 70 || stats.stress > 80) return 'sprite-fear-tremble';
-    // Limping — low health
-    if (stats.health < 25 && activityClass === 'sprite-walk') return 'sprite-limp';
+    // Limping — low health during any movement activity
+    const isMoving = activityClass === 'sprite-walk' || activityClass === 'sprite-exercise' || activityClass === 'sprite-sneak';
+    if (stats.health < 25 && isMoving) return 'sprite-limp';
     // Hunger weakness
     if (needs.hunger <= 10) return 'sprite-hungry';
     // Intoxicated (can be triggered by afflictions)
