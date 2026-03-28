@@ -14,7 +14,7 @@ interface EncounterUIProps {
 
 export const EncounterUI: React.FC<EncounterUIProps> = ({ encounter, playerStats, onAction, state }) => {
   const [targetedPart, setTargetedPart] = React.useState<string | null>(null);
-  const [show3D, setShow3D] = React.useState(true);
+  const [show3D, setShow3D] = React.useState(false);
   const bodyParts = ['head', 'torso', 'arms', 'legs'];
 
   return (
