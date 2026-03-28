@@ -9,7 +9,7 @@ interface ShopModalProps {
   dispatch: React.Dispatch<any>;
 }
 
-const SHOP_INVENTORY: { item: any; markup: number }[] = [
+const SHOP_INVENTORY: { item: Item; markup: number }[] = [
   { item: BASIC_ITEMS.bread_crust, markup: 2 },
   { item: BASIC_ITEMS.blue_mountain_flower, markup: 1.5 },
   { item: BASIC_ITEMS.healing_poultice, markup: 1.5 },
