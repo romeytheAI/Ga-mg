@@ -447,3 +447,41 @@ export function applyPoseTransform(
 
   return s;
 }
+
+/**
+ * DoL-parity depth layering system.
+ * Determines z-order of body part layers based on encounter_action pose.
+ * Returns array of layer names in back-to-front rendering order.
+ */
+export type BodyLayer = 'back_limbs' | 'torso' | 'front_limbs' | 'head';
+
+export function getLayerOrder(encounterAction: string): BodyLayer[] {
+  switch (encounterAction) {
+    case 'bent_over':
+    case 'spanked':
+      // Back is towards viewer, arms/head forward
+      return ['head', 'front_limbs', 'torso', 'back_limbs'];
+
+    case 'prone':
+      // Lying face-down, back fully visible
+      return ['head', 'front_limbs', 'torso', 'back_limbs'];
+
+    case 'oral':
+      // Kneeling, head forward
+      return ['back_limbs', 'torso', 'front_limbs', 'head'];
+
+    case 'mounted':
+    case 'leg_spread':
+      // Straddling, front visible, arms and legs splayed
+      return ['back_limbs', 'torso', 'front_limbs', 'head'];
+
+    case 'restrained_tied':
+    case 'arms_pinned':
+      // Arms behind back
+      return ['front_limbs', 'torso', 'back_limbs', 'head'];
+
+    default:
+      // Standard front-facing: back limbs → torso → front limbs → head
+      return ['back_limbs', 'torso', 'front_limbs', 'head'];
+  }
+}

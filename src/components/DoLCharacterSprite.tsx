@@ -10,7 +10,7 @@ import {
   normalizePiercing, getNippleColor, SpriteState, applyPoseTransform
 } from './dol/sprite/utils';
 import { SpriteDefs, deriveSkinTones, deriveHairHighlight } from './dol/sprite/SpriteDefs';
-import { BaseBody } from './dol/sprite/BaseBody';
+import { LayeredBody } from './dol/sprite/LayeredBody';
 import { FaceAndHair, deriveExpression } from './dol/sprite/FaceAndHair';
 import { GenitalsAndChest } from './dol/sprite/GenitalsAndChest';
 import { SkinPatterns } from './dol/sprite/SkinPatterns';
@@ -296,7 +296,7 @@ export const DoLCharacterSprite: React.FC<DoLCharacterSpriteProps> = ({ state, c
         {/* ── BODY ANIMATION WRAPPER (breathing / tremble / flinch) ── */}
         <g className={bodyAnimClass}>
 
-          <BaseBody geom={geom} s={finalSpriteState} skin={skin} accentClr={accentClr} raceDef={raceDef} isMale={isMale} isFemale={isFemale} isChestExposed={isChestExposed} pregnancyBump={pregnancyBump} clothing={clothing} />
+          <LayeredBody geom={geom} s={finalSpriteState} skin={skin} accentClr={accentClr} raceDef={raceDef} isMale={isMale} isFemale={isFemale} isChestExposed={isChestExposed} pregnancyBump={pregnancyBump} clothing={clothing} encounterAction={encounterAction} />
 
           <FaceAndHair geom={geom} s={finalSpriteState} skin={skin} eyeClr={eyeClr} hairClr={hairClr} accentClr={accentClr} raceDef={raceDef} isMale={isMale} isFemale={isFemale} cosmetics={cos} expression={expression} />
 
