@@ -211,3 +211,239 @@ export interface SpriteState {
   digiKneeY: number;
   digiAnkleY: number;
 }
+
+/**
+ * Enhanced DoL-parity pose transformation system.
+ * Applies dynamic body part repositioning based on encounter_action.
+ * This goes beyond CSS animations to actually transform the sprite geometry.
+ */
+export function applyPoseTransform(
+  baseState: SpriteState,
+  encounterAction: string
+): SpriteState {
+  const s = { ...baseState };
+
+  switch (encounterAction) {
+    case 'bent_over': {
+      // Torso bent forward at 45°, head lowered, arms forward, hips raised
+      s.headCY += 18;
+      s.neckTopY += 12;
+      s.neckBotY += 14;
+      s.shldY += 15;
+      s.waistY += 8;
+      s.hipTopY -= 5;
+      s.crotchY -= 3;
+      // Arms extended forward/down
+      s.elY += 20;
+      s.wrY += 35;
+      s.handCY += 40;
+      s.wrLX -= 10;
+      s.wrRX += 10;
+      // Legs slightly bent
+      s.kneeY -= 5;
+      break;
+    }
+
+    case 'prone': {
+      // Lying face-down, entire body lowered and flattened
+      s.headCY += 60;
+      s.neckTopY += 55;
+      s.neckBotY += 54;
+      s.shldY += 50;
+      s.waistY += 48;
+      s.hipTopY += 45;
+      s.crotchY += 42;
+      s.kneeY += 30;
+      s.ankleY += 20;
+      s.footBotY += 15;
+      // Arms at sides, flattened
+      s.elY += 48;
+      s.wrY += 50;
+      s.handCY += 52;
+      s.shLX -= 5;
+      s.shRX += 5;
+      // Legs together
+      s.legLX += 3;
+      s.legRX -= 3;
+      break;
+    }
+
+    case 'lifted': {
+      // Entire body elevated, legs dangling, arms raised above head
+      s.headCY -= 25;
+      s.neckTopY -= 25;
+      s.neckBotY -= 25;
+      s.shldY -= 28;
+      s.waistY -= 22;
+      s.hipTopY -= 18;
+      s.crotchY -= 15;
+      s.kneeY -= 8;
+      s.ankleY -= 3;
+      // Arms raised overhead
+      s.elY -= 20;
+      s.wrY -= 35;
+      s.handCY -= 42;
+      s.elLX += 8;
+      s.elRX -= 8;
+      s.wrLX += 12;
+      s.wrRX -= 12;
+      break;
+    }
+
+    case 'mounted': {
+      // Straddling position: legs spread wide, hips lowered, back arched
+      s.hipTopY += 15;
+      s.crotchY += 18;
+      s.kneeY += 12;
+      // Wide leg spread
+      s.legLX -= 12;
+      s.legRX += 12;
+      // Torso leaned back slightly
+      s.shldY -= 5;
+      s.headCY -= 8;
+      // Arms reaching back or to sides
+      s.elLX -= 8;
+      s.elRX += 8;
+      s.wrLX -= 12;
+      s.wrRX += 12;
+      s.wrY += 10;
+      break;
+    }
+
+    case 'leg_spread': {
+      // Standing with legs forced apart, slight squat
+      s.legLX -= 10;
+      s.legRX += 10;
+      s.hipTopY += 8;
+      s.crotchY += 10;
+      s.kneeY += 5;
+      break;
+    }
+
+    case 'restrained_tied': {
+      // Arms pulled behind back, shoulders rotated, posture strained
+      s.shLX += 8;
+      s.shRX -= 8;
+      s.elLX += 12;
+      s.elRX -= 12;
+      s.wrLX += 15;
+      s.wrRX -= 15;
+      s.wrY -= 5;
+      // Shoulders pulled back
+      s.shldY += 3;
+      s.waistY -= 2;
+      break;
+    }
+
+    case 'arms_pinned': {
+      // Arms forced to sides or overhead
+      s.elLX += 5;
+      s.elRX -= 5;
+      s.wrLX += 8;
+      s.wrRX -= 8;
+      s.elY -= 10;
+      s.wrY -= 15;
+      s.handCY -= 18;
+      break;
+    }
+
+    case 'hair_pulled': {
+      // Head tilted back, neck extended, torso arched
+      s.headCY -= 8;
+      s.neckTopY -= 5;
+      s.shldY += 3;
+      s.waistY -= 2;
+      break;
+    }
+
+    case 'choked': {
+      // Head forward, shoulders hunched, body defensive
+      s.headCY += 5;
+      s.neckTopY += 3;
+      s.shldY += 5;
+      s.shLX += 3;
+      s.shRX -= 3;
+      // Arms raised defensively
+      s.elY -= 12;
+      s.wrY -= 8;
+      s.handCY -= 5;
+      break;
+    }
+
+    case 'grabbed': {
+      // Slight lean back, arms partially raised
+      s.shldY += 2;
+      s.waistY -= 1;
+      s.elY -= 5;
+      s.wrY -= 3;
+      break;
+    }
+
+    case 'spanked': {
+      // Slight forward lean, hips pushed back
+      s.hipTopY -= 3;
+      s.crotchY -= 2;
+      s.shldY += 5;
+      s.headCY += 3;
+      break;
+    }
+
+    case 'oral': {
+      // Kneeling position: entire body lowered, head forward
+      s.kneeY += 25;
+      s.ankleY += 30;
+      s.footBotY += 32;
+      s.hipTopY += 35;
+      s.crotchY += 38;
+      s.waistY += 30;
+      s.shldY += 25;
+      s.neckTopY += 22;
+      s.neckBotY += 23;
+      s.headCY += 18;
+      // Arms forward/down
+      s.elY += 28;
+      s.wrY += 35;
+      s.handCY += 38;
+      break;
+    }
+
+    case 'thrust': {
+      // Rhythmic impact: slight backward lean, body tense
+      s.shldY -= 2;
+      s.waistY -= 1;
+      s.hipTopY += 3;
+      s.crotchY += 4;
+      break;
+    }
+
+    case 'climax': {
+      // Body arched, head back, legs trembling (spread slightly)
+      s.headCY -= 6;
+      s.neckTopY -= 4;
+      s.shldY -= 3;
+      s.waistY -= 5;
+      s.legLX -= 3;
+      s.legRX += 3;
+      // Arms limp at sides
+      s.elY += 8;
+      s.wrY += 12;
+      break;
+    }
+
+    // Softer actions with minimal pose changes
+    case 'caressed':
+    case 'kissed':
+    case 'groped':
+    case 'licked':
+      // Slight responsive lean or adjustment, no major pose change
+      s.shldY += 1;
+      s.waistY += 1;
+      break;
+
+    default:
+      // No transformation
+      break;
+  }
+
+  return s;
+}
