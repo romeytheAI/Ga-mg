@@ -204,22 +204,28 @@ export interface Incubation {
 /** DoL-parity encounter action — describes what is actively happening to the player sprite. */
 export type EncounterAction =
   | 'none'
-  | 'grabbed'       // enemy seizes player — arms pulled back
-  | 'groped'        // enemy fondling — subtle body squeeze
-  | 'thrust'        // rhythmic penetration motion
-  | 'oral'          // head bob animation
-  | 'kissed'        // face-to-face contact
-  | 'climax'        // orgasm tremor — intense shudder
-  | 'resist_break'  // resistance overwhelmed — slump
-  | 'clothing_tear' // garment ripped away — flash
-  | 'leg_spread'    // legs forced apart
-  | 'arms_pinned'   // arms held above head
-  | 'prone'         // face-down position
-  | 'bent_over'     // bent at waist
-  | 'lifted'        // lifted off feet
-  | 'caressed'      // gentle stroking — soft sway
-  | 'bitten'        // bite — sharp flinch
-  | 'spanked';      // impact — quick jolt
+  | 'grabbed'         // enemy seizes player — arms pulled back
+  | 'groped'          // enemy fondling — subtle body squeeze
+  | 'thrust'          // rhythmic penetration motion
+  | 'oral'            // head bob animation
+  | 'kissed'          // face-to-face contact
+  | 'climax'          // orgasm tremor — intense shudder
+  | 'resist_break'    // resistance overwhelmed — slump
+  | 'clothing_tear'   // garment ripped away — flash
+  | 'leg_spread'      // legs forced apart
+  | 'arms_pinned'     // arms held above head
+  | 'prone'           // face-down position
+  | 'bent_over'       // bent at waist
+  | 'lifted'          // lifted off feet
+  | 'caressed'        // gentle stroking — soft sway
+  | 'bitten'          // bite — sharp flinch
+  | 'spanked'         // impact — quick jolt
+  | 'choked'          // neck constriction — gasp
+  | 'hair_pulled'     // head yanked back by hair
+  | 'scratched'       // claw rake across skin
+  | 'licked'          // tongue contact — wet trail
+  | 'restrained_tied' // bound with rope/vines — immobilised
+  | 'mounted';        // pinned under weight — compressed
 
 export interface ActiveEncounter {
   id: string;
@@ -246,7 +252,10 @@ export interface GameState {
   player: {
     identity: { name: string, race: string, birthsign: string, origin: string, gender: string },
     stats: Record<StatKey, number> & { max_health: number, max_willpower: number, max_stamina: number },
-    skills: { seduction: number, athletics: number, skulduggery: number, swimming: number, dancing: number, housekeeping: number, school_grades: number },
+    skills: { seduction: number, athletics: number, skulduggery: number, swimming: number, dancing: number, housekeeping: number, school_grades: number, tending: number, cooking: number, foraging: number },
+    gold: number,
+    fame: number,
+    notoriety: number,
     psych_profile: { submission_index: number, cruelty_index: number, exhibitionism: number, promiscuity: number },
     afflictions: string[],
     clothing: ClothingLayer,
@@ -313,6 +322,9 @@ export interface GameState {
     show_quests: boolean,
     show_save_load: boolean,
     show_xray: boolean,
+    show_shop: boolean,
+    show_wardrobe: boolean,
+    show_social: boolean,
     highlighted_part: string | null,
     targeted_part: string | null,
     combat_animation: string | null,

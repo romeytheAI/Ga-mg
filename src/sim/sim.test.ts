@@ -15,7 +15,15 @@ import { npcToParticipant, createCombatEncounter, resolveCombatTurn, simulateFul
 import { mentalFortitude, canResist, stressFromNeeds, decisionQuality, applyDefeatConsequences, applyVictoryConsequences } from './WillpowerSystem';
 import { shouldTravel, encounterChance, dangerLabel, getNpcsAtLocation } from './LocationSystem';
 import { defaultRomanceState, calculateCompatibility, calculateAttraction, applyRomanticInteraction, evaluateRomanceProgression, tickRomance, wantsRomanticInteraction, romanceStageLabel, romanceUtilityScore } from './RomanceSystem';
-import { SimNpc, SimWorld } from './types';
+import { defaultTransformationState, addBodyChange, removeBodyChange, purgeTemporaryChanges, transformationStatEffects, evaluateAscension, tickAscension, ascensionLabel, mutationResistanceLabel } from './TransformationSystem';
+import { defaultAddictionState, useSubstance, tickAddiction, withdrawalStress, withdrawalStaminaDrain, dependencyLabel, withdrawalLabel } from './AddictionSystem';
+import { defaultDiseaseState, contractDisease, treatDisease, tickDisease, diseaseHealthDrain, diseaseStaminaDrain, contagionChance, diseaseSeverityLabel, overallHealthLabel } from './DiseaseSystem';
+import { defaultArcaneState, addEnchantment, removeEnchantment, enchantmentStatEffects, spendMana, tickArcane, improveAffinity, getAffinity, manaLabel, arcaneCorruptionLabel, affinityLabel } from './ArcaneSystem';
+import { defaultParasiteState, attachParasite, removeParasite, purgeAllParasites, tickParasite, totalHealthDrain, totalStaminaDrain, totalCorruptionBuff, symbioticHealthRegen, infestationLabel, symbiosisLabel } from './ParasiteSystem';
+import { defaultCompanionState, addCompanion, removeCompanion, tickCompanions, partyCombatBonus, partyHealRate, partyScoutRange, partyCarryCapacity, damageCompanion, checkDesertion, loyaltyLabel, bondLabel, moraleLabel } from './CompanionSystem';
+import { defaultAllureState, computeAllure, allureEncounterModifier, intimidationDefense, socialAllureBonus, allureLabel, noticeabilityLabel, intimidationLabel } from './AllureSystem';
+import { defaultRestraintState, applyRestraint, removeRestraint, freeAll, attemptEscape, tickRestraints, restraintStress, isRestrained, canMove, canAct, restraintLabel, escapeProgressLabel } from './RestraintSystem';
+import { SimNpc, SimWorld, CompanionEntry, RestraintEntry } from './types';
 
 // ── Fixture helpers ──────────────────────────────────────────────────────────
 
@@ -41,6 +49,14 @@ function makeNpc(overrides: Partial<SimNpc> = {}): SimNpc {
     stats: { health: 100, stamina: 100, gold: 20 },
     schedule: buildDefaultSchedule('merchant'),
     dialogue_cache: {},
+    transformation: defaultTransformationState(),
+    addiction_state: defaultAddictionState(),
+    disease_state: defaultDiseaseState(),
+    arcane_state: defaultArcaneState(),
+    parasite_state: defaultParasiteState(),
+    companion_state: defaultCompanionState(),
+    allure_state: defaultAllureState(),
+    restraint_state: defaultRestraintState(),
     ...overrides,
   };
 }
@@ -800,5 +816,692 @@ describe('RomanceSystem', () => {
     const romance = { ...defaultRomanceState(), stage: 'dating' as const, passion: 60, attraction: 50, intimacy: 40 };
     const rel = { target_id: 'b', affection: 40, trust: 30, fear: 0, familiarity: 50, last_interaction: 0, romance };
     expect(romanceUtilityScore(romance, rel)).toBeGreaterThan(0);
+  });
+});
+
+// ── TransformationSystem ─────────────────────────────────────────────────────
+
+describe('TransformationSystem', () => {
+  it('defaultTransformationState returns correct defaults', () => {
+    const state = defaultTransformationState();
+    expect(state.ascension).toBe('none');
+    expect(state.ascension_progress).toBe(0);
+    expect(state.body_changes).toHaveLength(0);
+    expect(state.mutation_resistance).toBe(50);
+  });
+
+  it('addBodyChange appends a change', () => {
+    const state = defaultTransformationState();
+    const change = { id: 'c1', type: 'cosmetic' as const, description: 'Glowing eyes', turn_acquired: 1, permanent: true, stat_effects: { allure: 5 } };
+    const updated = addBodyChange(state, change);
+    expect(updated.body_changes.length).toBeGreaterThanOrEqual(1);
+  });
+
+  it('removeBodyChange removes by id', () => {
+    const state = defaultTransformationState();
+    const change = { id: 'c1', type: 'cosmetic' as const, description: 'Glowing eyes', turn_acquired: 1, permanent: true, stat_effects: {} };
+    const withChange = { ...state, body_changes: [change] };
+    const removed = removeBodyChange(withChange, 'c1');
+    expect(removed.body_changes).toHaveLength(0);
+  });
+
+  it('purgeTemporaryChanges removes non-permanent changes', () => {
+    const state = {
+      ...defaultTransformationState(),
+      body_changes: [
+        { id: 'c1', type: 'cosmetic' as const, description: 'Temp', turn_acquired: 1, permanent: false, stat_effects: {} },
+        { id: 'c2', type: 'structural' as const, description: 'Perm', turn_acquired: 1, permanent: true, stat_effects: {} },
+      ],
+    };
+    const purged = purgeTemporaryChanges(state);
+    expect(purged.body_changes).toHaveLength(1);
+    expect(purged.body_changes[0].id).toBe('c2');
+  });
+
+  it('transformationStatEffects computes net bonuses', () => {
+    const state = {
+      ...defaultTransformationState(),
+      body_changes: [
+        { id: 'c1', type: 'cosmetic' as const, description: 'A', turn_acquired: 1, permanent: true, stat_effects: { health: 5, allure: 3 } },
+        { id: 'c2', type: 'cosmetic' as const, description: 'B', turn_acquired: 2, permanent: true, stat_effects: { health: -2, corruption: 10 } },
+      ],
+    };
+    const effects = transformationStatEffects(state);
+    expect(effects['health']).toBe(3);
+    expect(effects['allure']).toBe(3);
+    expect(effects['corruption']).toBe(10);
+  });
+
+  it('evaluateAscension returns pure_soul for high purity low corruption', () => {
+    const state = defaultTransformationState();
+    const corruption = { ...defaultCorruptionState(), corruption: 5, purity: 90 };
+    expect(evaluateAscension(state, corruption)).toBe('pure_soul');
+  });
+
+  it('evaluateAscension returns none when no path qualifies', () => {
+    const state = defaultTransformationState();
+    const corruption = { ...defaultCorruptionState(), corruption: 50, purity: 50 };
+    expect(evaluateAscension(state, corruption)).toBe('none');
+  });
+
+  it('tickAscension progresses toward qualifying path', () => {
+    const state = defaultTransformationState();
+    const corruption = { ...defaultCorruptionState(), corruption: 5, purity: 90 };
+    const ticked = tickAscension(state, corruption, 1);
+    expect(ticked.ascension_progress).toBeGreaterThan(0);
+    expect(ticked.ascension).toBe('pure_soul');
+  });
+
+  it('ascensionLabel returns readable labels', () => {
+    expect(ascensionLabel('none')).toBe('Unascended');
+    expect(ascensionLabel('void_lord')).toBe('Void Lord');
+  });
+
+  it('mutationResistanceLabel returns labels based on resistance', () => {
+    expect(mutationResistanceLabel(90)).toBe('Highly Resistant');
+    expect(mutationResistanceLabel(10)).toBe('Highly Susceptible');
+  });
+});
+
+// ── AddictionSystem ──────────────────────────────────────────────────────────
+
+describe('AddictionSystem', () => {
+  it('defaultAddictionState returns clean state', () => {
+    const state = defaultAddictionState();
+    expect(state.addictions).toHaveLength(0);
+    expect(state.overall_dependency).toBe(0);
+  });
+
+  it('useSubstance creates a new addiction entry', () => {
+    const state = defaultAddictionState();
+    const result = useSubstance(state, 'alcohol', 1);
+    expect(result.addiction_state.addictions).toHaveLength(1);
+    expect(result.addiction_state.addictions[0].substance).toBe('alcohol');
+    expect(result.stress_relief).toBeGreaterThan(0);
+  });
+
+  it('useSubstance increases dependency with repeated use', () => {
+    let state = defaultAddictionState();
+    state = useSubstance(state, 'skooma', 1).addiction_state;
+    const dep1 = state.addictions[0].dependency;
+    state = useSubstance(state, 'skooma', 2).addiction_state;
+    expect(state.addictions[0].dependency).toBeGreaterThan(dep1);
+  });
+
+  it('tolerance reduces effectiveness', () => {
+    let state = defaultAddictionState();
+    const first = useSubstance(state, 'moonsugar', 1);
+    // Manually set high tolerance
+    state = { ...first.addiction_state, addictions: first.addiction_state.addictions.map(a => ({ ...a, tolerance: 80 })) };
+    const second = useSubstance(state, 'moonsugar', 2);
+    expect(second.stress_relief).toBeLessThan(first.stress_relief);
+  });
+
+  it('tickAddiction causes withdrawal after onset period', () => {
+    let state = defaultAddictionState();
+    state = useSubstance(state, 'skooma', 1).addiction_state;
+    // Simulate time passing (30 turns past last use)
+    state = { ...state, addictions: state.addictions.map(a => ({ ...a, dependency: 50, last_use_turn: 0 })) };
+    const ticked = tickAddiction(state, 30, 1);
+    expect(ticked.addictions[0].withdrawal).toBeGreaterThan(0);
+  });
+
+  it('withdrawalStress returns stress from active withdrawal', () => {
+    const state = { ...defaultAddictionState(), addictions: [{ substance: 'alcohol' as const, dependency: 60, tolerance: 30, withdrawal: 50, last_use_turn: 0, total_uses: 10 }] };
+    expect(withdrawalStress(state)).toBeGreaterThan(0);
+  });
+
+  it('withdrawalStaminaDrain returns drain from withdrawal', () => {
+    const state = { ...defaultAddictionState(), addictions: [{ substance: 'alcohol' as const, dependency: 60, tolerance: 30, withdrawal: 50, last_use_turn: 0, total_uses: 10 }] };
+    expect(withdrawalStaminaDrain(state)).toBeGreaterThan(0);
+  });
+
+  it('dependencyLabel returns correct labels', () => {
+    expect(dependencyLabel(0)).toBe('Clean');
+    expect(dependencyLabel(90)).toBe('Crippling');
+    expect(dependencyLabel(50)).toBe('Moderate');
+  });
+
+  it('withdrawalLabel returns correct labels', () => {
+    expect(withdrawalLabel(0)).toBe('None');
+    expect(withdrawalLabel(90)).toBe('Agonizing');
+  });
+});
+
+// ── DiseaseSystem ────────────────────────────────────────────────────────────
+
+describe('DiseaseSystem', () => {
+  it('defaultDiseaseState returns healthy state', () => {
+    const state = defaultDiseaseState();
+    expect(state.active_diseases).toHaveLength(0);
+    expect(state.overall_health_penalty).toBe(0);
+  });
+
+  it('contractDisease adds disease entry', () => {
+    const state = defaultDiseaseState();
+    const infected = contractDisease(state, 'plague', 1);
+    expect(infected.active_diseases).toHaveLength(1);
+    expect(infected.active_diseases[0].disease).toBe('plague');
+    expect(infected.active_diseases[0].severity).toBe(5);
+  });
+
+  it('contractDisease does not duplicate existing disease', () => {
+    let state = defaultDiseaseState();
+    state = contractDisease(state, 'plague', 1);
+    state = contractDisease(state, 'plague', 2);
+    expect(state.active_diseases).toHaveLength(1);
+  });
+
+  it('treatDisease marks disease as treated', () => {
+    let state = defaultDiseaseState();
+    state = contractDisease(state, 'rot', 1);
+    state = treatDisease(state, 'rot');
+    expect(state.active_diseases[0].treated).toBe(true);
+  });
+
+  it('tickDisease progresses untreated diseases', () => {
+    let state = defaultDiseaseState();
+    state = contractDisease(state, 'mind_fever', 1);
+    const ticked = tickDisease(state, 5);
+    expect(ticked.active_diseases[0].severity).toBeGreaterThan(5);
+  });
+
+  it('tickDisease reduces severity of treated diseases', () => {
+    let state = defaultDiseaseState();
+    state = contractDisease(state, 'chill_pox', 1);
+    state = { ...state, active_diseases: state.active_diseases.map(d => ({ ...d, severity: 40, treated: true })) };
+    const ticked = tickDisease(state, 5);
+    expect(ticked.active_diseases[0].severity).toBeLessThan(40);
+  });
+
+  it('tickDisease grants immunity after recovery', () => {
+    let state = defaultDiseaseState();
+    state = contractDisease(state, 'chill_pox', 1);
+    state = { ...state, active_diseases: state.active_diseases.map(d => ({ ...d, severity: 1, treated: true })) };
+    const ticked = tickDisease(state, 5);
+    expect(ticked.active_diseases).toHaveLength(0);
+    expect(ticked.immunities['chill_pox']).toBeGreaterThan(0);
+  });
+
+  it('diseaseHealthDrain returns drain proportional to severity', () => {
+    let state = defaultDiseaseState();
+    state = contractDisease(state, 'blood_curse', 1);
+    state = { ...state, active_diseases: state.active_diseases.map(d => ({ ...d, severity: 80 })) };
+    expect(diseaseHealthDrain(state)).toBeGreaterThan(0);
+  });
+
+  it('diseaseSeverityLabel returns correct labels', () => {
+    expect(diseaseSeverityLabel(0)).toBe('Healthy');
+    expect(diseaseSeverityLabel(90)).toBe('Critical');
+    expect(diseaseSeverityLabel(50)).toBe('Moderate');
+  });
+
+  it('overallHealthLabel returns correct labels', () => {
+    expect(overallHealthLabel(0)).toBe('Healthy');
+    expect(overallHealthLabel(60)).toBe('Gravely Ill');
+  });
+});
+
+// ── ArcaneSystem ─────────────────────────────────────────────────────────────
+
+describe('ArcaneSystem', () => {
+  it('defaultArcaneState returns correct defaults', () => {
+    const state = defaultArcaneState();
+    expect(state.mana).toBe(50);
+    expect(state.mana_regen).toBe(2);
+    expect(state.enchantments).toHaveLength(0);
+    expect(state.arcane_corruption).toBe(0);
+  });
+
+  it('addEnchantment adds an enchantment', () => {
+    const state = defaultArcaneState();
+    const ench = { id: 'e1', name: 'Blessing of Light', type: 'blessing' as const, school: 'restoration' as const, potency: 50, duration_remaining: 100, stat_effects: { health: 5 } };
+    const updated = addEnchantment(state, ench);
+    expect(updated.enchantments).toHaveLength(1);
+  });
+
+  it('addEnchantment caps at 8 enchantments', () => {
+    let state = defaultArcaneState();
+    for (let i = 0; i < 10; i++) {
+      state = addEnchantment(state, { id: `e${i}`, name: `Ench ${i}`, type: 'blessing' as const, school: 'ward' as const, potency: 10, duration_remaining: 50, stat_effects: {} });
+    }
+    expect(state.enchantments).toHaveLength(8);
+  });
+
+  it('removeEnchantment removes by id', () => {
+    let state = defaultArcaneState();
+    const ench = { id: 'e1', name: 'Curse', type: 'curse' as const, school: 'hex' as const, potency: 30, duration_remaining: 50, stat_effects: {} };
+    state = addEnchantment(state, ench);
+    state = removeEnchantment(state, 'e1');
+    expect(state.enchantments).toHaveLength(0);
+  });
+
+  it('enchantmentStatEffects computes blessings as positive, curses as negative', () => {
+    const state = {
+      ...defaultArcaneState(),
+      enchantments: [
+        { id: 'e1', name: 'B', type: 'blessing' as const, school: 'restoration' as const, potency: 50, duration_remaining: 100, stat_effects: { health: 10 } },
+        { id: 'e2', name: 'C', type: 'curse' as const, school: 'hex' as const, potency: 30, duration_remaining: 50, stat_effects: { health: 5 } },
+      ],
+    };
+    const effects = enchantmentStatEffects(state);
+    expect(effects['health']).toBe(5); // 10 - 5 = 5
+  });
+
+  it('spendMana deducts mana and adds arcane corruption', () => {
+    const state = { ...defaultArcaneState(), mana: 80 };
+    const result = spendMana(state, 20);
+    expect(result).not.toBeNull();
+    expect(result!.mana).toBe(60);
+    expect(result!.arcane_corruption).toBeGreaterThan(0);
+  });
+
+  it('spendMana returns null if insufficient mana', () => {
+    const state = { ...defaultArcaneState(), mana: 10 };
+    expect(spendMana(state, 50)).toBeNull();
+  });
+
+  it('tickArcane regenerates mana', () => {
+    const state = { ...defaultArcaneState(), mana: 30 };
+    const ticked = tickArcane(state, 5);
+    expect(ticked.mana).toBeGreaterThan(30);
+  });
+
+  it('tickArcane removes expired enchantments', () => {
+    const state = {
+      ...defaultArcaneState(),
+      enchantments: [
+        { id: 'e1', name: 'Temp', type: 'blessing' as const, school: 'ward' as const, potency: 10, duration_remaining: 1, stat_effects: {} },
+        { id: 'e2', name: 'Perm', type: 'blessing' as const, school: 'ward' as const, potency: 10, duration_remaining: -1, stat_effects: {} },
+      ],
+    };
+    const ticked = tickArcane(state, 5);
+    expect(ticked.enchantments).toHaveLength(1);
+    expect(ticked.enchantments[0].id).toBe('e2');
+  });
+
+  it('improveAffinity increases school affinity', () => {
+    const state = defaultArcaneState();
+    const updated = improveAffinity(state, 'destruction', 15);
+    expect(getAffinity(updated, 'destruction')).toBe(15);
+  });
+
+  it('manaLabel returns correct labels', () => {
+    expect(manaLabel(90)).toBe('Overflowing');
+    expect(manaLabel(0)).toBe('Empty');
+    expect(manaLabel(50)).toBe('Moderate');
+  });
+
+  it('arcaneCorruptionLabel returns correct labels', () => {
+    expect(arcaneCorruptionLabel(10)).toBe('Stable');
+    expect(arcaneCorruptionLabel(90)).toBe('Dangerously Unstable');
+  });
+
+  it('affinityLabel returns correct labels', () => {
+    expect(affinityLabel(0)).toBe('Untrained');
+    expect(affinityLabel(90)).toBe('Master');
+  });
+});
+
+// ── ParasiteSystem ───────────────────────────────────────────────────────────
+
+describe('ParasiteSystem', () => {
+  it('defaultParasiteState returns clean state', () => {
+    const state = defaultParasiteState();
+    expect(state.parasites).toHaveLength(0);
+    expect(state.infestation_level).toBe(0);
+  });
+
+  it('attachParasite adds a parasite', () => {
+    const state = defaultParasiteState();
+    const updated = attachParasite(state, 'blood_leech', 1);
+    expect(updated.parasites).toHaveLength(1);
+    expect(updated.parasites[0].species).toBe('blood_leech');
+  });
+
+  it('attachParasite caps at 5 parasites', () => {
+    let state = defaultParasiteState();
+    for (let i = 0; i < 7; i++) {
+      state = attachParasite(state, 'brain_worm', i);
+    }
+    expect(state.parasites).toHaveLength(5);
+  });
+
+  it('removeParasite removes by index', () => {
+    let state = defaultParasiteState();
+    state = attachParasite(state, 'void_tick', 1);
+    state = attachParasite(state, 'dream_moth', 2);
+    state = removeParasite(state, 0);
+    expect(state.parasites).toHaveLength(1);
+    expect(state.parasites[0].species).toBe('dream_moth');
+  });
+
+  it('purgeAllParasites clears everything', () => {
+    let state = defaultParasiteState();
+    state = attachParasite(state, 'marrow_grub', 1);
+    state = attachParasite(state, 'blood_leech', 2);
+    const purged = purgeAllParasites(state);
+    expect(purged.parasites).toHaveLength(0);
+    expect(purged.infestation_level).toBe(0);
+  });
+
+  it('tickParasite increases maturity over time', () => {
+    let state = defaultParasiteState();
+    state = attachParasite(state, 'blood_leech', 1);
+    const ticked = tickParasite(state, 10);
+    expect(ticked.parasites[0].maturity).toBeGreaterThan(0);
+  });
+
+  it('totalHealthDrain returns drain from parasites', () => {
+    let state = defaultParasiteState();
+    state = attachParasite(state, 'marrow_grub', 1);
+    state = { ...state, parasites: state.parasites.map(p => ({ ...p, maturity: 80, health_drain: 2 })) };
+    expect(totalHealthDrain(state)).toBeGreaterThan(0);
+  });
+
+  it('totalCorruptionBuff returns corruption from parasites', () => {
+    let state = defaultParasiteState();
+    state = attachParasite(state, 'void_tick', 1);
+    state = { ...state, parasites: state.parasites.map(p => ({ ...p, maturity: 80, corruption_buff: 0.5 })) };
+    expect(totalCorruptionBuff(state)).toBeGreaterThan(0);
+  });
+
+  it('symbioticHealthRegen returns regen from symbiotic parasites', () => {
+    let state = defaultParasiteState();
+    state = attachParasite(state, 'dream_moth', 1);
+    state = { ...state, parasites: state.parasites.map(p => ({ ...p, symbiosis: 80 })) };
+    expect(symbioticHealthRegen(state)).toBeGreaterThan(0);
+  });
+
+  it('infestationLabel returns correct labels', () => {
+    expect(infestationLabel(0)).toBe('Clean');
+    expect(infestationLabel(90)).toBe('Overrun');
+    expect(infestationLabel(50)).toBe('Infested');
+  });
+
+  it('symbiosisLabel returns correct labels', () => {
+    expect(symbiosisLabel(0)).toBe('Hostile');
+    expect(symbiosisLabel(90)).toBe('Mutualistic');
+  });
+});
+
+// ── CompanionSystem ──────────────────────────────────────────────────────────
+
+describe('CompanionSystem', () => {
+  const makeCompanion = (overrides: Partial<CompanionEntry> = {}): CompanionEntry => ({
+    id: 'comp_1',
+    name: 'Wolf',
+    role: 'fighter',
+    loyalty: 60,
+    morale: 70,
+    health: 100,
+    stamina: 80,
+    combat_skill: 40,
+    bond: 30,
+    turns_together: 0,
+    ...overrides,
+  });
+
+  it('defaultCompanionState returns empty party', () => {
+    const state = defaultCompanionState();
+    expect(state.companions).toHaveLength(0);
+    expect(state.max_party_size).toBe(3);
+  });
+
+  it('addCompanion adds to party', () => {
+    const state = defaultCompanionState();
+    const updated = addCompanion(state, makeCompanion());
+    expect(updated.companions).toHaveLength(1);
+  });
+
+  it('addCompanion respects max party size', () => {
+    let state = defaultCompanionState();
+    for (let i = 0; i < 5; i++) {
+      state = addCompanion(state, makeCompanion({ id: `comp_${i}` }));
+    }
+    expect(state.companions).toHaveLength(3);
+  });
+
+  it('removeCompanion removes by id', () => {
+    let state = defaultCompanionState();
+    state = addCompanion(state, makeCompanion({ id: 'a' }));
+    state = addCompanion(state, makeCompanion({ id: 'b' }));
+    state = removeCompanion(state, 'a');
+    expect(state.companions).toHaveLength(1);
+    expect(state.companions[0].id).toBe('b');
+  });
+
+  it('tickCompanions increases bond over time', () => {
+    let state = defaultCompanionState();
+    state = addCompanion(state, makeCompanion({ bond: 20 }));
+    const ticked = tickCompanions(state, 10);
+    expect(ticked.companions[0].bond).toBeGreaterThan(20);
+  });
+
+  it('partyCombatBonus returns bonus from fighters', () => {
+    let state = defaultCompanionState();
+    state = addCompanion(state, makeCompanion({ role: 'fighter', loyalty: 80, morale: 80, health: 100 }));
+    expect(partyCombatBonus(state)).toBeGreaterThan(0);
+  });
+
+  it('partyHealRate returns healing from healers', () => {
+    let state = defaultCompanionState();
+    state = addCompanion(state, makeCompanion({ role: 'healer', loyalty: 80, morale: 80, health: 100 }));
+    expect(partyHealRate(state)).toBeGreaterThan(0);
+  });
+
+  it('partyScoutRange returns range from scouts', () => {
+    let state = defaultCompanionState();
+    state = addCompanion(state, makeCompanion({ role: 'scout', health: 100 }));
+    expect(partyScoutRange(state)).toBeGreaterThan(0);
+  });
+
+  it('partyCarryCapacity returns capacity from pack_mule', () => {
+    let state = defaultCompanionState();
+    state = addCompanion(state, makeCompanion({ role: 'pack_mule', health: 100 }));
+    expect(partyCarryCapacity(state)).toBeGreaterThan(0);
+  });
+
+  it('damageCompanion reduces health and morale', () => {
+    let state = defaultCompanionState();
+    state = addCompanion(state, makeCompanion({ id: 'a', health: 80, morale: 70 }));
+    state = damageCompanion(state, 'a', 30);
+    expect(state.companions[0].health).toBe(50);
+    expect(state.companions[0].morale).toBeLessThan(70);
+  });
+
+  it('checkDesertion returns true when loyalty and morale are very low', () => {
+    expect(checkDesertion(makeCompanion({ loyalty: 5, morale: 10 }))).toBe(true);
+    expect(checkDesertion(makeCompanion({ loyalty: 50, morale: 60 }))).toBe(false);
+  });
+
+  it('loyaltyLabel returns correct labels', () => {
+    expect(loyaltyLabel(90)).toBe('Devoted');
+    expect(loyaltyLabel(5)).toBe('Disloyal');
+  });
+
+  it('bondLabel returns correct labels', () => {
+    expect(bondLabel(90)).toBe('Inseparable');
+    expect(bondLabel(5)).toBe('Strangers');
+  });
+
+  it('moraleLabel returns correct labels', () => {
+    expect(moraleLabel(90)).toBe('Spirited');
+    expect(moraleLabel(5)).toBe('Broken');
+  });
+});
+
+// ── AllureSystem ─────────────────────────────────────────────────────────────
+
+describe('AllureSystem', () => {
+  it('defaultAllureState returns correct defaults', () => {
+    const state = defaultAllureState();
+    expect(state.base_allure).toBe(50);
+    expect(state.effective_allure).toBe(50);
+  });
+
+  it('computeAllure increases with flirtatious trait', () => {
+    const clothing = defaultClothingLoadout();
+    const fame = defaultFame();
+    const corruption = defaultCorruptionState();
+    const base = computeAllure(50, clothing, fame, corruption, []);
+    const flirty = computeAllure(50, clothing, fame, corruption, ['flirtatious']);
+    expect(flirty.effective_allure).toBeGreaterThan(base.effective_allure);
+  });
+
+  it('computeAllure increases intimidation with aggressive trait', () => {
+    const clothing = defaultClothingLoadout();
+    const fame = defaultFame();
+    const corruption = defaultCorruptionState();
+    const base = computeAllure(50, clothing, fame, corruption, []);
+    const aggressive = computeAllure(50, clothing, fame, corruption, ['aggressive']);
+    expect(aggressive.intimidation).toBeGreaterThan(base.intimidation);
+  });
+
+  it('computeAllure increases noticeability with fame', () => {
+    const clothing = defaultClothingLoadout();
+    const fame = { ...defaultFame(), social: 80 };
+    const corruption = defaultCorruptionState();
+    const result = computeAllure(50, clothing, fame, corruption, []);
+    expect(result.noticeability).toBeGreaterThan(0);
+  });
+
+  it('allureEncounterModifier returns 0 for low allure', () => {
+    const state = { ...defaultAllureState(), effective_allure: 40, noticeability: 10 };
+    expect(allureEncounterModifier(state)).toBeGreaterThanOrEqual(0);
+    expect(allureEncounterModifier(state)).toBeLessThan(0.1);
+  });
+
+  it('intimidationDefense returns defense for high intimidation', () => {
+    const state = { ...defaultAllureState(), intimidation: 80 };
+    expect(intimidationDefense(state)).toBeGreaterThan(0);
+  });
+
+  it('socialAllureBonus returns bonus for high allure', () => {
+    const state = { ...defaultAllureState(), effective_allure: 80 };
+    expect(socialAllureBonus(state)).toBeGreaterThan(0);
+  });
+
+  it('socialAllureBonus returns negative for low allure', () => {
+    const state = { ...defaultAllureState(), effective_allure: 20 };
+    expect(socialAllureBonus(state)).toBeLessThan(0);
+  });
+
+  it('allureLabel returns correct labels', () => {
+    expect(allureLabel(90)).toBe('Captivating');
+    expect(allureLabel(10)).toBe('Unremarkable');
+  });
+
+  it('noticeabilityLabel returns correct labels', () => {
+    expect(noticeabilityLabel(90)).toBe('Center of Attention');
+    expect(noticeabilityLabel(5)).toBe('Invisible');
+  });
+
+  it('intimidationLabel returns correct labels', () => {
+    expect(intimidationLabel(90)).toBe('Terrifying');
+    expect(intimidationLabel(5)).toBe('Non-threatening');
+  });
+});
+
+// ── RestraintSystem ──────────────────────────────────────────────────────────
+
+describe('RestraintSystem', () => {
+  const makeRestraint = (overrides: Partial<RestraintEntry> = {}): RestraintEntry => ({
+    slot: 'wrists',
+    name: 'Iron Shackles',
+    strength: 60,
+    comfort: 30,
+    turn_applied: 1,
+    ...overrides,
+  });
+
+  it('defaultRestraintState returns free state', () => {
+    const state = defaultRestraintState();
+    expect(state.restraints).toHaveLength(0);
+    expect(isRestrained(state)).toBe(false);
+  });
+
+  it('applyRestraint adds restraint and computes penalties', () => {
+    const state = defaultRestraintState();
+    const updated = applyRestraint(state, makeRestraint({ slot: 'ankles' }));
+    expect(updated.restraints).toHaveLength(1);
+    expect(updated.movement_penalty).toBeGreaterThan(0);
+    expect(isRestrained(updated)).toBe(true);
+  });
+
+  it('applyRestraint does not duplicate same slot', () => {
+    let state = defaultRestraintState();
+    state = applyRestraint(state, makeRestraint({ slot: 'wrists' }));
+    state = applyRestraint(state, makeRestraint({ slot: 'wrists', name: 'Different' }));
+    expect(state.restraints).toHaveLength(1);
+  });
+
+  it('removeRestraint removes by slot', () => {
+    let state = defaultRestraintState();
+    state = applyRestraint(state, makeRestraint({ slot: 'wrists' }));
+    state = applyRestraint(state, makeRestraint({ slot: 'ankles' }));
+    state = removeRestraint(state, 'wrists');
+    expect(state.restraints).toHaveLength(1);
+    expect(state.restraints[0].slot).toBe('ankles');
+  });
+
+  it('freeAll removes all restraints', () => {
+    let state = defaultRestraintState();
+    state = applyRestraint(state, makeRestraint({ slot: 'wrists' }));
+    state = applyRestraint(state, makeRestraint({ slot: 'ankles' }));
+    state = applyRestraint(state, makeRestraint({ slot: 'neck' }));
+    const freed = freeAll(state);
+    expect(freed.restraints).toHaveLength(0);
+    expect(isRestrained(freed)).toBe(false);
+  });
+
+  it('attemptEscape progresses escape based on skills', () => {
+    let state = defaultRestraintState();
+    state = applyRestraint(state, makeRestraint({ slot: 'wrists', strength: 30 }));
+    const skills = { ...defaultSkills(), skulduggery: 60, athletics: 40 };
+    const updated = attemptEscape(state, skills, ['brave']);
+    expect(updated.escape_progress).toBeGreaterThan(0);
+  });
+
+  it('tickRestraints degrades comfort', () => {
+    let state = defaultRestraintState();
+    state = applyRestraint(state, makeRestraint({ slot: 'wrists', comfort: 50 }));
+    const ticked = tickRestraints(state, 10);
+    expect(ticked.restraints[0].comfort).toBeLessThan(50);
+  });
+
+  it('restraintStress returns stress from uncomfortable restraints', () => {
+    let state = defaultRestraintState();
+    state = applyRestraint(state, makeRestraint({ slot: 'wrists', comfort: 10 }));
+    expect(restraintStress(state)).toBeGreaterThan(0);
+  });
+
+  it('canMove returns false when ankles and waist are bound', () => {
+    let state = defaultRestraintState();
+    state = applyRestraint(state, makeRestraint({ slot: 'ankles' }));
+    state = applyRestraint(state, makeRestraint({ slot: 'waist' }));
+    state = applyRestraint(state, makeRestraint({ slot: 'wrists' }));
+    state = applyRestraint(state, makeRestraint({ slot: 'neck' }));
+    state = applyRestraint(state, makeRestraint({ slot: 'mouth' }));
+    expect(canMove(state)).toBe(false);
+  });
+
+  it('canAct returns true when action penalty is below threshold', () => {
+    let state = defaultRestraintState();
+    state = applyRestraint(state, makeRestraint({ slot: 'wrists' }));
+    // Wrists alone give 0.35 action penalty — still can act
+    expect(canAct(state)).toBe(true);
+    expect(state.action_penalty).toBeGreaterThan(0);
+  });
+
+  it('restraintLabel returns correct labels', () => {
+    expect(restraintLabel(defaultRestraintState())).toBe('Free');
+    const bound = applyRestraint(defaultRestraintState(), makeRestraint());
+    expect(restraintLabel(bound)).toBe('Partially Bound');
+  });
+
+  it('escapeProgressLabel returns correct labels', () => {
+    expect(escapeProgressLabel(0)).toBe('No Progress');
+    expect(escapeProgressLabel(90)).toBe('Almost Free');
   });
 });

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { motion } from 'motion/react';
 import { GameState, Item, Cosmetics, CosmeticScar, CosmeticTattoo, CosmeticPiercing } from '../types';
 import { resolveRace, RacialBodyFeatures } from '../data/races';
@@ -149,22 +149,28 @@ export const DoLCharacterSprite: React.FC<DoLCharacterSpriteProps> = ({ state, c
 
   // DoL encounter action → CSS class (body-part specific animations)
   const ENC_ACTION_CLASSES: Record<string, string> = {
-    grabbed:       'sprite-enc-grabbed',
-    groped:        'sprite-enc-groped',
-    thrust:        'sprite-enc-thrust',
-    oral:          'sprite-enc-oral',
-    kissed:        'sprite-enc-kissed',
-    climax:        'sprite-enc-climax',
-    resist_break:  'sprite-enc-resist-break',
-    clothing_tear: 'sprite-enc-clothing-tear',
-    leg_spread:    'sprite-enc-leg-spread',
-    arms_pinned:   'sprite-enc-arms-pinned',
-    prone:         'sprite-enc-prone',
-    bent_over:     'sprite-enc-bent-over',
-    lifted:        'sprite-enc-lifted',
-    caressed:      'sprite-enc-caressed',
-    bitten:        'sprite-enc-bitten',
-    spanked:       'sprite-enc-spanked',
+    grabbed:         'sprite-enc-grabbed',
+    groped:          'sprite-enc-groped',
+    thrust:          'sprite-enc-thrust',
+    oral:            'sprite-enc-oral',
+    kissed:          'sprite-enc-kissed',
+    climax:          'sprite-enc-climax',
+    resist_break:    'sprite-enc-resist-break',
+    clothing_tear:   'sprite-enc-clothing-tear',
+    leg_spread:      'sprite-enc-leg-spread',
+    arms_pinned:     'sprite-enc-arms-pinned',
+    prone:           'sprite-enc-prone',
+    bent_over:       'sprite-enc-bent-over',
+    lifted:          'sprite-enc-lifted',
+    caressed:        'sprite-enc-caressed',
+    bitten:          'sprite-enc-bitten',
+    spanked:         'sprite-enc-spanked',
+    choked:          'sprite-enc-choked',
+    hair_pulled:     'sprite-enc-hair-pulled',
+    scratched:       'sprite-enc-scratched',
+    licked:          'sprite-enc-licked',
+    restrained_tied: 'sprite-enc-restrained-tied',
+    mounted:         'sprite-enc-mounted',
   };
   const encActionClass = encounterAction !== 'none' ? ENC_ACTION_CLASSES[encounterAction] || '' : '';
 
@@ -176,17 +182,81 @@ export const DoLCharacterSprite: React.FC<DoLCharacterSpriteProps> = ({ state, c
     : ''
     : '';
 
-  // Debuff visual classes
+  // Debuff visual classes (encounter-specific)
   const debuffClass = [
     hasDebuff('slowed') ? 'sprite-debuff-slowed' : '',
     hasDebuff('weakened') ? 'sprite-debuff-weakened' : '',
+    hasDebuff('stunned') ? 'sprite-debuff-stunned' : '',
+    hasDebuff('poisoned') ? 'sprite-debuff-poisoned' : '',
+    hasDebuff('bleeding') ? 'sprite-debuff-bleeding' : '',
   ].filter(Boolean).join(' ');
 
-  // Body animation CSS classes
+  // ── Activity-based animation (DoL-parity: walking, sleeping, swimming, etc.) ──
+  const lastIntent = state.world.last_intent;
+  const logEntries = state.ui.currentLog;
+  const lastLogText = logEntries.length > 0 ? logEntries[logEntries.length - 1].text : '';
+  const actionText = useMemo(() => (lastLogText ?? '').toLowerCase(), [lastLogText]);
+  const activityClass = (() => {
+    if (inEncounter || combatAnimClass || encActionClass) return '';
+    // Detect activity from last_intent + action text keywords
+    if (lastIntent === 'travel') return 'sprite-walk';
+    if (lastIntent === 'flee') return 'sprite-walk';
+    if (actionText.includes('sleep') || actionText.includes('rest') || actionText.includes('nap')) return 'sprite-sleep';
+    if (actionText.includes('swim') || actionText.includes('bath') || actionText.includes('wash')) return 'sprite-swim';
+    if (actionText.includes('exercise') || actionText.includes('run') || actionText.includes('jog') || actionText.includes('train')) return 'sprite-exercise';
+    if (actionText.includes('eat') || actionText.includes('drink') || actionText.includes('food') || actionText.includes('bread') || actionText.includes('ale') || actionText.includes('milk')) return 'sprite-eat';
+    if (lastIntent === 'education' || actionText.includes('study') || actionText.includes('read') || actionText.includes('book')) return 'sprite-study';
+    if (lastIntent === 'stealth' || actionText.includes('sneak') || actionText.includes('hide') || actionText.includes('stalk')) return 'sprite-sneak';
+    if (lastIntent === 'work') return 'sprite-work';
+    return '';
+  })();
+
+  // ── Weather-reactive animation (DoL-parity) ──
+  const weather = state.world.weather;
+  const weatherClass = (() => {
+    if (inEncounter) return '';
+    if (weather === 'Blizzard' || weather === 'Freezing' || weather === 'Clear and Cold' || weather === 'Light Snow') return 'sprite-shiver';
+    if (weather === 'Scorching' || weather === 'Hot') return 'sprite-heat-wilt';
+    if (weather === 'Rainy' || weather === 'Cold Rain' || weather === 'Drizzle' || weather === 'Thunderstorm') return 'sprite-wet';
+    return '';
+  })();
+
+  // ── Status-reactive animations (DoL-parity: exhaustion, fear, limp, hunger) ──
+  const needs = state.player.life_sim.needs;
+  const statusAnimClass = (() => {
+    if (inEncounter) return '';
+    // Ecstasy tremor overrides other status (extreme arousal)
+    if (stats.arousal > 85 || (stats.lust > 85 && stats.arousal > 60)) return 'sprite-ecstasy';
+    // Exhaustion — very low energy
+    if (needs.energy <= 15 || stats.stamina < 15) return 'sprite-exhausted';
+    // Fear tremor — high trauma or extreme stress
+    if (stats.trauma > 70 || stats.stress > 80) return 'sprite-fear-tremble';
+    // Limping — low health during any movement activity
+    const isMoving = activityClass === 'sprite-walk' || activityClass === 'sprite-exercise' || activityClass === 'sprite-sneak';
+    if (stats.health < 25 && isMoving) return 'sprite-limp';
+    // Hunger weakness
+    if (needs.hunger <= 10) return 'sprite-hungry';
+    // Intoxicated (can be triggered by afflictions)
+    if (state.player.afflictions.some((a: string) => a.toLowerCase().includes('drunk') || a.toLowerCase().includes('drugged') || a.toLowerCase().includes('intoxicat'))) return 'sprite-drunk';
+    return '';
+  })();
+
+  // Body animation CSS classes (priority-ordered composition)
   const bodyAnimClass = [
-    !combatAnimClass && !encActionClass ? 'sprite-breathe' : '',     // breathing pauses during combat/encounter anims
-    showTremble ? 'sprite-arousal-tremble' : '',
+    // Base idle breathing (pauses during activity/combat/encounter)
+    !combatAnimClass && !encActionClass && !activityClass && !statusAnimClass ? 'sprite-breathe' : '',
+    // Idle sway when standing with nothing else happening
+    !combatAnimClass && !encActionClass && !activityClass && !statusAnimClass && !inEncounter ? 'sprite-idle-sway' : '',
+    // Status/condition reactive (DoL-parity)
+    showTremble && !statusAnimClass ? 'sprite-arousal-tremble' : '',
     showPainFlinch && !combatAnimClass ? 'sprite-pain-flinch' : '',
+    // Activity animation (travel/sleep/swim/work/etc.)
+    activityClass,
+    // Status animation (exhaustion/fear/limp/hunger/drunk)
+    statusAnimClass,
+    // Weather reactive
+    weatherClass,
+    // Combat/encounter animations (highest priority)
     combatAnimClass,
     encActionClass,
     stanceClass,

@@ -12,7 +12,10 @@ export const initialState: GameState = {
       lust: 0, trauma: 10, hygiene: 40, corruption: 0, allure: 5,
       arousal: 0, pain: 5, control: 80, stress: 20, hallucination: 0, purity: 100
     },
-    skills: { seduction: 0, athletics: 5, skulduggery: 10, swimming: 0, dancing: 0, housekeeping: 15, school_grades: 50 },
+    skills: { seduction: 0, athletics: 5, skulduggery: 10, swimming: 0, dancing: 0, housekeeping: 15, school_grades: 50, tending: 0, cooking: 5, foraging: 0 },
+    gold: 0,
+    fame: 0,
+    notoriety: 0,
     psych_profile: { submission_index: 20, cruelty_index: 0, exhibitionism: 0, promiscuity: 0 },
     afflictions: [],
     clothing: {
@@ -135,6 +138,9 @@ export const initialState: GameState = {
     show_quests: false,
     show_save_load: false,
     show_xray: false,
+    show_shop: false,
+    show_wardrobe: false,
+    show_social: false,
     highlighted_part: null,
     targeted_part: null,
     combat_animation: null,

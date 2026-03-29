@@ -1,25 +1,13 @@
-import React, { useState, useEffect, useRef, useReducer, createContext, useCallback, Component } from 'react';
+import React, { useState, useEffect, useRef, useReducer, createContext, useCallback, Component, Suspense } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
   Heart, Wind, Moon, Settings, X, BookOpen, User, Map as MapIcon, 
   Shield, Sword, Zap, Droplets, AlertTriangle, Ghost, Sparkles, 
-  Layers, ShoppingBag, Eye, EyeOff, Thermometer, Clock, Calendar, RefreshCw, Book
+  Layers, ShoppingBag, Eye, EyeOff, Thermometer, Clock, Calendar, RefreshCw, Book,
+  Cloud, Sun, Snowflake, CloudRain, CloudLightning, CloudDrizzle, CloudFog, Flame,
+  Coins, Shirt, Users, Star
 } from 'lucide-react';
-import { GoogleGenAI, Type } from "@google/genai";
-import { CharacterModel } from './components/CharacterModel';
-import { SaveLoadModal } from './components/SaveLoadModal';
-import { XRayView } from './components/XRayView';
 import { ErrorBoundary } from './components/ErrorBoundary';
-import { NarrativePanel } from './components/NarrativePanel';
-import { JournalModal } from './components/modals/JournalModal';
-import { MapModal } from './components/modals/MapModal';
-import { XRayModal } from './components/modals/XRayModal';
-import { StatsModal } from './components/modals/StatsModal';
-import { StatusModal } from './components/modals/StatusModal';
-import { MemoriesModal } from './components/modals/MemoriesModal';
-import { InventoryModal } from './components/modals/InventoryModal';
-import { DeveloperModeModal } from './components/modals/DeveloperModeModal';
-import { SettingsModal } from './components/modals/SettingsModal';
 import { SemanticText } from './components/TextComponents';
 import { GameState, Item, StatKey, ActiveEncounter } from './types';
 import { LOCATIONS } from './data/locations';
@@ -34,14 +22,35 @@ import { generateText, generateImage, generateLegendaryStats } from './services/
 import { buildTextPromptAsync, buildImagePrompt, getVisualEffectClasses, imageWorker } from './utils/workers';
 import { getSynergies, getAgeTag, getFallbackResponse, getHealthSemantic, getStaminaSemantic, getTraumaSemantic } from './utils/gameLogic';
 import { useEncounterBuffer } from './hooks/useEncounterBuffer';
-
-// --- Main Component ---
-import { ImmersiveStartMenu } from './components/ImmersiveStartMenu';
-import { EncounterUI } from './components/EncounterUI';
-import { NarrativeLog } from './components/NarrativeLog';
 import { saveGame } from './utils/saveManager';
 import { FloatingDeltas } from './components/TextComponents';
-import { DoLStatsSidebar } from './components/DoLStatsSidebar';
+
+// ── Lazy-loaded modals (only fetched when opened) ───────────────────────
+const SaveLoadModal = React.lazy(() => import('./components/SaveLoadModal').then(m => ({ default: m.SaveLoadModal })));
+const JournalModal = React.lazy(() => import('./components/modals/JournalModal').then(m => ({ default: m.JournalModal })));
+const MapModal = React.lazy(() => import('./components/modals/MapModal').then(m => ({ default: m.MapModal })));
+const XRayModal = React.lazy(() => import('./components/modals/XRayModal').then(m => ({ default: m.XRayModal })));
+const StatsModal = React.lazy(() => import('./components/modals/StatsModal').then(m => ({ default: m.StatsModal })));
+const StatusModal = React.lazy(() => import('./components/modals/StatusModal').then(m => ({ default: m.StatusModal })));
+const MemoriesModal = React.lazy(() => import('./components/modals/MemoriesModal').then(m => ({ default: m.MemoriesModal })));
+const InventoryModal = React.lazy(() => import('./components/modals/InventoryModal').then(m => ({ default: m.InventoryModal })));
+const DeveloperModeModal = React.lazy(() => import('./components/modals/DeveloperModeModal').then(m => ({ default: m.DeveloperModeModal })));
+const SettingsModal = React.lazy(() => import('./components/modals/SettingsModal').then(m => ({ default: m.SettingsModal })));
+const ShopModal = React.lazy(() => import('./components/modals/ShopModal').then(m => ({ default: m.ShopModal })));
+const WardrobeModal = React.lazy(() => import('./components/modals/WardrobeModal').then(m => ({ default: m.WardrobeModal })));
+const SocialModal = React.lazy(() => import('./components/modals/SocialModal').then(m => ({ default: m.SocialModal })));
+
+// ── Lazy-loaded heavy components ────────────────────────────────────────
+const CharacterModel = React.lazy(() => import('./components/CharacterModel').then(m => ({ default: m.CharacterModel })));
+const XRayView = React.lazy(() => import('./components/XRayView').then(m => ({ default: m.XRayView })));
+const NarrativePanel = React.lazy(() => import('./components/NarrativePanel').then(m => ({ default: m.NarrativePanel })));
+const ImmersiveStartMenu = React.lazy(() => import('./components/ImmersiveStartMenu').then(m => ({ default: m.ImmersiveStartMenu })));
+const EncounterUI = React.lazy(() => import('./components/EncounterUI').then(m => ({ default: m.EncounterUI })));
+const NarrativeLog = React.lazy(() => import('./components/NarrativeLog').then(m => ({ default: m.NarrativeLog })));
+const DoLStatsSidebar = React.lazy(() => import('./components/DoLStatsSidebar').then(m => ({ default: m.DoLStatsSidebar })));
+
+/** Minimal fallback for Suspense boundaries */
+const ChunkFallback = () => <div className="animate-pulse text-white/20 text-[9px] text-center p-2">Loading…</div>;
 
 const SettingsContext = createContext<any>(null);
 const HordeNetworkContext = createContext<any>(null);
@@ -80,6 +89,7 @@ function App({ state, dispatch }: { state: GameState, dispatch: React.Dispatch<a
   const generatePlayerAvatar = async () => {
     setIsGeneratingAvatar(true);
     try {
+      const { GoogleGenAI } = await import("@google/genai");
       const ai = new GoogleGenAI({ apiKey: state.ui.apiKey });
       const prompt = `A highly detailed, dark fantasy portrait of a ${getAgeTag(state.player.age_days, state.player.identity.race)} ${state.player.identity.race} ${state.player.identity.gender}. ${AGE_APPEARANCE[Math.floor(state.player.age_days / 365)] || ''} ${state.player.cosmetics.hair_length} ${state.player.cosmetics.eye_color} eyes. Dark, gritty, atmospheric lighting.`;
       
@@ -280,6 +290,7 @@ function App({ state, dispatch }: { state: GameState, dispatch: React.Dispatch<a
     if (state.ui.isGeneratingAvatar) return;
     dispatch({ type: 'START_AVATAR_GENERATION' });
     try {
+      const { GoogleGenAI } = await import("@google/genai");
       const ai = new GoogleGenAI({ apiKey: state.ui.apiKey });
       const prompt = `A highly detailed, dark fantasy portrait of a ${getAgeTag(state.player.age_days, state.player.identity.race)} ${state.player.identity.race} ${state.player.identity.gender}. ${AGE_APPEARANCE[Math.floor(state.player.age_days / 365)] || ''} ${state.player.cosmetics.hair_length} ${state.player.cosmetics.eye_color} eyes. Dark, gritty, atmospheric lighting.`;
       
@@ -378,6 +389,7 @@ function App({ state, dispatch }: { state: GameState, dispatch: React.Dispatch<a
           narrative += " The enemy retaliates!";
           stat_deltas.health = -15 + Math.floor(athletics / 20);
           stat_deltas.pain = 10;
+          encounterUpdates.encounter_action = 'grabbed';
         }
       } else if (intent === 'submissive') {
         triggerCombatFeedback('lust_action', false, null);
@@ -387,6 +399,7 @@ function App({ state, dispatch }: { state: GameState, dispatch: React.Dispatch<a
         stat_deltas.lust = 10;
         stat_deltas.purity = -5;
         narrative = "You submit to their advances. They take advantage of your compliance.";
+        encounterUpdates.encounter_action = 'groped';
         if (encounterUpdates.enemy_lust >= 100) {
           narrative += " They are satisfied and leave you alone.";
           endEncounter = true;
@@ -399,6 +412,7 @@ function App({ state, dispatch }: { state: GameState, dispatch: React.Dispatch<a
           encounterUpdates.enemy_lust = Math.min(100, encounter.enemy_lust + 30 + Math.floor(seduction / 5));
           narrative = "You successfully seduce them, increasing their lust.";
           skill_deltas.seduction = 2;
+          encounterUpdates.encounter_action = 'caressed';
           if (encounterUpdates.enemy_lust >= 100) {
             narrative += " They are completely enamored and let you go.";
             endEncounter = true;
@@ -408,6 +422,7 @@ function App({ state, dispatch }: { state: GameState, dispatch: React.Dispatch<a
           narrative = "Your seduction attempt fails. They are annoyed.";
           stat_deltas.health = -5;
           skill_deltas.seduction = 1;
+          encounterUpdates.encounter_action = 'grabbed';
         }
         stat_deltas.lust = 5;
       } else if (intent === 'flee') {
@@ -425,6 +440,72 @@ function App({ state, dispatch }: { state: GameState, dispatch: React.Dispatch<a
           skill_deltas.athletics = 1;
           encounterUpdates.enemy_anger = Math.min(100, encounter.enemy_anger + 10);
         }
+      } else if (intent === 'resist') {
+        triggerCombatFeedback('block', true, 'ribs');
+        const willpower = state.player.stats.willpower || 50;
+        const resistStrength = willpower + (state.player.skills?.athletics || 0) * 0.5;
+        const resistChance = resistStrength / 200;
+        if (Math.random() < resistChance) {
+          encounterUpdates.enemy_anger = Math.min(100, encounter.enemy_anger + 20);
+          encounterUpdates.enemy_lust = Math.max(0, encounter.enemy_lust - 10);
+          narrative = "You resist with all your strength! They are forced back, frustrated and angry.";
+          encounterUpdates.encounter_action = 'resist_break';
+          if (encounter.enemy_anger >= 90) {
+            narrative += " Enraged beyond reason, they give up and storm off!";
+            endEncounter = true;
+          }
+        } else {
+          narrative = "You try to resist, but they overpower you! Your body aches from the effort.";
+          stat_deltas.stamina = -20;
+          stat_deltas.pain = 15;
+          stat_deltas.stress = 10;
+          encounterUpdates.encounter_action = 'arms_pinned';
+        }
+        stat_deltas.willpower = -5;
+        skill_deltas.athletics = 1;
+      } else if (intent === 'endure') {
+        triggerCombatFeedback('defend', false, null);
+        const control = state.player.stats.control || 50;
+        const enduranceBonus = Math.floor(control / 20);
+        encounterUpdates.enemy_lust = Math.min(100, encounter.enemy_lust + 10);
+        encounterUpdates.enemy_anger = Math.max(0, encounter.enemy_anger - 5);
+        stat_deltas.stress = 10 - enduranceBonus;
+        stat_deltas.trauma = 3;
+        stat_deltas.pain = 5;
+        stat_deltas.stamina = 5; // resting / conserving energy
+        narrative = "You grit your teeth and endure, waiting for an opening. The ordeal takes its toll on your mind.";
+        encounterUpdates.encounter_action = 'grabbed';
+        // After enough enduring, enemy tires out
+        if (encounter.turn >= 8) {
+          const tiredChance = (encounter.turn - 7) * 0.15;
+          if (Math.random() < tiredChance) {
+            narrative += " They grow bored and wander off, leaving you shaken but alive.";
+            endEncounter = true;
+          }
+        }
+      } else if (intent === 'cry_out') {
+        triggerCombatFeedback('special', false, null);
+        const socialSkill = state.player.skills?.seduction || 0;
+        const rescueChance = 0.15 + (socialSkill * 0.003) + (state.world.current_location.danger < 30 ? 0.15 : 0);
+        if (Math.random() < rescueChance) {
+          narrative = "Your desperate cry echoes through the area! Someone hears you and rushes to help. Your attacker flees!";
+          endEncounter = true;
+        } else {
+          encounterUpdates.enemy_anger = Math.min(100, encounter.enemy_anger + 25);
+          narrative = "You cry out for help, but no one comes. Your attacker is furious at the noise!";
+          stat_deltas.health = -10;
+          stat_deltas.pain = 10;
+          stat_deltas.stress = 15;
+          encounterUpdates.encounter_action = 'grabbed';
+        }
+      }
+
+      // Tick debuff durations — decrement by 1 per turn, remove expired
+      if (encounterUpdates.debuffs || encounter.debuffs?.length) {
+        const currentDebuffs = encounterUpdates.debuffs || encounter.debuffs || [];
+        encounterUpdates.debuffs = currentDebuffs
+          .map((d: { type: string; duration: number }) => ({ ...d, duration: d.duration - 1 }))
+          .filter((d: { type: string; duration: number }) => d.duration > 0);
       }
 
       encounterUpdates.log = [...(encounter.log || []), narrative];
@@ -737,7 +818,7 @@ Example: { "health": 50, "allure": 20 }`;
   }, []);
 
   if (!hasStarted) {
-    return <ImmersiveStartMenu onStartGame={handleStartGame} onLoadGame={handleLoadGame} />;
+    return <Suspense fallback={<ChunkFallback />}><ImmersiveStartMenu onStartGame={handleStartGame} onLoadGame={handleLoadGame} /></Suspense>;
   }
 
   return (
@@ -793,6 +874,30 @@ Example: { "health": 50, "allure": 20 }`;
             >
               <Book className="w-4 h-4 text-white/40 group-hover:text-white/80" />
               <span className="text-[10px] tracking-widest uppercase text-white/50 group-hover:text-white/90">Journal</span>
+            </motion.button>
+            <motion.button 
+              whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
+              onClick={() => dispatch({ type: 'TOGGLE_UI_SETTING', payload: { key: 'show_shop', value: true } })}
+              className="group flex items-center gap-2 px-3 py-1.5 border border-white/10 hover:border-white/30 transition-all rounded-sm"
+            >
+              <Coins className="w-4 h-4 text-amber-400/40 group-hover:text-amber-400/80" />
+              <span className="text-[10px] tracking-widest uppercase text-white/50 group-hover:text-white/90">Shop</span>
+            </motion.button>
+            <motion.button 
+              whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
+              onClick={() => dispatch({ type: 'TOGGLE_UI_SETTING', payload: { key: 'show_wardrobe', value: true } })}
+              className="group flex items-center gap-2 px-3 py-1.5 border border-white/10 hover:border-white/30 transition-all rounded-sm"
+            >
+              <Shirt className="w-4 h-4 text-indigo-400/40 group-hover:text-indigo-400/80" />
+              <span className="text-[10px] tracking-widest uppercase text-white/50 group-hover:text-white/90">Wardrobe</span>
+            </motion.button>
+            <motion.button 
+              whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
+              onClick={() => dispatch({ type: 'TOGGLE_UI_SETTING', payload: { key: 'show_social', value: true } })}
+              className="group flex items-center gap-2 px-3 py-1.5 border border-white/10 hover:border-white/30 transition-all rounded-sm"
+            >
+              <Users className="w-4 h-4 text-pink-400/40 group-hover:text-pink-400/80" />
+              <span className="text-[10px] tracking-widest uppercase text-white/50 group-hover:text-white/90">Social</span>
             </motion.button>
             <motion.button 
               whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
@@ -871,21 +976,25 @@ Example: { "health": 50, "allure": 20 }`;
         )}
       </AnimatePresence>
       {state.ui.show_save_load && (
+        <Suspense fallback={<ChunkFallback />}>
         <SaveLoadModal 
           onClose={() => dispatch({ type: 'TOGGLE_UI_SETTING', payload: { key: 'show_save_load', value: false } })}
           onLoad={(state: GameState) => dispatch({ type: 'LOAD_GAME', payload: state })}
           currentState={state}
         />
+        </Suspense>
       )}
       {/* Main Content */}
       <main className="flex-1 flex overflow-hidden relative">
         {/* DoL Stats Sidebar - always visible */}
+        <Suspense fallback={<ChunkFallback />}>
         <DoLStatsSidebar
           state={state}
           dispatch={dispatch}
           onOpenStats={() => dispatch({ type: 'TOGGLE_UI_SETTING', payload: { key: 'show_stats', value: true } })}
           onOpenInventory={() => dispatch({ type: 'TOGGLE_UI_SETTING', payload: { key: 'show_inventory', value: true } })}
         />
+        </Suspense>
 
         {/* Left: Visuals */}
         <div className="flex-1 relative flex items-center justify-center p-12" onMouseMove={handleMouseMove}>
@@ -901,6 +1010,48 @@ Example: { "health": 50, "allure": 20 }`;
               transition={{ duration: 3 }}
             />
           )}
+
+          {/* Weather Ambient Overlay */}
+          {(() => {
+            const w = state.world.weather;
+            const isRain = w === 'Rainy' || w === 'Cold Rain' || w === 'Drizzle' || w === 'Thunderstorm';
+            const isSnow = w === 'Blizzard' || w === 'Light Snow';
+            const isFog = w === 'Foggy';
+            const isWindy = w === 'Windy';
+            if (!isRain && !isSnow && !isFog && !isWindy) return null;
+            const count = isRain ? 40 : isSnow ? 25 : isFog ? 8 : 12;
+            return (
+              <div className="absolute inset-0 overflow-hidden pointer-events-none z-[5]">
+                {[...Array(count)].map((_, i) => (
+                  <motion.div
+                    key={`wx-${i}`}
+                    className={
+                      isRain ? 'absolute w-[1px] h-3 bg-blue-300/30 rounded-full' :
+                      isSnow ? 'absolute w-1.5 h-1.5 bg-white/40 rounded-full blur-[0.5px]' :
+                      isFog ? 'absolute w-32 h-16 bg-white/[0.04] rounded-full blur-xl' :
+                      'absolute w-1 h-1 bg-white/20 rounded-full blur-[1px]'
+                    }
+                    initial={{
+                      left: `${Math.random() * 100}%`,
+                      y: -20 - Math.random() * 100,
+                      opacity: isRain ? 0.3 : isSnow ? 0.5 : isFog ? 0.06 : 0.2,
+                    }}
+                    animate={{
+                      y: [null, 600 + Math.random() * 200],
+                      x: isSnow ? [null, Math.random() * 100 - 50] : isWindy ? [null, Math.random() * 200] : undefined,
+                      opacity: isFog ? [0.03, 0.08, 0.03] : undefined,
+                    }}
+                    transition={{
+                      duration: isRain ? 0.8 + Math.random() * 0.5 : isSnow ? 4 + Math.random() * 3 : isFog ? 8 + Math.random() * 5 : 2 + Math.random() * 2,
+                      repeat: Infinity,
+                      ease: isRain ? 'linear' : 'easeInOut',
+                      delay: Math.random() * 3,
+                    }}
+                  />
+                ))}
+              </div>
+            );
+          })()}
 
           {/* Ambient Particles */}
           <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-20 z-0">
@@ -968,10 +1119,60 @@ Example: { "health": 50, "allure": 20 }`;
                 <div>
                   <h2 className="font-serif text-2xl text-white/90">{state.world.current_location.name}</h2>
                   <p className="text-xs tracking-widest uppercase text-white/50 mt-2">{state.world.current_location.atmosphere}</p>
+                  {/* Danger indicator */}
+                  {state.world.current_location.danger > 0 && (
+                    <div className="flex items-center gap-1.5 mt-2">
+                      <div className={`h-1.5 rounded-full ${state.world.current_location.danger > 60 ? 'bg-red-500 animate-pulse' : state.world.current_location.danger > 30 ? 'bg-amber-500' : 'bg-emerald-500/60'}`} style={{ width: `${Math.min(80, state.world.current_location.danger)}px` }} />
+                      <span className={`text-[9px] uppercase tracking-widest ${state.world.current_location.danger > 60 ? 'text-red-400/80' : state.world.current_location.danger > 30 ? 'text-amber-400/60' : 'text-emerald-400/50'}`}>
+                        {state.world.current_location.danger > 60 ? 'Dangerous' : state.world.current_location.danger > 30 ? 'Risky' : 'Safe'}
+                      </span>
+                    </div>
+                  )}
                 </div>
                 <div className="text-right">
                   <p className="text-xs tracking-widest uppercase text-white/50">Day {state.world.day}</p>
                   <p className="font-serif text-xl text-white/80 mt-1">{state.world.hour}:00</p>
+                  {/* Weather & Season Widget */}
+                  <div className="flex items-center justify-end gap-2 mt-2">
+                    {(() => {
+                      const w = state.world.weather;
+                      const iconClass = "w-3.5 h-3.5";
+                      if (w === 'Blizzard' || w === 'Light Snow' || w === 'Freezing') return <Snowflake className={`${iconClass} text-cyan-300/80`} />;
+                      if (w === 'Thunderstorm') return <CloudLightning className={`${iconClass} text-yellow-300/80`} />;
+                      if (w === 'Rainy' || w === 'Cold Rain') return <CloudRain className={`${iconClass} text-blue-300/80`} />;
+                      if (w === 'Drizzle') return <CloudDrizzle className={`${iconClass} text-blue-200/60`} />;
+                      if (w === 'Foggy') return <CloudFog className={`${iconClass} text-gray-300/60`} />;
+                      if (w === 'Scorching' || w === 'Hot') return <Flame className={`${iconClass} text-orange-400/80`} />;
+                      if (w === 'Clear' || w === 'Sunny') return <Sun className={`${iconClass} text-yellow-300/80`} />;
+                      if (w === 'Overcast' || w === 'Partly Cloudy') return <Cloud className={`${iconClass} text-gray-400/60`} />;
+                      return <Cloud className={`${iconClass} text-white/40`} />;
+                    })()}
+                    <span className="text-[9px] text-white/50">{state.world.weather}</span>
+                    {state.sim_world && (
+                      <span className={`text-[8px] uppercase tracking-widest px-1.5 py-0.5 rounded-sm border ${
+                        state.sim_world.season === 'spring' ? 'text-green-400/70 border-green-900/40 bg-green-950/20' :
+                        state.sim_world.season === 'summer' ? 'text-amber-400/70 border-amber-900/40 bg-amber-950/20' :
+                        state.sim_world.season === 'autumn' ? 'text-orange-400/70 border-orange-900/40 bg-orange-950/20' :
+                        'text-cyan-400/70 border-cyan-900/40 bg-cyan-950/20'
+                      }`}>
+                        {state.sim_world.season}
+                      </span>
+                    )}
+                  </div>
+                  {/* Low needs warnings */}
+                  {(state.player.life_sim.needs.hunger <= 20 || state.player.life_sim.needs.thirst <= 15 || state.player.life_sim.needs.energy <= 20) && (
+                    <div className="flex flex-col items-end gap-0.5 mt-2">
+                      {state.player.life_sim.needs.hunger <= 20 && (
+                        <span className="text-[8px] uppercase tracking-widest text-amber-400/90 animate-pulse">⚠ Starving</span>
+                      )}
+                      {state.player.life_sim.needs.thirst <= 15 && (
+                        <span className="text-[8px] uppercase tracking-widest text-cyan-400/90 animate-pulse">⚠ Dehydrated</span>
+                      )}
+                      {state.player.life_sim.needs.energy <= 20 && (
+                        <span className="text-[8px] uppercase tracking-widest text-yellow-400/90 animate-pulse">⚠ Exhausted</span>
+                      )}
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -979,6 +1180,7 @@ Example: { "health": 50, "allure": 20 }`;
         </div>
 
         {/* Right: Narrative Panel */}
+        <Suspense fallback={<ChunkFallback />}>
         <NarrativePanel
           state={state}
           handleAction={handleAction}
@@ -986,6 +1188,7 @@ Example: { "health": 50, "allure": 20 }`;
           setCustomAction={setCustomAction}
           NarrativeLog={NarrativeLog}
         />
+        </Suspense>
       </main>
 
       {/* Horde Monitor UI */}
@@ -1034,22 +1237,22 @@ Example: { "health": 50, "allure": 20 }`;
 
       {/* Status Modal */}
       <AnimatePresence>
-        {showStatus && <StatusModal state={state} onClose={() => setShowStatus(false)} />}
+        {showStatus && <Suspense fallback={<ChunkFallback />}><StatusModal state={state} onClose={() => setShowStatus(false)} /></Suspense>}
       </AnimatePresence>
 
       {/* Memory Graph Modal */}
       <AnimatePresence>
-        {showMemories && <MemoriesModal state={state} onClose={() => setShowMemories(false)} />}
+        {showMemories && <Suspense fallback={<ChunkFallback />}><MemoriesModal state={state} onClose={() => setShowMemories(false)} /></Suspense>}
       </AnimatePresence>
 
       {/* Map Modal */}
       <AnimatePresence>
-        {showMap && <MapModal state={state} onClose={() => setShowMap(false)} />}
+        {showMap && <Suspense fallback={<ChunkFallback />}><MapModal state={state} onClose={() => setShowMap(false)} /></Suspense>}
       </AnimatePresence>
 
       {/* Developer Mode Modal */}
       <AnimatePresence>
-        {showDeveloperMode && <DeveloperModeModal state={state} dispatch={dispatch} onClose={() => setShowDeveloperMode(false)} />}
+        {showDeveloperMode && <Suspense fallback={<ChunkFallback />}><DeveloperModeModal state={state} dispatch={dispatch} onClose={() => setShowDeveloperMode(false)} /></Suspense>}
       </AnimatePresence>
 
       {/* Map Modal */}
@@ -1271,7 +1474,7 @@ Example: { "health": 50, "allure": 20 }`;
               className="max-w-2xl w-full relative"
             >
               <button onClick={() => dispatch({ type: 'TOGGLE_UI_SETTING', payload: { key: 'show_xray', value: false } })} className="absolute top-6 right-6 text-white/40 hover:text-white z-10"><X className="w-6 h-6" /></button>
-              <XRayView anatomy={state.player.anatomy} highlightedPart={state.ui.highlighted_part || undefined} />
+              <Suspense fallback={<ChunkFallback />}><XRayView anatomy={state.player.anatomy} highlightedPart={state.ui.highlighted_part || undefined} /></Suspense>
             </motion.div>
           </motion.div>
         )}
@@ -1317,7 +1520,7 @@ Example: { "health": 50, "allure": 20 }`;
               <h2 className="text-2xl font-serif text-white/90 mb-8 border-b border-white/10 pb-4 tracking-widest uppercase">Character Essence</h2>
               
               <div className="grid grid-cols-2 gap-8">
-                <CharacterModel anatomy={state.player.anatomy} isPlayer={true} />
+                <Suspense fallback={<ChunkFallback />}><CharacterModel anatomy={state.player.anatomy} isPlayer={true} /></Suspense>
                 <div className="space-y-6">
                   <h3 className="text-xs tracking-widest uppercase text-white/40 mb-2">Vitals</h3>
                   {['health', 'stamina', 'willpower', 'purity'].map((key) => (
@@ -1761,6 +1964,7 @@ Example: { "health": 50, "allure": 20 }`;
 
       <AnimatePresence>
         {showSettings && (
+          <Suspense fallback={<ChunkFallback />}>
           <SettingsModal
             state={state}
             dispatch={dispatch}
@@ -1771,6 +1975,7 @@ Example: { "health": 50, "allure": 20 }`;
             setShowDeveloperMode={setShowDeveloperMode}
             toggleFullscreen={toggleFullscreen}
           />
+          </Suspense>
         )}
       </AnimatePresence>
 
@@ -1870,6 +2075,21 @@ Example: { "health": 50, "allure": 20 }`;
             </motion.div>
           </motion.div>
         )}
+      </AnimatePresence>
+
+      {/* Shop Modal */}
+      <AnimatePresence>
+        {state.ui.show_shop && <Suspense fallback={<ChunkFallback />}><ShopModal state={state} dispatch={dispatch} /></Suspense>}
+      </AnimatePresence>
+
+      {/* Wardrobe Modal */}
+      <AnimatePresence>
+        {state.ui.show_wardrobe && <Suspense fallback={<ChunkFallback />}><WardrobeModal state={state} dispatch={dispatch} /></Suspense>}
+      </AnimatePresence>
+
+      {/* Social Modal */}
+      <AnimatePresence>
+        {state.ui.show_social && <Suspense fallback={<ChunkFallback />}><SocialModal state={state} dispatch={dispatch} /></Suspense>}
       </AnimatePresence>
 
 

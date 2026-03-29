@@ -27,6 +27,44 @@ export const NarrativePanel: React.FC<NarrativePanelProps> = ({ state, handleAct
       <div className="flex-1 overflow-y-auto p-8 flex flex-col gap-6 scrollbar-hide" ref={logRef}>
         <NarrativeLog logs={state.ui.currentLog} trauma={state.player.stats.trauma} accessibilityMode={state.ui.accessibility_mode} />
         
+        {/* Needs Warning Banners */}
+        {(state.player.life_sim.needs.hunger <= 20 || state.player.life_sim.needs.thirst <= 15 || state.player.life_sim.needs.energy <= 20 || state.player.life_sim.needs.hygiene <= 20) && (
+          <div className="flex flex-col gap-1.5 mt-2">
+            {state.player.life_sim.needs.hunger <= 20 && (
+              <div className="flex items-center gap-2 px-3 py-1.5 bg-amber-950/30 border border-amber-900/30 rounded-sm animate-pulse">
+                <span className="text-amber-400/80 text-sm">🍞</span>
+                <span className="text-[10px] tracking-widest uppercase text-amber-400/80">
+                  You are starving. Find food soon or your health will suffer.
+                </span>
+              </div>
+            )}
+            {state.player.life_sim.needs.thirst <= 15 && (
+              <div className="flex items-center gap-2 px-3 py-1.5 bg-cyan-950/30 border border-cyan-900/30 rounded-sm animate-pulse">
+                <span className="text-cyan-400/80 text-sm">💧</span>
+                <span className="text-[10px] tracking-widest uppercase text-cyan-400/80">
+                  You are dehydrated. Find water before you collapse.
+                </span>
+              </div>
+            )}
+            {state.player.life_sim.needs.energy <= 20 && (
+              <div className="flex items-center gap-2 px-3 py-1.5 bg-yellow-950/30 border border-yellow-900/30 rounded-sm animate-pulse">
+                <span className="text-yellow-400/80 text-sm">😴</span>
+                <span className="text-[10px] tracking-widest uppercase text-yellow-400/80">
+                  You are exhausted. You need to sleep.
+                </span>
+              </div>
+            )}
+            {state.player.life_sim.needs.hygiene <= 20 && (
+              <div className="flex items-center gap-2 px-3 py-1.5 bg-teal-950/30 border border-teal-900/30 rounded-sm">
+                <span className="text-teal-400/80 text-sm">🧼</span>
+                <span className="text-[10px] tracking-widest uppercase text-teal-400/70">
+                  You are filthy. People will avoid you. Find somewhere to wash.
+                </span>
+              </div>
+            )}
+          </div>
+        )}
+
         {/* Afflictions */}
         {state.player.afflictions.length > 0 && (
           <div className="flex flex-wrap gap-2 mt-4">

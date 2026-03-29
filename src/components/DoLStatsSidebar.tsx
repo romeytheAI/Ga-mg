@@ -3,8 +3,9 @@ import { motion } from 'motion/react';
 import { Heart, Wind, Shield, Flame, Droplets, Sun, Moon, Zap, Coffee, Users, Star } from 'lucide-react';
 import { GameState, StatKey, Incubation } from '../types';
 import { DoLCharacterSprite } from './DoLCharacterSprite';
-import { GltfExportButton } from './GltfExportButton';
-import { GltfViewer3D } from './GltfViewer3D';
+
+const GltfExportButton = React.lazy(() => import('./GltfExportButton').then(m => ({ default: m.GltfExportButton })));
+const GltfViewer3D = React.lazy(() => import('./GltfViewer3D').then(m => ({ default: m.GltfViewer3D })));
 
 interface DoLStatsSidebarProps {
   state: GameState;
@@ -76,6 +77,9 @@ const SKILL_COLOR: Record<string, string> = {
   dancing: 'bg-purple-500',
   housekeeping: 'bg-amber-700',
   school_grades: 'bg-blue-600',
+  tending: 'bg-lime-600',
+  cooking: 'bg-orange-600',
+  foraging: 'bg-emerald-700',
 };
 
 /** Sprite with inline X-Ray toggle button */
@@ -85,11 +89,13 @@ const SpriteWithXRay: React.FC<{ state: GameState }> = ({ state }) => {
   return (
     <div className="relative">
       {view3D ? (
+        <React.Suspense fallback={<div className="text-white/20 text-xs text-center p-4">Loading 3D…</div>}>
         <GltfViewer3D
           state={state}
           height="225px"
           combatAnimation={state.ui.combat_animation}
         />
+        </React.Suspense>
       ) : (
         <DoLCharacterSprite state={state} compact={false} showXRay={xrayOn} />
       )}
@@ -115,7 +121,7 @@ const SpriteWithXRay: React.FC<{ state: GameState }> = ({ state }) => {
         >
           3D
         </button>
-        <GltfExportButton state={state} />
+        <React.Suspense fallback={null}><GltfExportButton state={state} /></React.Suspense>
       </div>
     </div>
   );
@@ -157,7 +163,7 @@ export const DoLStatsSidebar: React.FC<DoLStatsSidebarProps> = ({
         <SpriteWithXRay state={state} />
       </div>
 
-      {/* Location / Time */}
+      {/* Location / Time / Weather */}
       <div className="px-3 py-2 border-b border-white/[0.06] bg-black/20">
         <div className="flex justify-between items-center">
           <span className="text-[9px] text-white/50 truncate max-w-[110px]">
@@ -171,6 +177,42 @@ export const DoLStatsSidebar: React.FC<DoLStatsSidebarProps> = ({
           <span className="text-[8px] text-white/25 uppercase tracking-widest">Day {state.world.day}</span>
           <span className="text-[8px] text-white/35">{state.world.weather}</span>
         </div>
+        {/* Season badge */}
+        {state.sim_world && (
+          <div className="flex items-center justify-between mt-1">
+            <span className={`text-[7px] uppercase tracking-widest px-1.5 py-0.5 rounded-sm border ${
+              state.sim_world.season === 'spring' ? 'text-green-400/60 border-green-900/30 bg-green-950/10' :
+              state.sim_world.season === 'summer' ? 'text-amber-400/60 border-amber-900/30 bg-amber-950/10' :
+              state.sim_world.season === 'autumn' ? 'text-orange-400/60 border-orange-900/30 bg-orange-950/10' :
+              'text-cyan-400/60 border-cyan-900/30 bg-cyan-950/10'
+            }`}>
+              {state.sim_world.season}
+            </span>
+            {/* Danger level in sidebar */}
+            <span className={`text-[7px] uppercase tracking-widest ${
+              state.world.current_location.danger > 60 ? 'text-red-400/70' :
+              state.world.current_location.danger > 30 ? 'text-amber-400/50' :
+              'text-emerald-400/40'
+            }`}>
+              {state.world.current_location.danger > 60 ? '☠ Dangerous' :
+               state.world.current_location.danger > 30 ? '⚠ Risky' : '✓ Safe'}
+            </span>
+          </div>
+        )}
+        {/* Low needs warnings in sidebar */}
+        {(life_sim.needs.hunger <= 20 || life_sim.needs.thirst <= 15 || life_sim.needs.energy <= 20) && (
+          <div className="mt-1.5 flex flex-wrap gap-1">
+            {life_sim.needs.hunger <= 20 && (
+              <span className="text-[7px] uppercase tracking-widest px-1 py-0.5 rounded-sm border border-amber-700/40 bg-amber-950/20 text-amber-400/80 animate-pulse">Starving</span>
+            )}
+            {life_sim.needs.thirst <= 15 && (
+              <span className="text-[7px] uppercase tracking-widest px-1 py-0.5 rounded-sm border border-cyan-700/40 bg-cyan-950/20 text-cyan-400/80 animate-pulse">Dehydrated</span>
+            )}
+            {life_sim.needs.energy <= 20 && (
+              <span className="text-[7px] uppercase tracking-widest px-1 py-0.5 rounded-sm border border-yellow-700/40 bg-yellow-950/20 text-yellow-400/80 animate-pulse">Exhausted</span>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Stats panels */}
@@ -289,6 +331,27 @@ export const DoLStatsSidebar: React.FC<DoLStatsSidebarProps> = ({
           pulseLow
         />
 
+        {/* Gold & Reputation */}
+        <SectionHeader label="Standing" />
+        <div className="flex items-center gap-1.5 mb-1">
+          <span className="text-[8px] uppercase tracking-wider text-amber-400/50 w-12 shrink-0">Gold</span>
+          <span className="text-sm font-mono text-amber-400">{state.player.gold}</span>
+        </div>
+        <div className="flex items-center gap-1.5 mb-0.5">
+          <span className="text-[8px] uppercase tracking-wider text-white/35 w-12 shrink-0">Fame</span>
+          <div className="flex-1 h-1 bg-white/[0.05] rounded-full overflow-hidden">
+            <motion.div className="h-full rounded-full bg-amber-500" initial={{ width: 0 }} animate={{ width: `${state.player.fame}%` }} transition={{ duration: 0.4 }} />
+          </div>
+          <span className="text-[8px] font-mono text-white/30 w-5 text-right shrink-0">{state.player.fame}</span>
+        </div>
+        <div className="flex items-center gap-1.5 mb-0.5">
+          <span className="text-[8px] uppercase tracking-wider text-white/35 w-12 shrink-0">Infamy</span>
+          <div className="flex-1 h-1 bg-white/[0.05] rounded-full overflow-hidden">
+            <motion.div className="h-full rounded-full bg-red-700" initial={{ width: 0 }} animate={{ width: `${state.player.notoriety}%` }} transition={{ duration: 0.4 }} />
+          </div>
+          <span className="text-[8px] font-mono text-white/30 w-5 text-right shrink-0">{state.player.notoriety}</span>
+        </div>
+
         {/* Skills */}
         <SectionHeader label="Skills" />
         {Object.entries(skills).map(([skill, levelRaw]) => {
@@ -404,18 +467,42 @@ export const DoLStatsSidebar: React.FC<DoLStatsSidebarProps> = ({
       </div>
 
       {/* Footer quick buttons */}
-      <div className="p-2 border-t border-white/[0.06] flex gap-1.5">
+      <div className="p-2 border-t border-white/[0.06] grid grid-cols-3 gap-1">
         <button
           onClick={onOpenStats}
-          className="flex-1 py-1.5 text-[8px] uppercase tracking-widest text-white/40 hover:text-white/80 border border-white/[0.06] hover:border-white/20 rounded-sm transition-colors bg-white/[0.01] hover:bg-white/[0.04]"
+          className="py-1.5 text-[7px] uppercase tracking-widest text-white/40 hover:text-white/80 border border-white/[0.06] hover:border-white/20 rounded-sm transition-colors bg-white/[0.01] hover:bg-white/[0.04]"
         >
           Stats
         </button>
         <button
           onClick={onOpenInventory}
-          className="flex-1 py-1.5 text-[8px] uppercase tracking-widest text-white/40 hover:text-white/80 border border-white/[0.06] hover:border-white/20 rounded-sm transition-colors bg-white/[0.01] hover:bg-white/[0.04]"
+          className="py-1.5 text-[7px] uppercase tracking-widest text-white/40 hover:text-white/80 border border-white/[0.06] hover:border-white/20 rounded-sm transition-colors bg-white/[0.01] hover:bg-white/[0.04]"
         >
           Items
+        </button>
+        <button
+          onClick={() => dispatch({ type: 'TOGGLE_UI_SETTING', payload: { key: 'show_shop', value: true } })}
+          className="py-1.5 text-[7px] uppercase tracking-widest text-amber-400/50 hover:text-amber-400 border border-white/[0.06] hover:border-amber-900/40 rounded-sm transition-colors bg-white/[0.01] hover:bg-amber-950/20"
+        >
+          Shop
+        </button>
+        <button
+          onClick={() => dispatch({ type: 'TOGGLE_UI_SETTING', payload: { key: 'show_wardrobe', value: true } })}
+          className="py-1.5 text-[7px] uppercase tracking-widest text-indigo-400/50 hover:text-indigo-400 border border-white/[0.06] hover:border-indigo-900/40 rounded-sm transition-colors bg-white/[0.01] hover:bg-indigo-950/20"
+        >
+          Wardrobe
+        </button>
+        <button
+          onClick={() => dispatch({ type: 'TOGGLE_UI_SETTING', payload: { key: 'show_social', value: true } })}
+          className="py-1.5 text-[7px] uppercase tracking-widest text-pink-400/50 hover:text-pink-400 border border-white/[0.06] hover:border-pink-900/40 rounded-sm transition-colors bg-white/[0.01] hover:bg-pink-950/20"
+        >
+          Social
+        </button>
+        <button
+          onClick={() => dispatch({ type: 'TOGGLE_UI_SETTING', payload: { key: 'show_map', value: true } })}
+          className="py-1.5 text-[7px] uppercase tracking-widest text-white/40 hover:text-white/80 border border-white/[0.06] hover:border-white/20 rounded-sm transition-colors bg-white/[0.01] hover:bg-white/[0.04]"
+        >
+          Map
         </button>
       </div>
     </div>

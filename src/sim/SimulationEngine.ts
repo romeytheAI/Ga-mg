@@ -23,6 +23,14 @@ import { applyActivityWillpower, stressFromNeeds } from './WillpowerSystem';
 import { shouldTravel, startTravel, completeTravel, checkForEncounter } from './LocationSystem';
 import { tickRomance } from './RomanceSystem';
 import { npcToParticipant, createCombatEncounter, resolveCombatTurn, selectAIStance } from './CombatSystem';
+import { tickAddiction, withdrawalStress } from './AddictionSystem';
+import { tickDisease, diseaseHealthDrain } from './DiseaseSystem';
+import { tickArcane } from './ArcaneSystem';
+import { tickParasite, totalCorruptionBuff } from './ParasiteSystem';
+import { tickCompanions, partyHealRate } from './CompanionSystem';
+import { computeAllure } from './AllureSystem';
+import { tickRestraints, restraintStress } from './RestraintSystem';
+import { tickAscension } from './TransformationSystem';
 
 const HOURS_PER_TICK = 1;
 const EVENT_CHANCE_PER_DAY = 0.15; // 15% chance of a world event per day
@@ -276,6 +284,52 @@ function tickNpc(
     clothing = applyCombatDamage(clothing, 15);
   }
 
+  // 19. Tick addiction (withdrawal & recovery)
+  let addiction_state = tickAddiction(npc.addiction_state, world.turn, HOURS_PER_TICK);
+  const addictionWithdrawalStress = withdrawalStress(addiction_state);
+  if (addictionWithdrawalStress > 0) {
+    corruption_state = { ...corruption_state, stress: Math.min(100, corruption_state.stress + addictionWithdrawalStress * 0.1) };
+  }
+
+  // 20. Tick diseases
+  let disease_state = tickDisease(npc.disease_state, HOURS_PER_TICK);
+  const diseaseHealthDrainAmount = diseaseHealthDrain(disease_state);
+  if (diseaseHealthDrainAmount > 0) {
+    stats = { ...stats, health: Math.max(0, stats.health - diseaseHealthDrainAmount * 0.1) };
+  }
+
+  // 21. Tick arcane (mana regen, enchantment durations)
+  const arcane_state = tickArcane(npc.arcane_state, HOURS_PER_TICK);
+
+  // 22. Tick parasites
+  let parasite_state = tickParasite(npc.parasite_state, HOURS_PER_TICK);
+  const parasiteCorruptionBuff = totalCorruptionBuff(parasite_state);
+  if (parasiteCorruptionBuff > 0) {
+    corruption_state = { ...corruption_state, corruption: Math.min(100, corruption_state.corruption + parasiteCorruptionBuff * 0.05) };
+  }
+
+  // 23. Tick companions
+  const companion_state = tickCompanions(npc.companion_state, HOURS_PER_TICK);
+  const healRate = partyHealRate(companion_state);
+  if (healRate > 0) {
+    stats = { ...stats, health: Math.min(100, stats.health + healRate * 0.1) };
+  }
+
+  // 24. Compute allure
+  const allure_state = computeAllure(
+    npc.allure_state.base_allure, clothing, finalFame, corruption_state, npc.traits
+  );
+
+  // 25. Tick restraints
+  let restraint_state = tickRestraints(npc.restraint_state, HOURS_PER_TICK);
+  const restraintStressAmount = restraintStress(restraint_state);
+  if (restraintStressAmount > 0) {
+    corruption_state = { ...corruption_state, stress: Math.min(100, corruption_state.stress + restraintStressAmount * 0.1) };
+  }
+
+  // 26. Tick transformation / ascension
+  const transformation = tickAscension(npc.transformation, corruption_state, HOURS_PER_TICK);
+
   return {
     ...npc,
     needs,
@@ -289,6 +343,14 @@ function tickNpc(
     corruption_state,
     fame: finalFame,
     clothing,
+    transformation,
+    addiction_state,
+    disease_state,
+    arcane_state,
+    parasite_state,
+    companion_state,
+    allure_state,
+    restraint_state,
   };
 }
 

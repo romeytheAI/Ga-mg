@@ -47,8 +47,290 @@ export function gameReducer(state: GameState, action: any): GameState {
         }
       };
     case 'RESOLVE_TEXT': {
-      // ... (rest of the logic from App.tsx)
-      return state; // Placeholder for now, I will need to copy the rest of the logic.
+      const { parsedText, actionText } = action.payload;
+      if (!parsedText) return { ...state, ui: { ...state.ui, isPollingText: false } };
+
+      // 1. Narrative log
+      const narrativeText = parsedText.narrative_text || '';
+      const newLog = narrativeText
+        ? [...state.ui.currentLog, { text: narrativeText, type: 'narrative' as const }]
+        : state.ui.currentLog;
+
+      // 2. Apply stat deltas
+      const newStats = { ...state.player.stats };
+      const appliedDeltas: Partial<Record<StatKey, number>> = {};
+      if (parsedText.stat_deltas) {
+        for (const [key, value] of Object.entries(parsedText.stat_deltas)) {
+          if (typeof value === 'number' && key in newStats) {
+            const k = key as StatKey;
+            const maxKey = `max_${k}` as keyof typeof newStats;
+            const cap = typeof newStats[maxKey] === 'number' ? (newStats[maxKey] as number) : 100;
+            newStats[k] = Math.max(0, Math.min(cap, newStats[k] + value));
+            appliedDeltas[k] = value;
+          }
+        }
+      }
+
+      // 3. Apply skill deltas
+      const newSkills = { ...state.player.skills };
+      if (parsedText.skill_deltas) {
+        for (const [key, value] of Object.entries(parsedText.skill_deltas)) {
+          if (typeof value === 'number' && key in newSkills) {
+            const k = key as keyof typeof newSkills;
+            newSkills[k] = Math.max(0, Math.min(100, newSkills[k] + value));
+          }
+        }
+      }
+
+      // 4. Add new items to inventory
+      let newInventory = [...state.player.inventory];
+      if (parsedText.new_items && Array.isArray(parsedText.new_items)) {
+        for (let i = 0; i < parsedText.new_items.length; i++) {
+          const item = parsedText.new_items[i];
+          newInventory.push({
+            id: item.id || `item_${Date.now()}_${i}_${Math.random().toString(36).slice(2, 7)}`,
+            name: item.name || 'Unknown Item',
+            type: item.type || 'misc',
+            slot: item.slot || undefined,
+            rarity: item.rarity || 'common',
+            description: item.description || '',
+            value: item.value ?? 1,
+            weight: item.weight ?? 0.1,
+            integrity: item.integrity ?? 100,
+            max_integrity: item.max_integrity ?? 100,
+            stats: item.stats || undefined,
+            lore: item.lore || undefined,
+            special_effect: item.special_effect || undefined,
+          });
+        }
+      }
+
+      // 4b. Convert Gold Coins to gold currency
+      let goldEarned = 0;
+      newInventory = newInventory.filter(item => {
+        if (item.name === 'Gold Coin' && item.type === 'misc') {
+          goldEarned += item.value || 1;
+          return false;
+        }
+        return true;
+      });
+
+      // 5. Equipment integrity degradation
+      if (typeof parsedText.equipment_integrity_delta === 'number' && parsedText.equipment_integrity_delta !== 0) {
+        newInventory = newInventory.map(item => {
+          if (item.is_equipped && item.integrity !== undefined) {
+            const newIntegrity = Math.max(0, (item.integrity ?? 100) + parsedText.equipment_integrity_delta);
+            return { ...item, integrity: newIntegrity };
+          }
+          return item;
+        });
+      }
+
+      // 6. Combat injury
+      let newAnatomy = state.player.anatomy;
+      if (parsedText.combat_injury) {
+        const injury = parsedText.combat_injury;
+        newAnatomy = {
+          ...newAnatomy,
+          injuries: [...newAnatomy.injuries, {
+            description: injury.description || 'Wound',
+            stamina_penalty: injury.stamina_penalty || 0,
+            health_penalty: injury.health_penalty || 0,
+          }],
+        };
+        // Apply injury penalties to stats
+        if (injury.stamina_penalty) {
+          newStats.stamina = Math.max(0, newStats.stamina - injury.stamina_penalty);
+          appliedDeltas.stamina = (appliedDeltas.stamina || 0) - injury.stamina_penalty;
+        }
+        if (injury.health_penalty) {
+          newStats.health = Math.max(0, newStats.health - injury.health_penalty);
+          appliedDeltas.health = (appliedDeltas.health || 0) - injury.health_penalty;
+        }
+      }
+
+      // 7. Afflictions
+      let newAfflictions = [...state.player.afflictions];
+      if (parsedText.new_affliction && typeof parsedText.new_affliction === 'string') {
+        if (!newAfflictions.includes(parsedText.new_affliction)) {
+          newAfflictions.push(parsedText.new_affliction);
+        }
+      }
+
+      // 8. Quests
+      let newQuests = [...state.player.quests];
+      if (parsedText.new_quests && Array.isArray(parsedText.new_quests)) {
+        for (const q of parsedText.new_quests) {
+          if (q.id && !newQuests.some(eq => eq.id === q.id)) {
+            newQuests.push({
+              id: q.id,
+              title: q.title || 'Unknown Quest',
+              description: q.description || '',
+              status: 'active' as const,
+            });
+          }
+        }
+      }
+      if (parsedText.completed_quests && Array.isArray(parsedText.completed_quests)) {
+        newQuests = newQuests.map(q =>
+          parsedText.completed_quests.includes(q.id) ? { ...q, status: 'completed' as const } : q
+        );
+      }
+
+      // 9. Location change
+      let newLocation = state.world.current_location;
+      if (parsedText.new_location && LOCATIONS[parsedText.new_location]) {
+        newLocation = LOCATIONS[parsedText.new_location];
+      }
+
+      // 10. Time advancement
+      const hoursPassed = typeof parsedText.hours_passed === 'number' ? parsedText.hours_passed : 1;
+      let newHour = state.world.hour + hoursPassed;
+      let newDay = state.world.day;
+      while (newHour >= 24) {
+        newHour -= 24;
+        newDay += 1;
+      }
+
+      // 11. Follow-up choices
+      let newChoices = parsedText.follow_up_choices && Array.isArray(parsedText.follow_up_choices)
+        ? parsedText.follow_up_choices
+        : (newLocation.actions || []);
+
+      // 12. Memory graph
+      let newMemoryGraph = [...state.memory_graph];
+      const memoryEntry = parsedText.memory_entry
+        || (narrativeText ? `Day ${newDay}: ${actionText}` : null);
+      if (memoryEntry) {
+        newMemoryGraph.push(memoryEntry);
+      }
+
+      // 13. Psych profile adjustments from stat changes
+      const newPsych = { ...state.player.psych_profile };
+      if (appliedDeltas.purity && appliedDeltas.purity < 0) {
+        newPsych.promiscuity = Math.min(100, newPsych.promiscuity + Math.abs(appliedDeltas.purity) * 0.2);
+      }
+      if (appliedDeltas.corruption && appliedDeltas.corruption > 0) {
+        newPsych.submission_index = Math.min(100, newPsych.submission_index + appliedDeltas.corruption * 0.1);
+      }
+
+      // 14. Player needs decay (DoL-parity life-sim loop)
+      const newNeeds = { ...state.player.life_sim.needs };
+      const intent = state.world.last_intent;
+      const drainHours = hoursPassed;
+
+      // Passive drain per hour
+      newNeeds.hunger = Math.max(0, newNeeds.hunger - 3 * drainHours);
+      newNeeds.thirst = Math.max(0, newNeeds.thirst - 4 * drainHours);
+      newNeeds.energy = Math.max(0, newNeeds.energy - 2 * drainHours);
+      newNeeds.hygiene = Math.max(0, newNeeds.hygiene - 1.5 * drainHours);
+      newNeeds.social = Math.max(0, newNeeds.social - 1 * drainHours);
+
+      // Activity-specific modifiers
+      if (intent === 'work') {
+        newNeeds.hunger = Math.max(0, newNeeds.hunger - 5 * drainHours);
+        newNeeds.energy = Math.max(0, newNeeds.energy - 5 * drainHours);
+        newNeeds.hygiene = Math.max(0, newNeeds.hygiene - 3 * drainHours);
+      }
+      if (intent === 'social') {
+        newNeeds.social = Math.min(100, newNeeds.social + 15 * drainHours);
+      }
+      if (intent === 'neutral' && actionText?.toLowerCase().includes('sleep')) {
+        newNeeds.energy = Math.min(100, newNeeds.energy + 30 * drainHours);
+      }
+      if (intent === 'neutral' && (actionText?.toLowerCase().includes('eat') || actionText?.toLowerCase().includes('food') || actionText?.toLowerCase().includes('bread'))) {
+        newNeeds.hunger = Math.min(100, newNeeds.hunger + 25);
+      }
+      if (intent === 'neutral' && (actionText?.toLowerCase().includes('drink') || actionText?.toLowerCase().includes('water') || actionText?.toLowerCase().includes('ale') || actionText?.toLowerCase().includes('milk'))) {
+        newNeeds.thirst = Math.min(100, newNeeds.thirst + 30);
+      }
+      if (intent === 'neutral' && (actionText?.toLowerCase().includes('swim') || actionText?.toLowerCase().includes('wash') || actionText?.toLowerCase().includes('bath'))) {
+        newNeeds.hygiene = Math.min(100, newNeeds.hygiene + 40);
+      }
+
+      // Low needs → stat penalties (applied directly to newStats)
+      if (newNeeds.hunger <= 20) {
+        newStats.health = Math.max(0, newStats.health - 2);
+        newStats.stamina = Math.max(0, newStats.stamina - 3);
+      }
+      if (newNeeds.energy <= 20) {
+        newStats.willpower = Math.max(0, newStats.willpower - 3);
+        newStats.stamina = Math.max(0, newStats.stamina - 2);
+      }
+      if (newNeeds.hygiene <= 20) {
+        newStats.allure = Math.max(0, newStats.allure - 2);
+        newStats.stress = Math.min(100, newStats.stress + 2);
+      }
+      if (newNeeds.social <= 15) {
+        newStats.stress = Math.min(100, newStats.stress + 3);
+        newStats.willpower = Math.max(0, newStats.willpower - 1);
+      }
+      if (newNeeds.thirst <= 15) {
+        newStats.health = Math.max(0, newStats.health - 3);
+        newStats.stamina = Math.max(0, newStats.stamina - 5);
+      }
+
+      const newLifeSim = {
+        ...state.player.life_sim,
+        needs: newNeeds,
+      };
+
+      // 15. Weather effects on player stats (DoL-parity)
+      const weather = state.world.weather;
+      if (weather === 'Blizzard' || weather === 'Freezing') {
+        newStats.stamina = Math.max(0, newStats.stamina - 5 * drainHours);
+        newStats.health = Math.max(0, newStats.health - 2 * drainHours);
+      } else if (weather === 'Cold Rain' || weather === 'Light Snow' || weather === 'Clear and Cold') {
+        newStats.stamina = Math.max(0, newStats.stamina - 2 * drainHours);
+      }
+      if (weather === 'Rainy' || weather === 'Cold Rain' || weather === 'Drizzle') {
+        newNeeds.hygiene = Math.max(0, newNeeds.hygiene - 2 * drainHours);
+      }
+      if (weather === 'Scorching' || weather === 'Hot' || weather === 'Humid') {
+        newStats.stress = Math.min(100, newStats.stress + 2 * drainHours);
+        newNeeds.thirst = Math.max(0, newNeeds.thirst - 3 * drainHours);
+      }
+      if (weather === 'Thunderstorm') {
+        newStats.stress = Math.min(100, newStats.stress + 4 * drainHours);
+      }
+
+      // 16. Tick simulation engine if available
+      let nextSimWorld = state.sim_world;
+      if (nextSimWorld) {
+        nextSimWorld = tickSimulation(nextSimWorld);
+      }
+
+      return {
+        ...state,
+        player: {
+          ...state.player,
+          stats: newStats,
+          skills: newSkills,
+          inventory: newInventory,
+          anatomy: newAnatomy,
+          afflictions: newAfflictions,
+          quests: newQuests,
+          psych_profile: newPsych,
+          life_sim: newLifeSim,
+          gold: state.player.gold + goldEarned,
+        },
+        world: {
+          ...state.world,
+          day: newDay,
+          hour: newHour,
+          turn_count: state.world.turn_count + 1,
+          current_location: newLocation,
+        },
+        memory_graph: newMemoryGraph,
+        sim_world: nextSimWorld,
+        ui: {
+          ...state.ui,
+          isPollingText: false,
+          currentLog: newLog,
+          choices: newChoices,
+          last_stat_deltas: Object.keys(appliedDeltas).length > 0 ? appliedDeltas : null,
+        },
+      };
     }
     case 'RESOLVE_IMAGE':
       return {
@@ -500,6 +782,84 @@ export function gameReducer(state: GameState, action: any): GameState {
         sim_world: {
           ...state.sim_world,
           active_combats: [...(state.sim_world.active_combats ?? []), combat],
+        },
+      };
+    }
+
+    case 'SUMMARIZE_MEMORY': {
+      const { summary, count } = action.payload;
+      // Replace the oldest `count` entries with a single summary entry
+      const trimmed = state.memory_graph.slice(count);
+      return {
+        ...state,
+        memory_graph: [summary, ...trimmed],
+      };
+    }
+
+    case 'BUY_ITEM': {
+      const { item, cost } = action.payload as { item: any; cost: number };
+      if (state.player.gold < cost) return state;
+      const newItem = { ...item, id: `${item.id}-${Date.now()}` };
+      return {
+        ...state,
+        player: {
+          ...state.player,
+          gold: state.player.gold - cost,
+          inventory: [...state.player.inventory, newItem],
+        },
+      };
+    }
+
+    case 'SELL_ITEM': {
+      const { itemId, price } = action.payload as { itemId: string; price: number };
+      const itemIndex = state.player.inventory.findIndex(i => i.id === itemId);
+      if (itemIndex === -1) return state;
+      const soldItem = state.player.inventory[itemIndex];
+      if (soldItem.is_equipped) return state; // Cannot sell equipped items
+      return {
+        ...state,
+        player: {
+          ...state.player,
+          gold: state.player.gold + price,
+          inventory: state.player.inventory.filter(i => i.id !== itemId),
+        },
+      };
+    }
+
+    case 'REPAIR_ITEM': {
+      const repairId = (action.payload as { itemId: string; cost: number }).itemId;
+      const repairCost = (action.payload as { itemId: string; cost: number }).cost;
+      if (state.player.gold < repairCost) return state;
+      return {
+        ...state,
+        player: {
+          ...state.player,
+          gold: state.player.gold - repairCost,
+          inventory: state.player.inventory.map(i =>
+            i.id === repairId ? { ...i, integrity: i.max_integrity ?? 100 } : i
+          ),
+        },
+      };
+    }
+
+    case 'ADD_GOLD': {
+      return {
+        ...state,
+        player: {
+          ...state.player,
+          gold: Math.max(0, state.player.gold + (action.payload as number)),
+        },
+      };
+    }
+
+    case 'ADD_FAME': {
+      const { fame: fameAmt, notoriety: notAmt } = action.payload as { fame?: number; notoriety?: number };
+      return {
+        ...state,
+        player: {
+          ...state.player,
+          fame: Math.max(0, Math.min(100, state.player.fame + (fameAmt ?? 0))),
+          notoriety: Math.max(0, Math.min(100, state.player.notoriety + (notAmt ?? 0))),
         },
       };
     }
