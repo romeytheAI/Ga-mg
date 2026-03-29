@@ -80,7 +80,7 @@ export const RECIPES: Record<string, Recipe> = {
   'recipe_healing_potion': {
     id: 'recipe_healing_potion',
     name: "Healing Potion",
-    description: "Further refine and distil healing salve until it becomes a concentrated liquid potion of remarkable potency.",
+    description: "Further refine and distill healing salve until it becomes a concentrated liquid potion of remarkable potency.",
     ingredients: [
       { item_id: 'healing_salve', quantity: 2 },
       { item_id: 'rare_fungi', quantity: 1 },
