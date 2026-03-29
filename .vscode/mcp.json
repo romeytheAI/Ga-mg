@@ -1,0 +1,88 @@
+{
+  "mcpServers": {
+    "filesystem": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-filesystem",
+        "${workspaceFolder}"
+      ],
+      "disabled": false,
+      "description": "Read and write files in the workspace. No credentials required. Enables Copilot to browse, read, and edit repo files directly."
+    },
+    "github": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-github"],
+      "env": {
+        "GITHUB_TOKEN": "${env:GITHUB_TOKEN}"
+      },
+      "disabled": true,
+      "description": "Search issues, manage PRs, read other repos. Requires a GitHub personal access token in GITHUB_TOKEN env var."
+    },
+    "fetch": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-fetch"],
+      "disabled": true,
+      "description": "Fetch any public URL for documentation lookups. No credentials required, but disabled by default to avoid unintended network access."
+    },
+    "firecrawl": {
+      "command": "npx",
+      "args": ["-y", "firecrawl-mcp"],
+      "env": {
+        "FIRECRAWL_API_KEY": "${env:FIRECRAWL_API_KEY}"
+      },
+      "disabled": true,
+      "description": "Deep web crawling and scraping for research. Requires a Firecrawl API key (https://firecrawl.dev)."
+    },
+    "postgres": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-postgres",
+        "${env:POSTGRES_CONNECTION_STRING}"
+      ],
+      "disabled": true,
+      "description": "Explore and query a PostgreSQL / Supabase database. Requires POSTGRES_CONNECTION_STRING env var."
+    },
+    "sqlite": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-sqlite",
+        "${workspaceFolder}/dev.db"
+      ],
+      "disabled": true,
+      "description": "Query the local SQLite database (dev.db) used by the simulation. No credentials needed — just enable and point at your db file."
+    },
+    "memory": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-memory"],
+      "disabled": true,
+      "description": "Persistent key-value memory for Copilot across sessions. No credentials required for the local variant."
+    },
+    "sequential-thinking": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-sequential-thinking"],
+      "disabled": true,
+      "description": "Encourages step-by-step reasoning before generating code. Helps with complex architectural decisions. No credentials required."
+    },
+    "brave-search": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-brave-search"],
+      "env": {
+        "BRAVE_API_KEY": "${env:BRAVE_API_KEY}"
+      },
+      "disabled": true,
+      "description": "Web search via Brave Search API. Requires a free BRAVE_API_KEY (https://api.search.brave.com)."
+    },
+    "everart": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-everart"],
+      "env": {
+        "EVERART_API_KEY": "${env:EVERART_API_KEY}"
+      },
+      "disabled": true,
+      "description": "AI image generation for game sprites and assets. Requires an EverArt API key."
+    }
+  }
+}
