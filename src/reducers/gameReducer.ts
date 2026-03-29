@@ -214,6 +214,43 @@ export function gameReducer(state: GameState, action: any): GameState {
         newPsych.submission_index = Math.min(100, newPsych.submission_index + appliedDeltas.corruption * 0.1);
       }
 
+      // 13b. Lewdity stats adjustments (DoL-parity)
+      const newLewdity = { ...state.player.lewdity_stats };
+      if (appliedDeltas.purity && appliedDeltas.purity < 0) {
+        newLewdity.exhibitionism = Math.min(100, newLewdity.exhibitionism + Math.abs(appliedDeltas.purity) * 0.15);
+        newLewdity.promiscuity = Math.min(100, newLewdity.promiscuity + Math.abs(appliedDeltas.purity) * 0.1);
+      }
+      if (appliedDeltas.lust && appliedDeltas.lust > 0) {
+        newLewdity.deviancy = Math.min(100, newLewdity.deviancy + appliedDeltas.lust * 0.05);
+      }
+      if (appliedDeltas.pain && appliedDeltas.pain > 0 && appliedDeltas.lust && appliedDeltas.lust > 0) {
+        newLewdity.masochism = Math.min(100, newLewdity.masochism + 0.5);
+      }
+
+      // 13c. Body fluids update (DoL-parity)
+      const newBodyFluids = { ...state.player.body_fluids };
+      const earlyIntent = state.world.last_intent;
+      newBodyFluids.sweat = Math.min(100, Math.max(0, newBodyFluids.sweat + (earlyIntent === 'work' ? 10 : -5)));
+      if (appliedDeltas.arousal && appliedDeltas.arousal > 0) {
+        newBodyFluids.arousal_wetness = Math.min(100, newBodyFluids.arousal_wetness + appliedDeltas.arousal * 0.3);
+      } else {
+        newBodyFluids.arousal_wetness = Math.max(0, newBodyFluids.arousal_wetness - 5);
+      }
+      if (appliedDeltas.stress && appliedDeltas.stress > 0 && newStats.stress > 80) {
+        newBodyFluids.tears = Math.min(100, newBodyFluids.tears + 10);
+      } else {
+        newBodyFluids.tears = Math.max(0, newBodyFluids.tears - 10);
+      }
+
+      // 13d. Sensitivity adjustments (DoL-parity) — exposure increases sensitivity
+      const newSensitivity = { ...state.player.sensitivity };
+      if (appliedDeltas.arousal && appliedDeltas.arousal > 0) {
+        const senKeys: (keyof typeof newSensitivity)[] = ['mouth', 'chest', 'genitals', 'bottom', 'thighs', 'feet', 'hands'];
+        for (const k of senKeys) {
+          newSensitivity[k] = Math.min(100, newSensitivity[k] + appliedDeltas.arousal * 0.05);
+        }
+      }
+
       // 14. Player needs decay (DoL-parity life-sim loop)
       const newNeeds = { ...state.player.life_sim.needs };
       const intent = state.world.last_intent;
@@ -294,6 +331,68 @@ export function gameReducer(state: GameState, action: any): GameState {
         newStats.stress = Math.min(100, newStats.stress + 4 * drainHours);
       }
 
+      // 15b. Temperature / Warmth system (DoL-parity)
+      const newTemperature = { ...state.player.temperature };
+      // Compute ambient temp from weather
+      const weatherTempMap: Record<string, number> = {
+        'Blizzard': -15, 'Freezing': -10, 'Light Snow': -5, 'Clear and Cold': -2,
+        'Cold Rain': 2, 'Foggy': 8, 'Cloudy': 12, 'Drizzle': 10,
+        'Clear': 18, 'Warm': 22, 'Hot': 30, 'Humid': 28, 'Scorching': 38,
+        'Rainy': 10, 'Thunderstorm': 8,
+      };
+      newTemperature.ambient_temp = weatherTempMap[weather] ?? 12;
+      // Compute clothing warmth from equipped items
+      const equippedSlots = Object.values(state.player.clothing).filter(Boolean);
+      newTemperature.clothing_warmth = Math.min(100, equippedSlots.length * 12);
+      // Determine body temperature state
+      const effectiveTemp = newTemperature.ambient_temp + newTemperature.clothing_warmth * 0.3;
+      if (effectiveTemp < -5) newTemperature.body_temp = 'freezing';
+      else if (effectiveTemp < 5) newTemperature.body_temp = 'cold';
+      else if (effectiveTemp < 12) newTemperature.body_temp = 'chilly';
+      else if (effectiveTemp < 28) newTemperature.body_temp = 'comfortable';
+      else if (effectiveTemp < 35) newTemperature.body_temp = 'warm';
+      else if (effectiveTemp < 42) newTemperature.body_temp = 'hot';
+      else newTemperature.body_temp = 'overheating';
+      // Temperature effects on stats
+      if (newTemperature.body_temp === 'freezing') {
+        newStats.health = Math.max(0, newStats.health - 3 * drainHours);
+        newStats.stamina = Math.max(0, newStats.stamina - 5 * drainHours);
+      } else if (newTemperature.body_temp === 'cold') {
+        newStats.stamina = Math.max(0, newStats.stamina - 2 * drainHours);
+      } else if (newTemperature.body_temp === 'overheating') {
+        newStats.health = Math.max(0, newStats.health - 2 * drainHours);
+        newNeeds.thirst = Math.max(0, newNeeds.thirst - 5 * drainHours);
+      }
+
+      // 15c. Bailey's Payment System (DoL-parity)
+      const newBaileyPayment = { ...state.player.bailey_payment };
+      const dayOfWeek = newDay % 7;
+      const prevDayOfWeek = state.world.day % 7;
+      // Check if payment day has passed during this turn
+      if (dayOfWeek >= newBaileyPayment.due_day && prevDayOfWeek < newBaileyPayment.due_day && newDay > state.world.day) {
+        if (state.player.gold >= newBaileyPayment.weekly_amount) {
+          // Auto-pay if player has enough gold
+          goldEarned -= newBaileyPayment.weekly_amount;
+          if (newBaileyPayment.debt > 0) {
+            newBaileyPayment.debt = Math.max(0, newBaileyPayment.debt - newBaileyPayment.weekly_amount);
+          }
+        } else {
+          // Missed payment
+          newBaileyPayment.missed_payments += 1;
+          newBaileyPayment.debt += newBaileyPayment.weekly_amount;
+          newBaileyPayment.punishment_level = Math.min(3, newBaileyPayment.missed_payments);
+          // Punishment effects
+          if (newBaileyPayment.punishment_level >= 1) {
+            newStats.stress = Math.min(100, newStats.stress + 15 * newBaileyPayment.punishment_level);
+            newStats.trauma = Math.min(100, newStats.trauma + 5 * newBaileyPayment.punishment_level);
+          }
+          if (newBaileyPayment.punishment_level >= 2) {
+            newStats.pain = Math.min(100, newStats.pain + 10);
+            newStats.health = Math.max(0, newStats.health - 10);
+          }
+        }
+      }
+
       // 16. Tick simulation engine if available
       let nextSimWorld = state.sim_world;
       if (nextSimWorld) {
@@ -311,6 +410,11 @@ export function gameReducer(state: GameState, action: any): GameState {
           afflictions: newAfflictions,
           quests: newQuests,
           psych_profile: newPsych,
+          lewdity_stats: newLewdity,
+          body_fluids: newBodyFluids,
+          sensitivity: newSensitivity,
+          temperature: newTemperature,
+          bailey_payment: newBaileyPayment,
           life_sim: newLifeSim,
           gold: state.player.gold + goldEarned,
         },
@@ -508,14 +612,17 @@ export function gameReducer(state: GameState, action: any): GameState {
           isPollingImage: true
         }
       };
-    case 'TOGGLE_UI_SETTING':
+    case 'TOGGLE_UI_SETTING': {
+      const key = typeof action.payload === 'object' ? action.payload.key : action.payload;
+      const value = typeof action.payload === 'object' ? action.payload.value : !state.ui[action.payload as keyof typeof state.ui];
       return {
         ...state,
         ui: {
           ...state.ui,
-          [action.payload]: !state.ui[action.payload as keyof typeof state.ui]
+          [key]: value
         }
       };
+    }
     case 'SET_COMBAT_ANIMATION':
       return {
         ...state,
@@ -860,6 +967,122 @@ export function gameReducer(state: GameState, action: any): GameState {
           ...state.player,
           fame: Math.max(0, Math.min(100, state.player.fame + (fameAmt ?? 0))),
           notoriety: Math.max(0, Math.min(100, state.player.notoriety + (notAmt ?? 0))),
+        },
+      };
+    }
+
+    // ── DoL-parity: Attitude system ───────────────────────────────────────
+    case 'SET_ATTITUDE': {
+      const { type, value } = action.payload as { type: keyof typeof state.player.attitudes; value: 'defiant' | 'submissive' | 'neutral' };
+      return {
+        ...state,
+        player: {
+          ...state.player,
+          attitudes: { ...state.player.attitudes, [type]: value },
+        },
+      };
+    }
+
+    // ── DoL-parity: Unlock feat ───────────────────────────────────────────
+    case 'UNLOCK_FEAT': {
+      const featId = action.payload as string;
+      return {
+        ...state,
+        player: {
+          ...state.player,
+          feats: state.player.feats.map(f =>
+            f.id === featId && !f.unlocked
+              ? { ...f, unlocked: true, unlocked_on_day: state.world.day }
+              : f
+          ),
+        },
+      };
+    }
+
+    // ── DoL-parity: Add trait ─────────────────────────────────────────────
+    case 'ADD_TRAIT': {
+      const trait = action.payload as { id: string; name: string; description: string; effects: Record<string, number> };
+      if (state.player.traits.some(t => t.id === trait.id)) return state;
+      return {
+        ...state,
+        player: {
+          ...state.player,
+          traits: [...state.player.traits, trait],
+        },
+      };
+    }
+
+    // ── DoL-parity: Remove trait ──────────────────────────────────────────
+    case 'REMOVE_TRAIT': {
+      const traitId = action.payload as string;
+      return {
+        ...state,
+        player: {
+          ...state.player,
+          traits: state.player.traits.filter(t => t.id !== traitId),
+        },
+      };
+    }
+
+    // ── DoL-parity: Update virginity ──────────────────────────────────────
+    case 'LOSE_VIRGINITY': {
+      const { type: virgType, description: virgDesc } = action.payload as { type: keyof typeof state.player.virginities; description: string };
+      if (state.player.virginities[virgType] !== null) return state; // already lost
+      return {
+        ...state,
+        player: {
+          ...state.player,
+          virginities: { ...state.player.virginities, [virgType]: virgDesc },
+        },
+      };
+    }
+
+    // ── DoL-parity: Pay Bailey ────────────────────────────────────────────
+    case 'PAY_BAILEY': {
+      const amount = action.payload as number;
+      if (state.player.gold < amount) return state;
+      const bp = { ...state.player.bailey_payment };
+      bp.debt = Math.max(0, bp.debt - amount);
+      if (bp.debt === 0) {
+        bp.missed_payments = 0;
+        bp.punishment_level = 0;
+      }
+      return {
+        ...state,
+        player: {
+          ...state.player,
+          gold: state.player.gold - amount,
+          bailey_payment: bp,
+        },
+      };
+    }
+
+    // ── DoL-parity: Update sexual skill ───────────────────────────────────
+    case 'UPDATE_SEXUAL_SKILL': {
+      const { skill, amount } = action.payload as { skill: keyof typeof state.player.sexual_skills; amount: number };
+      return {
+        ...state,
+        player: {
+          ...state.player,
+          sexual_skills: {
+            ...state.player.sexual_skills,
+            [skill]: Math.max(0, Math.min(100, state.player.sexual_skills[skill] + amount)),
+          },
+        },
+      };
+    }
+
+    // ── DoL-parity: Update insecurity ─────────────────────────────────────
+    case 'UPDATE_INSECURITY': {
+      const { part, amount: insAmt } = action.payload as { part: keyof typeof state.player.insecurity; amount: number };
+      return {
+        ...state,
+        player: {
+          ...state.player,
+          insecurity: {
+            ...state.player.insecurity,
+            [part]: Math.max(0, Math.min(100, state.player.insecurity[part] + insAmt)),
+          },
         },
       };
     }

@@ -141,6 +141,96 @@ export const StatsModal: React.FC<StatsModalProps> = ({ state, dispatch }) => {
               </div>
             </div>
           </div>
+
+          {/* Body Fluids */}
+          <div className="col-span-2 space-y-4 mt-4 pt-6 border-t border-white/10">
+            <h3 className="text-xs tracking-widest uppercase text-white/40 mb-2">Body Fluids</h3>
+            <div className="grid grid-cols-3 gap-3">
+              {Object.entries(state.player.body_fluids).map(([key, val]) => (
+                <div key={key} className="space-y-1">
+                  <div className="flex justify-between text-[10px] tracking-widest uppercase">
+                    <span className="text-white/40">{key.replace('_', ' ')}</span>
+                    <span className="text-white/70">{Math.round(val)}</span>
+                  </div>
+                  <div className="h-1 bg-white/5 rounded-full overflow-hidden">
+                    <div
+                      className={`h-full rounded-full ${
+                        key === 'arousal_wetness' ? 'bg-pink-500/70' :
+                        key === 'tears' ? 'bg-cyan-400/70' :
+                        key === 'sweat' ? 'bg-amber-500/70' :
+                        key === 'milk' ? 'bg-white/70' :
+                        'bg-blue-400/70'
+                      }`}
+                      style={{ width: `${val}%` }}
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Temperature */}
+          <div className="col-span-2 space-y-4 mt-4 pt-6 border-t border-white/10">
+            <h3 className="text-xs tracking-widest uppercase text-white/40 mb-2">Temperature</h3>
+            <div className="grid grid-cols-3 gap-3">
+              <div className="p-3 bg-white/[0.02] border border-white/5 rounded-sm text-center">
+                <span className="text-[9px] uppercase text-white/30 block mb-1">Ambient</span>
+                <span className="text-sm text-white/80 font-mono">{state.player.temperature.ambient_temp}°</span>
+              </div>
+              <div className="p-3 bg-white/[0.02] border border-white/5 rounded-sm text-center">
+                <span className="text-[9px] uppercase text-white/30 block mb-1">Warmth</span>
+                <span className="text-sm text-white/80 font-mono">{state.player.temperature.clothing_warmth}</span>
+              </div>
+              <div className={`p-3 rounded-sm text-center border ${
+                state.player.temperature.body_temp === 'freezing' ? 'bg-cyan-950/30 border-cyan-500/30' :
+                state.player.temperature.body_temp === 'cold' ? 'bg-blue-950/20 border-blue-500/20' :
+                state.player.temperature.body_temp === 'comfortable' ? 'bg-emerald-950/20 border-emerald-500/20' :
+                state.player.temperature.body_temp === 'overheating' ? 'bg-red-950/30 border-red-500/30' :
+                'bg-white/[0.02] border-white/5'
+              }`}>
+                <span className="text-[9px] uppercase text-white/30 block mb-1">Body</span>
+                <span className={`text-sm font-serif capitalize ${
+                  state.player.temperature.body_temp === 'freezing' ? 'text-cyan-300' :
+                  state.player.temperature.body_temp === 'cold' ? 'text-blue-300' :
+                  state.player.temperature.body_temp === 'comfortable' ? 'text-emerald-300' :
+                  state.player.temperature.body_temp === 'overheating' ? 'text-red-300' :
+                  'text-white/70'
+                }`}>{state.player.temperature.body_temp}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Bailey Payment */}
+          {state.player.bailey_payment.debt > 0 && (
+            <div className="col-span-2 space-y-4 mt-4 pt-6 border-t border-white/10">
+              <h3 className="text-xs tracking-widest uppercase text-red-400/60 mb-2">Bailey&apos;s Debt</h3>
+              <div className="p-4 bg-red-950/20 border border-red-900/30 rounded-sm">
+                <div className="flex justify-between text-[11px]">
+                  <span className="text-red-400/70 uppercase tracking-widest">Total Owed</span>
+                  <span className="text-red-400 font-mono font-bold">{state.player.bailey_payment.debt} gold</span>
+                </div>
+                <div className="flex justify-between text-[10px] mt-2">
+                  <span className="text-white/40">Weekly Rate</span>
+                  <span className="text-white/60 font-mono">{state.player.bailey_payment.weekly_amount}g</span>
+                </div>
+                <div className="flex justify-between text-[10px] mt-1">
+                  <span className="text-white/40">Missed Payments</span>
+                  <span className="text-red-400/70 font-mono">{state.player.bailey_payment.missed_payments}</span>
+                </div>
+                <div className="flex justify-between text-[10px] mt-1">
+                  <span className="text-white/40">Punishment Level</span>
+                  <span className={`font-mono ${
+                    state.player.bailey_payment.punishment_level >= 3 ? 'text-red-400' :
+                    state.player.bailey_payment.punishment_level >= 2 ? 'text-orange-400' :
+                    state.player.bailey_payment.punishment_level >= 1 ? 'text-amber-400' :
+                    'text-white/50'
+                  }`}>
+                    {['None', 'Scolding', 'Beating', 'Sold'][state.player.bailey_payment.punishment_level]}
+                  </span>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </motion.div>
     </motion.div>

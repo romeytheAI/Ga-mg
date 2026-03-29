@@ -39,6 +39,8 @@ const SettingsModal = React.lazy(() => import('./components/modals/SettingsModal
 const ShopModal = React.lazy(() => import('./components/modals/ShopModal').then(m => ({ default: m.ShopModal })));
 const WardrobeModal = React.lazy(() => import('./components/modals/WardrobeModal').then(m => ({ default: m.WardrobeModal })));
 const SocialModal = React.lazy(() => import('./components/modals/SocialModal').then(m => ({ default: m.SocialModal })));
+const FeatsModal = React.lazy(() => import('./components/modals/FeatsModal').then(m => ({ default: m.FeatsModal })));
+const TraitsModal = React.lazy(() => import('./components/modals/TraitsModal').then(m => ({ default: m.TraitsModal })));
 
 // ── Lazy-loaded heavy components ────────────────────────────────────────
 const CharacterModel = React.lazy(() => import('./components/CharacterModel').then(m => ({ default: m.CharacterModel })));
@@ -2090,6 +2092,16 @@ Example: { "health": 50, "allure": 20 }`;
       {/* Social Modal */}
       <AnimatePresence>
         {state.ui.show_social && <Suspense fallback={<ChunkFallback />}><SocialModal state={state} dispatch={dispatch} /></Suspense>}
+      </AnimatePresence>
+
+      {/* Feats Modal */}
+      <AnimatePresence>
+        {state.ui.show_feats && <Suspense fallback={<ChunkFallback />}><FeatsModal state={state} dispatch={dispatch} /></Suspense>}
+      </AnimatePresence>
+
+      {/* Traits Modal */}
+      <AnimatePresence>
+        {state.ui.show_traits && <Suspense fallback={<ChunkFallback />}><TraitsModal state={state} dispatch={dispatch} /></Suspense>}
       </AnimatePresence>
 
 

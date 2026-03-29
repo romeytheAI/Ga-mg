@@ -130,7 +130,7 @@ const SpriteWithXRay: React.FC<{ state: GameState }> = ({ state }) => {
 export const DoLStatsSidebar: React.FC<DoLStatsSidebarProps> = ({
   state, dispatch, onOpenStats, onOpenInventory
 }) => {
-  const { stats, skills, life_sim, clothing, biology, psych_profile } = state.player;
+  const { stats, skills, life_sim, clothing, biology, psych_profile, temperature, bailey_payment, lewdity_stats, attitudes } = state.player;
 
   // Clothing slot integrity summary
   const clothingSlots = ['head', 'neck', 'shoulders', 'chest', 'underwear', 'legs', 'feet', 'hands', 'waist'] as const;
@@ -331,6 +331,79 @@ export const DoLStatsSidebar: React.FC<DoLStatsSidebarProps> = ({
           pulseLow
         />
 
+        {/* Temperature */}
+        <SectionHeader label="Temperature" />
+        <div className="flex items-center gap-1.5 mb-0.5">
+          <span className="text-[8px] uppercase tracking-wider text-white/35 w-12 shrink-0">Body</span>
+          <span className={`text-[9px] capitalize font-mono ${
+            temperature.body_temp === 'freezing' ? 'text-cyan-300 animate-pulse' :
+            temperature.body_temp === 'cold' ? 'text-cyan-400' :
+            temperature.body_temp === 'chilly' ? 'text-blue-400' :
+            temperature.body_temp === 'comfortable' ? 'text-emerald-400' :
+            temperature.body_temp === 'warm' ? 'text-amber-400' :
+            temperature.body_temp === 'hot' ? 'text-orange-400' :
+            'text-red-400 animate-pulse'
+          }`}>{temperature.body_temp}</span>
+        </div>
+        <div className="flex items-center gap-1.5 mb-0.5">
+          <span className="text-[8px] uppercase tracking-wider text-white/35 w-12 shrink-0">Warmth</span>
+          <div className="flex-1 h-1 bg-white/[0.05] rounded-full overflow-hidden">
+            <motion.div className="h-full rounded-full bg-orange-500" initial={{ width: 0 }} animate={{ width: `${temperature.clothing_warmth}%` }} transition={{ duration: 0.4 }} />
+          </div>
+          <span className="text-[8px] font-mono text-white/30 w-5 text-right shrink-0">{temperature.clothing_warmth}</span>
+        </div>
+
+        {/* Lewdity */}
+        {(lewdity_stats.exhibitionism > 0 || lewdity_stats.promiscuity > 0 || lewdity_stats.deviancy > 0 || lewdity_stats.masochism > 0) && (
+          <>
+            <SectionHeader label="Lewdity" />
+            {lewdity_stats.exhibitionism > 0 && (
+              <StatBar label="Exhib." value={lewdity_stats.exhibitionism} color="bg-pink-600" />
+            )}
+            {lewdity_stats.promiscuity > 0 && (
+              <StatBar label="Promisc." value={lewdity_stats.promiscuity} color="bg-rose-600" />
+            )}
+            {lewdity_stats.deviancy > 0 && (
+              <StatBar label="Deviancy" value={lewdity_stats.deviancy} color="bg-purple-600" />
+            )}
+            {lewdity_stats.masochism > 0 && (
+              <StatBar label="Masochism" value={lewdity_stats.masochism} color="bg-red-700" />
+            )}
+          </>
+        )}
+
+        {/* Attitudes */}
+        <SectionHeader label="Attitudes" />
+        {(['sexual', 'crime', 'labour'] as const).map(type => (
+          <div key={type} className="flex items-center gap-1.5 mb-0.5">
+            <span className="text-[8px] uppercase tracking-wider text-white/35 w-12 shrink-0">{type}</span>
+            <span className={`text-[9px] capitalize font-mono ${
+              attitudes[type] === 'defiant' ? 'text-red-400' :
+              attitudes[type] === 'submissive' ? 'text-purple-400' :
+              'text-white/50'
+            }`}>{attitudes[type]}</span>
+          </div>
+        ))}
+
+        {/* Bailey Payment */}
+        {bailey_payment.debt > 0 && (
+          <>
+            <SectionHeader label="Bailey's Debt" />
+            <div className="p-2 bg-red-950/20 border border-red-900/30 rounded-sm mb-1">
+              <div className="flex justify-between text-[9px]">
+                <span className="text-red-400/70 uppercase tracking-widest">Owed</span>
+                <span className="text-red-400 font-mono">{bailey_payment.debt}g</span>
+              </div>
+              {bailey_payment.missed_payments > 0 && (
+                <div className="flex justify-between text-[8px] mt-0.5">
+                  <span className="text-red-400/50">Missed</span>
+                  <span className="text-red-400/70 font-mono">{bailey_payment.missed_payments}×</span>
+                </div>
+              )}
+            </div>
+          </>
+        )}
+
         {/* Gold & Reputation */}
         <SectionHeader label="Standing" />
         <div className="flex items-center gap-1.5 mb-1">
@@ -467,7 +540,7 @@ export const DoLStatsSidebar: React.FC<DoLStatsSidebarProps> = ({
       </div>
 
       {/* Footer quick buttons */}
-      <div className="p-2 border-t border-white/[0.06] grid grid-cols-3 gap-1">
+      <div className="p-2 border-t border-white/[0.06] grid grid-cols-4 gap-1">
         <button
           onClick={onOpenStats}
           className="py-1.5 text-[7px] uppercase tracking-widest text-white/40 hover:text-white/80 border border-white/[0.06] hover:border-white/20 rounded-sm transition-colors bg-white/[0.01] hover:bg-white/[0.04]"
@@ -503,6 +576,18 @@ export const DoLStatsSidebar: React.FC<DoLStatsSidebarProps> = ({
           className="py-1.5 text-[7px] uppercase tracking-widest text-white/40 hover:text-white/80 border border-white/[0.06] hover:border-white/20 rounded-sm transition-colors bg-white/[0.01] hover:bg-white/[0.04]"
         >
           Map
+        </button>
+        <button
+          onClick={() => dispatch({ type: 'TOGGLE_UI_SETTING', payload: { key: 'show_feats', value: true } })}
+          className="py-1.5 text-[7px] uppercase tracking-widest text-amber-400/50 hover:text-amber-400 border border-white/[0.06] hover:border-amber-900/40 rounded-sm transition-colors bg-white/[0.01] hover:bg-amber-950/20"
+        >
+          Feats
+        </button>
+        <button
+          onClick={() => dispatch({ type: 'TOGGLE_UI_SETTING', payload: { key: 'show_traits', value: true } })}
+          className="py-1.5 text-[7px] uppercase tracking-widest text-violet-400/50 hover:text-violet-400 border border-white/[0.06] hover:border-violet-900/40 rounded-sm transition-colors bg-white/[0.01] hover:bg-violet-950/20"
+        >
+          Traits
         </button>
       </div>
     </div>

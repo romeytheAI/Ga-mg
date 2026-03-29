@@ -17,6 +17,31 @@ export const initialState: GameState = {
     fame: 0,
     notoriety: 0,
     psych_profile: { submission_index: 20, cruelty_index: 0, exhibitionism: 0, promiscuity: 0 },
+    attitudes: { sexual: 'neutral', crime: 'neutral', labour: 'neutral' },
+    sensitivity: { mouth: 20, chest: 30, genitals: 50, bottom: 30, thighs: 20, feet: 10, hands: 10 },
+    sexual_skills: { oral: 0, vaginal: 0, anal: 0, hand: 0, feet: 0, penile: 0 },
+    virginities: { penile: null, vaginal: null, anal: null, oral: null, handholding: null, kiss: null, temple_marriage: null },
+    body_fluids: { arousal_wetness: 0, semen_level: 0, saliva: 50, tears: 0, sweat: 10, milk: 0 },
+    insecurity: { face: 30, chest: 40, genitals: 50, bottom: 30, body: 35 },
+    lewdity_stats: { exhibitionism: 0, promiscuity: 0, deviancy: 0, masochism: 0 },
+    traits: [],
+    feats: [
+      { id: 'feat_first_steps', name: 'First Steps', description: 'Leave the orphanage for the first time.', unlocked: false },
+      { id: 'feat_survivor', name: 'Survivor', description: 'Survive for 30 days.', unlocked: false },
+      { id: 'feat_first_job', name: 'Honest Work', description: 'Earn your first gold coin from work.', unlocked: false },
+      { id: 'feat_school_star', name: 'Star Pupil', description: 'Reach A grade in school.', unlocked: false },
+      { id: 'feat_skulduggery_master', name: 'Master Thief', description: 'Reach 100 skulduggery skill.', unlocked: false },
+      { id: 'feat_first_love', name: 'First Love', description: 'Enter a romantic relationship.', unlocked: false },
+      { id: 'feat_pure_soul', name: 'Pure Soul', description: 'Reach purity 100 while corruption remains 0.', unlocked: false },
+      { id: 'feat_fallen', name: 'The Fallen', description: 'Reach corruption 100.', unlocked: false },
+      { id: 'feat_wealthy', name: 'Wealthy', description: 'Accumulate 1000 gold.', unlocked: false },
+      { id: 'feat_swimmer', name: 'Like a Fish', description: 'Reach 100 swimming skill.', unlocked: false },
+      { id: 'feat_dancer', name: 'Graceful', description: 'Reach 100 dancing skill.', unlocked: false },
+      { id: 'feat_escape_artist', name: 'Escape Artist', description: 'Escape 10 encounters by fleeing.', unlocked: false },
+      { id: 'feat_blood_moon', name: 'Blood Moon', description: 'Survive a Blood Moon event.', unlocked: false },
+    ],
+    temperature: { ambient_temp: 12, clothing_warmth: 20, body_temp: 'chilly' },
+    bailey_payment: { weekly_amount: 100, due_day: 0, missed_payments: 0, debt: 0, punishment_level: 0 },
     afflictions: [],
     clothing: {
       head: null, neck: null, shoulders: null, chest: null, underwear: null, legs: null, feet: null, hands: null, waist: null
@@ -82,7 +107,7 @@ export const initialState: GameState = {
     age_days: 6570, // 18 years
     avatar_url: null,
     quests: [
-      { id: 'q1', title: 'Survive the Orphanage', description: 'Find a way to escape the Town Orphanage and the clutches of the matron.', status: 'active' }
+      { id: 'q1', title: 'Survive the Orphanage', description: 'Find a way to escape Honorhall Orphanage in Riften and the clutches of Matron Grelod.', status: 'active' }
     ]
   },
   world: {
@@ -108,12 +133,12 @@ export const initialState: GameState = {
     director_cut: false,
     active_encounter: null
   },
-  memory_graph: ["You are an orphan in the Town Orphanage. Life is hard, but you are learning to survive."],
+  memory_graph: ["You are an orphan in Honorhall Orphanage in Riften, Skyrim. Life under Matron Grelod is harsh, but you are learning to survive in Tamriel."],
   ui: {
     isPollingText: false,
     isPollingImage: false,
     isGeneratingAvatar: false,
-    currentLog: [{ text: "The morning bell clangs, its harsh sound echoing through the cold stone halls of the Orphanage. You shiver in your thin clothes, the damp mist of the town seeping through the cracks in the walls. The other children are already moving between the beds, whispering to wake up before the matron arrives.", type: 'narrative' }],
+    currentLog: [{ text: "The morning bell clangs, its harsh sound echoing through the cold stone halls of Honorhall Orphanage. You shiver in your thin clothes, the damp mist from Lake Honrich seeping through the cracks in the walls. The other children are already moving between the beds, whispering to wake up before the matron arrives.", type: 'narrative' }],
     currentImage: null,
     choices: LOCATIONS.orphanage.actions.map((a: any) => {
       if (a.skill_check) {
@@ -141,6 +166,8 @@ export const initialState: GameState = {
     show_shop: false,
     show_wardrobe: false,
     show_social: false,
+    show_feats: false,
+    show_traits: false,
     highlighted_part: null,
     targeted_part: null,
     combat_animation: null,

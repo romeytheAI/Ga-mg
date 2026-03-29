@@ -127,6 +127,126 @@ export interface Cosmetics {
   body_writing?: { text: string; location: 'chest' | 'abdomen' | 'thigh' | 'arm' | 'back' }[];
 }
 
+// ── DoL-parity: Attitudes ─────────────────────────────────────────────────
+export type AttitudeType = 'defiant' | 'submissive' | 'neutral';
+
+export interface Attitudes {
+  /** How the player responds to sexual encounters */
+  sexual: AttitudeType;
+  /** How the player responds to crime/danger */
+  crime: AttitudeType;
+  /** How the player responds to labour/work */
+  labour: AttitudeType;
+}
+
+// ── DoL-parity: Sensitivity ──────────────────────────────────────────────
+export interface Sensitivity {
+  mouth: number;      // 0-100
+  chest: number;      // 0-100
+  genitals: number;   // 0-100
+  bottom: number;     // 0-100
+  thighs: number;     // 0-100
+  feet: number;       // 0-100
+  hands: number;      // 0-100
+}
+
+// ── DoL-parity: Sexual Skills ────────────────────────────────────────────
+export interface SexualSkills {
+  oral: number;       // 0-100
+  vaginal: number;    // 0-100
+  anal: number;       // 0-100
+  hand: number;       // 0-100
+  feet: number;       // 0-100
+  penile: number;     // 0-100
+}
+
+// ── DoL-parity: Virginities ──────────────────────────────────────────────
+export interface Virginities {
+  /** null = intact, string = day/event description of how it was lost */
+  penile: string | null;
+  vaginal: string | null;
+  anal: string | null;
+  oral: string | null;
+  handholding: string | null;
+  kiss: string | null;
+  temple_marriage: string | null;
+}
+
+// ── DoL-parity: Body Fluids ──────────────────────────────────────────────
+export interface BodyFluids {
+  arousal_wetness: number; // 0-100
+  semen_level: number;     // 0-100
+  saliva: number;          // 0-100
+  tears: number;           // 0-100
+  sweat: number;           // 0-100
+  milk: number;            // 0-100 (lactation)
+}
+
+// ── DoL-parity: Insecurity ───────────────────────────────────────────────
+export interface Insecurity {
+  /** 0 = confident, 100 = extremely insecure */
+  face: number;
+  chest: number;
+  genitals: number;
+  bottom: number;
+  body: number;
+}
+
+// ── DoL-parity: Lewdity Stats ────────────────────────────────────────────
+export interface LewdityStats {
+  /** How exhibitionistic the player has become */
+  exhibitionism: number;  // 0-100
+  /** How promiscuous the player has become */
+  promiscuity: number;    // 0-100
+  /** Deviancy level */
+  deviancy: number;       // 0-100
+  /** Masochism level */
+  masochism: number;      // 0-100
+}
+
+// ── DoL-parity: Traits ───────────────────────────────────────────────────
+export interface Trait {
+  id: string;
+  name: string;
+  description: string;
+  /** Stat bonuses granted while trait is active */
+  effects: Partial<Record<StatKey, number>>;
+}
+
+// ── DoL-parity: Feats / Achievements ────────────────────────────────────
+export interface Feat {
+  id: string;
+  name: string;
+  description: string;
+  unlocked: boolean;
+  /** Day on which this feat was unlocked */
+  unlocked_on_day?: number;
+}
+
+// ── DoL-parity: Temperature / Warmth ────────────────────────────────────
+export interface TemperatureState {
+  /** Current environmental temperature (Celsius-like abstract) */
+  ambient_temp: number;      // -20 to 50
+  /** Player's warmth rating from clothing */
+  clothing_warmth: number;   // 0-100
+  /** Player's effective body temperature state */
+  body_temp: 'freezing' | 'cold' | 'chilly' | 'comfortable' | 'warm' | 'hot' | 'overheating';
+}
+
+// ── DoL-parity: Bailey Payment System ───────────────────────────────────
+export interface BaileyPayment {
+  /** Amount owed each week */
+  weekly_amount: number;
+  /** Day of the week payment is due (0-6, 0=Monday) */
+  due_day: number;
+  /** Number of consecutive missed payments */
+  missed_payments: number;
+  /** Total amount in arrears */
+  debt: number;
+  /** Punishment escalation level (0=none, 1=scolding, 2=beating, 3=sold) */
+  punishment_level: number;
+}
+
 export interface LifeSim {
   needs: {
     hunger: number;
@@ -257,6 +377,17 @@ export interface GameState {
     fame: number,
     notoriety: number,
     psych_profile: { submission_index: number, cruelty_index: number, exhibitionism: number, promiscuity: number },
+    attitudes: Attitudes,
+    sensitivity: Sensitivity,
+    sexual_skills: SexualSkills,
+    virginities: Virginities,
+    body_fluids: BodyFluids,
+    insecurity: Insecurity,
+    lewdity_stats: LewdityStats,
+    traits: Trait[],
+    feats: Feat[],
+    temperature: TemperatureState,
+    bailey_payment: BaileyPayment,
     afflictions: string[],
     clothing: ClothingLayer,
     inventory: Item[],
@@ -325,6 +456,8 @@ export interface GameState {
     show_shop: boolean,
     show_wardrobe: boolean,
     show_social: boolean,
+    show_feats: boolean,
+    show_traits: boolean,
     highlighted_part: string | null,
     targeted_part: string | null,
     combat_animation: string | null,
