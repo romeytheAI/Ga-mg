@@ -287,6 +287,270 @@ export const QUESTS: Record<string, Quest> = {
     },
     prerequisites: [],
   },
+
+  'q_romance_robin': {
+    id: 'q_romance_robin',
+    title: "Fragile Hearts",
+    type: 'romance',
+    status: 'locked',
+    description: "Robin has always been there — a quiet, unwavering presence in the storm of your life. Perhaps it's time to acknowledge what's been growing between you.",
+    objectives: [
+      { id: 'obj_rescue_robin', description: "Complete Robin's rescue event", completed: false },
+      { id: 'obj_robin_relation_40', description: "Reach 40 relationship with Robin", completed: false },
+      { id: 'obj_robin_gift', description: "Give Robin a meaningful gift", completed: false },
+    ],
+    rewards: {
+      xp: 100,
+      feats: ['feat_first_love'],
+    },
+    prerequisites: [],
+  },
+
+  'q_romance_whitney': {
+    id: 'q_romance_whitney',
+    title: "Beneath the Armour",
+    type: 'romance',
+    status: 'locked',
+    description: "Whitney's cruelty masks deep wounds. Breaking through requires patience, courage, and the willingness to see the person behind the bully.",
+    objectives: [
+      { id: 'obj_whitney_confront', description: "Survive Whitney's confrontation", completed: false },
+      { id: 'obj_whitney_vulnerable', description: "See Whitney's vulnerable side", completed: false },
+      { id: 'obj_whitney_relation_20', description: "Shift Whitney's relationship above 20", completed: false },
+    ],
+    rewards: {
+      xp: 140,
+      feats: ['feat_first_love'],
+    },
+    prerequisites: [],
+  },
+
+  'q_romance_sydney': {
+    id: 'q_romance_sydney',
+    title: "Faith and Doubt",
+    type: 'romance',
+    status: 'locked',
+    description: "Sydney's faith is shaking. In the trembling space between belief and doubt, something personal is growing — something that requires as much courage as any prayer.",
+    objectives: [
+      { id: 'obj_sydney_crisis', description: "Be there for Sydney's crisis of faith", completed: false },
+      { id: 'obj_sydney_relation_30', description: "Reach 30 relationship with Sydney", completed: false },
+      { id: 'obj_sydney_walk', description: "Walk home with Sydney from the library", completed: false },
+    ],
+    rewards: {
+      xp: 110,
+      feats: ['feat_first_love'],
+    },
+    prerequisites: [],
+  },
+
+  'q_romance_alex': {
+    id: 'q_romance_alex',
+    title: "Roots and Rain",
+    type: 'romance',
+    status: 'locked',
+    description: "Alex pours everything into the farm — there's no room left for love. But working side by side, sharing meals and silence, the soil between you grows fertile.",
+    objectives: [
+      { id: 'obj_alex_harvest', description: "Help Alex save the harvest", completed: false },
+      { id: 'obj_alex_relation_25', description: "Reach 25 relationship with Alex", completed: false },
+      { id: 'obj_alex_dinner', description: "Share a meal with Alex at the farm", completed: false },
+    ],
+    rewards: {
+      xp: 130,
+      feats: ['feat_first_love'],
+    },
+    prerequisites: [],
+  },
+
+  // ── LOCATION STORY QUESTS ──────────────────────────────────────────────
+
+  'q_side_whitney_bully': {
+    id: 'q_side_whitney_bully',
+    title: "The Bully's Ultimatum",
+    type: 'side',
+    status: 'locked',
+    description: "Whitney's bullying has escalated beyond the usual torment. Something has to give — but will it be them, or you?",
+    objectives: [
+      { id: 'obj_face_whitney', description: "Face Whitney's ultimatum at school", completed: false },
+      { id: 'obj_resolve_whitney', description: "Resolve the confrontation", completed: false },
+    ],
+    rewards: {
+      xp: 80,
+      skills: { athletics: 3 },
+    },
+    prerequisites: [],
+  },
+
+  'q_side_leighton_secret': {
+    id: 'q_side_leighton_secret',
+    title: "After Hours",
+    type: 'side',
+    status: 'locked',
+    description: "Something is deeply wrong with Headmaster Leighton. The after-hours detentions hide a darkness that must be exposed.",
+    objectives: [
+      { id: 'obj_survive_leighton', description: "Escape Leighton's after-hours detention", completed: false },
+      { id: 'obj_expose_leighton', description: "Take action against Leighton", completed: false },
+    ],
+    rewards: {
+      xp: 120,
+      skills: { school_grades: 5 },
+    },
+    prerequisites: [],
+  },
+
+  'q_side_docks_workers': {
+    id: 'q_side_docks_workers',
+    title: "The Argonian Dockworkers",
+    type: 'side',
+    status: 'locked',
+    description: "The Argonian labourers at the docks are being exploited. Uncover the corruption and decide what to do with the evidence.",
+    objectives: [
+      { id: 'obj_discover_exploitation', description: "Discover the dockworker exploitation", completed: false },
+      { id: 'obj_find_evidence', description: "Find evidence in the warehouse office", completed: false },
+      { id: 'obj_resolve_docks', description: "Resolve the situation", completed: false },
+    ],
+    rewards: {
+      gold: 30,
+      xp: 100,
+      skills: { skulduggery: 3 },
+    },
+    prerequisites: [],
+  },
+
+  'q_side_farm_harvest': {
+    id: 'q_side_farm_harvest',
+    title: "Harvest Moon",
+    type: 'side',
+    status: 'locked',
+    description: "Alex's farm teeters on the brink of ruin. The harvest must come in before the tax collector, or everything their parents built will be lost.",
+    objectives: [
+      { id: 'obj_learn_crisis', description: "Learn about the farm's crisis", completed: false },
+      { id: 'obj_help_harvest', description: "Help save the harvest", completed: false },
+    ],
+    rewards: {
+      gold: 25,
+      xp: 100,
+      skills: { tending: 5, athletics: 3 },
+    },
+    prerequisites: [],
+  },
+
+  'q_side_brothel_briar': {
+    id: 'q_side_brothel_briar',
+    title: "Briar's Proposition",
+    type: 'side',
+    status: 'locked',
+    description: "The madam of the brothel has made you an offer with golden chains attached. Navigate the underworld of Riften's flesh trade.",
+    objectives: [
+      { id: 'obj_receive_offer', description: "Receive Briar's proposition", completed: false },
+      { id: 'obj_decide_offer', description: "Make your decision", completed: false },
+    ],
+    rewards: {
+      xp: 90,
+    },
+    prerequisites: [],
+  },
+
+  'q_side_forest_hunt': {
+    id: 'q_side_forest_hunt',
+    title: "The First Hunt",
+    type: 'side',
+    status: 'locked',
+    description: "Eden has offered to teach you to hunt in the deep forest. It's a chance to learn survival — and perhaps to understand the recluse who calls the wilderness home.",
+    objectives: [
+      { id: 'obj_accept_hunt', description: "Accept Eden's hunting invitation", completed: false },
+      { id: 'obj_track_stag', description: "Track and face the stag", completed: false },
+    ],
+    rewards: {
+      xp: 80,
+      skills: { athletics: 3, foraging: 3 },
+    },
+    prerequisites: [],
+  },
+
+  'q_side_sewers_children': {
+    id: 'q_side_sewers_children',
+    title: "The Ratway Children",
+    type: 'side',
+    status: 'locked',
+    description: "Lost children huddle in the sewers, too afraid to return to Grelod's orphanage. They need someone who understands — someone who's been where they are.",
+    objectives: [
+      { id: 'obj_find_children', description: "Discover the Ratway children", completed: false },
+      { id: 'obj_gain_trust', description: "Gain Miri's trust", completed: false },
+      { id: 'obj_help_children', description: "Help the children find safety", completed: false },
+    ],
+    rewards: {
+      xp: 110,
+      skills: { housekeeping: 3, foraging: 3 },
+    },
+    prerequisites: ['q_ch1_orphans_cage'],
+  },
+
+  'q_side_prison_innocent': {
+    id: 'q_side_prison_innocent',
+    title: "Behind Bars",
+    type: 'side',
+    status: 'locked',
+    description: "Wrongly accused, you must survive Riften Jail and find a way to prove your innocence — or escape.",
+    objectives: [
+      { id: 'obj_survive_jail', description: "Survive imprisonment in Riften Jail", completed: false },
+      { id: 'obj_clear_name', description: "Clear your name or escape", completed: false },
+    ],
+    rewards: {
+      xp: 120,
+      skills: { skulduggery: 5, athletics: 3 },
+    },
+    prerequisites: [],
+  },
+
+  'q_side_sydney_faith': {
+    id: 'q_side_sydney_faith',
+    title: "The Wavering Light",
+    type: 'side',
+    status: 'locked',
+    description: "Sydney's unshakeable faith has begun to crack. What role will you play as they question everything they once believed?",
+    objectives: [
+      { id: 'obj_witness_crisis', description: "Witness Sydney's crisis of faith", completed: false },
+      { id: 'obj_guide_sydney', description: "Guide Sydney through their doubt", completed: false },
+    ],
+    rewards: {
+      xp: 90,
+    },
+    prerequisites: [],
+  },
+
+  'q_side_museum_puzzle': {
+    id: 'q_side_museum_puzzle',
+    title: "The Clockwork Riddle",
+    type: 'side',
+    status: 'locked',
+    description: "Winter's Dwemer puzzle box may unlock secrets buried beneath the museum for millennia. Help unravel the mystery.",
+    objectives: [
+      { id: 'obj_solve_puzzle', description: "Help solve the Dwemer puzzle box", completed: false },
+      { id: 'obj_explore_chamber', description: "Decide the fate of the hidden chamber", completed: false },
+    ],
+    rewards: {
+      gold: 20,
+      xp: 100,
+      skills: { school_grades: 5 },
+    },
+    prerequisites: [],
+  },
+
+  'q_side_cafe_secret': {
+    id: 'q_side_cafe_secret',
+    title: "The Baker's Secret",
+    type: 'side',
+    status: 'locked',
+    description: "Sam's warm smiles hide a dangerous past. When it catches up, will you help the kindest person in Riften?",
+    objectives: [
+      { id: 'obj_discover_past', description: "Learn about Sam's hidden past", completed: false },
+      { id: 'obj_protect_sam', description: "Help Sam face their past", completed: false },
+    ],
+    rewards: {
+      gold: 15,
+      xp: 90,
+    },
+    prerequisites: [],
+  },
 };
 
 export const STARTING_QUESTS: Quest[] = [

@@ -773,5 +773,361 @@ export const STORY_EVENTS: Record<string, any> = {
         ]
       }
     ]
+  },
+
+  // ── School Story Arc ──────────────────────────────────────────────────────
+
+  'school_whitney_confrontation': {
+    id: 'school_whitney_confrontation',
+    title: "The Bully's Ultimatum",
+    description: "Whitney's bullying has escalated. It's time to face them — one way or another.",
+    stages: [
+      {
+        stage: 1,
+        condition: "Player attends school 5+ times and Whitney relationship < 0",
+        narrative: "Whitney catches you alone in the hallway after the last bell. Their gang blocks both exits. 'You've been avoiding me, orphan. That ends today.' They crack their knuckles. 'Here's the deal — you're mine now. You carry my bag, you do my homework, and you pay me every week. Or...' They let the threat hang in the air like a blade.",
+        choices: [
+          { label: "Refuse and stand your ground", intent: "aggressive", outcome: "You square your shoulders. 'No.' Whitney's eyes widen — nobody says no to Whitney. 'You're gonna regret that.' They shove you hard against the lockers. But you don't fall. For the first time, Whitney looks uncertain.", stat_deltas: { stress: 20, willpower: 10, pain: 5 }, next_stage: 2 },
+          { label: "Agree to keep the peace", intent: "neutral", outcome: "You nod, stomach churning with shame. Whitney grins. 'Smart kid. See? Things are easier when you cooperate.' They walk away laughing. The weight of submission settles on your shoulders like a yoke.", stat_deltas: { stress: 15, trauma: 8, purity: -3 }, next_stage: 3 },
+          { label: "Try to talk them down", intent: "social", outcome: "You speak calmly, meeting their eyes. 'Why are you doing this? What happened to you?' Whitney flinches — barely perceptible — then the mask slams back down. 'Shut up. You don't know anything about me.' But they let you walk away. This time.", stat_deltas: { stress: 10, willpower: 5 }, next_stage: 2 }
+        ]
+      },
+      {
+        stage: 2,
+        condition: "Defied or reasoned with Whitney in stage 1",
+        narrative: "Days later, you find Whitney sitting alone behind the gym, knees drawn up. They don't hear you approach. When they look up, their eyes are red-rimmed. A bruise that isn't from a fight darkens their jaw. For a moment, the bully is gone — what's left is just a kid, hurting.",
+        choices: [
+          { label: "Sit with them in silence", intent: "social", outcome: "You sit down beside them without speaking. After a long moment, Whitney's rigid posture softens. 'My old man,' they mutter. 'He drinks.' That's all they say. It's enough.", stat_deltas: { stress: -10, willpower: 5, purity: 5 }, completes_quest: true },
+          { label: "Offer them food from your pack", intent: "social", outcome: "You pull out a bread roll and offer it. Whitney stares at you, then at the bread. 'Why are you being nice to me? I've been horrible to you.' They take the bread. 'Thanks.' The word seems to cost them everything.", stat_deltas: { stress: -15, purity: 8 }, completes_quest: true },
+          { label: "Walk away — they don't deserve your sympathy", intent: "neutral", outcome: "You turn and leave. Whitney watches you go. The next day at school, they avoid your eyes. The bullying stops — but so does any chance of understanding.", stat_deltas: { stress: -5, willpower: 3 }, completes_quest: true }
+        ]
+      },
+      {
+        stage: 3,
+        condition: "Submitted to Whitney in stage 1",
+        narrative: "Weeks of servitude wear you down. Whitney's demands grow bolder — more homework, more money, more degrading tasks. But you also notice things: Whitney steals food from the cafeteria because they never bring lunch. Their uniform sleeves always stay rolled down, hiding something. One day, carrying their bag, a photograph falls out — Whitney as a small child, smiling, held by a woman who isn't there anymore.",
+        choices: [
+          { label: "Confront Whitney about the photograph", intent: "social", outcome: "'Where did you get that!' Whitney snatches it back, face cycling through fury, fear, and grief. Then, very quietly: 'She left. Two years ago. Just walked out and didn't come back.' The confession cracks something open between you.", stat_deltas: { stress: 5, willpower: 8, trauma: -5 }, completes_quest: true },
+          { label: "Pretend you didn't see it", intent: "neutral", outcome: "You hand the bag back without comment. But something changes in how you see Whitney. They're not a monster — they're a mirror. Hurt begets hurt. You understand that now.", stat_deltas: { willpower: 5, purity: 3 }, completes_quest: true },
+          { label: "Use the photo as leverage to break free", intent: "stealth", outcome: "'Let me go, or everyone sees this.' Whitney goes white. 'You wouldn't.' You would. The power dynamic shatters. Whitney never bothers you again — but the look in their eyes haunts you.", stat_deltas: { stress: -10, purity: -8, willpower: 5 }, skill_deltas: { skulduggery: 3 }, completes_quest: true }
+        ]
+      }
+    ]
+  },
+
+  'school_leighton_secret': {
+    id: 'school_leighton_secret',
+    title: "After Hours",
+    description: "Headmaster Leighton's after-hours activities raise disturbing questions.",
+    stages: [
+      {
+        stage: 1,
+        condition: "Player has school_grades >= 30 and has attended school 10+ times",
+        narrative: "Detention. Again. But this time, Leighton locks the classroom door behind them with a heavy click. 'You've been a persistent rule-breaker,' they say, circling behind you. 'I think ordinary punishment isn't working. We need... a different approach.' Their voice drops to something soft and terrible. Something is very wrong.",
+        choices: [
+          { label: "Demand they unlock the door", intent: "aggressive", outcome: "You stand up. 'Open the door. Now.' Your voice doesn't waver. Leighton pauses, studies you, then unlocks the door with a thin smile. 'Perhaps another time.' The door swings open. You run. But you know what you almost walked into.", stat_deltas: { stress: 25, willpower: 10, trauma: 5 }, next_stage: 2 },
+          { label: "Play dumb and look for an exit", intent: "stealth", outcome: "You pretend not to understand, eyes scanning the room. The window latch is rusted but functional. 'I need the bathroom,' you say. Leighton gestures impatiently. You slip to the window and climb out before they can react.", stat_deltas: { stress: 20, willpower: 8 }, skill_deltas: { skulduggery: 3 }, next_stage: 2 },
+          { label: "Freeze in terror", intent: "neutral", outcome: "Your body locks up. Leighton steps closer. Then a knock at the door — River, looking for a textbook. Leighton's mask snaps back into place. 'We're finished here. You may go.' River gives you a concerned look as you flee.", stat_deltas: { stress: 30, trauma: 10, willpower: -3 }, next_stage: 2 }
+        ]
+      },
+      {
+        stage: 2,
+        condition: "Escaped Leighton in stage 1",
+        narrative: "You can't stop thinking about what almost happened. And you notice things now — other students leaving Leighton's office looking pale and shaken. One student, a quiet girl named Fern, flinches every time Leighton speaks. You're not the only target. Something must be done.",
+        choices: [
+          { label: "Tell River what happened", intent: "social", outcome: "River's face goes white, then red with fury. 'How long has this been going on?' They listen to everything, take notes, and promise action. 'I'll make sure this reaches the Jarl's office. You're incredibly brave for telling me.' Within a week, Leighton is removed.", stat_deltas: { stress: -20, willpower: 15, purity: 10, trauma: -5 }, completes_quest: true },
+          { label: "Gather evidence from Leighton's office", intent: "stealth", outcome: "You sneak into the office at night. The desk drawer is locked, but not well. Inside: a journal of disturbing records. You take it to the guards yourself. The arrest happens at dawn. Fern finds you later and hugs you without a word.", stat_deltas: { stress: -15, willpower: 12, purity: 8 }, skill_deltas: { skulduggery: 5 }, completes_quest: true },
+          { label: "Warn the other students and avoid Leighton", intent: "social", outcome: "You pull Fern and others aside. 'Don't go to detention alone. Never be alone with Leighton.' It's not a solution, but it's protection. The students start watching out for each other. Strength in numbers.", stat_deltas: { stress: -10, willpower: 8, purity: 5 }, completes_quest: true }
+        ]
+      }
+    ]
+  },
+
+  // ── Docks Story Arc ───────────────────────────────────────────────────────
+
+  'docks_smuggler_ring': {
+    id: 'docks_smuggler_ring',
+    title: "The Argonian Dockworkers",
+    description: "The Argonian labourers at the docks are being exploited. Getting involved could be dangerous — or rewarding.",
+    stages: [
+      {
+        stage: 1,
+        condition: "Player has visited docks 3+ times",
+        narrative: "You notice the Argonian dockworkers are paid a fraction of what the Nord labourers earn — and beaten if they complain. An elderly Argonian named Neetrenaza pulls you aside. 'You seem different from the others, warm-blood. We need help. The dock foreman is skimming wages and selling our hours to a smuggling operation. If you could get proof...'",
+        choices: [
+          { label: "Agree to help investigate", intent: "social", outcome: "Neetrenaza's reptilian eyes soften with gratitude. 'Be careful. The foreman has allies among the guards.' They slip you a key to the warehouse office.", stat_deltas: { willpower: 5, stress: 10 }, next_stage: 2 },
+          { label: "Offer to confront the foreman directly", intent: "aggressive", outcome: "You march up to the foreman's shack. He's a massive Nord with a scarred face. 'Beat it, runt. This is none of your concern.' He shoves you. Hard. But the Argonians see you tried. It matters.", stat_deltas: { pain: 10, stress: 15, willpower: 8 }, next_stage: 2 },
+          { label: "Stay out of it — too risky", intent: "neutral", outcome: "You shake your head. Neetrenaza nods wearily. 'I understand. Self-preservation is not a crime.' But their disappointment hangs in the salt air as they shuffle back to the loading docks.", stat_deltas: { stress: 5, purity: -3 } }
+        ]
+      },
+      {
+        stage: 2,
+        condition: "Agreed to help in stage 1",
+        narrative: "You find the warehouse office unlocked at midnight. Inside: ledgers showing the real wage payments versus what the Argonians actually receive. The difference is being funnelled to a skooma operation run through the East Empire Company's shipping routes. This goes deeper than a crooked foreman.",
+        choices: [
+          { label: "Take the ledgers to the guards", intent: "social", outcome: "You deliver the evidence to a guard captain. Arrests follow — the foreman, two smugglers, and an East Empire Company clerk. Neetrenaza embraces you with rough, scaled arms. 'You've given us back our dignity, friend.'", stat_deltas: { stress: -15, purity: 10, willpower: 10 }, completes_quest: true },
+          { label: "Give the evidence to Brynjolf instead", intent: "stealth", outcome: "Brynjolf examines the ledgers with professional interest. 'This is leverage, not justice. But I'll make sure these people are dealt with — our way.' Within a week, the foreman is found floating in the canal. The Argonians get a new, fairer boss.", stat_deltas: { stress: -10, willpower: 5, corruption: 3 }, skill_deltas: { skulduggery: 5 }, completes_quest: true },
+          { label: "Blackmail the foreman for a cut", intent: "stealth", outcome: "You show the foreman his own ledger. His face drains of colour. 'What do you want?' You name a price. It's not justice, but it's profit. The Argonians' situation doesn't change, but yours does.", stat_deltas: { stress: 10, corruption: 8, purity: -10 }, skill_deltas: { skulduggery: 4 }, completes_quest: true }
+        ]
+      }
+    ]
+  },
+
+  // ── Farm Story Arc ────────────────────────────────────────────────────────
+
+  'farm_alex_struggle': {
+    id: 'farm_alex_struggle',
+    title: "Harvest Moon",
+    description: "Alex's farm faces ruin. The harvest must come in, or everything they've built will be lost.",
+    stages: [
+      {
+        stage: 1,
+        condition: "Alex relationship >= 15 and day >= 14",
+        narrative: "You arrive at the farm to find Alex slumped against the barn wall, head in their hands. 'It's over,' they whisper. 'The blight took the south field. Half the harvest is gone. The tax collector comes in ten days, and I don't have enough to pay. They'll take the farm — Ma and Pa's farm.' Their voice breaks. 'I can't lose this place.'",
+        choices: [
+          { label: "Pledge to help save the harvest", intent: "social", outcome: "You kneel beside Alex and take their dirt-roughened hands. 'I'll help you. We'll save it together.' Alex looks at you with desperate hope. 'You mean that?' For the first time in weeks, they manage a small, fragile smile.", stat_deltas: { stress: 10, willpower: 10, purity: 5 }, next_stage: 2 },
+          { label: "Lend them gold to cover the tax", intent: "social", outcome: "You count out your savings. It's almost enough. Alex stares at the coins, then at you. 'I can't take your money.' But you press it into their hands. 'Pay me back in potatoes,' you say. They laugh — a wet, grateful sound.", stat_deltas: { stress: -5, willpower: 5, purity: 8 }, next_stage: 3 },
+          { label: "You can't help — you have your own problems", intent: "neutral", outcome: "You shake your head. Alex nods, jaw tight. 'I understand. Everyone has their own burdens.' They stand and walk back to the field alone. The guilt tastes like ashes.", stat_deltas: { stress: 5, purity: -5, trauma: 3 } }
+        ]
+      },
+      {
+        stage: 2,
+        condition: "Pledged to help in stage 1",
+        narrative: "Five gruelling days of dawn-to-dusk labour. Your hands blister, your back aches, but the remaining harvest comes in bushel by precious bushel. Alex works beside you, teaching you the rhythm of the scythe, the way to read the soil. In the exhausting, honest work, something grows between you — respect, trust, and perhaps something more.",
+        choices: [
+          { label: "Push through the final night together", intent: "work", outcome: "The last sheaves come in under starlight. You collapse in the hay, Alex beside you, both of you laughing from sheer exhaustion. 'We did it,' Alex breathes. Their hand finds yours in the dark. 'I couldn't have done this without you.'", stat_deltas: { stamina: -20, stress: -25, willpower: 15, purity: 5 }, skill_deltas: { tending: 8, athletics: 3 }, completes_quest: true },
+          { label: "Ask the town for help with a harvest fair", intent: "social", outcome: "You rally the café, the market, and even a few reluctant guards to help. Sam brings food, Brand-Shei brings tools, and the harvest becomes a community effort. Alex watches in disbelief as neighbours they'd never spoken to pitch in. 'I thought nobody cared,' they whisper.", stat_deltas: { stress: -20, willpower: 10, purity: 10 }, skill_deltas: { tending: 5 }, completes_quest: true }
+        ]
+      },
+      {
+        stage: 3,
+        condition: "Lent gold in stage 1",
+        narrative: "The tax collector leaves satisfied. Alex leans against the farmhouse door, tears of relief streaming down their face. 'You saved my home. My family's home.' They look at you with an intensity that has nothing to do with gratitude and everything to do with something deeper. 'Stay for dinner? I want to cook for you. A real meal. You've earned that and more.'",
+        choices: [
+          { label: "Stay for dinner", intent: "social", outcome: "The kitchen smells of roasting venison and fresh herbs. Alex cooks with surprising skill, talking about their parents, the farm, their dreams. The evening stretches into night, warm and quiet and safe. 'Thank you,' Alex says at the door. 'For believing in me when I couldn't.'", stat_deltas: { stress: -25, purity: 8, willpower: 5 }, completes_quest: true },
+          { label: "Promise to visit again soon", intent: "neutral", outcome: "You promise, and you mean it. Alex watches you walk down the farm road, silhouetted against the setting sun. When you glance back, they're still standing there, one hand raised in farewell. The farm will survive. And so will whatever this is becoming.", stat_deltas: { stress: -15, willpower: 5, purity: 5 }, completes_quest: true }
+        ]
+      }
+    ]
+  },
+
+  // ── Brothel Story Arc ─────────────────────────────────────────────────────
+
+  'brothel_briars_offer': {
+    id: 'brothel_briars_offer',
+    title: "Briar's Proposition",
+    description: "The madam of the brothel sees potential in you. Her offer comes with golden chains attached.",
+    stages: [
+      {
+        stage: 1,
+        condition: "Player has visited brothel 2+ times and allure >= 5",
+        narrative: "Briar summons you to the private office behind the velvet curtain. The room smells of expensive incense and old money. 'I've been watching you,' they say, pouring two glasses of Colovian brandy. 'You have something my other workers don't — that raw, untouched quality. Clients pay a premium for that.' They slide a contract across the desk. 'Work for me. Properly. I'll give you a room, protection, and more gold than you'll see in a year of honest labour.'",
+        choices: [
+          { label: "Refuse firmly", intent: "aggressive", outcome: "You push the contract back. 'I'm not for sale.' Briar's smile doesn't waver. 'Everyone is for sale, darling. They just haven't found their price yet.' You leave, but the door remains open.", stat_deltas: { stress: 10, willpower: 10, purity: 5 }, next_stage: 2 },
+          { label: "Ask about the conditions", intent: "social", outcome: "You read the contract carefully. Room and board, 60/40 split in Briar's favour, and a clause about 'exclusive services'. Briar watches you read with predatory patience. 'Questions are good. It means you're smart.'", stat_deltas: { stress: 15, willpower: 3 }, next_stage: 2 },
+          { label: "Accept the offer", intent: "neutral", outcome: "You sign. Briar's smile widens. 'Welcome to the family.' The room is comfortable, the gold flows freely, but the nights are long and the clients don't always ask permission. You wonder if you've sold something you can never buy back.", stat_deltas: { stress: 20, purity: -15, corruption: 10, lust: 10 }, next_stage: 3 }
+        ]
+      },
+      {
+        stage: 2,
+        condition: "Refused or inquired in stage 1",
+        narrative: "A week later, Briar's enforcer corners you in the alleyways. 'Briar doesn't like being told no. But they're reasonable. Counter-offer: one night's work. Just one. A specific client, very rich, very generous. You can walk away after with enough gold to live on for a month. No contract, no strings.' The enforcer's eyes suggest that 'no' is not the expected answer.",
+        choices: [
+          { label: "Refuse again — you won't be pressured", intent: "aggressive", outcome: "The enforcer shrugs. 'Your funeral, kid.' They disappear into the shadows. Briar doesn't bother you again — but you notice their workers watching you with a mixture of pity and respect. You held your ground against someone nobody says no to.", stat_deltas: { willpower: 15, stress: -10, purity: 8 }, completes_quest: true },
+          { label: "Report the intimidation to the guards", intent: "social", outcome: "You find an honest guard — one of the few. They take your statement but warn you: 'Briar has friends in high places. Be careful.' The pressure stops, but you watch your back more carefully now.", stat_deltas: { willpower: 10, stress: 5, purity: 5 }, completes_quest: true },
+          { label: "Negotiate better terms — your terms", intent: "stealth", outcome: "You name your price — and it's high. You demand a 70/30 split, the right to refuse any client, and no contract. The enforcer relays the terms. To your surprise, Briar accepts. 'I respect someone who knows their worth,' they say. It's not ideal, but it's power.", stat_deltas: { willpower: 8, stress: 10, corruption: 5 }, skill_deltas: { seduction: 3 }, completes_quest: true }
+        ]
+      },
+      {
+        stage: 3,
+        condition: "Accepted Briar's offer in stage 1",
+        narrative: "Months pass. The gold piles up, but so do the bruises and the hollow feeling. A new worker arrives — young, terrified, clearly forced. They remind you of yourself. Briar notices your concern. 'Don't get attached. They're a commodity, same as you.' But you're not a commodity. Not anymore.",
+        choices: [
+          { label: "Help the new worker escape", intent: "social", outcome: "You plan carefully. A distraction, a unlocked back door, a contact in the temple who provides sanctuary. The new worker disappears into the night. Briar is furious, but can't prove anything. You've found something worth more than gold — your conscience.", stat_deltas: { stress: -10, purity: 15, willpower: 10, corruption: -8 }, completes_quest: true },
+          { label: "Take your savings and leave", intent: "neutral", outcome: "You collect your gold, pack your things, and walk out without looking back. Briar watches from the window. 'You'll be back,' they call. You don't answer. You won't be back.", stat_deltas: { stress: -20, purity: 5, willpower: 12, corruption: -5 }, completes_quest: true },
+          { label: "Learn the business from the inside", intent: "stealth", outcome: "You study how Briar operates — the clients, the money, the connections. Knowledge is power. When you finally leave, you take enough secrets to ensure Briar never comes after you. Or anyone else.", stat_deltas: { willpower: 15, corruption: 5, purity: -3 }, skill_deltas: { skulduggery: 5, seduction: 5 }, completes_quest: true }
+        ]
+      }
+    ]
+  },
+
+  // ── Forest Story Arc ──────────────────────────────────────────────────────
+
+  'forest_eden_hunt': {
+    id: 'forest_eden_hunt',
+    title: "The First Hunt",
+    description: "Eden offers to teach you to hunt. In the deep forest, bonds form faster than in civilization.",
+    stages: [
+      {
+        stage: 1,
+        condition: "Eden relationship >= 10 and player has visited eden_cabin 2+ times",
+        narrative: "Eden is cleaning a hunting bow when you arrive. They study you for a long moment, then hold out the bow. 'You're scrawny, clumsy, and you walk like a city rat.' A pause. 'But you keep coming back. That counts for something.' They shoulder their own bow. 'Come. I'll teach you to hunt. If you can keep quiet for more than ten seconds.'",
+        choices: [
+          { label: "Accept eagerly", intent: "social", outcome: "You take the bow. It's heavier than it looks. Eden corrects your grip without comment, their calloused fingers briefly warm against yours. 'This way. Stay close.' You follow them into the pines. The forest swallows you both.", stat_deltas: { stress: -10, willpower: 5 }, next_stage: 2 },
+          { label: "Admit you've never held a weapon before", intent: "social", outcome: "'I know.' Eden's voice is flat, but there's a ghost of amusement. 'That's why I'm teaching you. The forest doesn't care about your past.' They adjust the bowstring with practised hands. 'It only cares about what you can become.'", stat_deltas: { stress: -5, willpower: 8 }, next_stage: 2 },
+          { label: "Suggest something else instead", intent: "neutral", outcome: "Eden's expression shutters. 'Suit yourself.' They turn back to the cabin. The offer won't come again easily — Eden doesn't extend themselves twice. You've lost ground.", stat_deltas: { stress: 5 } }
+        ]
+      },
+      {
+        stage: 2,
+        condition: "Accepted the hunt in stage 1",
+        narrative: "Deep in the ancient forest, Eden moves like a shadow. They teach you to read tracks in the mud, to identify the wind's direction by scattering leaf fragments, to walk on the sides of your feet to stay silent. Hours pass in concentrated stillness. Then Eden holds up a fist — stop. Through the undergrowth: a stag, magnificent, its antlers catching the filtered light. 'Your shot,' Eden breathes. 'Steady. Breathe out. Release.'",
+        choices: [
+          { label: "Take the shot", intent: "work", outcome: "The arrow flies true — not perfect, but good enough. The stag falls. Eden nods slowly, the highest praise they give. 'Clean kill. You did well.' Later, cleaning the catch by the stream, they're almost relaxed. 'You can come back,' they say quietly. 'If you want.'", stat_deltas: { willpower: 10, stress: -15, stamina: -10 }, skill_deltas: { athletics: 5, foraging: 3 }, completes_quest: true },
+          { label: "Lower the bow — you can't kill it", intent: "social", outcome: "You can't. The stag is too beautiful, too alive. Eden looks at you, then at the stag as it bounds away. For a moment, anger crosses their face. Then, unexpectedly, something softens. 'Compassion,' they say. 'It'll get you killed out here. But...' They trail off. 'It's not the worst quality in a person.'", stat_deltas: { stress: -10, purity: 8, willpower: 5 }, completes_quest: true },
+          { label: "Miss deliberately and pretend it was bad aim", intent: "stealth", outcome: "The arrow whistles past the stag's flank. Eden watches the animal flee, then looks at you. 'You missed on purpose.' It's not a question. 'I noticed your hands were steady.' A long pause. 'You're kinder than this forest deserves. That's either your greatest strength or your death sentence.'", stat_deltas: { stress: -5, willpower: 5, purity: 5 }, skill_deltas: { skulduggery: 2 }, completes_quest: true }
+        ]
+      }
+    ]
+  },
+
+  // ── Sewers Story Arc ──────────────────────────────────────────────────────
+
+  'sewers_lost_children': {
+    id: 'sewers_lost_children',
+    title: "The Ratway Children",
+    description: "Orphans live in the sewers — children too afraid to return to Grelod's orphanage. They need a protector.",
+    stages: [
+      {
+        stage: 1,
+        condition: "Player has visited sewers 2+ times and escaped orphanage",
+        narrative: "Deep in the Ratway, past the skooma dens and the dripping pipes, you hear something unexpected: children laughing. You round a corner and find a makeshift camp — salvaged blankets, guttering candles, and five wide-eyed children huddled together. They see you and scatter like startled mice. The oldest, a sharp-eyed girl named Miri, brandishes a rusty knife. 'We're not going back to Grelod. Don't try to make us.'",
+        choices: [
+          { label: "Reassure them — you're not here to hurt them", intent: "social", outcome: "You hold up empty hands. 'I ran away from Grelod too.' Miri's knife lowers an inch. 'Prove it.' You show the old scars on your wrist from Grelod's belt. Miri's eyes widen with recognition. She puts the knife down. 'You're one of us.'", stat_deltas: { stress: 10, willpower: 5, purity: 5 }, next_stage: 2 },
+          { label: "Offer them food from your pack", intent: "social", outcome: "You set down bread and cheese. The youngest child breaks cover first, snatching the bread. The others follow. Miri watches, then slowly sheathes her knife. 'What do you want?' 'Nothing,' you say. 'I know what it's like.' She studies you for a long time. 'Come back tomorrow. Bring more food. Maybe we'll talk.'", stat_deltas: { stress: 5, purity: 8, willpower: 3 }, next_stage: 2 },
+          { label: "Walk away — you can barely take care of yourself", intent: "neutral", outcome: "You back away. The children watch you go with haunted, hollow eyes. Miri's voice follows you: 'Coward.' The word echoes in the tunnels long after you've left.", stat_deltas: { stress: 10, trauma: 5, purity: -5 } }
+        ]
+      },
+      {
+        stage: 2,
+        condition: "Gained Miri's trust in stage 1",
+        narrative: "Over the following days, you visit the Ratway children regularly. Miri tells you their stories: orphans who fled Grelod, runaways from abusive homes, street children abandoned by the city. They survive on scraps and stolen goods. But winter is coming, and the sewers will become a death trap — freezing water, rising floods, and the skeevers grow desperate when the cold comes. 'We need a real shelter,' Miri says. 'Somewhere warm and safe.'",
+        choices: [
+          { label: "Help them find an abandoned building above ground", intent: "work", outcome: "You scout the alleys and find a derelict warehouse — the roof leaks but the walls are solid. Together, you and Miri's group patch the worst holes, build fires, and create a hidden home. It's not much, but it's warm, dry, and safe from the sewer floods. Miri looks at you with fierce respect. 'You're the first adult who actually helped.'", stat_deltas: { stress: -15, willpower: 12, purity: 10 }, skill_deltas: { housekeeping: 5 }, completes_quest: true },
+          { label: "Petition the Temple of Mara for sanctuary", intent: "social", outcome: "Jordan at the temple listens with growing concern. 'Children in the Ratway? Mara's heart weeps.' They arrange beds, food, and protection within the temple walls. When Miri and the children see the warm beds and the food, the smallest one starts crying. Miri puts a hand on your shoulder. 'You're alright, you know that?'", stat_deltas: { stress: -20, purity: 15, willpower: 8 }, completes_quest: true },
+          { label: "Teach them to survive better — they're stronger than they know", intent: "work", outcome: "You teach them what you've learned: where to find food, how to stay warm, which adults to trust and which to avoid. Miri absorbs everything like a sponge. Within weeks, the Ratway camp is fortified, organized, and safer. They've become a family — and you're part of it.", stat_deltas: { stress: -10, willpower: 10, purity: 8 }, skill_deltas: { skulduggery: 3, foraging: 3 }, completes_quest: true }
+        ]
+      }
+    ]
+  },
+
+  // ── Prison Story Arc ──────────────────────────────────────────────────────
+
+  'prison_wrongful_arrest': {
+    id: 'prison_wrongful_arrest',
+    title: "Behind Bars",
+    description: "Accused of a crime you didn't commit, you must survive Riften Jail and prove your innocence.",
+    stages: [
+      {
+        stage: 1,
+        condition: "Player notoriety >= 30 or skulduggery >= 20",
+        narrative: "Guards seize you in broad daylight. 'You're under arrest for theft of Imperial property!' the captain barks, slamming you against a wall. You've never seen the stolen goods they wave in your face. 'Save it for the trial.' They drag you to Riften Jail — a stone nightmare of damp cells and brutal inmates. Warden Landry watches you enter with a reptilian smile. 'Fresh meat.'",
+        choices: [
+          { label: "Demand a fair trial", intent: "social", outcome: "The guard laughs. 'Trials are for nobles. You'll be sentenced by Landry's morning count.' But a thin, quiet voice from the next cell whispers: 'I can help you. I know who really stole those goods. But you'll have to trust me.'", stat_deltas: { stress: 25, willpower: 5, trauma: 5 }, next_stage: 2 },
+          { label: "Try to escape during the transfer", intent: "stealth", outcome: "You spot an opening near the bridge. A quick twist of the wrist, a stumble, and you nearly break free — but a guard catches your collar. The beating is brief but brutal. They throw you into solitary. In the darkness, you plan.", stat_deltas: { pain: 15, stress: 20, stamina: -15, trauma: 5 }, skill_deltas: { skulduggery: 3 }, next_stage: 2 },
+          { label: "Go quietly and observe", intent: "neutral", outcome: "You don't resist. In jail, survival requires information more than strength. You watch, you listen, you learn the routines. Landry checks cells at dawn and dusk. The night guard drinks. The east wall has a drainage grate. Knowledge is a key.", stat_deltas: { stress: 15, willpower: 8 }, next_stage: 2 }
+        ]
+      },
+      {
+        stage: 2,
+        condition: "Imprisoned in stage 1",
+        narrative: "The prisoner in the next cell is Sibbi Black-Briar — a nobleman imprisoned by his own family. 'The goods they planted on you? Maven Black-Briar arranged it. She needed a scapegoat.' He presses a folded note through the bars. 'This letter proves it — evidence of Maven's smuggling. Get this to the Jarl's steward and you're free.' But escaping Riften Jail is another matter entirely.",
+        choices: [
+          { label: "Bribe the night guard to look the other way", intent: "stealth", outcome: "The guard's price is steep, but the door swings open. You creep through dark corridors, past sleeping inmates, and out through the drainage grate into the cold night air. Freedom. The Jarl's steward reads Maven's letter with grim satisfaction. By morning, the charges are dropped. Maven's glare at the hearing could curdle milk.", stat_deltas: { stress: -25, willpower: 10, purity: 5 }, skill_deltas: { skulduggery: 5 }, completes_quest: true },
+          { label: "Start a distraction and escape in the chaos", intent: "aggressive", outcome: "You bang on the bars until other inmates join in. When Landry storms in to restore order, you slip through the unlocked service door. Running through Riften's dark streets, you head straight for the Jarl. The evidence speaks for itself. You're cleared — and Landry faces questions about his prison's security.", stat_deltas: { stress: -15, willpower: 12, stamina: -10 }, skill_deltas: { athletics: 3, skulduggery: 3 }, completes_quest: true },
+          { label: "Serve your time and clear your name legally", intent: "neutral", outcome: "You endure three weeks in jail. It's brutal — the cold, the food, the inmates. But you survive. When you're released, you take Sibbi's letter to the steward anyway. Justice is slow, but it comes. You walk out of the Jarl's keep exonerated, with something the streets can never give you: legitimacy.", stat_deltas: { stress: -10, willpower: 15, purity: 10, trauma: 5 }, completes_quest: true }
+        ]
+      }
+    ]
+  },
+
+  // ── Sydney Faith Arc ──────────────────────────────────────────────────────
+
+  'sydney_crisis_of_faith': {
+    id: 'sydney_crisis_of_faith',
+    title: "The Wavering Light",
+    description: "Sydney's unshakeable faith begins to crack. What you say next will shape who they become.",
+    stages: [
+      {
+        stage: 1,
+        condition: "Sydney relationship >= 25 and day >= 20",
+        narrative: "You find Sydney behind the temple library, sitting in the rain, crying. Their prayer book lies open and sodden in a puddle. 'I asked Mara to protect them,' Sydney whispers. 'The family in Dragonsreach — the mother, the two little girls. I prayed every night. And Mara did nothing. They're dead. Bandits.' Sydney looks at you with red, swollen eyes. 'What kind of goddess lets children die?'",
+        choices: [
+          { label: "Sit with them and listen", intent: "social", outcome: "You sit in the rain. Sydney talks — about faith, about doubt, about the unbearable cruelty of a world where prayers go unanswered. You don't have answers. You just listen. Sometimes that's enough.", stat_deltas: { stress: -5, willpower: 5, purity: 5 }, next_stage: 2 },
+          { label: "Challenge their faith honestly", intent: "social", outcome: "'Maybe the gods aren't what you think they are.' Sydney flinches. 'Maybe they're not parents watching over us. Maybe they're something else — older, stranger. Maybe prayer isn't a request. Maybe it's just... talking into the dark, hoping something listens.' Sydney stares at you. 'That's the most terrifying thing anyone's ever said to me.'", stat_deltas: { willpower: 8, purity: -3 }, next_stage: 2 },
+          { label: "Tell them faith will return in time", intent: "neutral", outcome: "'Doubt is part of belief, Sydney. You can't have light without darkness.' Sydney wipes their eyes. 'You sound like the temple mother.' A pause. 'But when she says it, I don't believe her. When you say it...' They trail off, looking at you with a vulnerability that makes your chest ache.", stat_deltas: { stress: -10, purity: 8 }, next_stage: 2 }
+        ]
+      },
+      {
+        stage: 2,
+        condition: "Comforted Sydney in stage 1",
+        narrative: "Over the following week, Sydney changes. They still attend temple, but the certainty is gone. They question sermons, argue gently with Jordan, and spend more time with you than with their prayer books. 'You make me think,' they confess one evening, walking home from the library. 'About everything I've been taught. About what I actually believe versus what I was told to believe.' They stop and face you. 'Am I losing myself? Or finding myself?'",
+        choices: [
+          { label: "Encourage them to find their own path", intent: "social", outcome: "'The Sydney who questions is stronger than the Sydney who just obeyed.' Their eyes fill with tears again — but this time, not of despair. Of relief. 'Thank you. For seeing me. The real me.' They squeeze your hand. The gesture is small. The meaning is not.", stat_deltas: { stress: -15, purity: 10, willpower: 8 }, completes_quest: true },
+          { label: "Remind them that doubt and faith can coexist", intent: "social", outcome: "'You can question and still believe, Sydney. Blind faith isn't faith — it's obedience. Real faith survives doubt.' Sydney considers this, rolling the words over like prayer beads. 'A tested faith,' they murmur. 'Not inherited. Chosen.' A new light enters their eyes — not the old naive brightness, but something steadier, harder, and more real.", stat_deltas: { stress: -10, purity: 12, willpower: 10 }, completes_quest: true },
+          { label: "Kiss them", intent: "social", outcome: "The moment stretches. Sydney's eyes widen. The space between you closes. The kiss is gentle, uncertain, tasting of rain and salt tears. When you part, Sydney touches their lips with trembling fingers. 'I've never...' They don't finish. They don't need to. Whatever this is, it's more honest than any prayer.", stat_deltas: { stress: -20, lust: 8, purity: -5, willpower: 5 }, completes_quest: true }
+        ]
+      }
+    ]
+  },
+
+  // ── Museum Story Arc ──────────────────────────────────────────────────────
+
+  'museum_dwemer_puzzle': {
+    id: 'museum_dwemer_puzzle',
+    title: "The Clockwork Riddle",
+    description: "Winter discovers a Dwemer puzzle box that may unlock ancient secrets — or ancient dangers.",
+    stages: [
+      {
+        stage: 1,
+        condition: "Player has visited museum 3+ times and Winter relationship >= 15",
+        narrative: "Winter is vibrating with excitement. 'Look at this!' They hold up a brass cube covered in interlocking gears. 'A Dwemer puzzle box! Found in a collapsed section of Avanchnzel! The configuration suggests it's a lock — but what does it open?' They look at you with shining eyes. 'I need someone with clever hands to help me solve it. The mechanisms are too small for my clumsy fingers.'",
+        choices: [
+          { label: "Help solve the puzzle carefully", intent: "education", outcome: "Hours pass. Your fingers ache from manipulating tiny gears, but piece by piece, the box reveals its secrets — clicking, whirring, mechanisms falling into place with the satisfaction of a key turning in a lock. The final gear aligns with a musical chime.", stat_deltas: { willpower: 10, stress: 5 }, skill_deltas: { skulduggery: 3, school_grades: 5 }, next_stage: 2 },
+          { label: "Try forcing it open", intent: "aggressive", outcome: "Winter winces. 'Please, be careful, it's irreplac—' CRACK. A spring flies out and pings off the wall. Winter's face falls. 'Well... that's one way to do it.' But inside the cracked shell, something glows faintly blue. 'Aetherial crystal!' Winter breathes, all forgiveness.", stat_deltas: { stress: 10, willpower: 3 }, next_stage: 2 },
+          { label: "Suggest asking Brynjolf's contacts", intent: "stealth", outcome: "Winter looks uncomfortable. 'I'd rather not involve... that element. But...' They concede. The Thieves Guild lockpick master opens the box in seconds flat. 'Dwemer — overengineered as always.' The contents gleam in the lantern light.", stat_deltas: { stress: 5, willpower: 5 }, skill_deltas: { skulduggery: 2 }, next_stage: 2 }
+        ]
+      },
+      {
+        stage: 2,
+        condition: "Opened the puzzle box in stage 1",
+        narrative: "Inside the box: a map etched on Dwemer metal, showing a hidden chamber beneath the museum itself. 'By the Divines,' Winter gasps. 'The museum was built on top of a Dwemer ruin! This map shows an entrance — here, in the basement!' Their hands tremble with archaeological fervor. 'We have to look. We HAVE to.'",
+        choices: [
+          { label: "Explore the hidden chamber together", intent: "stealth", outcome: "The basement wall pivots to reveal a spiral staircase descending into amber light. The Dwemer chamber is breathtaking — brass and crystal, gears still turning after millennia. In the centre, a functioning Dwemer automaton stands dormant, waiting. Winter is speechless with wonder. You've made the discovery of a lifetime.", stat_deltas: { stress: -15, willpower: 15, purity: 5 }, skill_deltas: { school_grades: 8 }, completes_quest: true },
+          { label: "Advise caution — Dwemer ruins are dangerous", intent: "social", outcome: "'We should bring supplies, light, and maybe a guard,' you say. Winter nods reluctantly. The careful approach pays off — the staircase is rigged with a poison dart trap that Winter nearly triggers. 'You saved my life,' they say quietly. 'And probably the museum.' The chamber below is worth the wait.", stat_deltas: { stress: -10, willpower: 10, purity: 3 }, skill_deltas: { school_grades: 5, skulduggery: 3 }, completes_quest: true },
+          { label: "Keep the discovery secret — it could be dangerous", intent: "neutral", outcome: "'Not everything should be found, Winter.' They look crestfallen, but you explain the risk: Dwemer ruins attract thieves, scholars, and worse. Winter agrees to seal the entrance and study the map privately. 'You're right. But promise me — when we're ready, we explore it together.' You promise.", stat_deltas: { stress: -5, willpower: 8, purity: 5 }, completes_quest: true }
+        ]
+      }
+    ]
+  },
+
+  // ── Café Story Arc ────────────────────────────────────────────────────────
+
+  'cafe_sams_past': {
+    id: 'cafe_sams_past',
+    title: "The Baker's Secret",
+    description: "Sam's café hides a history as complicated as the pastry recipes.",
+    stages: [
+      {
+        stage: 1,
+        condition: "Sam relationship >= 25 and day >= 15",
+        narrative: "It's after closing. Sam is wiping tables with a faraway look. An untouched letter sits on the counter — the handwriting elegant, the seal broken. When they notice you, they quickly tuck it away, but not before you see the tremor in their hands. 'Just some old business,' Sam says with a forced smile. 'Nothing to worry about.' But their eyes are red, and the café smells of burned pastry — Sam never burns anything.",
+        choices: [
+          { label: "Ask if they want to talk about it", intent: "social", outcome: "Sam's composure cracks. 'I had a life before this café. A different name, a different city. Someone I loved.' They sit down heavily. 'That letter? It says they found me.' For the first time, you see fear in the kindest person you know.", stat_deltas: { stress: 5, willpower: 5 }, next_stage: 2 },
+          { label: "Help clean up — give them space", intent: "neutral", outcome: "You pick up a cloth and start wiping tables. Sam watches you, then joins, and you work in companionable silence. After a while, Sam speaks. 'You're a good kid, you know that? You don't push. Not everyone has that grace.' They look at the tucked-away letter. 'Maybe someday I'll tell you about it.'", stat_deltas: { stress: -10, purity: 5 }, next_stage: 2 },
+          { label: "Pretend you didn't see the letter", intent: "neutral", outcome: "You chat about the weather, the pastries, the new recipe Sam is trying. Normal things. Safe things. Sam's shoulders gradually uncoil. 'Thank you,' they say at the door. 'For just being... normal. Tonight, I needed normal.' They lock up behind you, and the shadow in their eyes eases — but doesn't disappear.", stat_deltas: { stress: -5, purity: 3 } }
+        ]
+      },
+      {
+        stage: 2,
+        condition: "Connected with Sam in stage 1",
+        narrative: "Sam trusts you with the truth: before the café, they were a talented alchemist in Windhelm, married to a member of the Stormcloak elite. When Sam discovered their spouse was funding a skooma trafficking ring, they stole the evidence and fled. The letter means their past has caught up. 'They're sending someone. I need to disappear again, or...' Sam looks at the café — their life's work. 'I can't lose this place. Not again.'",
+        choices: [
+          { label: "Help Sam prepare to defend themselves", intent: "aggressive", outcome: "You reinforce the café doors, set up signals with neighbouring shops, and convince a few trustworthy guards to increase patrols. When the Stormcloak enforcers arrive, they find Sam flanked by friends, not alone. The enforcers leave empty-handed. Sam's hands shake for hours afterward, but the café stands. 'I've been running for years,' Sam says. 'I think I'm done running.'", stat_deltas: { stress: -15, willpower: 12, purity: 8 }, completes_quest: true },
+          { label: "Take the evidence to the Jarl's steward", intent: "social", outcome: "The evidence of skooma trafficking earns the steward's full attention. Within days, the Stormcloak connection is severed, warrants are issued, and Sam receives official protection. 'I never thought the system would help someone like me,' Sam says, crying freely. 'You believed it would, and that was enough.'", stat_deltas: { stress: -20, willpower: 10, purity: 12 }, completes_quest: true },
+          { label: "Offer to create a new identity for them", intent: "stealth", outcome: "You know people. Brynjolf's contacts can forge documents that would pass any inspection. Sam becomes officially dead in Windhelm and reborn in Riften. The café's ownership transfers to the new name seamlessly. 'A new life, built on your kindness and a criminal's craft,' Sam laughs. 'I suppose that's Riften for you.'", stat_deltas: { stress: -10, willpower: 8, corruption: 3 }, skill_deltas: { skulduggery: 3 }, completes_quest: true }
+        ]
+      }
+    ]
   }
 };
