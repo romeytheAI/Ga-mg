@@ -107,7 +107,7 @@ export const initialState: GameState = {
     age_days: 6570, // 18 years
     avatar_url: null,
     quests: [
-      { id: 'q1', title: 'Survive the Orphanage', description: 'Find a way to escape the Town Orphanage and the clutches of the matron.', status: 'active' }
+      { id: 'q1', title: 'Survive the Orphanage', description: 'Find a way to escape Honorhall Orphanage in Riften and the clutches of Matron Grelod.', status: 'active' }
     ]
   },
   world: {
@@ -133,12 +133,12 @@ export const initialState: GameState = {
     director_cut: false,
     active_encounter: null
   },
-  memory_graph: ["You are an orphan in the Town Orphanage. Life is hard, but you are learning to survive."],
+  memory_graph: ["You are an orphan in Honorhall Orphanage in Riften, Skyrim. Life under Matron Grelod is harsh, but you are learning to survive in Tamriel."],
   ui: {
     isPollingText: false,
     isPollingImage: false,
     isGeneratingAvatar: false,
-    currentLog: [{ text: "The morning bell clangs, its harsh sound echoing through the cold stone halls of the Orphanage. You shiver in your thin clothes, the damp mist of the town seeping through the cracks in the walls. The other children are already moving between the beds, whispering to wake up before the matron arrives.", type: 'narrative' }],
+    currentLog: [{ text: "The morning bell clangs, its harsh sound echoing through the cold stone halls of Honorhall Orphanage. You shiver in your thin clothes, the damp mist from Lake Honrich seeping through the cracks in the walls. The other children are already moving between the beds, whispering to wake up before the matron arrives.", type: 'narrative' }],
     currentImage: null,
     choices: LOCATIONS.orphanage.actions.map((a: any) => {
       if (a.skill_check) {

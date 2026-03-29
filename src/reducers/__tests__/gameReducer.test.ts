@@ -218,7 +218,7 @@ describe('gameReducer', () => {
       };
       const next = gameReducer(initialState, action);
       expect(next.world.current_location.id).toBe('town_square');
-      expect(next.world.current_location.name).toBe('Town Square');
+      expect(next.world.current_location.name).toBe('Riften Marketplace');
     });
 
     it('should advance time and day correctly', () => {
@@ -767,7 +767,7 @@ describe('gameReducer', () => {
 
     it('home safehouse location should exist with actions', () => {
       expect(LOCATIONS.home).toBeDefined();
-      expect(LOCATIONS.home.name).toBe('Your Safehouse');
+      expect(LOCATIONS.home.name).toBe('Honeyside Hideout');
       expect(LOCATIONS.home.danger).toBe(0);
       expect(LOCATIONS.home.actions.length).toBe(9);
     });

@@ -54,7 +54,10 @@ export const NPCS: Record<string, any> = {
     description: "One of the other orphans — quiet, kind, and perpetually anxious. Robin has always looked up to you, offering shy smiles across the dormitory and saving you the best scraps at meal times. They spend their weekends selling lemonade at the beach to scrape together pennies. Their eyes hold a fragile hope that life might someday get better.",
     responses: {
       'social': { narrative_text: "Robin's face lights up when they see you. 'Oh! I saved you something...' They press a slightly squashed bread roll into your hands, blushing. 'It's not much, but...'", stat_deltas: { stress: -15, trauma: -5, purity: 3 } },
-      'work': { narrative_text: "Robin helps you with the chores, humming softly. Their presence makes the drudgery bearable. 'We'll get out of here someday,' they whisper. 'Together.'", stat_deltas: { stress: -10, willpower: 5 } }
+      'work': { narrative_text: "Robin helps you with the chores, humming softly. Their presence makes the drudgery bearable. 'We'll get out of here someday,' they whisper. 'Together.'", stat_deltas: { stress: -10, willpower: 5 } },
+      'flirt': { narrative_text: "Robin turns scarlet, nearly dropping the dish they were washing. 'I... you... you really mean that?' They can barely meet your eyes, but a radiant smile breaks through. 'Nobody's ever said anything like that to me before.'", stat_deltas: { stress: -10, lust: 5, purity: -2 } },
+      'threaten': { narrative_text: "Robin's eyes go wide with hurt, filling with tears. 'Why would you say that? I thought we were... I thought you cared.' They back away, hugging themselves. The guilt hits you like a physical blow.", stat_deltas: { stress: 10, purity: -5, trauma: 3 } },
+      'gift': { narrative_text: "Robin takes the gift with trembling hands, their eyes shining. 'For me? Really?' They clutch it to their chest like treasure. 'I'll keep it forever. I promise.' Their smile could light up the entire orphanage.", stat_deltas: { stress: -10, purity: 3 } }
     }
   },
   'whitney': {
@@ -67,7 +70,10 @@ export const NPCS: Record<string, any> = {
     description: "The school's most feared bully — tall, strong, and radiating casual menace. Whitney rules the hallways with an iron fist and a cruel tongue, flanked always by a gang of sycophantic cronies. Beneath the swagger, there are hints of a deeper pain — a broken home, perhaps, or something worse. They seem to find a perverse fascination in you specifically.",
     responses: {
       'social': { narrative_text: "Whitney corners you against a locker, one arm braced above your head. 'Where d'you think you're going, runt? You haven't paid your toll today.' Their grin is sharp and predatory.", stat_deltas: { stress: 20, trauma: 5, lust: 3 } },
-      'work': { narrative_text: "Whitney watches you work with lazy amusement. 'You missed a spot, orphan.' They kick your bucket over and laugh as the dirty water spreads across the floor you just cleaned.", stat_deltas: { stress: 15, trauma: 3 } }
+      'work': { narrative_text: "Whitney watches you work with lazy amusement. 'You missed a spot, orphan.' They kick your bucket over and laugh as the dirty water spreads across the floor you just cleaned.", stat_deltas: { stress: 15, trauma: 3 } },
+      'flirt': { narrative_text: "Whitney freezes, caught completely off-guard. For a split second, their tough facade cracks and you see genuine surprise — maybe even interest. Then the mask slams back down. 'You've got nerve, orphan. I'll give you that.' But they don't look away.", stat_deltas: { stress: 5, lust: 8, willpower: 3 } },
+      'threaten': { narrative_text: "Whitney's eyes narrow dangerously. 'Did you just threaten me? ME?' They step closer, towering over you. 'You've got a death wish.' Their fist connects with the locker beside your head, denting the metal. 'Next time, it's your face.'", stat_deltas: { stress: 25, trauma: 8, pain: 5 } },
+      'gift': { narrative_text: "Whitney stares at the gift, then at you, suspicion warring with confusion. '...What's the catch?' They take it roughly, but you notice their fingers are careful, almost gentle. 'Don't think this changes anything between us.' But they keep it.", stat_deltas: { stress: -5 } }
     }
   },
   'eden': {
@@ -80,7 +86,10 @@ export const NPCS: Record<string, any> = {
     description: "A reclusive hunter who lives alone in a cabin deep in the forest. Eden is powerfully built, quiet, and intensely private. They distrust the town and its people, preferring the company of the wilderness. Those who earn their trust find a fiercely loyal, if possessive, companion. Those who don't may find themselves on the wrong end of their hunting knife.",
     responses: {
       'social': { narrative_text: "Eden stares at you with intense, unreadable eyes. '...You came back.' There's surprise in their voice, and something else — relief, perhaps. They step aside to let you into the cabin.", stat_deltas: { stress: -10, willpower: 5 } },
-      'work': { narrative_text: "Eden watches you chop wood with a critical eye, then nods curtly. 'Not bad. You might survive out here yet.' High praise from them.", stat_deltas: { stamina: -10, willpower: 5 } }
+      'work': { narrative_text: "Eden watches you chop wood with a critical eye, then nods curtly. 'Not bad. You might survive out here yet.' High praise from them.", stat_deltas: { stamina: -10, willpower: 5 } },
+      'flirt': { narrative_text: "Eden goes very still, like a deer that's caught a scent. Their jaw tightens. For a long moment, only the crackle of the fire fills the silence. Then, very quietly: 'Don't say things you don't mean. Not out here. Not to me.' But their hand finds yours in the firelight.", stat_deltas: { stress: -5, lust: 5, willpower: 5 } },
+      'threaten': { narrative_text: "Eden's hand moves to the hunting knife at their belt with practiced speed. 'Choose your next words very carefully.' Their voice is flat and cold as winter steel. The cabin suddenly feels very small, and the forest very, very far from help.", stat_deltas: { stress: 30, trauma: 5, willpower: -3 } },
+      'gift': { narrative_text: "Eden takes the gift and turns it over in their calloused hands, studying it with the same careful attention they give to animal tracks. 'You didn't have to do that.' A pause. 'Thank you.' It's the most emotion you've ever heard in their voice.", stat_deltas: { stress: -10, willpower: 3 } }
     }
   },
   'kylar': {
@@ -93,7 +102,10 @@ export const NPCS: Record<string, any> = {
     description: "A strange, quiet student who sits alone in every class and eats lunch by themselves in the library. Other students call them a freak and avoid them. Kylar seems to have developed an obsessive fixation on you — watching you from across the classroom, leaving anonymous gifts in your desk. Their eyes are intense and their smile, when it appears, is unsettlingly devoted.",
     responses: {
       'social': { narrative_text: "Kylar emerges from behind a bookshelf, clutching a small, handmade doll that looks disturbingly like you. 'I made this for you,' they whisper, pressing it into your hands. 'So you'll always have me with you.'", stat_deltas: { stress: 10, willpower: 3 } },
-      'work': { narrative_text: "Kylar silently appears beside you and begins helping without being asked. They don't speak, but they keep glancing at you with an intensity that makes you uncomfortable.", stat_deltas: { stress: 5, willpower: 2 } }
+      'work': { narrative_text: "Kylar silently appears beside you and begins helping without being asked. They don't speak, but they keep glancing at you with an intensity that makes you uncomfortable.", stat_deltas: { stress: 5, willpower: 2 } },
+      'flirt': { narrative_text: "Kylar's entire body goes rigid, their pupils dilating to swallow the iris. 'You... you feel it too?' they breathe, their voice trembling with desperate intensity. 'I knew it. I knew we were meant to be together. Forever.' They reach for you with both hands, their grip surprisingly strong.", stat_deltas: { stress: 15, lust: 5 } },
+      'threaten': { narrative_text: "Kylar's expression doesn't change. They simply tilt their head, studying you with those unblinking eyes. 'You can't push me away. I won't let you.' There's no anger in their voice — just absolute, terrifying certainty. 'We belong together. You'll understand eventually.'", stat_deltas: { stress: 20, trauma: 5 } },
+      'gift': { narrative_text: "Kylar accepts the gift with reverence, cradling it like a holy relic. Their eyes fill with tears. 'You thought of me? You actually thought of me?' They press the gift to their lips. 'I'll never let it go. Never. Just like I'll never let you go.'", stat_deltas: { stress: 5, willpower: 3 } }
     }
   },
   'avery': {
@@ -106,7 +118,10 @@ export const NPCS: Record<string, any> = {
     description: "A wealthy, impeccably dressed businessperson who lives in a mansion on the affluent side of town. Avery is sophisticated, demanding, and possessive. They've taken an interest in you — whether out of genuine affection or a desire to 'collect' something beautiful is unclear. They offer expensive gifts and fancy dates, but expect absolute obedience in return.",
     responses: {
       'social': { narrative_text: "Avery adjusts the cuffs of their silk shirt and looks you over appraisingly. 'You look positively dreadful, darling. We must do something about those rags. Come, I'll take you somewhere proper.'", stat_deltas: { stress: 5, allure: 3 } },
-      'work': { narrative_text: "Avery watches you work with a mixture of pity and distaste. 'Manual labour. How... quaint. You know, you wouldn't need to do this if you'd simply accept my offer.'", stat_deltas: { stress: 10, willpower: 3 } }
+      'work': { narrative_text: "Avery watches you work with a mixture of pity and distaste. 'Manual labour. How... quaint. You know, you wouldn't need to do this if you'd simply accept my offer.'", stat_deltas: { stress: 10, willpower: 3 } },
+      'flirt': { narrative_text: "Avery's lips curl into a satisfied smile. 'Well, well. You do know how to please, don't you?' They step closer, trailing a manicured finger along your jaw. 'I could give you everything you've ever wanted. All you have to do is say yes.' Their perfume is intoxicating.", stat_deltas: { lust: 10, allure: 3, purity: -3 } },
+      'threaten': { narrative_text: "Avery's expression hardens to ice. 'How dare you. Do you know who I am? Who I know? I could have you thrown in the dungeons with a single word.' They lean close. 'Don't mistake my interest for weakness, child. I own people far more dangerous than you.'", stat_deltas: { stress: 25, trauma: 5 } },
+      'gift': { narrative_text: "Avery examines the gift with the appraising eye of someone who knows exactly what everything costs. 'How... thoughtful.' A genuine smile briefly cracks their polished facade. 'You know, most people only give me things because they want something. But you... you're different, aren't you?'", stat_deltas: { stress: -5, allure: 2 } }
     }
   },
   'sydney': {
@@ -119,7 +134,10 @@ export const NPCS: Record<string, any> = {
     description: "A studious, deeply religious student who works as the school librarian's assistant. Sydney is unfailingly polite, bookish, and naïve. They spend their free time at the temple and genuinely believe in the goodness of people. Whether they remain pure or become corrupted depends entirely on your influence — they are remarkably impressionable.",
     responses: {
       'social': { narrative_text: "Sydney looks up from a thick tome, pushing their spectacles up their nose. 'Oh! Hello there. I was just reading about the founding of the temple. Did you know the original altar was carved from a single piece of marble?'", stat_deltas: { stress: -10, purity: 5 } },
-      'work': { narrative_text: "Sydney carefully stamps and shelves returned books, humming a hymn under their breath. 'The library needs tidying if you'd like to help? I could use the company.'", stat_deltas: { stress: -5, willpower: 3, purity: 2 } }
+      'work': { narrative_text: "Sydney carefully stamps and shelves returned books, humming a hymn under their breath. 'The library needs tidying if you'd like to help? I could use the company.'", stat_deltas: { stress: -5, willpower: 3, purity: 2 } },
+      'flirt': { narrative_text: "Sydney's cheeks flush crimson and they nearly drop their book. 'I... that's... the temple teaches that...' They trail off, flustered. Then, very quietly, barely above a whisper: 'Do you really think so? About me?' Their eyes are wide and hopeful behind their spectacles.", stat_deltas: { lust: 3, purity: -2, stress: -5 } },
+      'threaten': { narrative_text: "Sydney takes a step back, clutching their book to their chest like a shield. 'Violence is never the answer. Mara teaches forgiveness and...' Their voice wavers, but they stand their ground. 'I'll pray for you. Whatever darkness you're carrying, there's still light in you. I believe that.'", stat_deltas: { stress: 5, purity: 3 } },
+      'gift': { narrative_text: "Sydney accepts the gift with both hands, examining it with genuine delight. 'Oh, how wonderful! You're so kind. The temple teaches that generosity is the highest virtue.' They beam at you. 'I'll treasure this. Let me find something to give you in return — I think I have a pressed flower from the garden...'", stat_deltas: { stress: -10, purity: 5 } }
     }
   },
   // ── DoL People of Interest ─────────────────────────────────────────────
@@ -132,7 +150,10 @@ export const NPCS: Record<string, any> = {
     description: "The tyrannical caretaker of the orphanage. Bailey runs the institution like a protection racket, demanding weekly payments from every orphan under their roof. Those who can't pay face escalating punishments. Despite their cruelty, Bailey is shrewd and connected — they know everyone in town and have dirt on most of them.",
     responses: {
       'social': { narrative_text: "Bailey's cold eyes sweep over you. 'Where's my money? You owe me for another week. Don't make me ask again.' They crack their knuckles menacingly.", stat_deltas: { stress: 25, trauma: 5 } },
-      'work': { narrative_text: "Bailey tosses a mop at you. 'The basement needs cleaning. Again. And don't even think about slacking off — I'll be watching the cameras.'", stat_deltas: { stamina: -15, stress: 15 } }
+      'work': { narrative_text: "Bailey tosses a mop at you. 'The basement needs cleaning. Again. And don't even think about slacking off — I'll be watching the cameras.'", stat_deltas: { stamina: -15, stress: 15 } },
+      'flirt': { narrative_text: "Bailey pauses, one eyebrow rising. Then a cold, humourless laugh. 'Oh, that's rich. You think batting your eyes is going to make me forget what you owe? Cute try, kid.' They lean close. 'But I decide who charms who around here. Don't forget it.'", stat_deltas: { stress: 15, lust: 3 } },
+      'threaten': { narrative_text: "Bailey's expression doesn't change, but the temperature in the room drops. 'Did you just threaten me? In my own building?' They snap their fingers and two thugs materialize in the doorway. 'I think someone needs a reminder of who's in charge around here.' The thugs crack their knuckles.", stat_deltas: { stress: 30, trauma: 10, pain: 10 } },
+      'gift': { narrative_text: "Bailey takes the gift, turns it over once, and pockets it. 'This doesn't cover your debt, if that's what you're thinking.' But their voice is fractionally less harsh than usual. 'But... it's noted. Now get back to work.'", stat_deltas: { stress: -5 } }
     }
   },
   'jordan': {
@@ -301,7 +322,10 @@ export const NPCS: Record<string, any> = {
     description: "A hardworking farmhand struggling to keep their family farm running after their parents' passing. Alex is earnest, kind, and perpetually exhausted. They need help — desperately — and will welcome anyone willing to put in an honest day's work. Building the farm up together can blossom into something deeper.",
     responses: {
       'social': { narrative_text: "Alex wipes sweat from their brow and manages a tired smile. 'Hey. Thanks for coming by. I know it's not glamorous work, but... it means a lot. More than you know.'", stat_deltas: { stress: -10, willpower: 5, purity: 3 } },
-      'work': { narrative_text: "Alex hands you a pair of work gloves. 'The south field needs planting, the fence is broken again, and the chickens got out. Pick your poison.' They laugh, but there's exhaustion in their eyes.", stat_deltas: { stamina: -15, stress: -5, willpower: 5 } }
+      'work': { narrative_text: "Alex hands you a pair of work gloves. 'The south field needs planting, the fence is broken again, and the chickens got out. Pick your poison.' They laugh, but there's exhaustion in their eyes.", stat_deltas: { stamina: -15, stress: -5, willpower: 5 } },
+      'flirt': { narrative_text: "Alex goes bright red under their farmer's tan, fumbling the pitchfork. 'I... well... I mean...' They look down at their mud-caked boots and dirt-stained clothes. 'You sure you mean me? I'm not exactly a noble or anything.' But when they look back up, the hope in their eyes is unmistakable.", stat_deltas: { stress: -10, lust: 3, purity: 2 } },
+      'threaten': { narrative_text: "Alex's expression hardens — you forget how strong farm work has made them. They plant the pitchfork in the ground and step forward, jaw set. 'I've fought off wolves, bandits, and drought. Don't think I can't handle you.' Their voice is steel. 'But I'd rather not. This doesn't have to be ugly.'", stat_deltas: { stress: 15, willpower: -3 } },
+      'gift': { narrative_text: "Alex stares at the gift, then at you, their eyes glistening. 'You... you didn't have to...' Their voice cracks. 'Nobody's given me anything since Ma and Pa passed. Thank you.' They pull you into a brief, fierce hug that smells of hay and honest sweat.", stat_deltas: { stress: -15, purity: 5, willpower: 3 } }
     }
   }
 };

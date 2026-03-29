@@ -163,5 +163,76 @@ export const ENCOUNTERS = [
     outcome: "A buzzing cloud descends upon you — thousands of stinging insects driven into a frenzy by the humid air. They crawl into your clothes, your hair, your ears. You flail desperately, but there are too many!",
     anatomy: PREDEFINED_ANATOMIES.tentacle_creature,
     image_url: "https://images.unsplash.com/photo-1518467166778-b88f373ffec7?auto=format&fit=crop&q=80&w=1200&h=800"
+  },
+  // ── Tamriel expansion encounters ──────────────────────────────────────
+  {
+    id: 'tavern_brawl',
+    condition: (state: GameState) => state.world.current_location.id === 'tavern',
+    outcome: "A tankard shatters against the wall inches from your head! A massive, drunken Nord has started a bar fight, and the chaos sweeps towards you. Chairs fly, fists connect with jaws, and Hulda screams for order from behind the bar. You're caught in the middle of a full-blown Bannered Mare brawl.",
+    anatomy: PREDEFINED_ANATOMIES.thug,
+    image_url: "https://images.unsplash.com/photo-1505682634904-d7c8d95cdc50?auto=format&fit=crop&q=80&w=1200&h=800"
+  },
+  {
+    id: 'noble_kidnapper',
+    condition: (state: GameState) => state.world.current_location.id === 'noble_district' || state.world.current_location.id === 'shopping_centre',
+    outcome: "A gilded carriage stops beside you. The door swings open and a gloved hand beckons. 'You look like you could use a warm meal and a soft bed,' purrs a voice from the shadows within. The coachman's dead eyes and the carriage's blacked-out windows tell you this is not an act of charity.",
+    anatomy: PREDEFINED_ANATOMIES.noble,
+    image_url: "https://images.unsplash.com/photo-1532372320572-cda25653a26d?auto=format&fit=crop&q=80&w=1200&h=800"
+  },
+  {
+    id: 'graveyard_draugr',
+    condition: (state: GameState) => state.world.current_location.id === 'graveyard' && state.world.hour >= 20,
+    outcome: "A sarcophagus lid grinds open with a sound that turns your blood to ice. A Draugr pulls itself from its ancient resting place, its desiccated flesh stretched tight over Nordic bones. Blue light blazes in its empty eye sockets as it turns towards you, raising a rusted ancient Nord sword with terrible purpose.",
+    anatomy: PREDEFINED_ANATOMIES.thug,
+    image_url: "https://images.unsplash.com/photo-1509248961158-e54f6934749c?auto=format&fit=crop&q=80&w=1200&h=800"
+  },
+  {
+    id: 'ruins_guardian',
+    condition: (state: GameState) => state.world.current_location.id === 'ruins',
+    outcome: "The air crackles with ancient magicka. A Dwemer Sphere Guardian unfolds from what you mistook for a pile of rubble — bronze plates sliding into place, gyroscopic joints whirring to life. Its single lens-eye fixes on you with mechanical precision, and a blade extends from its arm with a hiss of pneumatic pressure.",
+    anatomy: PREDEFINED_ANATOMIES.average,
+    image_url: "https://images.unsplash.com/photo-1585366119957-e9730b6d0f60?auto=format&fit=crop&q=80&w=1200&h=800"
+  },
+  {
+    id: 'smuggler_ambush',
+    condition: (state: GameState) => state.world.current_location.id === 'underground_market' || state.world.current_location.id === 'crossroads',
+    outcome: "Three figures step from the shadows, blocking your path. 'You've seen too much, street rat,' the leader hisses, drawing a curved Hammerfell blade. 'Nothing personal — just business. Can't have loose tongues wagging about our operation.' The other two close in from the sides.",
+    anatomy: PREDEFINED_ANATOMIES.thug,
+    image_url: "https://images.unsplash.com/photo-1509347528160-9a9e33742cdb?auto=format&fit=crop&q=80&w=1200&h=800"
+  },
+  {
+    id: 'desperate_beggar',
+    condition: (state: GameState) => (state.world.current_location.id === 'town_square' || state.world.current_location.id === 'alleyways') && state.player.stats.purity > 30,
+    outcome: "A skeletal figure lurches from an alley, their hollow eyes wild with hunger and skooma withdrawal. 'Please... just a few septims... I'll do anything...' Their trembling hand grabs your sleeve with surprising strength. When you look into their eyes, you see what your own future might hold if things go wrong.",
+    anatomy: PREDEFINED_ANATOMIES.average,
+    image_url: "https://images.unsplash.com/photo-1532372320572-cda25653a26d?auto=format&fit=crop&q=80&w=1200&h=800"
+  },
+  {
+    id: 'wandering_merchant',
+    condition: (state: GameState) => state.world.current_location.id === 'crossroads' || state.world.current_location.id === 'forest',
+    outcome: "A Khajiit merchant appears on the road, pulling a cart loaded with jingling wares. 'Khajiit has wares, if you have coin,' they purr, golden eyes glinting. But as you approach, you notice the cart's contents shift unnaturally, and the merchant's smile reveals far too many teeth. This is no ordinary trader.",
+    anatomy: PREDEFINED_ANATOMIES.noble,
+    image_url: "https://images.unsplash.com/photo-1532372320572-cda25653a26d?auto=format&fit=crop&q=80&w=1200&h=800"
+  },
+  {
+    id: 'bathhouse_creep',
+    condition: (state: GameState) => state.world.current_location.id === 'bathhouse',
+    outcome: "Through the steam, you catch a glimpse of movement — someone watching from behind a marble column, their eyes tracking your every move. When you turn to confront them, they step forward with a predatory smile. 'Don't be shy. We're all friends here in the warm water.' Their hands reach towards you beneath the surface.",
+    anatomy: PREDEFINED_ANATOMIES.average,
+    image_url: "https://images.unsplash.com/photo-1532372320572-cda25653a26d?auto=format&fit=crop&q=80&w=1200&h=800"
+  },
+  {
+    id: 'escaped_prisoner',
+    condition: (state: GameState) => state.world.current_location.id === 'alleyways' || state.world.current_location.id === 'sewers',
+    outcome: "A massive figure in torn prison rags rounds the corner, chains still dangling from bloody wrists. Their eyes are wild and desperate — an escaped convict from Riften Jail with nothing left to lose. 'Give me your clothes and your coin,' they snarl, 'or I'll take them from your corpse.' Blood drips from a fresh wound on their temple.",
+    anatomy: PREDEFINED_ANATOMIES.thug,
+    image_url: "https://images.unsplash.com/photo-1585366119957-e9730b6d0f60?auto=format&fit=crop&q=80&w=1200&h=800"
+  },
+  {
+    id: 'feral_skeever_pack',
+    condition: (state: GameState) => (state.world.current_location.id === 'sewers' || state.world.current_location.id === 'alleyways') && state.world.hour >= 21,
+    outcome: "A chorus of high-pitched squealing erupts from the darkness. Dozens of glowing red eyes appear at ankle height — a massive pack of skeevers, their disease-ridden teeth bared, driven to frenzy by hunger. They pour towards you in a chittering, furry wave, too many to count.",
+    anatomy: PREDEFINED_ANATOMIES.feral_dog,
+    image_url: "https://images.unsplash.com/photo-1534361960057-19889db9621e?auto=format&fit=crop&q=80&w=1200&h=800"
   }
 ];
