@@ -242,6 +242,14 @@ export function gameReducer(state: GameState, action: any): GameState {
         newBodyFluids.tears = Math.max(0, newBodyFluids.tears - 10);
       }
 
+      // DoL: Semen level decay over time
+      newBodyFluids.semen_level = Math.max(0, newBodyFluids.semen_level - 3 * drainHours);
+
+      // DoL: Saliva passive decay
+      newBodyFluids.saliva = Math.max(0, newBodyFluids.saliva - 2 * drainHours);
+
+      // DoL: Milk production/decay handled in biology section below
+
       // 13d. Sensitivity adjustments (DoL-parity) — exposure increases sensitivity
       const newSensitivity = { ...state.player.sensitivity };
       if (appliedDeltas.arousal && appliedDeltas.arousal > 0) {
@@ -469,6 +477,70 @@ export function gameReducer(state: GameState, action: any): GameState {
         newBodyFluids.milk = Math.max(0, newBodyFluids.milk - 1);
       }
 
+      // 15e. Dynamic Trait Acquisition (DoL-parity)
+      let newTraits = [...state.player.traits];
+
+      // Lewdity-based traits
+      if (newLewdity.exhibitionism >= 70 && !newTraits.some(t => t.id === 'exhibitionist')) {
+        newTraits.push({
+          id: 'exhibitionist',
+          name: 'Exhibitionist',
+          description: 'You feel aroused when exposed to others. +5 allure in revealing clothes, -10 stress in public.',
+          effects: { allure: 5, stress: -10 }
+        });
+      } else if (newLewdity.exhibitionism < 60 && newTraits.some(t => t.id === 'exhibitionist')) {
+        newTraits = newTraits.filter(t => t.id !== 'exhibitionist');
+      }
+
+      if (newLewdity.promiscuity >= 80 && !newTraits.some(t => t.id === 'nymphomaniac')) {
+        newTraits.push({
+          id: 'nymphomaniac',
+          name: 'Nymphomaniac',
+          description: 'Your sexual appetite is insatiable. +10 lust gain, -5 willpower.',
+          effects: { lust: 10, willpower: -5 }
+        });
+      } else if (newLewdity.promiscuity < 70 && newTraits.some(t => t.id === 'nymphomaniac')) {
+        newTraits = newTraits.filter(t => t.id !== 'nymphomaniac');
+      }
+
+      if (newLewdity.masochism >= 60 && !newTraits.some(t => t.id === 'pain_seeker')) {
+        newTraits.push({
+          id: 'pain_seeker',
+          name: 'Pain Seeker',
+          description: 'Pain has become pleasure. Pain increases arousal instead of trauma.',
+          effects: { pain: -10, lust: 5 }
+        });
+      } else if (newLewdity.masochism < 50 && newTraits.some(t => t.id === 'pain_seeker')) {
+        newTraits = newTraits.filter(t => t.id !== 'pain_seeker');
+      }
+
+      if (newLewdity.deviancy >= 75 && !newTraits.some(t => t.id === 'deviant')) {
+        newTraits.push({
+          id: 'deviant',
+          name: 'Deviant',
+          description: 'Your tastes have become... unusual. +15% encounter variety, -5 purity.',
+          effects: { purity: -5 }
+        });
+      } else if (newLewdity.deviancy < 65 && newTraits.some(t => t.id === 'deviant')) {
+        newTraits = newTraits.filter(t => t.id !== 'deviant');
+      }
+
+      // Sexual skill mastery traits
+      const sexualSkills = state.player.sexual_skills;
+      for (const [skillName, skillValue] of Object.entries(sexualSkills)) {
+        const traitId = `master_${skillName}`;
+        if (skillValue >= 90 && !newTraits.some(t => t.id === traitId)) {
+          newTraits.push({
+            id: traitId,
+            name: `Master of ${skillName.charAt(0).toUpperCase() + skillName.slice(1)}`,
+            description: `You have mastered the art of ${skillName}. Encounters are more pleasurable and less stressful.`,
+            effects: { stress: -5, lust: 3 }
+          });
+        } else if (skillValue < 80 && newTraits.some(t => t.id === traitId)) {
+          newTraits = newTraits.filter(t => t.id !== traitId);
+        }
+      }
+
       // 16. Tick simulation engine if available
       let nextSimWorld = state.sim_world;
       if (nextSimWorld) {
@@ -493,6 +565,7 @@ export function gameReducer(state: GameState, action: any): GameState {
           bailey_payment: newBaileyPayment,
           life_sim: newLifeSim,
           biology: newBiology,
+          traits: newTraits,
           gold: state.player.gold + goldEarned,
         },
         world: {
@@ -1184,6 +1257,27 @@ export function gameReducer(state: GameState, action: any): GameState {
               { type, progress: 0, days_remaining: days }
             ],
           },
+        },
+      };
+    }
+
+    // ── DoL-parity: Update body fluids ───────────────────────────────────
+    case 'UPDATE_BODY_FLUIDS': {
+      const fluidUpdates = action.payload as Partial<Record<keyof typeof state.player.body_fluids, number>>;
+      const newBodyFluids = { ...state.player.body_fluids };
+
+      for (const [key, value] of Object.entries(fluidUpdates)) {
+        if (typeof value === 'number' && key in newBodyFluids) {
+          const k = key as keyof typeof newBodyFluids;
+          newBodyFluids[k] = Math.max(0, Math.min(100, newBodyFluids[k] + value));
+        }
+      }
+
+      return {
+        ...state,
+        player: {
+          ...state.player,
+          body_fluids: newBodyFluids,
         },
       };
     }
