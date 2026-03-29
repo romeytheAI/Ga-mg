@@ -860,4 +860,295 @@ describe('gameReducer', () => {
       expect(next.player.notoriety).toBe(100);
     });
   });
+
+  // ── DoL-PARITY: NEW SYSTEMS ──────────────────────────────────────────
+
+  describe('DoL-parity: Attitudes system', () => {
+    it('should handle SET_ATTITUDE', () => {
+      const action = { type: 'SET_ATTITUDE', payload: { type: 'sexual', value: 'defiant' } };
+      const next = gameReducer(initialState, action);
+      expect(next.player.attitudes.sexual).toBe('defiant');
+      // Other attitudes unchanged
+      expect(next.player.attitudes.crime).toBe('neutral');
+      expect(next.player.attitudes.labour).toBe('neutral');
+    });
+
+    it('should handle setting multiple attitudes', () => {
+      let state = gameReducer(initialState, { type: 'SET_ATTITUDE', payload: { type: 'crime', value: 'submissive' } });
+      state = gameReducer(state, { type: 'SET_ATTITUDE', payload: { type: 'labour', value: 'defiant' } });
+      expect(state.player.attitudes.crime).toBe('submissive');
+      expect(state.player.attitudes.labour).toBe('defiant');
+    });
+  });
+
+  describe('DoL-parity: Feats system', () => {
+    it('should handle UNLOCK_FEAT', () => {
+      const action = { type: 'UNLOCK_FEAT', payload: 'feat_first_steps' };
+      const next = gameReducer(initialState, action);
+      const feat = next.player.feats.find(f => f.id === 'feat_first_steps');
+      expect(feat?.unlocked).toBe(true);
+      expect(feat?.unlocked_on_day).toBe(initialState.world.day);
+    });
+
+    it('should not re-unlock already unlocked feat', () => {
+      const action = { type: 'UNLOCK_FEAT', payload: 'feat_first_steps' };
+      const withFeat = gameReducer(initialState, action);
+      // Change day to verify it doesn't update unlocked_on_day
+      const laterState: GameState = { ...withFeat, world: { ...withFeat.world, day: 50 } };
+      const next = gameReducer(laterState, action);
+      const feat = next.player.feats.find(f => f.id === 'feat_first_steps');
+      expect(feat?.unlocked_on_day).toBe(initialState.world.day); // unchanged
+    });
+
+    it('initial state should have feats defined but not unlocked', () => {
+      expect(initialState.player.feats.length).toBeGreaterThan(0);
+      expect(initialState.player.feats.every(f => !f.unlocked)).toBe(true);
+    });
+  });
+
+  describe('DoL-parity: Traits system', () => {
+    it('should handle ADD_TRAIT', () => {
+      const trait = { id: 'trait_nimble', name: 'Nimble', description: 'Quick on your feet.', effects: { stamina: 5 } };
+      const action = { type: 'ADD_TRAIT', payload: trait };
+      const next = gameReducer(initialState, action);
+      expect(next.player.traits).toHaveLength(1);
+      expect(next.player.traits[0].id).toBe('trait_nimble');
+    });
+
+    it('should not add duplicate trait', () => {
+      const trait = { id: 'trait_nimble', name: 'Nimble', description: 'Quick on your feet.', effects: { stamina: 5 } };
+      let state = gameReducer(initialState, { type: 'ADD_TRAIT', payload: trait });
+      state = gameReducer(state, { type: 'ADD_TRAIT', payload: trait });
+      expect(state.player.traits).toHaveLength(1);
+    });
+
+    it('should handle REMOVE_TRAIT', () => {
+      const trait = { id: 'trait_nimble', name: 'Nimble', description: 'Quick on your feet.', effects: { stamina: 5 } };
+      let state = gameReducer(initialState, { type: 'ADD_TRAIT', payload: trait });
+      state = gameReducer(state, { type: 'REMOVE_TRAIT', payload: 'trait_nimble' });
+      expect(state.player.traits).toHaveLength(0);
+    });
+  });
+
+  describe('DoL-parity: Virginities system', () => {
+    it('should handle LOSE_VIRGINITY', () => {
+      const action = { type: 'LOSE_VIRGINITY', payload: { type: 'kiss', description: 'Day 3: A stolen kiss in the park.' } };
+      const next = gameReducer(initialState, action);
+      expect(next.player.virginities.kiss).toBe('Day 3: A stolen kiss in the park.');
+    });
+
+    it('should not overwrite already-lost virginity', () => {
+      const action1 = { type: 'LOSE_VIRGINITY', payload: { type: 'kiss', description: 'First kiss.' } };
+      const action2 = { type: 'LOSE_VIRGINITY', payload: { type: 'kiss', description: 'Second attempt.' } };
+      let state = gameReducer(initialState, action1);
+      state = gameReducer(state, action2);
+      expect(state.player.virginities.kiss).toBe('First kiss.');
+    });
+
+    it('initial virginities should all be null (intact)', () => {
+      for (const val of Object.values(initialState.player.virginities)) {
+        expect(val).toBeNull();
+      }
+    });
+  });
+
+  describe('DoL-parity: Bailey payment system', () => {
+    it('should handle PAY_BAILEY', () => {
+      const indebted: GameState = {
+        ...initialState,
+        player: {
+          ...initialState.player,
+          gold: 200,
+          bailey_payment: { ...initialState.player.bailey_payment, debt: 100, missed_payments: 1, punishment_level: 1 },
+        },
+      };
+      const action = { type: 'PAY_BAILEY', payload: 100 };
+      const next = gameReducer(indebted, action);
+      expect(next.player.gold).toBe(100);
+      expect(next.player.bailey_payment.debt).toBe(0);
+      expect(next.player.bailey_payment.missed_payments).toBe(0);
+      expect(next.player.bailey_payment.punishment_level).toBe(0);
+    });
+
+    it('should not pay Bailey if not enough gold', () => {
+      const poorState: GameState = {
+        ...initialState,
+        player: {
+          ...initialState.player,
+          gold: 10,
+          bailey_payment: { ...initialState.player.bailey_payment, debt: 100 },
+        },
+      };
+      const action = { type: 'PAY_BAILEY', payload: 100 };
+      const next = gameReducer(poorState, action);
+      expect(next.player.gold).toBe(10); // unchanged
+      expect(next.player.bailey_payment.debt).toBe(100); // unchanged
+    });
+
+    it('initial bailey payment state should be valid', () => {
+      expect(initialState.player.bailey_payment.weekly_amount).toBe(100);
+      expect(initialState.player.bailey_payment.debt).toBe(0);
+      expect(initialState.player.bailey_payment.missed_payments).toBe(0);
+    });
+  });
+
+  describe('DoL-parity: Sexual skills system', () => {
+    it('should handle UPDATE_SEXUAL_SKILL', () => {
+      const action = { type: 'UPDATE_SEXUAL_SKILL', payload: { skill: 'oral', amount: 15 } };
+      const next = gameReducer(initialState, action);
+      expect(next.player.sexual_skills.oral).toBe(15);
+    });
+
+    it('should clamp sexual skills to 0-100', () => {
+      const action = { type: 'UPDATE_SEXUAL_SKILL', payload: { skill: 'hand', amount: 150 } };
+      const next = gameReducer(initialState, action);
+      expect(next.player.sexual_skills.hand).toBe(100);
+    });
+  });
+
+  describe('DoL-parity: Insecurity system', () => {
+    it('should handle UPDATE_INSECURITY', () => {
+      const action = { type: 'UPDATE_INSECURITY', payload: { part: 'face', amount: 20 } };
+      const next = gameReducer(initialState, action);
+      expect(next.player.insecurity.face).toBe(initialState.player.insecurity.face + 20);
+    });
+
+    it('should clamp insecurity to 0-100', () => {
+      const action = { type: 'UPDATE_INSECURITY', payload: { part: 'chest', amount: -200 } };
+      const next = gameReducer(initialState, action);
+      expect(next.player.insecurity.chest).toBe(0);
+    });
+  });
+
+  describe('DoL-parity: Temperature system', () => {
+    it('should compute temperature from weather in RESOLVE_TEXT', () => {
+      const coldState: GameState = {
+        ...initialState,
+        world: { ...initialState.world, weather: 'Blizzard' },
+      };
+      const action = {
+        type: 'RESOLVE_TEXT',
+        payload: {
+          parsedText: { narrative_text: 'Freezing.', hours_passed: 1 },
+          actionText: 'Endure',
+        },
+      };
+      const next = gameReducer(coldState, action);
+      expect(next.player.temperature.ambient_temp).toBe(-15);
+      expect(['freezing', 'cold']).toContain(next.player.temperature.body_temp);
+    });
+
+    it('should compute warm temperature from hot weather', () => {
+      const hotState: GameState = {
+        ...initialState,
+        world: { ...initialState.world, weather: 'Scorching' },
+      };
+      const action = {
+        type: 'RESOLVE_TEXT',
+        payload: {
+          parsedText: { narrative_text: 'Burning.', hours_passed: 1 },
+          actionText: 'Swelter',
+        },
+      };
+      const next = gameReducer(hotState, action);
+      expect(next.player.temperature.ambient_temp).toBe(38);
+      expect(['hot', 'overheating', 'warm']).toContain(next.player.temperature.body_temp);
+    });
+
+    it('initial temperature state should be valid', () => {
+      expect(initialState.player.temperature.body_temp).toBe('chilly');
+      expect(initialState.player.temperature.clothing_warmth).toBe(20);
+    });
+  });
+
+  describe('DoL-parity: Lewdity stats in RESOLVE_TEXT', () => {
+    it('should increase exhibitionism when purity drops', () => {
+      const action = {
+        type: 'RESOLVE_TEXT',
+        payload: {
+          parsedText: { narrative_text: 'Exposed.', stat_deltas: { purity: -20 } },
+          actionText: 'Undress',
+        },
+      };
+      const next = gameReducer(initialState, action);
+      expect(next.player.lewdity_stats.exhibitionism).toBeGreaterThan(0);
+    });
+
+    it('initial lewdity stats should be zero', () => {
+      expect(initialState.player.lewdity_stats.exhibitionism).toBe(0);
+      expect(initialState.player.lewdity_stats.promiscuity).toBe(0);
+      expect(initialState.player.lewdity_stats.deviancy).toBe(0);
+      expect(initialState.player.lewdity_stats.masochism).toBe(0);
+    });
+  });
+
+  describe('DoL-parity: New locations data integrity', () => {
+    const newLocationIds = [
+      'park', 'hospital', 'prison', 'strip_club', 'dance_studio',
+      'arcade', 'shopping_centre', 'moor', 'wolf_cave', 'eden_cabin',
+      'ocean', 'sewers', 'museum', 'cafe'
+    ];
+
+    for (const locId of newLocationIds) {
+      it(`should have location: ${locId}`, () => {
+        expect(LOCATIONS[locId]).toBeDefined();
+        expect(LOCATIONS[locId].id).toBe(locId);
+        expect(LOCATIONS[locId].name).toBeTruthy();
+        expect(LOCATIONS[locId].actions.length).toBeGreaterThan(0);
+      });
+    }
+  });
+
+  describe('DoL-parity: New encounters data integrity', () => {
+    const newEncounterIds = [
+      'park_stalker', 'sewer_slime', 'strip_club_patron', 'moor_hawk',
+      'ocean_creature', 'prison_inmate', 'wolf_pack_cave', 'shopping_pickpocket',
+      'blood_moon_horror', 'swarm_insects'
+    ];
+
+    for (const encId of newEncounterIds) {
+      it(`should have encounter: ${encId}`, () => {
+        const enc = ENCOUNTERS.find((e: any) => e.id === encId);
+        expect(enc).toBeDefined();
+        expect(typeof enc!.condition).toBe('function');
+        expect(enc!.outcome).toBeTruthy();
+        expect(enc!.anatomy).toBeDefined();
+      });
+    }
+  });
+
+  describe('DoL-parity: Initial state completeness', () => {
+    it('should have all DoL-parity player subsystems', () => {
+      expect(initialState.player.attitudes).toBeDefined();
+      expect(initialState.player.sensitivity).toBeDefined();
+      expect(initialState.player.sexual_skills).toBeDefined();
+      expect(initialState.player.virginities).toBeDefined();
+      expect(initialState.player.body_fluids).toBeDefined();
+      expect(initialState.player.insecurity).toBeDefined();
+      expect(initialState.player.lewdity_stats).toBeDefined();
+      expect(initialState.player.traits).toBeDefined();
+      expect(initialState.player.feats).toBeDefined();
+      expect(initialState.player.temperature).toBeDefined();
+      expect(initialState.player.bailey_payment).toBeDefined();
+    });
+
+    it('attitudes should default to neutral', () => {
+      expect(initialState.player.attitudes.sexual).toBe('neutral');
+      expect(initialState.player.attitudes.crime).toBe('neutral');
+      expect(initialState.player.attitudes.labour).toBe('neutral');
+    });
+
+    it('sensitivity should have all body parts with valid ranges', () => {
+      for (const val of Object.values(initialState.player.sensitivity)) {
+        expect(val).toBeGreaterThanOrEqual(0);
+        expect(val).toBeLessThanOrEqual(100);
+      }
+    });
+
+    it('sexual skills should all start at 0', () => {
+      for (const val of Object.values(initialState.player.sexual_skills)) {
+        expect(val).toBe(0);
+      }
+    });
+  });
 });
