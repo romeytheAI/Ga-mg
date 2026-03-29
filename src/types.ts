@@ -456,6 +456,8 @@ export interface GameState {
     show_shop: boolean,
     show_wardrobe: boolean,
     show_social: boolean,
+    show_feats: boolean,
+    show_traits: boolean,
     highlighted_part: string | null,
     targeted_part: string | null,
     combat_animation: string | null,

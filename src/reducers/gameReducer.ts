@@ -612,14 +612,17 @@ export function gameReducer(state: GameState, action: any): GameState {
           isPollingImage: true
         }
       };
-    case 'TOGGLE_UI_SETTING':
+    case 'TOGGLE_UI_SETTING': {
+      const key = typeof action.payload === 'object' ? action.payload.key : action.payload;
+      const value = typeof action.payload === 'object' ? action.payload.value : !state.ui[action.payload as keyof typeof state.ui];
       return {
         ...state,
         ui: {
           ...state.ui,
-          [action.payload]: !state.ui[action.payload as keyof typeof state.ui]
+          [key]: value
         }
       };
+    }
     case 'SET_COMBAT_ANIMATION':
       return {
         ...state,

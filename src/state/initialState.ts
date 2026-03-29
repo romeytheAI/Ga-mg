@@ -166,6 +166,8 @@ export const initialState: GameState = {
     show_shop: false,
     show_wardrobe: false,
     show_social: false,
+    show_feats: false,
+    show_traits: false,
     highlighted_part: null,
     targeted_part: null,
     combat_animation: null,
