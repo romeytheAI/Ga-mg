@@ -9,7 +9,8 @@
     "preview": "vite preview",
     "clean": "rm -rf dist",
     "lint": "tsc --noEmit",
-    "test": "vitest run"
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
     "@google/genai": "^1.29.0",
@@ -34,6 +35,7 @@
     "@types/node": "^22.14.0",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
+    "@vitest/coverage-v8": "^4.1.1",
     "autoprefixer": "^10.4.21",
     "jsdom": "^29.0.1",
     "tailwindcss": "^4.1.14",
