@@ -16,6 +16,7 @@ import { GenitalsAndChest } from './dol/sprite/GenitalsAndChest';
 import { SkinPatterns } from './dol/sprite/SkinPatterns';
 import { Clothing } from './dol/sprite/Clothing';
 import { FluidEffects } from './dol/sprite/FluidEffects';
+import { MuscleDefinition } from './dol/sprite/MuscleDefinition';
 import { StatusEffects } from './dol/sprite/StatusEffects';
 import { XRayOverlay } from './dol/sprite/XRayOverlay';
 
@@ -304,6 +305,17 @@ export const DoLCharacterSprite: React.FC<DoLCharacterSpriteProps> = ({ state, c
           <GenitalsAndChest geom={geom} s={finalSpriteState} skin={skin} hairClr={hairClr} raceDef={raceDef} isMale={isMale} isFemale={isFemale} isChestExposed={isChestExposed} isGroinExposed={isGroinExposed} isLegsExposed={isLegsExposed} isAroused={isAroused} isLactating={isLactating} nippleClr={nippleClr} />
 
           <SkinPatterns geom={geom} s={finalSpriteState} skin={skin} accentClr={accentClr} raceDef={raceDef} isFemale={isFemale} isChestExposed={isChestExposed} isGroinExposed={isGroinExposed} isLegsExposed={isLegsExposed} isArmsExposed={isArmsExposed} hasFreckles={hasFreckles} hasTanLines={hasTanLines} scars={scars} tattoos={tattoos} piercings={piercings} bodyWriting={bodyWriting} hasCollar={hasCollar} bodyPartsIntegrity={state.player.anatomy.body_parts} />
+
+          {/* ── MUSCLE DEFINITION (enhanced DoL-parity detail levels) ── */}
+          <MuscleDefinition
+            geom={geom}
+            s={finalSpriteState}
+            skin={skin}
+            build={raceDef.build}
+            isChestExposed={isChestExposed}
+            shouldersExposed={!clothing.shoulders}
+            legsExposed={isLegsExposed}
+          />
 
           <Clothing geom={geom} s={finalSpriteState} skin={skin} clothing={clothing} />
 
