@@ -51,7 +51,7 @@ export const NPCS: Record<string, any> = {
     relationship: 30,
     love_interest: true,
     location: 'orphanage',
-    description: "One of the other orphans — quiet, kind, and perpetually anxious. Robin has always looked up to you, offering shy smiles across the dormitory and saving you the best scraps at mealtimes. They spend their weekends selling lemonade at the beach to scrape together pennies. Their eyes hold a fragile hope that life might someday get better.",
+    description: "One of the other orphans — quiet, kind, and perpetually anxious. Robin has always looked up to you, offering shy smiles across the dormitory and saving you the best scraps at meal times. They spend their weekends selling lemonade at the beach to scrape together pennies. Their eyes hold a fragile hope that life might someday get better.",
     responses: {
       'social': { narrative_text: "Robin's face lights up when they see you. 'Oh! I saved you something...' They press a slightly squashed bread roll into your hands, blushing. 'It's not much, but...'", stat_deltas: { stress: -15, trauma: -5, purity: 3 } },
       'work': { narrative_text: "Robin helps you with the chores, humming softly. Their presence makes the drudgery bearable. 'We'll get out of here someday,' they whisper. 'Together.'", stat_deltas: { stress: -10, willpower: 5 } }

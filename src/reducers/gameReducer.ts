@@ -373,7 +373,6 @@ export function gameReducer(state: GameState, action: any): GameState {
         if (state.player.gold >= newBaileyPayment.weekly_amount) {
           // Auto-pay if player has enough gold
           goldEarned -= newBaileyPayment.weekly_amount;
-          newBaileyPayment.missed_payments = Math.max(0, newBaileyPayment.missed_payments - 1);
           if (newBaileyPayment.debt > 0) {
             newBaileyPayment.debt = Math.max(0, newBaileyPayment.debt - newBaileyPayment.weekly_amount);
           }
