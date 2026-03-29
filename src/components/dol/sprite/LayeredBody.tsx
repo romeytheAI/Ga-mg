@@ -30,7 +30,7 @@ export const LayeredBody: React.FC<LayeredBodyProps> = (props) => {
   const layerOrder = getLayerOrder(encounterAction);
 
   // Determine which body regions need depth shading based on pose
-  const getDepthShading = (): JSX.Element | null => {
+  const getDepthShading = (): React.ReactElement | null => {
     switch (encounterAction) {
       case 'bent_over':
       case 'spanked':

@@ -242,6 +242,9 @@ export function gameReducer(state: GameState, action: any): GameState {
         newBodyFluids.tears = Math.max(0, newBodyFluids.tears - 10);
       }
 
+      // Define drainHours early for use in decay calculations
+      const drainHours = hoursPassed;
+
       // DoL: Semen level decay over time
       newBodyFluids.semen_level = Math.max(0, newBodyFluids.semen_level - 3 * drainHours);
 
@@ -262,7 +265,6 @@ export function gameReducer(state: GameState, action: any): GameState {
       // 14. Player needs decay (DoL-parity life-sim loop)
       const newNeeds = { ...state.player.life_sim.needs };
       const intent = state.world.last_intent;
-      const drainHours = hoursPassed;
 
       // Passive drain per hour
       newNeeds.hunger = Math.max(0, newNeeds.hunger - 3 * drainHours);

@@ -29,14 +29,14 @@ export const FluidEffects: React.FC<FluidEffectsProps> = ({
   /**
    * Render semen coverage with realistic dripping and pooling patterns
    */
-  const renderSemenCoverage = (): JSX.Element | null => {
+  const renderSemenCoverage = (): React.ReactElement | null => {
     const level = body_fluids.semen_level;
     if (level < 5) return null;
 
     const opacity = Math.min(0.65, 0.15 + (level / 100) * 0.5);
     const semenColor = 'rgba(245,242,235,';
 
-    const patterns: JSX.Element[] = [];
+    const patterns: React.ReactElement[] = [];
 
     // Groin/inner thigh coverage (primary zone)
     if (level > 5 && isGroinExposed) {
@@ -112,14 +112,14 @@ export const FluidEffects: React.FC<FluidEffectsProps> = ({
   /**
    * Render saliva trails and wetness from oral encounters
    */
-  const renderSalivaCoverage = (): JSX.Element | null => {
+  const renderSalivaCoverage = (): React.ReactElement | null => {
     const level = body_fluids.saliva;
     if (level < 5) return null;
 
     const opacity = Math.min(0.55, 0.1 + (level / 100) * 0.45);
     const salivaColor = 'rgba(210,225,240,';
 
-    const patterns: JSX.Element[] = [];
+    const patterns: React.ReactElement[] = [];
 
     // Mouth/chin wetness
     if (level > 5) {
@@ -157,7 +157,7 @@ export const FluidEffects: React.FC<FluidEffectsProps> = ({
   /**
    * Render tears with streaming and droplet effects
    */
-  const renderTears = (): JSX.Element | null => {
+  const renderTears = (): React.ReactElement | null => {
     const level = body_fluids.tears;
     if (level < 10) return null;
 
@@ -193,7 +193,7 @@ export const FluidEffects: React.FC<FluidEffectsProps> = ({
   /**
    * Render arousal wetness at groin with gradient intensity
    */
-  const renderArousalWetness = (): JSX.Element | null => {
+  const renderArousalWetness = (): React.ReactElement | null => {
     const level = body_fluids.arousal_wetness;
     if (level < 15 || !isGroinExposed || !isFemale) return null;
 

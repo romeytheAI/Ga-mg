@@ -20,8 +20,8 @@ export const Clothing: React.FC<ClothingProps> = ({ geom, s, skin, clothing }) =
    * Enhanced DoL-parity clothing damage visualization.
    * Creates more detailed damage patterns based on integrity level.
    */
-  const getDamagePatterns = (integrity: number, x: number, y: number, width: number, height: number, key: string): JSX.Element[] => {
-    const patterns: JSX.Element[] = [];
+  const getDamagePatterns = (integrity: number, x: number, y: number, width: number, height: number, key: string): React.ReactElement[] => {
+    const patterns: React.ReactElement[] = [];
 
     if (integrity <= 10) {
       // Critical damage: multiple large tears and holes
