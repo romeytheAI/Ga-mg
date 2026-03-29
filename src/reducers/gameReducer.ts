@@ -393,6 +393,82 @@ export function gameReducer(state: GameState, action: any): GameState {
         }
       }
 
+      // 15d. Biology / Pregnancy / Fertility cycle (DoL-parity)
+      const newBiology = { ...state.player.biology };
+
+      // Fertility cycle progression (day-based)
+      if (newDay > state.world.day) {
+        const daysPassed = newDay - state.world.day;
+        newBiology.cycle_day = (newBiology.cycle_day + daysPassed) % 28;
+
+        // Update fertility cycle based on day
+        if (newBiology.cycle_day < 5) {
+          newBiology.fertility_cycle = 'Menstruation';
+          newBiology.fertility = 0.1;
+        } else if (newBiology.cycle_day < 12) {
+          newBiology.fertility_cycle = 'Follicular';
+          newBiology.fertility = 0.3;
+        } else if (newBiology.cycle_day < 16) {
+          newBiology.fertility_cycle = 'Ovulation';
+          newBiology.fertility = 0.9;
+        } else {
+          newBiology.fertility_cycle = 'Luteal';
+          newBiology.fertility = 0.4;
+        }
+      }
+
+      // Incubation progression (pregnancy)
+      if (newBiology.incubations.length > 0 && state.ui.settings.enable_pregnancy) {
+        newBiology.incubations = newBiology.incubations.map(inc => {
+          const daysPassed = newDay - state.world.day;
+          const newProgress = Math.min(100, inc.progress + (daysPassed * 1.5));  // ~66 days to full term
+          const newDaysRemaining = Math.max(0, inc.days_remaining - daysPassed);
+
+          // Birth occurs when progress reaches 100
+          if (newProgress >= 100 && inc.days_remaining <= 0) {
+            // Add birth event to memory
+            newMemoryGraph.push(`Day ${newDay}: Gave birth to ${inc.type}. A new chapter begins.`);
+
+            // Post-partum debuff
+            newBiology.post_partum_debuff = 7;  // 7 days of recovery
+
+            // Unlock feat
+            if (!state.player.feats.find(f => f.id === 'first_birth')?.unlocked) {
+              // Will be dispatched separately after RESOLVE_TEXT
+            }
+
+            // Remove this incubation (birth complete)
+            return null;
+          }
+
+          return { ...inc, progress: newProgress, days_remaining: newDaysRemaining };
+        }).filter(Boolean) as any[];
+      }
+
+      // Post-partum recovery
+      if (newBiology.post_partum_debuff > 0) {
+        newBiology.post_partum_debuff = Math.max(0, newBiology.post_partum_debuff - (newDay - state.world.day));
+        // Recovery debuffs
+        newStats.stamina = Math.max(0, newStats.stamina - 5);
+        newStats.health = Math.max(0, newStats.health - 3);
+      }
+
+      // Lactation increases if pregnant or recently gave birth
+      if (newBiology.incubations.length > 0) {
+        const avgProgress = newBiology.incubations.reduce((sum, inc) => sum + inc.progress, 0) / newBiology.incubations.length;
+        if (avgProgress > 50) {
+          newBiology.lactation_level = Math.min(100, newBiology.lactation_level + 0.5);
+          newBodyFluids.milk = Math.min(100, newBodyFluids.milk + 2);
+        }
+      } else if (newBiology.post_partum_debuff > 0) {
+        newBiology.lactation_level = Math.min(100, newBiology.lactation_level + 1);
+        newBodyFluids.milk = Math.min(100, newBodyFluids.milk + 3);
+      } else {
+        // Lactation decreases over time if not pregnant/post-partum
+        newBiology.lactation_level = Math.max(0, newBiology.lactation_level - 0.2);
+        newBodyFluids.milk = Math.max(0, newBodyFluids.milk - 1);
+      }
+
       // 16. Tick simulation engine if available
       let nextSimWorld = state.sim_world;
       if (nextSimWorld) {
@@ -416,6 +492,7 @@ export function gameReducer(state: GameState, action: any): GameState {
           temperature: newTemperature,
           bailey_payment: newBaileyPayment,
           life_sim: newLifeSim,
+          biology: newBiology,
           gold: state.player.gold + goldEarned,
         },
         world: {
@@ -1082,6 +1159,30 @@ export function gameReducer(state: GameState, action: any): GameState {
           insecurity: {
             ...state.player.insecurity,
             [part]: Math.max(0, Math.min(100, state.player.insecurity[part] + insAmt)),
+          },
+        },
+      };
+    }
+
+    // ── DoL-parity: Start pregnancy/incubation ───────────────────────────
+    case 'START_INCUBATION': {
+      const { type, days } = action.payload as { type: string; days: number };
+      if (!state.ui.settings.enable_pregnancy) return state;
+      if (state.player.biology.sterility) return state;
+
+      // Check if already pregnant with this type
+      if (state.player.biology.incubations.some(inc => inc.type === type)) return state;
+
+      return {
+        ...state,
+        player: {
+          ...state.player,
+          biology: {
+            ...state.player.biology,
+            incubations: [
+              ...state.player.biology.incubations,
+              { type, progress: 0, days_remaining: days }
+            ],
           },
         },
       };

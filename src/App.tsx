@@ -362,12 +362,21 @@ function App({ state, dispatch }: { state: GameState, dispatch: React.Dispatch<a
       if (intent === 'aggressive') {
         const athletics = state.player.skills?.athletics || 0;
         const damage = Math.floor(Math.random() * 20) + 10 + Math.floor(athletics / 10) + (hasAquaticPredator && state.world.current_location.name.includes('Water') ? 10 : 0);
-        
+
         triggerCombatFeedback(damage > 25 ? 'special_attack' : 'attack', damage > 20, damage > 25 ? 'heart' : 'ribs');
 
         encounterUpdates.enemy_health = Math.max(0, encounter.enemy_health - damage);
         encounterUpdates.enemy_anger = Math.min(100, encounter.enemy_anger + 15);
-        
+
+        // DoL: Shift attitude toward defiant when fighting back
+        if (state.player.attitudes.sexual !== 'defiant') {
+          const shiftChance = 0.05;  // 5% chance per aggressive action
+          if (Math.random() < shiftChance) {
+            dispatch({ type: 'SET_ATTITUDE', payload: { type: 'sexual', value: 'defiant' } });
+            narrative = "Your fighting spirit burns brighter. You refuse to submit!";
+          }
+        }
+
         if (targetedPart) {
           if (targetedPart === 'legs') {
             encounterUpdates.debuffs = [...(encounter.debuffs || []), { type: 'slowed', duration: 2 }];
@@ -387,6 +396,10 @@ function App({ state, dispatch }: { state: GameState, dispatch: React.Dispatch<a
         if (encounterUpdates.enemy_health <= 0) {
           narrative += " The enemy is defeated!";
           endEncounter = true;
+          // DoL: Unlock feat for first combat victory
+          if (!state.player.feats.find(f => f.id === 'first_victory')?.unlocked) {
+            dispatch({ type: 'UNLOCK_FEAT', payload: 'first_victory' });
+          }
         } else {
           narrative += " The enemy retaliates!";
           stat_deltas.health = -15 + Math.floor(athletics / 20);
@@ -399,11 +412,58 @@ function App({ state, dispatch }: { state: GameState, dispatch: React.Dispatch<a
         encounterUpdates.enemy_anger = Math.max(0, encounter.enemy_anger - 10);
         stat_deltas.stress = 15;
         stat_deltas.lust = 10;
+        stat_deltas.arousal = 8;  // DoL: Arousal increases during sexual encounters
         stat_deltas.purity = -5;
-        narrative = "You submit to their advances. They take advantage of your compliance.";
-        encounterUpdates.encounter_action = 'groped';
+
+        // DoL: Determine sexual action type based on enemy lust level
+        const lustLevel = encounterUpdates.enemy_lust;
+        if (lustLevel < 30) {
+          narrative = "You submit to their advances. They grope you roughly, testing your limits.";
+          encounterUpdates.encounter_action = 'groped';
+        } else if (lustLevel < 60) {
+          narrative = "You submit as they become more forceful. Their hands explore your body intimately.";
+          encounterUpdates.encounter_action = 'caressed';
+          // DoL: Update sexual skill (hand) when being touched
+          dispatch({ type: 'UPDATE_SEXUAL_SKILL', payload: { skill: 'hand', amount: 1 } });
+        } else if (lustLevel < 90) {
+          narrative = "You submit as they push you down and force themselves upon you.";
+          encounterUpdates.encounter_action = 'thrust';
+          // DoL: Update appropriate sexual skills based on encounter type
+          const sexType = Math.random() < 0.5 ? 'oral' : 'vaginal';
+          dispatch({ type: 'UPDATE_SEXUAL_SKILL', payload: { skill: sexType, amount: 2 } });
+          // DoL: Check for virginity loss
+          if (state.player.virginities[sexType] === null) {
+            dispatch({ type: 'LOSE_VIRGINITY', payload: { type: sexType, description: `Day ${state.world.day}: Taken by force during encounter with ${encounter.enemy_name}` } });
+            stat_deltas.trauma = 15;  // Extra trauma from losing virginity this way
+          }
+          stat_deltas.arousal = 15;  // Higher arousal during penetration
+
+          // DoL: Pregnancy risk from vaginal encounter
+          if (sexType === 'vaginal' && state.ui.settings.enable_pregnancy) {
+            const fertility = state.player.biology.fertility || 0.5;
+            const pregnancyChance = fertility * 0.3;  // 30% base chance at peak fertility
+            if (Math.random() < pregnancyChance && state.player.biology.incubations.length === 0) {
+              dispatch({ type: 'START_INCUBATION', payload: { type: 'humanoid', days: 66 } });
+              narrative += " You feel a strange warmth spreading through your body...";
+            }
+          }
+        } else {
+          narrative = "You submit completely as they reach climax, overwhelming you with their desire.";
+          encounterUpdates.encounter_action = 'climax';
+          stat_deltas.arousal = 20;
+        }
+
+        // DoL: Shift attitude toward submissive
+        if (state.player.attitudes.sexual !== 'submissive') {
+          const shiftChance = 0.08;  // 8% chance per submissive action
+          if (Math.random() < shiftChance) {
+            dispatch({ type: 'SET_ATTITUDE', payload: { type: 'sexual', value: 'submissive' } });
+            narrative += " You feel yourself accepting this treatment more readily...";
+          }
+        }
+
         if (encounterUpdates.enemy_lust >= 100) {
-          narrative += " They are satisfied and leave you alone.";
+          narrative += " They are satisfied and leave you alone, spent.";
           endEncounter = true;
         }
       } else if (intent === 'social') {
@@ -415,6 +475,28 @@ function App({ state, dispatch }: { state: GameState, dispatch: React.Dispatch<a
           narrative = "You successfully seduce them, increasing their lust.";
           skill_deltas.seduction = 2;
           encounterUpdates.encounter_action = 'caressed';
+
+          // DoL: Arousal increase during seduction
+          stat_deltas.arousal = 5;
+
+          // DoL: If seduction is very successful, consensual sexual encounter
+          if (encounterUpdates.enemy_lust >= 80 && Math.random() < 0.3) {
+            narrative = "Your seduction succeeds completely. They're overcome with desire. You decide to take control of the encounter.";
+            encounterUpdates.encounter_action = 'kissed';
+
+            // DoL: Consensual sex increases promiscuity
+            stat_deltas.arousal = 15;
+
+            // DoL: Check for first kiss virginity
+            if (state.player.virginities.kiss === null) {
+              dispatch({ type: 'LOSE_VIRGINITY', payload: { type: 'kiss', description: `Day ${state.world.day}: First kiss during encounter with ${encounter.enemy_name}` } });
+              narrative += " Your first kiss... passionate and wild.";
+            }
+
+            // DoL: Update oral skill (seduction often involves kissing/oral)
+            dispatch({ type: 'UPDATE_SEXUAL_SKILL', payload: { skill: 'oral', amount: 1 } });
+          }
+
           if (encounterUpdates.enemy_lust >= 100) {
             narrative += " They are completely enamored and let you go.";
             endEncounter = true;
@@ -452,6 +534,16 @@ function App({ state, dispatch }: { state: GameState, dispatch: React.Dispatch<a
           encounterUpdates.enemy_lust = Math.max(0, encounter.enemy_lust - 10);
           narrative = "You resist with all your strength! They are forced back, frustrated and angry.";
           encounterUpdates.encounter_action = 'resist_break';
+
+          // DoL: Shift attitude toward defiant when resisting successfully
+          if (state.player.attitudes.sexual !== 'defiant') {
+            const shiftChance = 0.06;  // 6% chance per successful resist
+            if (Math.random() < shiftChance) {
+              dispatch({ type: 'SET_ATTITUDE', payload: { type: 'sexual', value: 'defiant' } });
+              narrative += " You feel empowered by your resistance!";
+            }
+          }
+
           if (encounter.enemy_anger >= 90) {
             narrative += " Enraged beyond reason, they give up and storm off!";
             endEncounter = true;
