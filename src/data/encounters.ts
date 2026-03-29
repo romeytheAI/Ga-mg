@@ -92,5 +92,76 @@ export const ENCOUNTERS = [
     outcome: "You hear heavy footsteps behind you in the dark barn. A large figure blocks the doorway, silhouetted against the moonlight. 'Thought you could sleep in my barn for free?' the farmhand growls, stepping closer. His breath reeks of grain alcohol.",
     anatomy: PREDEFINED_ANATOMIES.thug,
     image_url: "https://images.unsplash.com/photo-1505682634904-d7c8d95cdc50?auto=format&fit=crop&q=80&w=1200&h=800"
+  },
+  // ── New DoL-parity encounters ──────────────────────────────────────────
+  {
+    id: 'park_stalker',
+    condition: (state: GameState) => state.world.current_location.id === 'park' && state.world.hour >= 19,
+    outcome: "The park is empty and dark. You hear footsteps behind you — always the same distance, matching your pace. When you turn, a shadowy figure ducks behind a tree. Your heart hammers as you realize you're being followed.",
+    anatomy: PREDEFINED_ANATOMIES.thug,
+    image_url: "https://images.unsplash.com/photo-1509248961158-e54f6934749c?auto=format&fit=crop&q=80&w=1200&h=800"
+  },
+  {
+    id: 'sewer_slime',
+    condition: (state: GameState) => state.world.current_location.id === 'sewers',
+    outcome: "The darkness shifts and something wet and heavy drops from the ceiling onto your shoulders. A formless, translucent slime engulfs your upper body, its acidic touch burning through your clothes. It pulses with a grotesque, hungry intelligence.",
+    anatomy: PREDEFINED_ANATOMIES.tentacle_creature,
+    image_url: "https://images.unsplash.com/photo-1518467166778-b88f373ffec7?auto=format&fit=crop&q=80&w=1200&h=800"
+  },
+  {
+    id: 'strip_club_patron',
+    condition: (state: GameState) => state.world.current_location.id === 'strip_club',
+    outcome: "A drunk, aggressive patron corners you near the back exit. 'Hey, where d'you think you're going? I paid for a private dance and I'm gonna get one.' They grab your wrist with bruising force, eyes glazed with alcohol and desire.",
+    anatomy: PREDEFINED_ANATOMIES.thug,
+    image_url: "https://images.unsplash.com/photo-1505682634904-d7c8d95cdc50?auto=format&fit=crop&q=80&w=1200&h=800"
+  },
+  {
+    id: 'moor_hawk',
+    condition: (state: GameState) => state.world.current_location.id === 'moor',
+    outcome: "A piercing shriek splits the sky! The Great Hawk descends from its tower, enormous talons extended. The shadow of its massive wingspan engulfs you as it swoops down with terrifying speed!",
+    anatomy: PREDEFINED_ANATOMIES.feral_dog,
+    image_url: "https://images.unsplash.com/photo-1534361960057-19889db9621e?auto=format&fit=crop&q=80&w=1200&h=800"
+  },
+  {
+    id: 'ocean_creature',
+    condition: (state: GameState) => state.world.current_location.id === 'ocean',
+    outcome: "Something massive moves beneath you in the dark water. Before you can react, thick, smooth tentacles coil around your legs and torso, dragging you beneath the waves. The creature's grip is impossibly strong, and the salt water burns your eyes as you're pulled deeper.",
+    anatomy: PREDEFINED_ANATOMIES.tentacle_creature,
+    image_url: "https://images.unsplash.com/photo-1518467166778-b88f373ffec7?auto=format&fit=crop&q=80&w=1200&h=800"
+  },
+  {
+    id: 'prison_inmate',
+    condition: (state: GameState) => state.world.current_location.id === 'prison',
+    outcome: "In the exercise yard, a group of inmates blocks your path. The largest steps forward, cracking their knuckles. 'Fresh meat. The new ones always need to learn how things work around here.' The guards conveniently look the other way.",
+    anatomy: PREDEFINED_ANATOMIES.thug,
+    image_url: "https://images.unsplash.com/photo-1585366119957-e9730b6d0f60?auto=format&fit=crop&q=80&w=1200&h=800"
+  },
+  {
+    id: 'wolf_pack_cave',
+    condition: (state: GameState) => state.world.current_location.id === 'wolf_cave',
+    outcome: "The pack wolves snarl as you venture too deep into the cave without the alpha's approval. Several wolves surround you, hackles raised, teeth bared. The alpha watches from the shadows — this is a test.",
+    anatomy: PREDEFINED_ANATOMIES.feral_dog,
+    image_url: "https://images.unsplash.com/photo-1534361960057-19889db9621e?auto=format&fit=crop&q=80&w=1200&h=800"
+  },
+  {
+    id: 'shopping_pickpocket',
+    condition: (state: GameState) => state.world.current_location.id === 'shopping_centre',
+    outcome: "A nimble figure bumps into you, their hands quick and practised. Before you can react, they've lifted your purse and are disappearing into the crowd. You give chase through the busy streets!",
+    anatomy: PREDEFINED_ANATOMIES.average,
+    image_url: "https://images.unsplash.com/photo-1532372320572-cda25653a26d?auto=format&fit=crop&q=80&w=1200&h=800"
+  },
+  {
+    id: 'blood_moon_horror',
+    condition: (state: GameState) => state.world.day % 30 === 0 && state.world.hour >= 20,
+    outcome: "The moon rises red and swollen over the town. The air crackles with malevolent energy. From the shadows, twisted forms emerge — creatures that should not exist, driven mad by the blood moon's influence. The night belongs to them now.",
+    anatomy: PREDEFINED_ANATOMIES.tentacle_creature,
+    image_url: "https://images.unsplash.com/photo-1509248961158-e54f6934749c?auto=format&fit=crop&q=80&w=1200&h=800"
+  },
+  {
+    id: 'swarm_insects',
+    condition: (state: GameState) => (state.world.current_location.id === 'swamp' || state.world.current_location.id === 'forest') && state.world.weather === 'Humid',
+    outcome: "A buzzing cloud descends upon you — thousands of stinging insects driven into a frenzy by the humid air. They crawl into your clothes, your hair, your ears. You flail desperately, but there are too many!",
+    anatomy: PREDEFINED_ANATOMIES.tentacle_creature,
+    image_url: "https://images.unsplash.com/photo-1518467166778-b88f373ffec7?auto=format&fit=crop&q=80&w=1200&h=800"
   }
 ];

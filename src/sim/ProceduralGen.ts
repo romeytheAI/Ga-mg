@@ -173,6 +173,20 @@ const LOCATION_NAMES: Record<SimLocation['type'], string[]> = {
   docks:     ['The Harbour','Fisherman\'s Wharf','The Pier'],
   alleyway:  ['The Backstreets','Shadow Lane','Rats\' Alley'],
   brothel:   ['The Velvet Room','The Red Lantern','The Gilded Lily'],
+  park:      ['Town Park','The Commons','The Green'],
+  hospital:  ['Nightingale Hospital','The Infirmary','The Clinic'],
+  prison:    ['Town Gaol','The Stockade','The Dungeon'],
+  strip_club:['The Red Room','The Velvet Stage','The Cabaret'],
+  dance_studio:['The Dance Hall','The Ballet Room','The Studio'],
+  arcade:    ['The Gambling Den','The Card House','The Dice Room'],
+  shopping:  ['The High Street','The Boutique Row','The Market Hall'],
+  moor:      ['The Windswept Moor','The Heather Fields','The Boglands'],
+  cave:      ['The Wolf Den','The Deep Cave','The Grotto'],
+  cabin:     ['The Forest Cabin','The Hunter\'s Lodge','The Hermitage'],
+  ocean:     ['The Open Sea','The Deep Waters','The Shallows'],
+  sewers:    ['The Undercity','The Drains','The Tunnels'],
+  museum:    ['The Museum','The Gallery','The Archive'],
+  cafe:      ['The Cosy Corner','The Tea Room','The Bakehouse'],
 };
 
 /** Generate a single location from a seed and type. */

@@ -207,7 +207,9 @@ export interface SimLocation {
   id: string;
   name: string;
   type: 'town' | 'wilderness' | 'dungeon' | 'home' | 'market' | 'tavern' | 'farm'
-    | 'school' | 'temple' | 'docks' | 'alleyway' | 'brothel';
+    | 'school' | 'temple' | 'docks' | 'alleyway' | 'brothel' | 'park' | 'hospital'
+    | 'prison' | 'strip_club' | 'dance_studio' | 'arcade' | 'shopping' | 'moor'
+    | 'cave' | 'cabin' | 'ocean' | 'sewers' | 'museum' | 'cafe';
   x: number;
   y: number;
   danger: number;       // 0-1
