@@ -362,12 +362,21 @@ function App({ state, dispatch }: { state: GameState, dispatch: React.Dispatch<a
       if (intent === 'aggressive') {
         const athletics = state.player.skills?.athletics || 0;
         const damage = Math.floor(Math.random() * 20) + 10 + Math.floor(athletics / 10) + (hasAquaticPredator && state.world.current_location.name.includes('Water') ? 10 : 0);
-        
+
         triggerCombatFeedback(damage > 25 ? 'special_attack' : 'attack', damage > 20, damage > 25 ? 'heart' : 'ribs');
 
         encounterUpdates.enemy_health = Math.max(0, encounter.enemy_health - damage);
         encounterUpdates.enemy_anger = Math.min(100, encounter.enemy_anger + 15);
-        
+
+        // DoL: Shift attitude toward defiant when fighting back
+        if (state.player.attitudes.sexual !== 'defiant') {
+          const shiftChance = 0.05;  // 5% chance per aggressive action
+          if (Math.random() < shiftChance) {
+            dispatch({ type: 'SET_ATTITUDE', payload: { type: 'sexual', value: 'defiant' } });
+            narrative = "Your fighting spirit burns brighter. You refuse to submit!";
+          }
+        }
+
         if (targetedPart) {
           if (targetedPart === 'legs') {
             encounterUpdates.debuffs = [...(encounter.debuffs || []), { type: 'slowed', duration: 2 }];
@@ -387,6 +396,10 @@ function App({ state, dispatch }: { state: GameState, dispatch: React.Dispatch<a
         if (encounterUpdates.enemy_health <= 0) {
           narrative += " The enemy is defeated!";
           endEncounter = true;
+          // DoL: Unlock feat for first combat victory
+          if (!state.player.feats.find(f => f.id === 'first_victory')?.unlocked) {
+            dispatch({ type: 'UNLOCK_FEAT', payload: 'first_victory' });
+          }
         } else {
           narrative += " The enemy retaliates!";
           stat_deltas.health = -15 + Math.floor(athletics / 20);
@@ -397,13 +410,123 @@ function App({ state, dispatch }: { state: GameState, dispatch: React.Dispatch<a
         triggerCombatFeedback('lust_action', false, null);
         encounterUpdates.enemy_lust = Math.min(100, encounter.enemy_lust + 20);
         encounterUpdates.enemy_anger = Math.max(0, encounter.enemy_anger - 10);
-        stat_deltas.stress = 15;
+
+        // DoL: Attitude modifiers for stress/trauma
+        const isSubmissiveAttitude = state.player.attitudes.sexual === 'submissive';
+        const isDefiantAttitude = state.player.attitudes.sexual === 'defiant';
+
+        stat_deltas.stress = isSubmissiveAttitude ? 10 : isDefiantAttitude ? 20 : 15;  // Less stress if naturally submissive
         stat_deltas.lust = 10;
+        stat_deltas.arousal = 8;  // Base arousal, will be modified by sensitivity
         stat_deltas.purity = -5;
-        narrative = "You submit to their advances. They take advantage of your compliance.";
-        encounterUpdates.encounter_action = 'groped';
+
+        // DoL: Determine sexual action type based on enemy lust level
+        const lustLevel = encounterUpdates.enemy_lust;
+        if (lustLevel < 30) {
+          narrative = "You submit to their advances. They grope you roughly, testing your limits.";
+          encounterUpdates.encounter_action = 'groped';
+
+          // DoL: Sensitivity-based arousal for chest/bottom touching
+          const avgSensitivity = (state.player.sensitivity.chest + state.player.sensitivity.bottom) / 2;
+          const sensitivityBonus = Math.floor(avgSensitivity / 20);  // 0-5 bonus arousal
+          stat_deltas.arousal = (stat_deltas.arousal || 0) + sensitivityBonus;
+
+          // DoL: Insecurity increases trauma when body parts are exposed/touched
+          const chestInsecurity = state.player.insecurity.chest;
+          if (chestInsecurity > 60) {
+            const insecurityTrauma = Math.floor((chestInsecurity - 60) / 10);  // 0-4 extra trauma
+            stat_deltas.trauma = (stat_deltas.trauma || 0) + insecurityTrauma;
+            if (insecurityTrauma > 0) {
+              narrative += " You feel deeply self-conscious as they touch you...";
+            }
+          }
+        } else if (lustLevel < 60) {
+          narrative = "You submit as they become more forceful. Their hands explore your body intimately.";
+          encounterUpdates.encounter_action = 'caressed';
+
+          // DoL: Update sexual skill (hand) when being touched
+          dispatch({ type: 'UPDATE_SEXUAL_SKILL', payload: { skill: 'hand', amount: 1 } });
+
+          // DoL: Sensitivity-based arousal for hands touching multiple areas
+          const avgSensitivity = (state.player.sensitivity.chest + state.player.sensitivity.genitals + state.player.sensitivity.thighs) / 3;
+          const sensitivityBonus = Math.floor(avgSensitivity / 15);  // 0-6 bonus arousal
+          stat_deltas.arousal = (stat_deltas.arousal || 0) + sensitivityBonus;
+
+          // DoL: Insecurity for body exposure
+          const bodyInsecurity = state.player.insecurity.body;
+          if (bodyInsecurity > 50) {
+            const insecurityTrauma = Math.floor((bodyInsecurity - 50) / 15);  // 0-3 extra trauma
+            stat_deltas.trauma = (stat_deltas.trauma || 0) + insecurityTrauma;
+          }
+        } else if (lustLevel < 90) {
+          narrative = "You submit as they push you down and force themselves upon you.";
+          encounterUpdates.encounter_action = 'thrust';
+          // DoL: Update appropriate sexual skills based on encounter type
+          const sexType = Math.random() < 0.5 ? 'oral' : 'vaginal';
+          dispatch({ type: 'UPDATE_SEXUAL_SKILL', payload: { skill: sexType, amount: 2 } });
+
+          // DoL: Check for virginity loss
+          if (state.player.virginities[sexType] === null) {
+            dispatch({ type: 'LOSE_VIRGINITY', payload: { type: sexType, description: `Day ${state.world.day}: Taken by force during encounter with ${encounter.enemy_name}` } });
+            stat_deltas.trauma = 15;  // Extra trauma from losing virginity this way
+
+            // DoL: Major insecurity increase on virginity loss
+            const relevantInsecurity = sexType === 'oral' ? 'face' : 'genitals';
+            dispatch({ type: 'UPDATE_INSECURITY', payload: { part: relevantInsecurity, amount: 10 } });
+          }
+
+          // DoL: Sensitivity-based arousal for penetration
+          const relevantSensitivity = sexType === 'oral' ? state.player.sensitivity.mouth : state.player.sensitivity.genitals;
+          const sensitivityBonus = Math.floor(relevantSensitivity / 10);  // 0-10 bonus arousal
+          stat_deltas.arousal = 15 + sensitivityBonus;
+
+          // DoL: High genital insecurity increases trauma during penetration
+          const genitalInsecurity = state.player.insecurity.genitals;
+          if (genitalInsecurity > 70) {
+            const insecurityTrauma = Math.floor((genitalInsecurity - 70) / 8);  // 0-3 extra trauma
+            stat_deltas.trauma = (stat_deltas.trauma || 0) + insecurityTrauma;
+            narrative += " The violation cuts deep, your insecurities screaming...";
+          }
+
+          // DoL: Pregnancy risk from vaginal encounter
+          if (sexType === 'vaginal' && state.ui.settings.enable_pregnancy) {
+            const fertility = state.player.biology.fertility || 0.5;
+            const pregnancyChance = fertility * 0.3;  // 30% base chance at peak fertility
+            if (Math.random() < pregnancyChance && state.player.biology.incubations.length === 0) {
+              dispatch({ type: 'START_INCUBATION', payload: { type: 'humanoid', days: 66 } });
+              narrative += " You feel a strange warmth spreading through your body...";
+            }
+          }
+        } else {
+          narrative = "You submit completely as they reach climax, overwhelming you with their desire.";
+          encounterUpdates.encounter_action = 'climax';
+
+          // DoL: Climax increases body fluids (semen_level, arousal_wetness)
+          const climaxArousal = 20;
+          const genitalSensitivity = state.player.sensitivity.genitals;
+          const sensitivityBonus = Math.floor(genitalSensitivity / 8);  // 0-12 bonus arousal
+          stat_deltas.arousal = climaxArousal + sensitivityBonus;
+
+          // DoL: Update body fluids after climax
+          dispatch({ type: 'UPDATE_BODY_FLUIDS', payload: { semen_level: 30, arousal_wetness: 25 } });
+
+          // DoL: Saliva increase for oral encounters
+          if (Math.random() < 0.5) {
+            dispatch({ type: 'UPDATE_BODY_FLUIDS', payload: { saliva: 15 } });
+          }
+        }
+
+        // DoL: Shift attitude toward submissive
+        if (state.player.attitudes.sexual !== 'submissive') {
+          const shiftChance = 0.08;  // 8% chance per submissive action
+          if (Math.random() < shiftChance) {
+            dispatch({ type: 'SET_ATTITUDE', payload: { type: 'sexual', value: 'submissive' } });
+            narrative += " You feel yourself accepting this treatment more readily...";
+          }
+        }
+
         if (encounterUpdates.enemy_lust >= 100) {
-          narrative += " They are satisfied and leave you alone.";
+          narrative += " They are satisfied and leave you alone, spent.";
           endEncounter = true;
         }
       } else if (intent === 'social') {
@@ -415,6 +538,28 @@ function App({ state, dispatch }: { state: GameState, dispatch: React.Dispatch<a
           narrative = "You successfully seduce them, increasing their lust.";
           skill_deltas.seduction = 2;
           encounterUpdates.encounter_action = 'caressed';
+
+          // DoL: Arousal increase during seduction
+          stat_deltas.arousal = 5;
+
+          // DoL: If seduction is very successful, consensual sexual encounter
+          if (encounterUpdates.enemy_lust >= 80 && Math.random() < 0.3) {
+            narrative = "Your seduction succeeds completely. They're overcome with desire. You decide to take control of the encounter.";
+            encounterUpdates.encounter_action = 'kissed';
+
+            // DoL: Consensual sex increases promiscuity
+            stat_deltas.arousal = 15;
+
+            // DoL: Check for first kiss virginity
+            if (state.player.virginities.kiss === null) {
+              dispatch({ type: 'LOSE_VIRGINITY', payload: { type: 'kiss', description: `Day ${state.world.day}: First kiss during encounter with ${encounter.enemy_name}` } });
+              narrative += " Your first kiss... passionate and wild.";
+            }
+
+            // DoL: Update oral skill (seduction often involves kissing/oral)
+            dispatch({ type: 'UPDATE_SEXUAL_SKILL', payload: { skill: 'oral', amount: 1 } });
+          }
+
           if (encounterUpdates.enemy_lust >= 100) {
             narrative += " They are completely enamored and let you go.";
             endEncounter = true;
@@ -445,13 +590,32 @@ function App({ state, dispatch }: { state: GameState, dispatch: React.Dispatch<a
       } else if (intent === 'resist') {
         triggerCombatFeedback('block', true, 'ribs');
         const willpower = state.player.stats.willpower || 50;
-        const resistStrength = willpower + (state.player.skills?.athletics || 0) * 0.5;
-        const resistChance = resistStrength / 200;
+        const control = state.player.stats.control || 50;  // DoL: Control stat affects resistance
+        const athleticsSkill = state.player.skills?.athletics || 0;
+
+        // DoL: Resistance strength = willpower + control + athletics
+        const resistStrength = willpower + control * 0.8 + athleticsSkill * 0.5;
+        const resistChance = resistStrength / 250;  // Adjusted for control stat inclusion
+
         if (Math.random() < resistChance) {
           encounterUpdates.enemy_anger = Math.min(100, encounter.enemy_anger + 20);
           encounterUpdates.enemy_lust = Math.max(0, encounter.enemy_lust - 10);
           narrative = "You resist with all your strength! They are forced back, frustrated and angry.";
           encounterUpdates.encounter_action = 'resist_break';
+
+          // DoL: High control reduces stress from resistance
+          const controlBonus = Math.floor(control / 25);  // 0-4 stress reduction
+          stat_deltas.stress = Math.max(0, 5 - controlBonus);
+
+          // DoL: Shift attitude toward defiant when resisting successfully
+          if (state.player.attitudes.sexual !== 'defiant') {
+            const shiftChance = 0.06;  // 6% chance per successful resist
+            if (Math.random() < shiftChance) {
+              dispatch({ type: 'SET_ATTITUDE', payload: { type: 'sexual', value: 'defiant' } });
+              narrative += " You feel empowered by your resistance!";
+            }
+          }
+
           if (encounter.enemy_anger >= 90) {
             narrative += " Enraged beyond reason, they give up and storm off!";
             endEncounter = true;
@@ -461,6 +625,10 @@ function App({ state, dispatch }: { state: GameState, dispatch: React.Dispatch<a
           stat_deltas.stamina = -20;
           stat_deltas.pain = 15;
           stat_deltas.stress = 10;
+
+          // DoL: Failed resistance reduces control temporarily
+          stat_deltas.control = -3;
+
           encounterUpdates.encounter_action = 'arms_pinned';
         }
         stat_deltas.willpower = -5;

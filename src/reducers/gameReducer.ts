@@ -242,6 +242,17 @@ export function gameReducer(state: GameState, action: any): GameState {
         newBodyFluids.tears = Math.max(0, newBodyFluids.tears - 10);
       }
 
+      // Define drainHours early for use in decay calculations
+      const drainHours = hoursPassed;
+
+      // DoL: Semen level decay over time
+      newBodyFluids.semen_level = Math.max(0, newBodyFluids.semen_level - 3 * drainHours);
+
+      // DoL: Saliva passive decay
+      newBodyFluids.saliva = Math.max(0, newBodyFluids.saliva - 2 * drainHours);
+
+      // DoL: Milk production/decay handled in biology section below
+
       // 13d. Sensitivity adjustments (DoL-parity) — exposure increases sensitivity
       const newSensitivity = { ...state.player.sensitivity };
       if (appliedDeltas.arousal && appliedDeltas.arousal > 0) {
@@ -254,7 +265,6 @@ export function gameReducer(state: GameState, action: any): GameState {
       // 14. Player needs decay (DoL-parity life-sim loop)
       const newNeeds = { ...state.player.life_sim.needs };
       const intent = state.world.last_intent;
-      const drainHours = hoursPassed;
 
       // Passive drain per hour
       newNeeds.hunger = Math.max(0, newNeeds.hunger - 3 * drainHours);
@@ -393,6 +403,146 @@ export function gameReducer(state: GameState, action: any): GameState {
         }
       }
 
+      // 15d. Biology / Pregnancy / Fertility cycle (DoL-parity)
+      const newBiology = { ...state.player.biology };
+
+      // Fertility cycle progression (day-based)
+      if (newDay > state.world.day) {
+        const daysPassed = newDay - state.world.day;
+        newBiology.cycle_day = (newBiology.cycle_day + daysPassed) % 28;
+
+        // Update fertility cycle based on day
+        if (newBiology.cycle_day < 5) {
+          newBiology.fertility_cycle = 'Menstruation';
+          newBiology.fertility = 0.1;
+        } else if (newBiology.cycle_day < 12) {
+          newBiology.fertility_cycle = 'Follicular';
+          newBiology.fertility = 0.3;
+        } else if (newBiology.cycle_day < 16) {
+          newBiology.fertility_cycle = 'Ovulation';
+          newBiology.fertility = 0.9;
+        } else {
+          newBiology.fertility_cycle = 'Luteal';
+          newBiology.fertility = 0.4;
+        }
+      }
+
+      // Incubation progression (pregnancy)
+      if (newBiology.incubations.length > 0 && state.ui.settings.enable_pregnancy) {
+        newBiology.incubations = newBiology.incubations.map(inc => {
+          const daysPassed = newDay - state.world.day;
+          const newProgress = Math.min(100, inc.progress + (daysPassed * 1.5));  // ~66 days to full term
+          const newDaysRemaining = Math.max(0, inc.days_remaining - daysPassed);
+
+          // Birth occurs when progress reaches 100
+          if (newProgress >= 100 && inc.days_remaining <= 0) {
+            // Add birth event to memory
+            newMemoryGraph.push(`Day ${newDay}: Gave birth to ${inc.type}. A new chapter begins.`);
+
+            // Post-partum debuff
+            newBiology.post_partum_debuff = 7;  // 7 days of recovery
+
+            // Unlock feat
+            if (!state.player.feats.find(f => f.id === 'first_birth')?.unlocked) {
+              // Will be dispatched separately after RESOLVE_TEXT
+            }
+
+            // Remove this incubation (birth complete)
+            return null;
+          }
+
+          return { ...inc, progress: newProgress, days_remaining: newDaysRemaining };
+        }).filter(Boolean) as any[];
+      }
+
+      // Post-partum recovery
+      if (newBiology.post_partum_debuff > 0) {
+        newBiology.post_partum_debuff = Math.max(0, newBiology.post_partum_debuff - (newDay - state.world.day));
+        // Recovery debuffs
+        newStats.stamina = Math.max(0, newStats.stamina - 5);
+        newStats.health = Math.max(0, newStats.health - 3);
+      }
+
+      // Lactation increases if pregnant or recently gave birth
+      if (newBiology.incubations.length > 0) {
+        const avgProgress = newBiology.incubations.reduce((sum, inc) => sum + inc.progress, 0) / newBiology.incubations.length;
+        if (avgProgress > 50) {
+          newBiology.lactation_level = Math.min(100, newBiology.lactation_level + 0.5);
+          newBodyFluids.milk = Math.min(100, newBodyFluids.milk + 2);
+        }
+      } else if (newBiology.post_partum_debuff > 0) {
+        newBiology.lactation_level = Math.min(100, newBiology.lactation_level + 1);
+        newBodyFluids.milk = Math.min(100, newBodyFluids.milk + 3);
+      } else {
+        // Lactation decreases over time if not pregnant/post-partum
+        newBiology.lactation_level = Math.max(0, newBiology.lactation_level - 0.2);
+        newBodyFluids.milk = Math.max(0, newBodyFluids.milk - 1);
+      }
+
+      // 15e. Dynamic Trait Acquisition (DoL-parity)
+      let newTraits = [...state.player.traits];
+
+      // Lewdity-based traits
+      if (newLewdity.exhibitionism >= 70 && !newTraits.some(t => t.id === 'exhibitionist')) {
+        newTraits.push({
+          id: 'exhibitionist',
+          name: 'Exhibitionist',
+          description: 'You feel aroused when exposed to others. +5 allure in revealing clothes, -10 stress in public.',
+          effects: { allure: 5, stress: -10 }
+        });
+      } else if (newLewdity.exhibitionism < 60 && newTraits.some(t => t.id === 'exhibitionist')) {
+        newTraits = newTraits.filter(t => t.id !== 'exhibitionist');
+      }
+
+      if (newLewdity.promiscuity >= 80 && !newTraits.some(t => t.id === 'nymphomaniac')) {
+        newTraits.push({
+          id: 'nymphomaniac',
+          name: 'Nymphomaniac',
+          description: 'Your sexual appetite is insatiable. +10 lust gain, -5 willpower.',
+          effects: { lust: 10, willpower: -5 }
+        });
+      } else if (newLewdity.promiscuity < 70 && newTraits.some(t => t.id === 'nymphomaniac')) {
+        newTraits = newTraits.filter(t => t.id !== 'nymphomaniac');
+      }
+
+      if (newLewdity.masochism >= 60 && !newTraits.some(t => t.id === 'pain_seeker')) {
+        newTraits.push({
+          id: 'pain_seeker',
+          name: 'Pain Seeker',
+          description: 'Pain has become pleasure. Pain increases arousal instead of trauma.',
+          effects: { pain: -10, lust: 5 }
+        });
+      } else if (newLewdity.masochism < 50 && newTraits.some(t => t.id === 'pain_seeker')) {
+        newTraits = newTraits.filter(t => t.id !== 'pain_seeker');
+      }
+
+      if (newLewdity.deviancy >= 75 && !newTraits.some(t => t.id === 'deviant')) {
+        newTraits.push({
+          id: 'deviant',
+          name: 'Deviant',
+          description: 'Your tastes have become... unusual. +15% encounter variety, -5 purity.',
+          effects: { purity: -5 }
+        });
+      } else if (newLewdity.deviancy < 65 && newTraits.some(t => t.id === 'deviant')) {
+        newTraits = newTraits.filter(t => t.id !== 'deviant');
+      }
+
+      // Sexual skill mastery traits
+      const sexualSkills = state.player.sexual_skills;
+      for (const [skillName, skillValue] of Object.entries(sexualSkills)) {
+        const traitId = `master_${skillName}`;
+        if (skillValue >= 90 && !newTraits.some(t => t.id === traitId)) {
+          newTraits.push({
+            id: traitId,
+            name: `Master of ${skillName.charAt(0).toUpperCase() + skillName.slice(1)}`,
+            description: `You have mastered the art of ${skillName}. Encounters are more pleasurable and less stressful.`,
+            effects: { stress: -5, lust: 3 }
+          });
+        } else if (skillValue < 80 && newTraits.some(t => t.id === traitId)) {
+          newTraits = newTraits.filter(t => t.id !== traitId);
+        }
+      }
+
       // 16. Tick simulation engine if available
       let nextSimWorld = state.sim_world;
       if (nextSimWorld) {
@@ -416,6 +566,8 @@ export function gameReducer(state: GameState, action: any): GameState {
           temperature: newTemperature,
           bailey_payment: newBaileyPayment,
           life_sim: newLifeSim,
+          biology: newBiology,
+          traits: newTraits,
           gold: state.player.gold + goldEarned,
         },
         world: {
@@ -1083,6 +1235,51 @@ export function gameReducer(state: GameState, action: any): GameState {
             ...state.player.insecurity,
             [part]: Math.max(0, Math.min(100, state.player.insecurity[part] + insAmt)),
           },
+        },
+      };
+    }
+
+    // ── DoL-parity: Start pregnancy/incubation ───────────────────────────
+    case 'START_INCUBATION': {
+      const { type, days } = action.payload as { type: string; days: number };
+      if (!state.ui.settings.enable_pregnancy) return state;
+      if (state.player.biology.sterility) return state;
+
+      // Check if already pregnant with this type
+      if (state.player.biology.incubations.some(inc => inc.type === type)) return state;
+
+      return {
+        ...state,
+        player: {
+          ...state.player,
+          biology: {
+            ...state.player.biology,
+            incubations: [
+              ...state.player.biology.incubations,
+              { type, progress: 0, days_remaining: days }
+            ],
+          },
+        },
+      };
+    }
+
+    // ── DoL-parity: Update body fluids ───────────────────────────────────
+    case 'UPDATE_BODY_FLUIDS': {
+      const fluidUpdates = action.payload as Partial<Record<keyof typeof state.player.body_fluids, number>>;
+      const newBodyFluids = { ...state.player.body_fluids };
+
+      for (const [key, value] of Object.entries(fluidUpdates)) {
+        if (typeof value === 'number' && key in newBodyFluids) {
+          const k = key as keyof typeof newBodyFluids;
+          newBodyFluids[k] = Math.max(0, Math.min(100, newBodyFluids[k] + value));
+        }
+      }
+
+      return {
+        ...state,
+        player: {
+          ...state.player,
+          body_fluids: newBodyFluids,
         },
       };
     }

@@ -39,6 +39,8 @@ export const initialState: GameState = {
       { id: 'feat_dancer', name: 'Graceful', description: 'Reach 100 dancing skill.', unlocked: false },
       { id: 'feat_escape_artist', name: 'Escape Artist', description: 'Escape 10 encounters by fleeing.', unlocked: false },
       { id: 'feat_blood_moon', name: 'Blood Moon', description: 'Survive a Blood Moon event.', unlocked: false },
+      { id: 'first_victory', name: 'First Blood', description: 'Win your first combat encounter.', unlocked: false },
+      { id: 'first_birth', name: 'New Life', description: 'Give birth for the first time.', unlocked: false },
     ],
     temperature: { ambient_temp: 12, clothing_warmth: 20, body_temp: 'chilly' },
     bailey_payment: { weekly_amount: 100, due_day: 0, missed_payments: 0, debt: 0, punishment_level: 0 },
