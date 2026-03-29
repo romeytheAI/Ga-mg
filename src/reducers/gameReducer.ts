@@ -1,6 +1,8 @@
 import { GameState, StatKey } from '../types';
 import { SimWorld, HordeRequest } from '../sim/types';
 import { LOCATIONS } from '../data/locations';
+import { RECIPES, buildResultItem, canCookRecipe } from '../data/recipes';
+import { QUESTS } from '../data/quests';
 import { initialState } from '../state/initialState';
 import { tickSimulation } from '../sim/SimulationEngine';
 
@@ -166,6 +168,7 @@ export function gameReducer(state: GameState, action: any): GameState {
               id: q.id,
               title: q.title || 'Unknown Quest',
               description: q.description || '',
+              type: (['main', 'side', 'daily', 'romance'] as const).includes(q.type) ? q.type as 'main' | 'side' | 'daily' | 'romance' : 'side',
               status: 'active' as const,
             });
           }
@@ -1280,6 +1283,263 @@ export function gameReducer(state: GameState, action: any): GameState {
         player: {
           ...state.player,
           body_fluids: newBodyFluids,
+        },
+      };
+    }
+
+    // ── Quest System ──────────────────────────────────────────────────────
+    case 'UPDATE_QUEST': {
+      const { id: qId, updates } = action.payload as { id: string; updates: Partial<{ status: 'active' | 'completed' | 'failed' | 'locked'; objectives: any[] }> };
+      const updatedQuests = state.player.quests.map(q =>
+        q.id === qId ? { ...q, ...updates } as typeof q : q
+      );
+      return { ...state, player: { ...state.player, quests: updatedQuests } };
+    }
+
+    case 'COMPLETE_QUEST': {
+      const { id: cqId } = action.payload as { id: string };
+      const quest = state.player.quests.find(q => q.id === cqId);
+      if (!quest || quest.status === 'completed') return state;
+
+      let newGold = state.player.gold;
+      let newFeats = [...state.player.feats];
+      let newSkills = { ...state.player.skills };
+      let newInventory = [...state.player.inventory];
+
+      // Grant rewards
+      if (quest.rewards) {
+        if (quest.rewards.gold) newGold += quest.rewards.gold;
+        if (quest.rewards.feats) {
+          newFeats = newFeats.map(f =>
+            quest.rewards!.feats!.includes(f.id) ? { ...f, unlocked: true, unlocked_on_day: state.world.day } : f
+          );
+        }
+        if (quest.rewards.skills) {
+          for (const [sk, val] of Object.entries(quest.rewards.skills)) {
+            if (typeof val === 'number' && sk in newSkills) {
+              newSkills[sk as keyof typeof newSkills] = Math.min(100, newSkills[sk as keyof typeof newSkills] + val);
+            }
+          }
+        }
+        if (quest.rewards.items) {
+          for (const itemId of quest.rewards.items) {
+            const built = buildResultItem(itemId);
+            if (built) newInventory.push(built);
+          }
+        }
+      }
+
+      // Mark completed and unlock next chapter quests
+      const completedQuests = state.player.quests.map(q =>
+        q.id === cqId ? { ...q, status: 'completed' as const } : q
+      );
+
+      // Unlock quests whose prerequisites are now all met
+      const completedIds = new Set(completedQuests.filter(q => q.status === 'completed').map(q => q.id));
+      const existingIds = new Set(completedQuests.map(q => q.id));
+      const toUnlock: typeof completedQuests = [];
+      for (const candidate of Object.values(QUESTS)) {
+        if (existingIds.has(candidate.id)) continue;
+        if (!candidate.prerequisites || candidate.prerequisites.length === 0) continue;
+        if (candidate.prerequisites.every(pid => completedIds.has(pid))) {
+          toUnlock.push({ ...candidate, status: 'active' });
+        }
+      }
+
+      return {
+        ...state,
+        player: {
+          ...state.player,
+          gold: newGold,
+          feats: newFeats,
+          skills: newSkills,
+          inventory: newInventory,
+          quests: [...completedQuests, ...toUnlock],
+        },
+        ui: {
+          ...state.ui,
+          currentLog: [
+            ...state.ui.currentLog,
+            { text: `Quest completed: "${quest.title}"`, type: 'system' as const },
+          ],
+        },
+      };
+    }
+
+    // ── Recipe System ─────────────────────────────────────────────────────
+    case 'ADD_RECIPE_TO_KNOWN': {
+      const { recipeId } = action.payload as { recipeId: string };
+      if (state.player.known_recipes.includes(recipeId)) return state;
+      return { ...state, player: { ...state.player, known_recipes: [...state.player.known_recipes, recipeId] } };
+    }
+
+    case 'COOK_RECIPE': {
+      const { recipeId: cookId } = action.payload as { recipeId: string };
+      const recipe = RECIPES[cookId];
+      if (!recipe) return state;
+      if (!state.player.known_recipes.includes(cookId)) return state;
+      if (state.player.skills.cooking < recipe.cooking_skill_required) {
+        return {
+          ...state,
+          ui: {
+            ...state.ui,
+            currentLog: [...state.ui.currentLog, { text: `Your cooking skill (${state.player.skills.cooking}) is too low for "${recipe.name}" (requires ${recipe.cooking_skill_required}).`, type: 'system' as const }],
+          },
+        };
+      }
+      if (!canCookRecipe(recipe, state.player.inventory)) {
+        return {
+          ...state,
+          ui: {
+            ...state.ui,
+            currentLog: [...state.ui.currentLog, { text: `You don't have the ingredients for "${recipe.name}".`, type: 'system' as const }],
+          },
+        };
+      }
+
+      // Remove ingredients (consume one stack per requirement)
+      let cookInventory = [...state.player.inventory];
+      for (const req of recipe.ingredients) {
+        let remaining = req.quantity;
+        cookInventory = cookInventory.filter(item => {
+          if (item.id === req.item_id && remaining > 0) { remaining--; return false; }
+          return true;
+        });
+      }
+
+      // Add result
+      for (let i = 0; i < recipe.result.quantity; i++) {
+        const resultItem = buildResultItem(recipe.result.item_id);
+        if (resultItem) cookInventory.push(resultItem);
+      }
+
+      const cookSkillGain = Math.max(1, Math.floor(recipe.cooking_skill_required / 5));
+      return {
+        ...state,
+        player: {
+          ...state.player,
+          inventory: cookInventory,
+          skills: {
+            ...state.player.skills,
+            cooking: Math.min(100, state.player.skills.cooking + cookSkillGain),
+          },
+        },
+        ui: {
+          ...state.ui,
+          currentLog: [...state.ui.currentLog, { text: `You prepare "${recipe.name}". It smells wonderful.`, type: 'narrative' as const }],
+        },
+      };
+    }
+
+    // ── Foraging ──────────────────────────────────────────────────────────
+    case 'FORAGE_RESOURCE': {
+      const { location_id, action_id } = action.payload as { location_id: string; action_id: string };
+      const loc = LOCATIONS[location_id];
+      if (!loc) return state;
+      const forage_action = (loc.actions as any[])?.find((a: any) => a.id === action_id);
+      if (!forage_action) return state;
+
+      // Skill check — use foraging skill with a pseudo-random result
+      let success = true;
+      if (forage_action.skill_check) {
+        const { stat, difficulty } = forage_action.skill_check as { stat: string; difficulty: number };
+        const skillVal: number =
+          (state.player.skills as any)[stat] ??
+          (state.player.stats as any)[stat] ??
+          0;
+        // 50% base chance, improved by skill relative to difficulty
+        const chance = Math.min(95, Math.max(10, 50 + (skillVal - difficulty) * 0.8));
+        success = Math.random() * 100 < chance;
+      }
+
+      const statDeltas: any = success ? (forage_action.stat_deltas ?? {}) : (forage_action.fail_stat_deltas ?? forage_action.stat_deltas ?? {});
+      const skillDeltas: any = forage_action.skill_deltas ?? {};
+      const rawItems: any[] = success ? (forage_action.new_items ?? []) : [];
+
+      const forageStats = { ...state.player.stats };
+      for (const [k, v] of Object.entries(statDeltas)) {
+        if (typeof v === 'number' && k in forageStats) {
+          const sk = k as StatKey;
+          const cap = (forageStats as any)[`max_${sk}`] ?? 100;
+          forageStats[sk] = Math.max(0, Math.min(cap, forageStats[sk] + v));
+        }
+      }
+
+      const forageSkills = { ...state.player.skills };
+      for (const [k, v] of Object.entries(skillDeltas)) {
+        if (typeof v === 'number' && k in forageSkills) {
+          forageSkills[k as keyof typeof forageSkills] = Math.max(0, Math.min(100, forageSkills[k as keyof typeof forageSkills] + (v as number)));
+        }
+      }
+
+      const forageInventory = [...state.player.inventory];
+      for (const raw of rawItems) {
+        forageInventory.push({
+          id: raw.id ?? `foraged_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
+          name: raw.name ?? 'Unknown Item',
+          type: raw.type ?? 'misc',
+          rarity: raw.rarity ?? 'common',
+          description: raw.description ?? '',
+          value: raw.value ?? 1,
+          weight: raw.weight ?? 0.1,
+          ...(raw.stats ? { stats: raw.stats } : {}),
+        });
+      }
+
+      const forageLog = success
+        ? (forage_action.outcome ?? 'You gather some resources.')
+        : (forage_action.fail_outcome ?? 'You find nothing useful.');
+
+      return {
+        ...state,
+        player: {
+          ...state.player,
+          stats: forageStats,
+          skills: forageSkills,
+          inventory: forageInventory,
+        },
+        ui: {
+          ...state.ui,
+          currentLog: [...state.ui.currentLog, { text: forageLog, type: 'narrative' as const }],
+        },
+      };
+    }
+
+    // ── Base Upgrades ─────────────────────────────────────────────────────
+    case 'UPGRADE_BASE': {
+      const { upgrade, cost } = action.payload as { upgrade: string; cost: number };
+      if (state.player.gold < cost) {
+        return {
+          ...state,
+          ui: {
+            ...state.ui,
+            currentLog: [...state.ui.currentLog, { text: "You don't have enough gold for that upgrade.", type: 'system' as const }],
+          },
+        };
+      }
+
+      const upgradeMap: Record<string, Partial<typeof state.player.base>> = {
+        'bed':              { bed_tier: Math.min(3, ((state.player.base.bed_tier ?? 0) as number) + 1) },
+        'security':         { security_tier: Math.min(3, ((state.player.base.security_tier ?? 0) as number) + 1) },
+        'alchemy_station':  { alchemy_station: true },
+        'bathhouse':        { bathhouse: true },
+        'library':          { library: true },
+        'shrine':           { shrine: true },
+      };
+
+      const baseUpdate = upgradeMap[upgrade];
+      if (!baseUpdate) return state;
+
+      return {
+        ...state,
+        player: {
+          ...state.player,
+          gold: state.player.gold - cost,
+          base: { ...state.player.base, ...baseUpdate },
+        },
+        ui: {
+          ...state.ui,
+          currentLog: [...state.ui.currentLog, { text: `You upgrade your base: ${upgrade}.`, type: 'system' as const }],
         },
       };
     }
