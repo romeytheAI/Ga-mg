@@ -15,6 +15,7 @@ import { FaceAndHair, deriveExpression } from './dol/sprite/FaceAndHair';
 import { GenitalsAndChest } from './dol/sprite/GenitalsAndChest';
 import { SkinPatterns } from './dol/sprite/SkinPatterns';
 import { Clothing } from './dol/sprite/Clothing';
+import { FluidEffects } from './dol/sprite/FluidEffects';
 import { StatusEffects } from './dol/sprite/StatusEffects';
 import { XRayOverlay } from './dol/sprite/XRayOverlay';
 
@@ -305,6 +306,17 @@ export const DoLCharacterSprite: React.FC<DoLCharacterSpriteProps> = ({ state, c
           <SkinPatterns geom={geom} s={finalSpriteState} skin={skin} accentClr={accentClr} raceDef={raceDef} isFemale={isFemale} isChestExposed={isChestExposed} isGroinExposed={isGroinExposed} isLegsExposed={isLegsExposed} isArmsExposed={isArmsExposed} hasFreckles={hasFreckles} hasTanLines={hasTanLines} scars={scars} tattoos={tattoos} piercings={piercings} bodyWriting={bodyWriting} hasCollar={hasCollar} bodyPartsIntegrity={state.player.anatomy.body_parts} />
 
           <Clothing geom={geom} s={finalSpriteState} skin={skin} clothing={clothing} />
+
+          {/* ── FLUID EFFECTS (enhanced DoL-parity rendering) ── */}
+          <FluidEffects
+            geom={geom}
+            s={finalSpriteState}
+            body_fluids={state.player.body_fluids}
+            isChestExposed={isChestExposed}
+            isGroinExposed={isGroinExposed}
+            isLegsExposed={isLegsExposed}
+            isFemale={isFemale}
+          />
 
           <StatusEffects geom={geom} s={finalSpriteState} raceDef={raceDef} isChestExposed={isChestExposed} isLegsExposed={isLegsExposed} blushIntensity={blushIntensity} isSweating={isSweating} showHeartOverlay={showHeartOverlay} showCorruptionFx={showCorruptionFx} inEncounter={inEncounter} targetedPart={targetedPart} playerStance={playerStance} combatAnim={combatAnim} encounterAction={encounterAction} compact={compact} svgW={svgW} svgH={svgH} lowHealth={lowHealth} corruption={corruption} hallucination={stats.hallucination} parasites={biology.parasites} />
 
