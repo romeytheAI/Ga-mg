@@ -1,6 +1,7 @@
 import { GameState } from '../types';
 import { LOCATIONS } from '../data/locations';
 import { generateStartingWorld } from '../sim/ProceduralGen';
+import { ENV_GEMINI_API_KEY } from '../constants';
 
 export const initialState: GameState = {
   player: {
@@ -164,7 +165,7 @@ export const initialState: GameState = {
       }
       return a;
     }),
-    apiKey: "",
+    apiKey: ENV_GEMINI_API_KEY || "",
     hordeApiKey: "0000000000",
     ui_scale: 1,
     fullscreen: false,

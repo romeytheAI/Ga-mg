@@ -1,5 +1,8 @@
 import { Anatomy } from './types';
 
+const metaEnv = (import.meta as any)?.env;
+export const ENV_GEMINI_API_KEY = typeof metaEnv?.VITE_GEMINI_API_KEY === 'string' ? metaEnv.VITE_GEMINI_API_KEY : '';
+
 export const STABLE_API = "https://stablehorde.net/api/v2";
 export const DEFAULT_API_KEY = "0000000000";
 

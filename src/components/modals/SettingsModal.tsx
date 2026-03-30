@@ -89,7 +89,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
         </div>
 
         <div className="mb-8">
-          <label className="block text-xs tracking-widest uppercase text-white/50 mb-3">OpenRouter API Key (Fallback)</label>
+          <label className="block text-xs tracking-widest uppercase text-white/50 mb-3">Gemini / OpenRouter API Key (Fallback)</label>
           <input 
             type="text" 
             value={state.ui.apiKey}
@@ -97,7 +97,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
             placeholder="sk-or-..."
             className="w-full bg-black border border-white/10 p-4 rounded-sm text-white/90 focus:outline-none focus:border-white/40 transition-colors font-mono text-sm"
           />
-          <p className="text-[10px] text-white/30 mt-2">Optional. Used if Horde fails. Leave blank to use free Pollinations.ai fallback.</p>
+          <p className="text-[10px] text-white/30 mt-2">Bring your own token — usage is billed to your Gemini/OpenRouter account. Leave blank to rely on the free Pollinations fallback.</p>
         </div>
 
         <div className="mb-4">
