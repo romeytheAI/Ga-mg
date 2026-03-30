@@ -551,6 +551,145 @@ export const QUESTS: Record<string, Quest> = {
     },
     prerequisites: [],
   },
+
+  // ── Additional Side Quests ─────────────────────────────────────────────
+
+  'q_side_alley_gang': {
+    id: 'q_side_alley_gang',
+    title: "Alleyway Ambush",
+    type: 'side',
+    status: 'locked',
+    description: "A gang has been terrorising the alleyways, extorting merchants and preying on anyone who can't fight back. Someone needs to put a stop to it — or find a smarter way through.",
+    objectives: [
+      { id: 'obj_locate_gang', description: "Locate the gang's base of operations", completed: false },
+      { id: 'obj_resolve_gang', description: "Resolve the gang threat", completed: false },
+    ],
+    rewards: {
+      gold: 25,
+      xp: 80,
+    },
+    prerequisites: ['q_ch2_survive_streets'],
+  },
+
+  'q_side_arcade_debt': {
+    id: 'q_side_arcade_debt',
+    title: "House Always Wins",
+    type: 'side',
+    status: 'locked',
+    description: "Wren is calling in a favour — and when Wren calls, the smart money says you listen. The job: retrieve a ledger from a rival gambling den before dawn.",
+    objectives: [
+      { id: 'obj_find_ledger', description: "Locate the rival den's ledger", completed: false },
+      { id: 'obj_return_ledger', description: "Return the ledger to Wren", completed: false },
+    ],
+    rewards: {
+      gold: 30,
+      xp: 75,
+      feats: ['feat_light_fingers'],
+    },
+    prerequisites: [],
+  },
+
+  'q_side_dance_showcase': {
+    id: 'q_side_dance_showcase',
+    title: "The Showcase",
+    type: 'side',
+    status: 'locked',
+    description: "Charlie is entering students in the city's annual dance showcase — and they want you on the programme. Three weeks of gruelling rehearsal stand between you and the stage.",
+    objectives: [
+      { id: 'obj_reach_dance_40', description: "Raise dancing skill to 40", completed: false },
+      { id: 'obj_perform_showcase', description: "Perform at the annual showcase", completed: false },
+    ],
+    rewards: {
+      gold: 20,
+      xp: 100,
+      feats: ['feat_performer'],
+    },
+    prerequisites: [],
+  },
+
+  'q_side_park_mystery': {
+    id: 'q_side_park_mystery',
+    title: "The Withered Garden",
+    type: 'side',
+    status: 'locked',
+    description: "Something is killing the plants in the town park overnight — not disease, not drought. The groundskeeper is at their wits' end. Getting to the bottom of it means a few late nights on watch.",
+    objectives: [
+      { id: 'obj_investigate_park', description: "Investigate the park at night", completed: false },
+      { id: 'obj_stop_culprit', description: "Stop whatever is killing the plants", completed: false },
+    ],
+    rewards: {
+      gold: 10,
+      xp: 60,
+    },
+    prerequisites: [],
+  },
+
+  'q_side_shopping_heist': {
+    id: 'q_side_shopping_heist',
+    title: "Five-Finger Discount",
+    type: 'side',
+    status: 'locked',
+    description: "An anonymous note slipped under your door describes a jeweller in the shopping centre who receives stolen goods and blackmails suppliers. Brynjolf wants the evidence — and a cut of anything valuable.",
+    objectives: [
+      { id: 'obj_find_evidence', description: "Find evidence of the jeweller's dealings", completed: false },
+      { id: 'obj_deliver_evidence', description: "Deliver the evidence to Brynjolf", completed: false },
+    ],
+    rewards: {
+      gold: 35,
+      xp: 85,
+    },
+    prerequisites: ['q_ch4_thieves_guild'],
+  },
+
+  'q_side_strip_audition': {
+    id: 'q_side_strip_audition',
+    title: "Under the Spotlight",
+    type: 'side',
+    status: 'locked',
+    description: "Darryl is desperate — their headlining dancer is ill and the club is booked solid for the week. They've asked if you could fill in. The money is serious, and Darryl doesn't forget a favour.",
+    objectives: [
+      { id: 'obj_reach_dance_30', description: "Raise dancing skill to 30", completed: false },
+      { id: 'obj_complete_3_nights', description: "Complete 3 nights at the club", completed: false, count: 0, required_count: 3 },
+    ],
+    rewards: {
+      gold: 50,
+      xp: 90,
+    },
+    prerequisites: [],
+  },
+
+  'q_side_swamp_herb': {
+    id: 'q_side_swamp_herb',
+    title: "Root and Rot",
+    type: 'side',
+    status: 'locked',
+    description: "A rare medicinal herb only grows in the swamp's deepest reaches. Harper needs a supply for the hospital — but the swamp is home to things that bite, sting, and worse.",
+    objectives: [
+      { id: 'obj_gather_herbs', description: "Gather 5 swamp herbs", completed: false, count: 0, required_count: 5 },
+      { id: 'obj_return_to_harper', description: "Deliver the herbs to Harper", completed: false },
+    ],
+    rewards: {
+      gold: 20,
+      xp: 70,
+    },
+    prerequisites: [],
+  },
+
+  'q_side_wolf_cave_pups': {
+    id: 'q_side_wolf_cave_pups',
+    title: "The Wolf Mother",
+    type: 'side',
+    status: 'locked',
+    description: "Hunters have killed a wolf near the cave system on the moor, leaving a litter of pups that won't survive the week alone. Eden thinks there's a way to ensure they're cared for — but it won't be easy.",
+    objectives: [
+      { id: 'obj_find_pups', description: "Locate the wolf pups in the cave", completed: false },
+      { id: 'obj_secure_pups', description: "Secure the pups' safety", completed: false },
+    ],
+    rewards: {
+      xp: 80,
+    },
+    prerequisites: [],
+  },
 };
 
 export const STARTING_QUESTS: Quest[] = [
