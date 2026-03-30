@@ -34,8 +34,10 @@ The MaxVP initiative aims to build a fully agentic, automated development workfl
 
 - **Quick Start Guide**: [docs/maxvp-quickstart.md](docs/maxvp-quickstart.md) - 5-minute automated setup
 - **Project Setup Guide**: [docs/maxvp-project-setup.md](docs/maxvp-project-setup.md) - Complete setup instructions
+- **Architecture Diagram**: [docs/maxvp-architecture.md](docs/maxvp-architecture.md) - System overview and integration points
 - **Roadmap Overview**: [docs/agentic-roadmap.md](docs/agentic-roadmap.md) - Strategic breakdown of automation sub-issues
 - **Roadmap Definition**: [docs/agentic-roadmap.json](docs/agentic-roadmap.json) - Machine-readable roadmap data
+- **Implementation Summary**: [docs/IMPLEMENTATION_SUMMARY.md](docs/IMPLEMENTATION_SUMMARY.md) - What was delivered
 
 ### Automation Scripts
 
