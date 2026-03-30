@@ -1,0 +1,107 @@
+{
+  "epic": "MaxVP agentic full-stack automation",
+  "owner": "codex[agent]",
+  "issues": [
+    {
+      "title": "[MaxVP][P0] Bootstrap GitHub Project + live roadmap sync",
+      "body_lines": [
+        "Stand up a Projects V2 board dedicated to MaxVP and wire it to the repo so roadmap items stay in sync automatically.",
+        "- Create a project named \"MaxVP Agentic\" with custom fields: Status, Priority, Owner, Iteration, Risk.",
+        "- Add board/table/timeline views, filters for priority, and saved view for agent-owned work.",
+        "- Run `.github/workflows/sync-agentic-roadmap.yml` with `project-number` set to the new project number so roadmap items are added automatically.",
+        "- Document the project URL and workflow invocation in the README/docs.",
+        "",
+        "Acceptance criteria:",
+        "- Project exists with fields + views above.",
+        "- Roadmap sync workflow can add/update all items into the project.",
+        "- At least one run demonstrates items land in correct lanes."
+      ],
+      "labels": ["roadmap", "maxvp", "automation", "area:projects", "priority:P0"],
+      "assignees": []
+    },
+    {
+      "title": "[MaxVP][P0] Codespaces + devcontainer parity",
+      "body_lines": [
+        "Create a Codespaces/devcontainer definition so agent and human contributors get identical environments.",
+        "- Base on Node 20+, include npm and pnpm, and cache node_modules.",
+        "- Preconfigure scripts/tasks for `npm install`, `npm run dev`, `npm run test`, and linting.",
+        "- Surface required secrets (GEMINI_API_KEY) via devcontainer features or docs and fail fast when missing.",
+        "- Validate start-to-first-render < 2 minutes on fresh Codespace.",
+        "",
+        "Acceptance criteria:",
+        "- devcontainer.json checked in and works with Codespaces.",
+        "- All repo scripts run without additional manual setup.",
+        "- Docs updated for Codespaces usage."
+      ],
+      "labels": ["roadmap", "maxvp", "automation", "area:codespaces", "priority:P0"],
+      "assignees": []
+    },
+    {
+      "title": "[MaxVP][P1] Agentic triage for issues and PRs",
+      "body_lines": [
+        "Automate intake and triage so issues/PRs are labeled, assigned, and routed without manual effort.",
+        "- Add templates for bugs/feature requests/agent tasks with required metadata (area, priority, env).",
+        "- Create automation (GitHub Action or bot) that applies labels, assigns default owners, and adds to the MaxVP project on open/update.",
+        "- Enable auto-comment with next steps/checklist for new PRs, including test matrix to run.",
+        "- Optional: auto-close stale items with clear warnings and labels.",
+        "",
+        "Acceptance criteria:",
+        "- New issues/PRs receive labels and land in the project automatically.",
+        "- Templates collect the metadata listed above.",
+        "- Triage bot behavior is documented."
+      ],
+      "labels": ["roadmap", "maxvp", "automation", "area:triage", "priority:P1"],
+      "assignees": []
+    },
+    {
+      "title": "[MaxVP][P1] Autonomous CI/CD lane for MaxVP",
+      "body_lines": [
+        "Expand CI so agents can ship confidently with guardrails and fast feedback.",
+        "- Matrix: lint, typecheck, unit tests, build (Vite) with caching and minimal wall-clock time.",
+        "- Add preview build artifact upload (dist) for PRs and a smoke `npm run build` gate.",
+        "- Wire status checks to block merges until green; surface flaky test reporting if present.",
+        "- Add deployment hook (manual or environment-gated) to push successful builds to the target environment.",
+        "",
+        "Acceptance criteria:",
+        "- CI workflow exists with the matrix above and runs on PRs.",
+        "- Artifacts are downloadable from the run.",
+        "- Checks are enforced in branch protection or documented for enablement."
+      ],
+      "labels": ["roadmap", "maxvp", "automation", "area:cicd", "priority:P1"],
+      "assignees": []
+    },
+    {
+      "title": "[MaxVP][P1] Agent swarm hooks for SimulationEngine + Horde",
+      "body_lines": [
+        "Connect sim/agent workloads (e.g., Horde jobs in `SimulationEngine.ts`) to GitHub automation for observability and feedback loops.",
+        "- Add a workflow that can trigger Horde jobs from labels or comments and report status back to the thread.",
+        "- Persist job IDs and results in a lightweight store (repo JSON or db) for auditability.",
+        "- Emit metrics/logs to project dashboards (issue comments or project fields).",
+        "- Document how agents invoke the hook and how failures are surfaced.",
+        "",
+        "Acceptance criteria:",
+        "- A manual or comment-triggered workflow can start a Horde job and post the result.",
+        "- Job metadata is stored and queryable in-repo.",
+        "- Usage is documented with examples."
+      ],
+      "labels": ["roadmap", "maxvp", "automation", "area:sim", "priority:P1"],
+      "assignees": []
+    },
+    {
+      "title": "[MaxVP][P2] Runbooks + dashboards for agentic ops",
+      "body_lines": [
+        "Create persistent documentation and dashboards so agents/humans can see state of the world at a glance.",
+        "- Add runbooks for triage, CI failures, and deployment with copy/paste commands.",
+        "- Maintain a living status page (md or dashboard) linked from README with key KPIs (CI pass rate, open P0s, latest deploy).",
+        "- Ensure all workflows and bots are discoverable with pointers to logs and recovery steps.",
+        "",
+        "Acceptance criteria:",
+        "- Runbooks exist and are linked.",
+        "- Status page/dashboard is updated by automation or documented manual step.",
+        "- Onboarding doc references these assets."
+      ],
+      "labels": ["roadmap", "maxvp", "automation", "area:docs", "priority:P2"],
+      "assignees": []
+    }
+  ]
+}
