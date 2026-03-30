@@ -19,7 +19,33 @@ View your app in AI Studio: https://ai.studio/apps/c27ece4c-b654-4b65-a8ce-77dae
 3. Run the app:
    `npm run dev`
 
-## MaxVP agentic roadmap
+## MaxVP Agentic Roadmap
 
-- Roadmap: see `docs/agentic-roadmap.md` for the breakdown of automation sub-issues.
-- To open/update the issues automatically, run the **Sync Agentic Roadmap** workflow and (optionally) supply your Projects V2 `project-number`.
+The MaxVP initiative aims to build a fully agentic, automated development workflow using GitHub's full feature set.
+
+### Getting Started
+
+1. **Quick Setup (5 minutes)**: Follow [docs/maxvp-quickstart.md](docs/maxvp-quickstart.md) for automated project creation
+2. **Detailed Setup**: Or see [docs/maxvp-project-setup.md](docs/maxvp-project-setup.md) for manual setup instructions
+3. **Sync Roadmap Items**: Run the **Sync Agentic Roadmap** workflow with your project number
+4. **Track Progress**: View the project board to see all MaxVP work items organized by priority and status
+
+### Documentation
+
+- **Quick Start Guide**: [docs/maxvp-quickstart.md](docs/maxvp-quickstart.md) - 5-minute automated setup
+- **Project Setup Guide**: [docs/maxvp-project-setup.md](docs/maxvp-project-setup.md) - Complete setup instructions
+- **Roadmap Overview**: [docs/agentic-roadmap.md](docs/agentic-roadmap.md) - Strategic breakdown of automation sub-issues
+- **Roadmap Definition**: [docs/agentic-roadmap.json](docs/agentic-roadmap.json) - Machine-readable roadmap data
+
+### Automation Scripts
+
+- **Create Project**: `./scripts/create-maxvp-project.sh` - Automatically create the GitHub project with all fields
+- **Verify Setup**: `./scripts/verify-project-setup.sh` - Verify project configuration and roadmap sync status
+
+### Project Board
+
+Once set up, your project board will be available at:
+- **User projects**: `https://github.com/users/romeytheAI/projects/{NUMBER}`
+- **Org projects**: `https://github.com/orgs/{ORG}/projects/{NUMBER}`
+
+Replace `{NUMBER}` with your project number after creation.
