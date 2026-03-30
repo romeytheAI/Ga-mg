@@ -5,11 +5,21 @@ export const LOCATIONS: Record<string, any> = {
     atmosphere: "cold, damp, smelling of stale porridge, unwashed bodies, and the sharp tang of Nordic lye soap",
     danger: 5,
     x: 80, y: 70,
-    npcs: ['constance_michel', 'grelod_the_kind'],
+    npcs: ['constance_michel', 'grelod_the_kind', 'robin', 'bailey'],
     description: "Your 'home' in the Grey Quarter of Riften. A bleak, timber-and-stone longhouse with a sagging sod roof that leaks during Skyrim's frequent rains. The drafty windows offer no protection from the biting winds that sweep down from the Jerall Mountains. The children here are thin and fearful, their eyes darting to the shadows where Matron Grelod might be lurking. The air is thick with unspoken misery, the smell of stale cabbage soup, and the desperate hope of one day escaping into the streets of Riften. Every creaking floorboard serves as a reminder of the punishments that await the disobedient.",
     actions: [
       { id: 'sleep', label: "Sleep in your cot", intent: "neutral", outcome: "You curl up on the thin, lumpy mattress, pulling the scratchy wool blanket tight. You try to ignore the cold and the muffled sobs of the younger children. You wake up feeling slightly more rested, though your muscles ache from the hard wooden slats.", stat_deltas: { stamina: 30, stress: -10, lust: -5 } },
       { id: 'clean_floors', label: "Scrub the stone floors", intent: "work", skill_check: { stat: "stamina", difficulty: 40 }, outcome: "You spend hours on your knees, your hands raw and bleeding from the harsh lye soap. The cold stone bites into your joints. For your grueling labor, you are tossed a small, moldy crust of bread.", fail_outcome: "Your arms give out and you collapse from exhaustion before finishing the grand hall. Grelod finds you and beats you mercilessly with her cane, leaving welts across your back.", stat_deltas: { stamina: -15, stress: 5, purity: 2 }, fail_stat_deltas: { stamina: -20, pain: 10, stress: 15, trauma: 5 }, new_items: [{ name: "Stale Bread Crust", type: "consumable", rarity: "common", description: "Hard as a rock and speckled with mold, but hunger makes it a feast." }] },
+      { id: 'talk_constance', label: "Talk to Sister Constance", intent: "social", npc: "constance_michel", hours_passed: 1 },
+      { id: 'flirt_constance', label: "Compliment Sister Constance", intent: "flirt", npc: "constance_michel", hours_passed: 1 },
+      { id: 'gift_constance', label: "Give a gift to Sister Constance", intent: "gift", npc: "constance_michel", hours_passed: 1 },
+      { id: 'confront_grelod', label: "Confront Matron Grelod", intent: "threaten", npc: "grelod_the_kind", hours_passed: 1 },
+      { id: 'bribe_grelod', label: "Offer Grelod a bribe", intent: "gift", npc: "grelod_the_kind", hours_passed: 1 },
+      { id: 'talk_robin', label: "Spend time with Robin", intent: "social", npc: "robin", hours_passed: 1 },
+      { id: 'flirt_robin', label: "Flirt with Robin", intent: "flirt", npc: "robin", hours_passed: 1 },
+      { id: 'gift_robin', label: "Give Robin a small gift", intent: "gift", npc: "robin", hours_passed: 1 },
+      { id: 'talk_bailey', label: "Speak with Bailey", intent: "social", npc: "bailey", hours_passed: 1 },
+      { id: 'work_bailey', label: "Negotiate with Bailey about chores", intent: "work", npc: "bailey", hours_passed: 1 },
       { id: 'travel_market', label: "Sneak out to the Town Square", intent: "stealth", skill_check: { stat: "willpower", difficulty: 30 }, outcome: "You wait for Constance to turn her back, slipping past the heavy oak doors and into the relative freedom of the city streets.", fail_outcome: "Grelod catches you by the ear just as you reach the door! You manage to wriggle free and run, but not before taking a stinging blow to the side of your head.", stat_deltas: { stamina: -5 }, fail_stat_deltas: { pain: 10, health: -5, stress: 15 }, new_location: 'town_square' },
       { id: 'travel_academy', label: "Head to the School", intent: "travel", outcome: "You make the long, cold trek to the town school, clutching your meager belongings.", stat_deltas: { stamina: -10 }, new_location: 'school' }
     ]
@@ -20,11 +30,29 @@ export const LOCATIONS: Record<string, any> = {
     atmosphere: "smelling of old parchment, lute rosin, and strict Nordic discipline",
     danger: 10,
     x: 60, y: 30,
-    npcs: [],
+    npcs: ['whitney', 'kylar', 'avery', 'sydney', 'leighton', 'river', 'doren', 'mason'],
     description: "A strict institution of learning in Solitude, funded by Jarl Elisif and the East Empire Company. The stone halls echo with droning lectures on Nordic history and the sharp crack of the headmaster's switch. The instructors are unforgiving Nords who demand perfection, while the older, wealthier students from prominent holds often prey on the weak and impoverished orphans. The scent of ancient scrolls and inkwells is suffocating, a constant reminder of Tamriel's rigid expectations.",
     actions: [
       { id: 'attend_class', label: "Attend classes", intent: "education", skill_check: { stat: "willpower", difficulty: 40 }, outcome: "You focus intensely on the complex arcane theories and historical texts, feeling your mind expand despite the oppressive atmosphere.", fail_outcome: "Exhaustion overtakes you and you fall asleep at your desk. The instructor humiliates you in front of the entire class, making you wear the dunce cap.", stat_deltas: { willpower: 10, stress: 10, stamina: -10 }, fail_stat_deltas: { stress: 20, trauma: 5, stamina: -5 }, skill_deltas: { school_grades: 5 }, fail_skill_deltas: { school_grades: -2 } },
       { id: 'study_library', label: "Study in the Library", intent: "education", outcome: "You seek refuge in the dusty, silent library, spending hours poring over ancient tomes hidden in the back corners.", stat_deltas: { willpower: 5, stress: 5, stamina: -5 }, skill_deltas: { school_grades: 2 } },
+      { id: 'talk_whitney', label: "Talk to Whitney", intent: "social", npc: "whitney", hours_passed: 1 },
+      { id: 'flirt_whitney', label: "Flirt with Whitney", intent: "flirt", npc: "whitney", hours_passed: 1 },
+      { id: 'confront_whitney', label: "Stand up to Whitney", intent: "threaten", npc: "whitney", hours_passed: 1 },
+      { id: 'talk_kylar', label: "Approach Kylar", intent: "social", npc: "kylar", hours_passed: 1 },
+      { id: 'flirt_kylar', label: "Flirt with Kylar", intent: "flirt", npc: "kylar", hours_passed: 1 },
+      { id: 'gift_kylar', label: "Give Kylar a gift", intent: "gift", npc: "kylar", hours_passed: 1 },
+      { id: 'talk_avery', label: "Chat with Avery", intent: "social", npc: "avery", hours_passed: 1 },
+      { id: 'flirt_avery', label: "Flirt with Avery", intent: "flirt", npc: "avery", hours_passed: 1 },
+      { id: 'talk_sydney', label: "Talk to Sydney", intent: "social", npc: "sydney", hours_passed: 1 },
+      { id: 'gift_sydney', label: "Give Sydney a gift", intent: "gift", npc: "sydney", hours_passed: 1 },
+      { id: 'talk_leighton', label: "Speak with Leighton", intent: "social", npc: "leighton", hours_passed: 1 },
+      { id: 'work_leighton', label: "Work alongside Leighton", intent: "work", npc: "leighton", hours_passed: 2 },
+      { id: 'talk_river', label: "Chat with River", intent: "social", npc: "river", hours_passed: 1 },
+      { id: 'flirt_river', label: "Flirt with River", intent: "flirt", npc: "river", hours_passed: 1 },
+      { id: 'talk_doren', label: "Talk to Doren", intent: "social", npc: "doren", hours_passed: 1 },
+      { id: 'confront_doren', label: "Confront Doren", intent: "threaten", npc: "doren", hours_passed: 1 },
+      { id: 'talk_mason', label: "Speak with Mason", intent: "social", npc: "mason", hours_passed: 1 },
+      { id: 'gift_mason', label: "Give Mason a gift", intent: "gift", npc: "mason", hours_passed: 1 },
       { id: 'travel_market', label: "Walk to the Town Square", intent: "travel", outcome: "You leave the stifling school grounds and head towards the bustling noise of the square.", stat_deltas: { stamina: -10 }, new_location: 'town_square' },
       { id: 'travel_orphanage', label: "Return to the Orphanage", intent: "travel", outcome: "With a heavy heart, you trudge back to the bleak walls of the orphanage.", stat_deltas: { stamina: -10 }, new_location: 'orphanage' }
     ]
@@ -35,12 +63,21 @@ export const LOCATIONS: Record<string, any> = {
     atmosphere: "bustling, smelling of fresh bread, roasting venison, woodsmoke, and the damp mist from Lake Honrich",
     danger: 20,
     x: 82, y: 68,
-    npcs: ['brynjolf', 'brand_shei'],
+    npcs: ['brynjolf', 'brand_shei', 'avery'],
     description: "The vibrant, chaotic heart of Riften. Merchant stalls line the canal walkways, selling everything from Black-Briar mead to stolen Dwemer trinkets. Wealthy Nord merchants in fine furs brush past ragged Argonian beggars. Members of the Thieves Guild and Riften guards eye each other warily across the crowded plaza beneath the shadow of Mistveil Keep. It's a place of opportunity, but also immense danger for an unprotected youth. The cacophony of shouting vendors, clinking septims, and the splashing of canal water is overwhelming.",
     actions: [
       { id: 'work_stall', label: "Work at a merchant stall", intent: "work", skill_check: { stat: "stamina", difficulty: 30 }, outcome: "You spend the day hauling heavy crates and shouting prices until your throat is raw. It's exhausting, backbreaking work, but the merchant tosses you a few coins at the end of the day.", fail_outcome: "Your tired arms give out and you drop a crate of fragile glass goods. The merchant screams at you and fires you without pay, threatening to call the guards.", stat_deltas: { stamina: -20, stress: 10 }, fail_stat_deltas: { stamina: -10, stress: 20, trauma: 2 }, new_items: [{ name: "Gold Coin", type: "misc", rarity: "common", description: "The currency of the realm. Cold, hard, and necessary." }, { name: "Gold Coin", type: "misc", rarity: "common", description: "The currency of the realm. Cold, hard, and necessary." }] },
       { id: 'beg_gold', label: "Beg for coins", intent: "social", skill_check: { stat: "purity", difficulty: 20 }, outcome: "You put on your most pathetic expression. A wealthy merchant, perhaps feeling a twinge of guilt, tosses a single coin at your feet with a look of profound pity.", fail_outcome: "A passing town guard kicks dirt at you, calling you a nuisance and threatening to throw you in the dungeons if you don't move along.", stat_deltas: { purity: -5, stress: 5 }, fail_stat_deltas: { stress: 10, trauma: 5 }, new_items: [{ name: "Gold Coin", type: "misc", rarity: "common", description: "The currency of the realm. Cold, hard, and necessary." }] },
       { id: 'buy_food', label: "Scrounge a hot meal from a vendor", intent: "social", outcome: "You linger near a food stall looking hungry and pathetic until the vendor, sighing heavily, shoves a bowl of lukewarm stew at you. It's not much, but it fills the hollow ache in your belly.", stat_deltas: { stamina: 10, stress: -10 } },
+      { id: 'talk_brynjolf', label: "Talk to Brynjolf", intent: "social", npc: "brynjolf", hours_passed: 1 },
+      { id: 'flirt_brynjolf', label: "Flirt with Brynjolf", intent: "flirt", npc: "brynjolf", hours_passed: 1 },
+      { id: 'confront_brynjolf', label: "Confront Brynjolf", intent: "threaten", npc: "brynjolf", hours_passed: 1 },
+      { id: 'talk_brand_shei', label: "Browse Brand-Shei's stall", intent: "social", npc: "brand_shei", hours_passed: 1 },
+      { id: 'work_brand_shei', label: "Help Brand-Shei at his stall", intent: "work", npc: "brand_shei", hours_passed: 2 },
+      { id: 'gift_brand_shei', label: "Trade gifts with Brand-Shei", intent: "gift", npc: "brand_shei", hours_passed: 1 },
+      { id: 'talk_avery', label: "Talk to Avery", intent: "social", npc: "avery", hours_passed: 1 },
+      { id: 'flirt_avery', label: "Flirt with Avery", intent: "flirt", npc: "avery", hours_passed: 1 },
+      { id: 'gift_avery', label: "Give Avery a gift", intent: "gift", npc: "avery", hours_passed: 1 },
       { id: 'travel_orphanage', label: "Return to the Orphanage", intent: "travel", outcome: "You trudge back to the orphanage, dreading the matron's inevitable wrath.", stat_deltas: { stamina: -5 }, new_location: 'orphanage' },
       { id: 'travel_alleyways', label: "Slip into the Alleyways", intent: "stealth", outcome: "You find a dark, narrow path leading away from the crowds and into the dangerous, shadowed alleyways.", stat_deltas: { stress: 10 }, new_location: 'alleyways' },
       { id: 'travel_docks', label: "Head to the Docks", intent: "travel", outcome: "You walk down the sloping streets towards the misty, salt-smelling docks.", stat_deltas: { stamina: -5 }, new_location: 'docks' },
@@ -60,7 +97,7 @@ export const LOCATIONS: Record<string, any> = {
     atmosphere: "peaceful, smelling of blooming nightshade, mountain flowers, and Cyrodiilic incense",
     danger: 5,
     x: 85, y: 65,
-    npcs: [],
+    npcs: ['jordan'],
     description: "A rare place of tranquility in Riften, dedicated to the Divine Mara. Priests in amber robes tend the ancient gardens, and citizens come to pray for love and peace beneath the Gildergreen saplings. The shadows under the large, ancient Hist-like trees offer seclusion, and the air is thick with the sweet, heady scent of blooming nightshade and Cyrodiilic incense. The gentle trickle of a stone fountain carved with Mara's blessing provides a soothing backdrop to the quiet murmurs of the devout.",
     actions: [
       { id: 'pray', label: "Pray at the altar", intent: "neutral", outcome: "You kneel before the altar. A sense of calm washes over you.", stat_deltas: { stress: -20, trauma: -5, purity: 5 } },
@@ -68,6 +105,9 @@ export const LOCATIONS: Record<string, any> = {
       { id: 'drink_fountain', label: "Drink from the temple fountain", intent: "neutral", outcome: "The fountain water is clean and cold. You drink deeply, feeling refreshed.", stat_deltas: { stamina: 5 } },
       { id: 'wash_fountain', label: "Wash in the fountain", intent: "neutral", outcome: "You cup the cool, clear water and wash your face and hands. The grime of the streets dissolves away, and you feel a little more presentable.", stat_deltas: { stress: -5, hygiene: 8, purity: 2 }, hours_passed: 1 },
       { id: 'tend_garden', label: "Help tend the gardens", intent: "work", outcome: "The priests welcome your help weeding and watering the flower beds. The honest labor in the sunshine feels good.", stat_deltas: { stamina: -15, stress: -10, purity: 3 }, skill_deltas: { housekeeping: 2, tending: 3 }, hours_passed: 2 },
+      { id: 'talk_jordan', label: "Speak with Jordan", intent: "social", npc: "jordan", hours_passed: 1 },
+      { id: 'gift_jordan', label: "Give Jordan a gift", intent: "gift", npc: "jordan", hours_passed: 1 },
+      { id: 'confront_jordan', label: "Question Jordan's faith", intent: "threaten", npc: "jordan", hours_passed: 1 },
       { id: 'travel_market', label: "Return to the Town Square", intent: "travel", outcome: "You leave the peace of the gardens behind.", stat_deltas: { stamina: -5 }, new_location: 'town_square' },
       { id: 'travel_wilds', label: "Wander into the Forest", intent: "travel", outcome: "You slip out the city gates into the dense forest.", stat_deltas: { stamina: -10 }, new_location: 'forest' }
     ]
@@ -135,7 +175,7 @@ export const LOCATIONS: Record<string, any> = {
     atmosphere: "hazy, sweet-smelling, the scent of Dibella's oils and hushed indiscretions",
     danger: 70,
     x: 80, y: 75,
-    npcs: [],
+    npcs: ['briar'],
     description: "Hidden behind the respectable facade of a bunkhouse in Riften's lower district, Haelga runs a secret den devoted to Dibella's more carnal rites. Patrons lie on plush fur-draped beds, lost in skooma hazes or engaging in base desires. The air itself makes you feel lightheaded and flushed, thick with the scent of Nibenese perfumes, mead-sweat, and spilled Alto wine. Dibella's statues watch from every alcove, their stone eyes seemingly alive in the dim, suggestive candlelight.",
     actions: [
       { id: 'serve_drinks', label: "Serve drinks (and more)", intent: "work", skill_check: { stat: "lust", difficulty: 50 }, outcome: "You navigate the handsy patrons, earning a significant amount of coin, though you feel degraded.", fail_outcome: "A patron gets too aggressive. You manage to escape, but you are shaken and unpaid.", stat_deltas: { stamina: -15, stress: 20, lust: 15, purity: -10, trauma: 5 }, fail_stat_deltas: { pain: 10, stress: 30, trauma: 15, lust: 20 }, new_items: [{ name: "Gold Coin", type: "misc", rarity: "common", description: "The currency of the realm." }, { name: "Gold Coin", type: "misc", rarity: "common", description: "The currency of the realm." }, { name: "Gold Coin", type: "misc", rarity: "common", description: "The currency of the realm." }] },
@@ -144,6 +184,9 @@ export const LOCATIONS: Record<string, any> = {
       { id: 'hire_staff_brothel', label: "Hire a member of staff (25 gold/day)", intent: "social", skill_check: { stat: "allure", difficulty: 40 }, outcome: "You find a willing worker and negotiate terms. Having reliable staff will increase your daily earnings.", fail_outcome: "No one suitable is looking for work today. Try again another time.", stat_deltas: { stress: 5 }, fail_stat_deltas: { stress: 10, stamina: -5 }, hours_passed: 2 },
       { id: 'set_prices_brothel', label: "Review and adjust pricing", intent: "neutral", outcome: "You study the competition's rates and adjust your own prices thoughtfully. Better pricing means better income without alienating patrons.", stat_deltas: { stress: -3, willpower: 2 }, skill_deltas: { seduction: 1 }, hours_passed: 1 },
       { id: 'collect_earnings_brothel', label: "Collect the night's earnings", intent: "neutral", outcome: "You count the coins from the evening's takings. The business is paying off — slowly, painfully, but it's paying off.", stat_deltas: { stress: -5 }, hours_passed: 1 },
+      { id: 'talk_briar', label: "Talk to Briar", intent: "social", npc: "briar", hours_passed: 1 },
+      { id: 'flirt_briar', label: "Flirt with Briar", intent: "flirt", npc: "briar", hours_passed: 1 },
+      { id: 'gift_briar', label: "Give Briar a gift", intent: "gift", npc: "briar", hours_passed: 1 },
       { id: 'travel_alleyways', label: "Flee back to the Alleyways", intent: "flee", outcome: "You stumble out of the hazy den, gasping for cleaner air.", stat_deltas: { stamina: -5, stress: -5 }, new_location: 'alleyways' }
     ]
   },
@@ -153,7 +196,7 @@ export const LOCATIONS: Record<string, any> = {
     atmosphere: "smelling of hay, honeycomb, and rich Rift soil",
     danger: 15,
     x: 95, y: 65,
-    npcs: [],
+    npcs: ['alex'],
     description: "A sprawling bee farm and wheat estate on the island in Lake Honrich, connected to the mainland by a narrow bridge. Fields of wheat stretch out like a golden sea under the amber-leafed trees of the Rift, and large Nordic barns house honeybee apiaries. The farmhands are gruff Nords who leave you alone if you work hard. The smell of honey, hay, and rich earth is strong, a stark contrast to the stench of Riften's alleys.",
     actions: [
       { id: 'farm_labor', label: "Do manual labor in the fields", intent: "work", skill_check: { stat: "stamina", difficulty: 50 }, outcome: "Backbreaking work under the sun. You are exhausted but paid.", fail_outcome: "You collapse from the heat. The farmer yells at you and kicks you off the property.", stat_deltas: { stamina: -30, stress: 5 }, fail_stat_deltas: { health: -10, stamina: -40, pain: 10, stress: 15 }, new_items: [{ name: "Gold Coin", type: "misc", rarity: "common", description: "The currency of the realm." }, { name: "Gold Coin", type: "misc", rarity: "common", description: "The currency of the realm." }] },
@@ -161,6 +204,10 @@ export const LOCATIONS: Record<string, any> = {
       { id: 'sleep_barn', label: "Sleep in the barn hay loft", intent: "neutral", outcome: "You burrow into the warm, sweet-smelling hay in the barn loft. The gentle sounds of the animals below are oddly comforting. You sleep deeply.", stat_deltas: { stamina: 35, stress: -15 }, hours_passed: 8 },
       { id: 'eat_garden', label: "Steal vegetables from the garden", intent: "stealth", skill_check: { stat: "willpower", difficulty: 35 }, outcome: "You grab a handful of carrots and a turnip from the kitchen garden when no one is looking. Your stomach growls in anticipation.", fail_outcome: "The farmer's dog spots you and barks furiously! You drop the vegetables and run.", stat_deltas: { stress: 5 }, fail_stat_deltas: { stress: 15, stamina: -10 }, skill_deltas: { skulduggery: 1 } },
       { id: 'tend_crops', label: "Help tend the crops", intent: "work", outcome: "You spend the afternoon weeding, watering, and checking the wheat for blight. The farmer nods approvingly at your work.", stat_deltas: { stamina: -15, stress: -5, willpower: 3 }, skill_deltas: { tending: 4 }, hours_passed: 3 },
+      { id: 'talk_alex', label: "Talk to Alex", intent: "social", npc: "alex", hours_passed: 1 },
+      { id: 'flirt_alex', label: "Flirt with Alex", intent: "flirt", npc: "alex", hours_passed: 1 },
+      { id: 'work_alex', label: "Work alongside Alex", intent: "work", npc: "alex", hours_passed: 2 },
+      { id: 'gift_alex', label: "Give Alex a gift", intent: "gift", npc: "alex", hours_passed: 1 },
       { id: 'travel_wilds', label: "Head into the Forest", intent: "travel", outcome: "You leave the cultivated fields for the untamed forest.", stat_deltas: { stamina: -10 }, new_location: 'forest' }
     ]
   },
@@ -280,6 +327,9 @@ export const LOCATIONS: Record<string, any> = {
       { id: 'buy_medicine', label: "Buy medicine from the pharmacy", intent: "social", outcome: "You purchase a small vial of healing tonic from the pharmacy counter. It costs dearly.", stat_deltas: {}, new_items: [{ name: "Healing Tonic", type: "consumable", rarity: "uncommon", description: "A professionally prepared medicine. Bitter but effective." }] },
       { id: 'rest_ward', label: "Rest in the ward", intent: "neutral", outcome: "You lie down on a thin cot in the crowded ward. The groans of the other patients are disturbing, but the rest helps your body recover.", stat_deltas: { stamina: 25, health: 10, stress: 5, pain: -10 }, hours_passed: 6 },
       { id: 'volunteer', label: "Volunteer as a nurse's aide", intent: "work", skill_check: { stat: "willpower", difficulty: 40 }, outcome: "You help change bandages and carry bedpans. It's grim work, but the nuns thank you warmly and slip you a few coins.", fail_outcome: "You faint at the sight of a particularly gruesome wound. A nun helps you to a bench and gives you a glass of water.", stat_deltas: { stamina: -15, stress: 10 }, fail_stat_deltas: { stamina: -10, stress: 15, trauma: 3 }, skill_deltas: { housekeeping: 2 }, new_items: [{ name: "Gold Coin", type: "misc", rarity: "common", description: "The currency of the realm." }] },
+      { id: 'talk_harper', label: "Talk to Harper", intent: "social", npc: "harper", hours_passed: 1 },
+      { id: 'flirt_harper', label: "Flirt with Harper", intent: "flirt", npc: "harper", hours_passed: 1 },
+      { id: 'gift_harper', label: "Give Harper a gift", intent: "gift", npc: "harper", hours_passed: 1 },
       { id: 'travel_market', label: "Return to the Town Square", intent: "travel", outcome: "You leave the hospital and walk back towards the square.", stat_deltas: { stamina: -5 }, new_location: 'town_square' }
     ]
   },
@@ -295,6 +345,9 @@ export const LOCATIONS: Record<string, any> = {
       { id: 'serve_sentence', label: "Serve your sentence", intent: "work", outcome: "You break rocks in the quarry under the blazing sun. The guards watch with casual cruelty, striking anyone who slows down.", stat_deltas: { stamina: -30, stress: 20, pain: 10, trauma: 5 }, skill_deltas: { athletics: 2 }, hours_passed: 8 },
       { id: 'plead_release', label: "Plead for release", intent: "social", skill_check: { stat: "willpower", difficulty: 60 }, outcome: "The warden considers your plea. After a long, uncomfortable silence, they wave you towards the gate. 'Don't let me see you again.'", fail_outcome: "The warden laughs in your face. 'You'll leave when I say you leave.' A guard shoves you back to your cell.", stat_deltas: { stress: 10 }, fail_stat_deltas: { stress: 20, trauma: 5, pain: 5 } },
       { id: 'escape_attempt', label: "Try to escape", intent: "stealth", skill_check: { stat: "willpower", difficulty: 75 }, outcome: "Under cover of darkness, you slip through a gap in the drainage grate. Freedom!", fail_outcome: "A guard spots you and sounds the alarm. The beating that follows is severe.", stat_deltas: { stamina: -20, stress: 15 }, fail_stat_deltas: { health: -20, pain: 25, stress: 30, trauma: 10 }, new_location: 'alleyways' },
+      { id: 'talk_landry', label: "Talk to Landry", intent: "social", npc: "landry", hours_passed: 1 },
+      { id: 'confront_landry', label: "Confront Landry about the conditions", intent: "threaten", npc: "landry", hours_passed: 1 },
+      { id: 'bribe_landry', label: "Offer Landry a bribe", intent: "gift", npc: "landry", hours_passed: 1 },
       { id: 'travel_market', label: "Leave (if free)", intent: "travel", outcome: "You walk out through the iron gates, blinking in the daylight.", stat_deltas: { stress: -10, stamina: -5 }, new_location: 'town_square' }
     ]
   },
@@ -310,6 +363,9 @@ export const LOCATIONS: Record<string, any> = {
       { id: 'dance_stage', label: "Dance on the stage", intent: "work", skill_check: { stat: "stamina", difficulty: 40 }, outcome: "You climb onto the stage and dance under the hot lights. The crowd watches, mesmerized. Coins rain down. You feel powerful and degraded in equal measure.", fail_outcome: "You stumble under the lights. The crowd jeers. Darryl waves you off the stage with a disappointed shake of their head.", stat_deltas: { stamina: -20, stress: 15, lust: 10, allure: 3, purity: -8 }, fail_stat_deltas: { stress: 20, trauma: 5 }, skill_deltas: { dancing: 4, seduction: 3 }, new_items: [{ name: "Gold Coin", type: "misc", rarity: "common", description: "The currency of the realm." }, { name: "Gold Coin", type: "misc", rarity: "common", description: "The currency of the realm." }, { name: "Gold Coin", type: "misc", rarity: "common", description: "The currency of the realm." }] },
       { id: 'bartend', label: "Work as a bartender", intent: "work", skill_check: { stat: "willpower", difficulty: 30 }, outcome: "You mix drinks and keep the glasses full. The patrons are handsy but you manage to keep them at arm's length. The tips are decent.", fail_outcome: "A drunk patron grabs you and won't let go. Darryl has to intervene. You get your pay but you're shaken.", stat_deltas: { stamina: -15, stress: 10 }, fail_stat_deltas: { stress: 20, trauma: 5, lust: 5 }, skill_deltas: { housekeeping: 2 }, new_items: [{ name: "Gold Coin", type: "misc", rarity: "common", description: "The currency of the realm." }, { name: "Gold Coin", type: "misc", rarity: "common", description: "The currency of the realm." }] },
       { id: 'private_show', label: "Give a private show", intent: "work", skill_check: { stat: "allure", difficulty: 50 }, outcome: "A wealthy patron pays handsomely for a private dance. The money is good, but you feel hollow inside.", fail_outcome: "The patron is unsatisfied and refuses to pay. You leave the booth feeling used.", stat_deltas: { stamina: -15, lust: 15, purity: -15, stress: 10, trauma: 5 }, fail_stat_deltas: { stress: 25, trauma: 10, purity: -5 }, skill_deltas: { seduction: 5, dancing: 2 }, new_items: [{ name: "Gold Coin", type: "misc", rarity: "common", description: "The currency of the realm." }, { name: "Gold Coin", type: "misc", rarity: "common", description: "The currency of the realm." }, { name: "Gold Coin", type: "misc", rarity: "common", description: "The currency of the realm." }, { name: "Gold Coin", type: "misc", rarity: "common", description: "The currency of the realm." }, { name: "Gold Coin", type: "misc", rarity: "common", description: "The currency of the realm." }] },
+      { id: 'talk_darryl', label: "Talk to Darryl", intent: "social", npc: "darryl", hours_passed: 1 },
+      { id: 'flirt_darryl', label: "Flirt with Darryl", intent: "flirt", npc: "darryl", hours_passed: 1 },
+      { id: 'work_darryl', label: "Ask Darryl about more work", intent: "work", npc: "darryl", hours_passed: 1 },
       { id: 'travel_alleyways', label: "Leave through the back door", intent: "travel", outcome: "You slip out the back entrance into the dark alley.", stat_deltas: { stamina: -3 }, new_location: 'alleyways' }
     ]
   },
@@ -325,6 +381,9 @@ export const LOCATIONS: Record<string, any> = {
       { id: 'take_lesson', label: "Take a dance lesson", intent: "education", skill_check: { stat: "stamina", difficulty: 35 }, outcome: "Charlie puts you through an intense practice session. Your muscles burn, but your movements are becoming more graceful and controlled.", fail_outcome: "You can't keep up with Charlie's pace and collapse in a heap. They sigh and send you to stretch on the side.", stat_deltas: { stamina: -20, stress: -10, allure: 2 }, fail_stat_deltas: { stamina: -15, stress: 5, pain: 5 }, skill_deltas: { dancing: 5, athletics: 2 }, fail_skill_deltas: { dancing: 1 }, hours_passed: 2 },
       { id: 'practice_alone', label: "Practice alone", intent: "neutral", outcome: "You practice basic moves in front of the mirror. Slowly, you're getting better.", stat_deltas: { stamina: -15, stress: -5 }, skill_deltas: { dancing: 2, athletics: 1 }, hours_passed: 1 },
       { id: 'watch_performance', label: "Watch an advanced performance", intent: "neutral", outcome: "You sit and watch the advanced dancers rehearse. Their grace is mesmerizing and inspiring.", stat_deltas: { stress: -10, willpower: 3 }, hours_passed: 1 },
+      { id: 'talk_charlie', label: "Talk to Charlie", intent: "social", npc: "charlie", hours_passed: 1 },
+      { id: 'flirt_charlie', label: "Flirt with Charlie", intent: "flirt", npc: "charlie", hours_passed: 1 },
+      { id: 'gift_charlie', label: "Give Charlie a gift", intent: "gift", npc: "charlie", hours_passed: 1 },
       { id: 'travel_market', label: "Walk to the Town Square", intent: "travel", outcome: "You leave the studio feeling lighter on your feet.", stat_deltas: { stamina: -5 }, new_location: 'town_square' }
     ]
   },
@@ -340,6 +399,9 @@ export const LOCATIONS: Record<string, any> = {
       { id: 'play_cards', label: "Play blackjack", intent: "social", skill_check: { stat: "willpower", difficulty: 45 }, outcome: "Lady luck smiles on you! You walk away from the table with more coin than you sat down with. Wren watches you with new interest.", fail_outcome: "You lose your stake. Wren smirks as the dealer sweeps your coins away. 'Better luck next time, kid.'", stat_deltas: { stress: 15 }, fail_stat_deltas: { stress: 20, trauma: 3 }, new_items: [{ name: "Gold Coin", type: "misc", rarity: "common", description: "The currency of the realm." }, { name: "Gold Coin", type: "misc", rarity: "common", description: "The currency of the realm." }, { name: "Gold Coin", type: "misc", rarity: "common", description: "The currency of the realm." }] },
       { id: 'play_dice', label: "Roll dice", intent: "social", skill_check: { stat: "willpower", difficulty: 35 }, outcome: "The dice tumble and land in your favour. You snatch up your winnings with a grin.", fail_outcome: "Snake eyes. You curse under your breath as you lose your coin.", stat_deltas: { stress: 10 }, fail_stat_deltas: { stress: 15 }, new_items: [{ name: "Gold Coin", type: "misc", rarity: "common", description: "The currency of the realm." }] },
       { id: 'watch_games', label: "Watch and learn", intent: "neutral", outcome: "You lean against the wall and study the players, watching for tells and strategies.", stat_deltas: { stress: -5, willpower: 3 }, skill_deltas: { skulduggery: 2 }, hours_passed: 1 },
+      { id: 'talk_wren', label: "Talk to Wren", intent: "social", npc: "wren", hours_passed: 1 },
+      { id: 'flirt_wren', label: "Flirt with Wren", intent: "flirt", npc: "wren", hours_passed: 1 },
+      { id: 'confront_wren', label: "Confront Wren about rigged games", intent: "threaten", npc: "wren", hours_passed: 1 },
       { id: 'travel_market', label: "Leave the arcade", intent: "travel", outcome: "You climb the stairs back into the daylight of the market.", stat_deltas: { stamina: -3 }, new_location: 'town_square' }
     ]
   },
@@ -399,7 +461,9 @@ export const LOCATIONS: Record<string, any> = {
     npcs: ['eden'],
     description: "A sturdy Nordic log cabin deep in the Rift forests, far from any hold road or Imperial patrol. Smoke curls from the stone chimney, and animal pelts — wolf, bear, sabre cat — hang on a drying rack outside. Inside, the cabin is spartan but well-maintained in the Nord tradition: a large fur-draped bed, a stone fireplace, a rough-hewn pine table, and shelves stacked with preserved venison and Skyrim hunting supplies. Eden lives here alone, self-sufficient and distrustful of the holds and their politics.",
     actions: [
-      { id: 'talk_eden', label: "Talk to Eden", intent: "social", outcome: "Eden sits by the fire, sharpening a hunting knife. They listen to you speak without interrupting, occasionally grunting in response. Being around them is strangely calming, despite their intensity.", stat_deltas: { stress: -15, willpower: 5 }, hours_passed: 1 },
+      { id: 'talk_eden', label: "Talk to Eden", intent: "social", npc: "eden", hours_passed: 1 },
+      { id: 'flirt_eden', label: "Flirt with Eden", intent: "flirt", npc: "eden", hours_passed: 1 },
+      { id: 'gift_eden', label: "Give Eden a gift", intent: "gift", npc: "eden", hours_passed: 1 },
       { id: 'help_chores', label: "Help with cabin chores", intent: "work", outcome: "You chop firewood, haul water from the stream, and mend a gap in the cabin wall. Eden nods approvingly at your work.", stat_deltas: { stamina: -20, stress: -10 }, skill_deltas: { housekeeping: 3, athletics: 2 }, hours_passed: 3 },
       { id: 'cook_eden', label: "Cook a meal together", intent: "work", outcome: "Eden shows you how to prepare venison stew with wild herbs. The smell is incredible. You eat together in companionable silence.", stat_deltas: { stamina: 15, stress: -15, pain: -5 }, skill_deltas: { cooking: 4 }, hours_passed: 2 },
       { id: 'sleep_cabin', label: "Sleep in the cabin", intent: "neutral", outcome: "You sleep in the warm cabin, the fire crackling gently. The thick log walls keep out the cold and the dangers of the forest.", stat_deltas: { stamina: 45, stress: -20, pain: -10 }, hours_passed: 8 },
@@ -451,6 +515,9 @@ export const LOCATIONS: Record<string, any> = {
       { id: 'browse_exhibits', label: "Browse the exhibits", intent: "education", outcome: "You wander through the hushed halls, studying the ancient artifacts. A display of pre-imperial weaponry catches your eye, and you spend an engrossing hour reading the plaques.", stat_deltas: { willpower: 5, stress: -10 }, skill_deltas: { school_grades: 2 }, hours_passed: 1 },
       { id: 'sell_antique', label: "Offer an antique to Winter", intent: "social", outcome: "Winter examines your offering with a magnifying glass, their eyes widening with scholarly excitement. 'A genuine piece! I'll give you a fair price.'", stat_deltas: { stress: -5 } },
       { id: 'volunteer_museum', label: "Volunteer as a guide", intent: "work", outcome: "You spend the afternoon giving tours to visitors. Winter teaches you about the exhibits between groups. It's surprisingly enjoyable.", stat_deltas: { stamina: -10, stress: -10, willpower: 5 }, skill_deltas: { school_grades: 3, housekeeping: 1 }, new_items: [{ name: "Gold Coin", type: "misc", rarity: "common", description: "The currency of the realm." }], hours_passed: 3 },
+      { id: 'talk_winter', label: "Talk to Winter", intent: "social", npc: "winter", hours_passed: 1 },
+      { id: 'flirt_winter', label: "Flirt with Winter", intent: "flirt", npc: "winter", hours_passed: 1 },
+      { id: 'gift_winter', label: "Give Winter a gift", intent: "gift", npc: "winter", hours_passed: 1 },
       { id: 'travel_market', label: "Return to the Town Square", intent: "travel", outcome: "You step out of the quiet museum into the bustle of the streets.", stat_deltas: { stamina: -3 }, new_location: 'town_square' }
     ]
   },
@@ -466,6 +533,9 @@ export const LOCATIONS: Record<string, any> = {
       { id: 'buy_meal', label: "Buy a hot meal", intent: "social", outcome: "Sam places a steaming bowl of stew and a thick slice of bread in front of you. It's simple but delicious. For a few precious minutes, you feel warm and full.", stat_deltas: { stamina: 20, stress: -15, pain: -5 }, hours_passed: 1 },
       { id: 'work_cafe', label: "Work as a server", intent: "work", skill_check: { stat: "stamina", difficulty: 30 }, outcome: "You spend the afternoon taking orders and clearing tables. Sam pays you fairly and lets you eat the leftover pastries.", fail_outcome: "You drop a tray of cups. Sam winces but tells you not to worry. You help clean up but don't get paid.", stat_deltas: { stamina: -15, stress: -5 }, fail_stat_deltas: { stress: 10, stamina: -10 }, skill_deltas: { housekeeping: 2, cooking: 1 }, new_items: [{ name: "Gold Coin", type: "misc", rarity: "common", description: "The currency of the realm." }], hours_passed: 3 },
       { id: 'study_cafe', label: "Study in the corner booth", intent: "education", outcome: "You tuck yourself into a quiet corner with a battered textbook. The warm atmosphere and background chatter help you focus.", stat_deltas: { stress: -5, willpower: 3 }, skill_deltas: { school_grades: 3 }, hours_passed: 2 },
+      { id: 'talk_sam', label: "Talk to Sam", intent: "social", npc: "sam", hours_passed: 1 },
+      { id: 'flirt_sam', label: "Flirt with Sam", intent: "flirt", npc: "sam", hours_passed: 1 },
+      { id: 'gift_sam', label: "Give Sam a gift", intent: "gift", npc: "sam", hours_passed: 1 },
       { id: 'travel_market', label: "Step outside", intent: "travel", outcome: "You reluctantly leave the warmth of the café.", stat_deltas: { stamina: -3 }, new_location: 'town_square' },
       { id: 'travel_shopping', label: "Walk to the Shopping Centre", intent: "travel", outcome: "You stroll down the clean streets towards the shops.", stat_deltas: { stamina: -3 }, new_location: 'shopping_centre' }
     ]
