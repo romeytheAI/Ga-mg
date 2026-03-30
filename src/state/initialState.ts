@@ -109,8 +109,21 @@ export const initialState: GameState = {
     age_days: 6570, // 18 years
     avatar_url: null,
     quests: [
-      { id: 'q1', title: 'Survive the Orphanage', description: 'Find a way to escape Honorhall Orphanage in Riften and the clutches of Matron Grelod.', status: 'active' }
-    ]
+      {
+        id: 'q_ch1_orphans_cage',
+        title: "The Orphan's Cage",
+        type: 'main' as const,
+        chapter: 1,
+        status: 'active' as const,
+        description: "Life under Matron Grelod is a waking nightmare. Find a way to escape the orphanage.",
+        objectives: [
+          { id: 'obj_leave_orphanage', description: "Escape the orphanage and reach the town square", completed: false },
+        ],
+        rewards: { feats: ['feat_first_steps'], xp: 50 },
+        prerequisites: [],
+      }
+    ],
+    known_recipes: ['recipe_foraged_salad', 'recipe_herb_tea'],
   },
   world: {
     day: 1, hour: 7, weather: "Foggy",

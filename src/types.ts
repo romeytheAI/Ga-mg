@@ -293,6 +293,49 @@ export interface ClothingLayer {
   waist: Item | null;
 }
 
+// ── Quest System ─────────────────────────────────────────────────────────
+export interface QuestObjective {
+  id: string;
+  description: string;
+  completed: boolean;
+  count?: number;
+  required_count?: number;
+}
+
+export interface Quest {
+  id: string;
+  title: string;
+  description: string;
+  type: 'main' | 'side' | 'daily' | 'romance';
+  status: 'active' | 'completed' | 'failed' | 'locked';
+  objectives?: QuestObjective[];
+  rewards?: {
+    gold?: number;
+    items?: string[];
+    feats?: string[];
+    skills?: Partial<Record<string, number>>;
+    xp?: number;
+  };
+  prerequisites?: string[];
+  chapter?: number;
+}
+
+// ── Recipe System ────────────────────────────────────────────────────────
+export interface RecipeIngredient {
+  item_id: string;
+  quantity: number;
+}
+
+export interface Recipe {
+  id: string;
+  name: string;
+  description: string;
+  ingredients: RecipeIngredient[];
+  result: { item_id: string; quantity: number };
+  cooking_skill_required: number;
+  time_hours: number;
+}
+
 export interface Companion {
   id: string;
   name: string;
@@ -406,7 +449,8 @@ export interface GameState {
     life_sim: LifeSim,
     age_days: number,
     avatar_url?: string | null,
-    quests: { id: string, title: string, description: string, status: 'active' | 'completed' | 'failed' }[]
+    quests: Quest[],
+    known_recipes: string[]
   },
   world: {
     day: number, hour: number, weather: string,
