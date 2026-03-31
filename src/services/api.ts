@@ -1,10 +1,22 @@
 import { STABLE_API, DEFAULT_API_KEY } from '../constants';
 import { getRelevantLore } from '../lore';
 import { imageWorker } from '../utils/workers';
+import { costTracker } from '../dafl/CostTracker';
+import { SemanticAudit } from '../dafl/SemanticAudit';
 
 export async function generateText(prompt: string, apiKey: string, hordeApiKey: string, model: string, dispatch?: any, skipLore: boolean = false) {
   const relevantLore = skipLore ? null : getRelevantLore(prompt, 10);
-  const enhancedPrompt = relevantLore ? `Relevant Elder Scrolls Lore:\n${relevantLore}\n\n${prompt}` : prompt;
+  let enhancedPrompt = relevantLore ? `Relevant Elder Scrolls Lore:\n${relevantLore}\n\n${prompt}` : prompt;
+
+  // Apply semantic audit to optimize token usage
+  const { optimized, audit } = SemanticAudit.auditPrompt(enhancedPrompt);
+  enhancedPrompt = optimized;
+
+  if (audit.tokensSaved > 0 && dispatch) {
+    console.log(`[DAFL] Semantic audit saved ${audit.tokensSaved} tokens:`, audit.optimizations);
+  }
+
+  const startTime = Date.now();
 
   // Try Horde (AI Horde)
   try {
@@ -55,6 +67,17 @@ export async function generateText(prompt: string, apiKey: string, hordeApiKey: 
           }
           if (status.done) {
             if (dispatch) dispatch({ type: 'HORDE_REQUEST_END', payload: { type: 'text' } });
+
+            // Track successful API call
+            const tokens = SemanticAudit.estimateTokens(enhancedPrompt + status.generations[0].text);
+            costTracker.trackAPICall({
+              provider: 'horde',
+              type: 'text',
+              tokens,
+              successful: true,
+              metadata: { model, duration: Date.now() - startTime }
+            });
+
             return status.generations[0].text;
           }
           if (status.faulted) {
@@ -76,6 +99,15 @@ export async function generateText(prompt: string, apiKey: string, hordeApiKey: 
   } catch (e) {
     if (dispatch) dispatch({ type: 'HORDE_REQUEST_END', payload: { type: 'text' } });
     console.warn("Horde text generation failed, falling back to Pollinations", e);
+
+    // Track failed Horde call
+    costTracker.trackAPICall({
+      provider: 'horde',
+      type: 'text',
+      tokens: SemanticAudit.estimateTokens(enhancedPrompt),
+      successful: false,
+      metadata: { error: String(e), duration: Date.now() - startTime }
+    });
   }
 
   // Try Pollinations (Uncensored, Free) as backup
@@ -86,27 +118,69 @@ export async function generateText(prompt: string, apiKey: string, hordeApiKey: 
     const pollinationsRes = await fetch(pollinationsUrl);
     if (pollinationsRes.ok) {
       const text = await pollinationsRes.text();
+
+      // Track successful Pollinations call
+      const tokens = SemanticAudit.estimateTokens(fullPrompt + text);
+      costTracker.trackAPICall({
+        provider: 'pollinations',
+        type: 'text',
+        tokens,
+        successful: true,
+        metadata: { duration: Date.now() - startTime }
+      });
+
       return text;
     }
   } catch (e) {
     console.error("Pollinations text generation failed", e);
+
+    // Track failed Pollinations call
+    costTracker.trackAPICall({
+      provider: 'pollinations',
+      type: 'text',
+      tokens: SemanticAudit.estimateTokens(enhancedPrompt),
+      successful: false,
+      metadata: { error: String(e) }
+    });
   }
 
   throw new Error("All text generation methods failed.");
 }
 
 export async function generateImage(prompt: string, apiKey: string, hordeApiKey: string, model: string, dispatch?: any) {
+  const startTime = Date.now();
+
+  // Apply semantic audit to image prompts too
+  const { optimized: optimizedPrompt } = SemanticAudit.auditPrompt(prompt);
+
   // Try Pollinations Image first (Uncensored, Free)
   try {
     const seed = Math.floor(Math.random() * 1000000);
-    const pollinationsUrl = `https://gen.pollinations.ai/image/${encodeURIComponent(prompt)}?width=1024&height=1024&nologo=true&seed=${seed}`;
+    const pollinationsUrl = `https://gen.pollinations.ai/image/${encodeURIComponent(optimizedPrompt)}?width=1024&height=1024&nologo=true&seed=${seed}`;
     const res = await fetch(pollinationsUrl);
     if (res.ok) {
       const blob = await res.blob();
+
+      // Track successful image generation
+      costTracker.trackAPICall({
+        provider: 'pollinations',
+        type: 'image',
+        successful: true,
+        metadata: { seed, duration: Date.now() - startTime }
+      });
+
       return URL.createObjectURL(blob);
     }
   } catch (e) {
     console.warn("Pollinations image generation failed, falling back to Horde", e);
+
+    // Track failed Pollinations image call
+    costTracker.trackAPICall({
+      provider: 'pollinations',
+      type: 'image',
+      successful: false,
+      metadata: { error: String(e) }
+    });
   }
 
   // Try Horde (Stable Horde)
@@ -117,7 +191,7 @@ export async function generateImage(prompt: string, apiKey: string, hordeApiKey:
     const timeoutId = setTimeout(() => controller.abort(), 10000);
     
     const body: any = {
-        prompt,
+        prompt: optimizedPrompt,
         params: { width: 512, height: 512, steps: 20 }
       };
       if (model) {
@@ -158,6 +232,15 @@ export async function generateImage(prompt: string, apiKey: string, hordeApiKey:
           }
           if (status.done) {
             if (dispatch) dispatch({ type: 'HORDE_REQUEST_END', payload: { type: 'image' } });
+
+            // Track successful Horde image generation
+            costTracker.trackAPICall({
+              provider: 'horde',
+              type: 'image',
+              successful: true,
+              metadata: { model, duration: Date.now() - startTime }
+            });
+
             const base64Data = status.generations[0].img;
             if (!imageWorker) return `data:image/webp;base64,${base64Data}`;
             
@@ -195,21 +278,50 @@ export async function generateImage(prompt: string, apiKey: string, hordeApiKey:
   } catch (e) {
     if (dispatch) dispatch({ type: 'HORDE_REQUEST_END', payload: { type: 'image' } });
     console.warn("Horde image generation failed.");
+
+    // Track failed Horde image call
+    costTracker.trackAPICall({
+      provider: 'horde',
+      type: 'image',
+      successful: false,
+      metadata: { error: String(e), duration: Date.now() - startTime }
+    });
   }
 
   // Fallback to Gemini Image (if available)
   if (!apiKey || apiKey.startsWith('sk-or-')) throw new Error("No API key available for fallback generation");
-  const { GoogleGenAI } = await import("@google/genai");
-  const ai = new GoogleGenAI({ apiKey });
-  const response = await ai.models.generateContent({
-    model: "gemini-2.5-flash-image",
-    contents: { parts: [{ text: prompt }] }
-  });
-  for (const part of response.candidates[0].content.parts) {
-    if (part.inlineData) {
-      return `data:image/png;base64,${part.inlineData.data}`;
+
+  try {
+    const { GoogleGenAI } = await import("@google/genai");
+    const ai = new GoogleGenAI({ apiKey });
+    const response = await ai.models.generateContent({
+      model: "gemini-2.5-flash-image",
+      contents: { parts: [{ text: optimizedPrompt }] }
+    });
+
+    for (const part of response.candidates[0].content.parts) {
+      if (part.inlineData) {
+        // Track successful Gemini image generation (paid API)
+        costTracker.trackAPICall({
+          provider: 'gemini',
+          type: 'image',
+          successful: true,
+          metadata: { duration: Date.now() - startTime }
+        });
+
+        return `data:image/png;base64,${part.inlineData.data}`;
+      }
     }
+  } catch (e) {
+    // Track failed Gemini call
+    costTracker.trackAPICall({
+      provider: 'gemini',
+      type: 'image',
+      successful: false,
+      metadata: { error: String(e) }
+    });
   }
+
   throw new Error("Failed to generate image with fallback");
 }
 
