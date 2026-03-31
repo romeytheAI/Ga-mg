@@ -29,7 +29,7 @@ interface SidecarStatus {
   version: string;
 }
 
-const SIDECAR_URL = import.meta.env.VITE_SIDECAR_URL || 'http://localhost:8001';
+const SIDECAR_URL = (import.meta as any).env?.VITE_SIDECAR_URL || 'http://localhost:8001';
 
 export function DAFLDashboard() {
   const [metrics, setMetrics] = useState<DAFLMetrics | null>(null);
