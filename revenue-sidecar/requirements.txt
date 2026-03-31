@@ -2,7 +2,7 @@ fastapi==0.115.0
 uvicorn[standard]==0.32.0
 pydantic==2.10.0
 httpx==0.27.0
-python-multipart==0.0.17
+python-multipart==0.0.22  # Updated: CVE fix for arbitrary file write and DoS
 python-dotenv==1.0.1
 
 # Content Generation
@@ -29,5 +29,5 @@ google-generativeai==0.8.0  # Gemini
 
 # Utilities
 aiofiles==24.1.0
-Pillow==11.0.0
+Pillow==12.1.1  # Updated: CVE fix for out-of-bounds write in PSD images
 requests==2.32.0
