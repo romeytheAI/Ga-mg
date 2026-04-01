@@ -11,6 +11,9 @@ export type FootType = 'human' | 'clawed' | 'pawed_digitigrade';
 export type EyeShape = 'round' | 'almond' | 'slit_pupil' | 'reptilian';
 export type SkinType = 'skin' | 'scales' | 'fur';
 
+/** All 10 playable Elder Scrolls race identifiers */
+export type RaceId = 'nord' | 'imperial' | 'redguard' | 'breton' | 'dunmer' | 'altmer' | 'bosmer' | 'orsimer' | 'khajiit' | 'argonian';
+
 export interface RacialBodyFeatures {
   /** Display name */
   name: string;

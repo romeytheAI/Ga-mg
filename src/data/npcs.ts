@@ -1,8 +1,152 @@
+/**
+ * NPC Database with Gender Support
+ *
+ * Each NPC has a gender, personality traits, and interaction responses.
+ * The `getNPCDialogue` helper resolves gender-aware dialogue variants.
+ */
+
+import { GENDER_VARIANTS, GenderProfile, GenderVariantKey } from './dialogue/genderVariants';
+import { DialogueLine, IntentVariants } from './dialogue/genderVariants';
+import { resolveRace } from './races';
+
+/** Core NPC type with gender identity */
+export interface NPC {
+  /** Unique identifier slug */
+  id: string;
+  /** Display name */
+  name: string;
+  /** Elder Scrolls race (resolved via resolveRace) */
+  race: string;
+  /** NPC gender identity */
+  gender: 'male' | 'female';
+  /** Relationship score with player (-100 to +100) */
+  relationship: number;
+  /** Is this NPC a potential romance/love interest? */
+  love_interest?: boolean;
+  /** Where this NPC is typically found */
+  location?: string;
+  /** Narrative description for context/AI prompting */
+  description: string;
+  /** Interaction responses keyed by intent type */
+  responses: Record<string, {
+    narrative_text: string;
+    stat_deltas: Record<string, number>;
+  }>;
+}
+
+/**
+ * Get the gender-aware dialogue profile for an NPC.
+ *
+ * Resolves the NPC's race to a lowercase variant key, then looks up
+ * the matching gender profile from GENDER_VARIANTS. Falls back to
+ * `imperial_male` if no profile exists.
+ *
+ * @param npc - The NPC object with race and gender fields
+ * @param playerGender - The player's selected gender ('male', 'female', or null)
+ * @returns The GenderProfile for voice tone, mannerisms, and dialogue variants
+ */
+export function getNPCDialogue(
+  npc: NPC,
+  playerGender: 'male' | 'female' | null,
+): GenderProfile {
+  // Normalize race string to match GENDER_VARIANTS keys
+  const raceName = npc.race.trim().toLowerCase();
+
+  // Map generic race names to Elder Scrolls race keys
+  const raceMap: Record<string, string> = {
+    human: 'imperial',
+    elf: 'dunmer',
+    'dark elf': 'dunmer',
+    darkelf: 'dunmer',
+    'high elf': 'altmer',
+    highelf: 'altmer',
+    'wood elf': 'bosmer',
+    woodelf: 'bosmer',
+    orc: 'orsimer',
+    cat: 'khajiit',
+    lizard: 'argonian',
+    reptile: 'argonian',
+  };
+
+  const resolvedRace = raceMap[raceName] || raceName;
+  const gender = npc.gender;
+  const key = `${resolvedRace}_${gender}` as GenderVariantKey;
+
+  if (key in GENDER_VARIANTS) {
+    return GENDER_VARIANTS[key];
+  }
+
+  // Fallback: imperial male profile
+  return GENDER_VARIANTS.imperial_male;
+}
+
+/**
+ * Resolve a specific dialogue variant for an NPC based on intent.
+ * Picks a random line from the available variants for the given intent type.
+ *
+ * @param npc - The NPC object
+ * @param intent - The interaction intent (greeting, farewell, social, etc.)
+ * @param playerGender - The player's gender for tag substitution
+ * @returns A DialogueLine object with text and optional delivery notes
+ */
+export function resolveNPCDialogue(
+  npc: NPC,
+  intent: string,
+  playerGender: 'male' | 'female' | null,
+): DialogueLine | null {
+  const profile = getNPCDialogue(npc, playerGender);
+  const variants = profile.variants[intent as keyof typeof profile.variants];
+
+  if (!variants || variants.length === 0) {
+    return null;
+  }
+
+  const line = variants[Math.floor(Math.random() * variants.length)];
+
+  // Apply player gender tag substitutions
+  const honorific = getHonorificForGender(npc, playerGender);
+  const genderTerm = getGenderTerm(npc, playerGender);
+
+  let text = line.text;
+  text = text.replace(/\[PLAYER_GENDER_HONORIFIC\]/g, honorific);
+  text = text.replace(/\[PLAYER_GENDER_TERM\]/g, genderTerm);
+  text = text.replace(/\[NPC_VOICE_TONE\]/g, profile.voice.voiceTone[0] || '');
+  text = text.replace(/\[NPC_CULTURAL_REF\]/g, profile.voice.culturalRefs[0] || '');
+  text = text.replace(/\[NPC_FACTION_REF\]/g, profile.voice.culturalRefs[profile.voice.culturalRefs.length - 1] || '');
+
+  return { ...line, text };
+}
+
+/** Get the honorific term this NPC uses for the player */
+function getHonorificForGender(
+  npc: NPC,
+  playerGender: 'male' | 'female' | null,
+): string {
+  const profile = getNPCDialogue(npc, playerGender);
+  const pa = profile.voice.playerAddress;
+  if (playerGender === 'male') return pa.male;
+  if (playerGender === 'female') return pa.female;
+  return pa.neutral;
+}
+
+/** Get the gendered term this NPC uses for the player */
+function getGenderTerm(
+  npc: NPC,
+  playerGender: 'male' | 'female' | null,
+): string {
+  const profile = getNPCDialogue(npc, playerGender);
+  const pa = profile.voice.playerAddress;
+  if (playerGender === 'male') return pa.male;
+  if (playerGender === 'female') return pa.female;
+  return pa.neutral;
+}
+
 export const NPCS: Record<string, any> = {
   'constance_michel': {
     id: 'constance_michel',
     name: "Sister Constance",
     race: "Human",
+    gender: 'female' as const,
     relationship: 20,
     description: "The assistant at the orphanage. She is a young woman, barely out of her teens, who tries her best to be kind. However, she is clearly exhausted, overworked, and terrified of Matron Grelod. She often sneaks extra food to the younger children when Grelod isn't looking.",
     responses: {
@@ -27,6 +171,7 @@ export const NPCS: Record<string, any> = {
     id: 'grelod_the_kind',
     name: "Matron Grelod",
     race: "Human",
+    gender: 'female' as const,
     relationship: -50,
     description: "The headmistress of the orphanage, ironically nicknamed 'The Kind'. A bitter, cruel, and aging woman who takes sadistic pleasure in the suffering of the children in her care. Rumors say she was once a beautiful noblewoman who lost everything, though her current state of perpetual rage makes that hard to believe. She wields a heavy leather belt and a wooden cane, both of which she uses frequently and without hesitation.",
     responses: {
@@ -51,6 +196,7 @@ export const NPCS: Record<string, any> = {
     id: 'brynjolf',
     name: "Brynjolf",
     race: "Human",
+    gender: 'male' as const,
     relationship: 0,
     description: "A smooth-talking, charismatic rogue who seems to know everyone's business in the town. He usually hangs around the market square, looking for easy marks or potential recruits for his 'organization'. He wears fine, if slightly worn, leather armor.",
     responses: {
@@ -75,6 +221,7 @@ export const NPCS: Record<string, any> = {
     id: 'brand_shei',
     name: "Brand-Shei",
     race: "Elf",
+    gender: 'male' as const,
     relationship: 10,
     description: "A Dark Elf merchant in the town square. Unlike many others, he seems genuinely kind and fair in his dealings. He sells a variety of exotic goods and often takes pity on the local orphans, occasionally offering them small tasks for decent pay.",
     responses: {
@@ -100,6 +247,7 @@ export const NPCS: Record<string, any> = {
     id: 'robin',
     name: "Robin",
     race: "Human",
+    gender: 'female' as const,
     relationship: 30,
     love_interest: true,
     location: 'orphanage',
@@ -126,6 +274,7 @@ export const NPCS: Record<string, any> = {
     id: 'whitney',
     name: "Whitney",
     race: "Human",
+    gender: 'male' as const,
     relationship: -20,
     love_interest: true,
     location: 'academy',
@@ -152,6 +301,7 @@ export const NPCS: Record<string, any> = {
     id: 'eden',
     name: "Eden",
     race: "Human",
+    gender: 'male' as const,
     relationship: -10,
     love_interest: true,
     location: 'eden_cabin',
@@ -178,6 +328,7 @@ export const NPCS: Record<string, any> = {
     id: 'kylar',
     name: "Kylar",
     race: "Human",
+    gender: 'female' as const,
     relationship: 5,
     love_interest: true,
     location: 'academy',
@@ -204,6 +355,7 @@ export const NPCS: Record<string, any> = {
     id: 'avery',
     name: "Avery",
     race: "Human",
+    gender: 'female' as const,
     relationship: 0,
     love_interest: true,
     location: 'town_square',
@@ -230,6 +382,7 @@ export const NPCS: Record<string, any> = {
     id: 'sydney',
     name: "Sydney",
     race: "Human",
+    gender: 'female' as const,
     relationship: 15,
     love_interest: true,
     location: 'academy',
@@ -257,6 +410,7 @@ export const NPCS: Record<string, any> = {
     id: 'bailey',
     name: "Bailey",
     race: "Human",
+    gender: 'male' as const,
     relationship: -30,
     location: 'orphanage',
     description: "The tyrannical keeper of Honorhall Orphanage. Bailey runs Honorhall like a Riften protection racket, demanding weekly payments from every orphan under their roof. Those who can't pay face escalating punishments. Despite their cruelty, Bailey is shrewd and connected — they know everyone in town and have dirt on most of them.",
@@ -282,6 +436,7 @@ export const NPCS: Record<string, any> = {
     id: 'jordan',
     name: "Jordan",
     race: "Human",
+    gender: 'male' as const,
     relationship: 10,
     location: 'temple_gardens',
     description: "A devout monk/nun at the temple. Jordan is serene, composed, and deeply spiritual. They offer counsel, chastity devices, and blessing rituals to those who seek them. Their calm exterior hides a fierce conviction — they view corruption as a cancer to be excised and will go to great lengths to 'save' those they deem fallen.",
@@ -307,6 +462,7 @@ export const NPCS: Record<string, any> = {
     id: 'harper',
     name: "Harper",
     race: "Human",
+    gender: 'male' as const,
     relationship: 0,
     location: 'Hall of Healing',
     description: "The head physician at Nightingale Hall of Healing. Brilliant, clinical, and unsettling. Harper's bedside manner veers between professional detachment and invasive curiosity. They treat the sick and injured with remarkable skill, but their methods sometimes feel more like experiments than treatments. They also oversee the sanitarium beyond the city walls.",
@@ -332,6 +488,7 @@ export const NPCS: Record<string, any> = {
     id: 'leighton',
     name: "Leighton",
     race: "Human",
+    gender: 'female' as const,
     relationship: -10,
     location: 'College of Winterhold',
     description: "The Master of Initiation at the College of Winterhold. Leighton is strict, authoritarian, and views discipline as the highest virtue. They patrol the corridors with a rigid posture and an eagle eye for rule-breakers. Punishment is swift and harsh — scrubbing the frost-crusted halls, copying arcane texts by candlelight, or worse. There are whispered rumours about what happens to students sent to their office after hours.",
@@ -357,6 +514,7 @@ export const NPCS: Record<string, any> = {
     id: 'landry',
     name: "Landry",
     race: "Human",
+    gender: 'male' as const,
     relationship: -15,
     location: 'Blackreach penal mines',
     description: "The guard-captain of the town Blackreach penal mines. A stocky, weathered figure who runs the Blackreach penal mines with brutal efficiency. Landry believes the dungeon reforms no one; the quarry breaks bodies, not souls and has no sympathy for those in their charge. They are rumoured to be in the Riften Thieves Guild's pocket, accepting bribes and looking the other way.",
@@ -382,6 +540,7 @@ export const NPCS: Record<string, any> = {
     id: 'charlie',
     name: "Charlie",
     race: "Human",
+    gender: 'female' as const,
     relationship: 10,
     location: 'Bards College',
     description: "The bardic instructor at Bards College, passionate and demanding. Charlie runs the music hall with fierce dedication, pushing their students to master the lute, the voice, and the old Nord ballads. They are initially wary of newcomers but warm up quickly to those who show genuine effort and talent. Their teaching style is intense but encouraging.",
@@ -407,6 +566,7 @@ export const NPCS: Record<string, any> = {
     id: 'darryl',
     name: "Darryl",
     race: "Human",
+    gender: 'male' as const,
     relationship: 5,
     location: 'Ratway',
     description: "The owner of the Bottle and Bawd. Darryl is a quiet, haunted figure who watches over their establishment from behind the bar. They've seen too much and done too much to be easily shocked. Despite the nature of their business, they try to protect their workers — a vestige of decency in a place soaked in exploitation. Their past is traumatic and rarely discussed.",
@@ -432,6 +592,7 @@ export const NPCS: Record<string, any> = {
     id: 'wren',
     name: "Wren",
     race: "Human",
+    gender: 'female' as const,
     relationship: -5,
     location: 'The Ragged Flagon',
     description: "The sharp-eyed operator of the Ragged Flagon's high-stakes gambling tables. Wren is calculating, charming, and dangerous. They run rigged games with a smile and never lose their composure. Behind the friendly façade is a shrewd criminal who answers to darker powers. Getting on their bad side is extremely unwise.",
@@ -457,6 +618,7 @@ export const NPCS: Record<string, any> = {
     id: 'winter',
     name: "Winter",
     race: "Human",
+    gender: 'male' as const,
     relationship: 15,
     location: 'College of Winterhold archives',
     description: "The archivist of the town College of Winterhold archives. A gentle, scholarly soul with a passion for ancient history and antiquities. Winter is one of the few people in town who treats everyone — orphan or noble — with equal respect and warmth. They pay well for genuine antiques and are always happy to share knowledge with those willing to listen.",
@@ -482,6 +644,7 @@ export const NPCS: Record<string, any> = {
     id: 'sam',
     name: "Sam",
     race: "Human",
+    gender: 'male' as const,
     relationship: 20,
     location: 'Sleeping Giant Inn',
     description: "The warm, cheerful owner of the town café. Sam is one of the few genuinely kind people in town, always ready with a hot meal and a sympathetic ear. They came from humble beginnings themselves and have a soft spot for orphans and strays. The café is their life's work, and they take pride in making it a welcoming haven.",
@@ -507,6 +670,7 @@ export const NPCS: Record<string, any> = {
     id: 'river',
     name: "River",
     race: "Human",
+    gender: 'female' as const,
     relationship: 10,
     location: 'academy',
     description: "A instructor at the town academy. River teaches arithmetic and logic with genuine passion and patience, a rare combination in this harsh institution. They are one of the few instructors who actually care about their students' wellbeing, often staying late to help those struggling with their studies. Their quiet kindness is a beacon in the academy's oppressive atmosphere.",
@@ -532,6 +696,7 @@ export const NPCS: Record<string, any> = {
     id: 'doren',
     name: "Doren",
     race: "Human",
+    gender: 'male' as const,
     relationship: 5,
     location: 'academy',
     description: "The English instructor at the town academy. Doren is eccentric, dramatic, and surprisingly permissive compared to the other staff. They encourage creative expression and often turn a blind eye to minor rule infractions. Their classes are genuinely enjoyable, filled with lively discussions about literature and poetry.",
@@ -557,6 +722,7 @@ export const NPCS: Record<string, any> = {
     id: 'mason',
     name: "Mason",
     race: "Human",
+    gender: 'male' as const,
     relationship: 5,
     location: 'academy',
     description: "The physical education instructor at the academy. Mason is built like a wall and runs their classes with military precision, but they are fair and genuinely want their students to be healthy and strong. They have a particular interest in lake-bathing and often take classes to the lake for lessons.",
@@ -582,6 +748,7 @@ export const NPCS: Record<string, any> = {
     id: 'briar',
     name: "Briar",
     race: "Human",
+    gender: 'female' as const,
     relationship: -10,
     location: 'Ratway tavern',
     description: "The madam of the Ratway tavern hidden deep in the alleyways. Briar is calculating, business-minded, and utterly ruthless. They view everyone as either a commodity or a customer. Despite their cold exterior, they protect their workers with vicious efficiency — not out of kindness, but because damaged goods are bad for business.",
@@ -607,6 +774,7 @@ export const NPCS: Record<string, any> = {
     id: 'alex',
     name: "Alex",
     race: "Human",
+    gender: 'female' as const,
     relationship: 10,
     love_interest: true,
     location: 'homestead',
