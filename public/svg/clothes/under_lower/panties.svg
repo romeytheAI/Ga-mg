@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 150 250">
+  <defs>
+    <linearGradient id="pantiesGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#e4b4c4;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#d4a4b4;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+
+  <!-- Panties -->
+  <path d="M 40,135 L 38,160 Q 75,175 112,160 L 110,135 Q 75,140 40,135 Z" fill="url(#pantiesGrad)"/>
+
+  <!-- Lace trim -->
+  <path d="M 38,160 Q 42,162 46,160 Q 50,162 54,160 Q 58,162 62,160 Q 66,162 70,160 Q 74,162 78,160 Q 82,162 86,160 Q 90,162 94,160 Q 98,162 102,160 Q 106,162 110,160" stroke="#c494a4" stroke-width="1" fill="none"/>
+
+  <!-- Waistband -->
+  <rect x="40" y="133" width="70" height="6" rx="2" fill="#f4c4d4"/>
+</svg>

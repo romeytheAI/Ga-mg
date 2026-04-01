@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 150 250">
+  <defs>
+    <linearGradient id="demonTailGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#8a4a4a;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#6a2a2a;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+
+  <!-- Tail -->
+  <path d="M 75,140 Q 100,160 110,190 Q 115,210 105,230" 
+        fill="none" stroke="url(#demonTailGrad)" stroke-width="8" stroke-linecap="round"/>
+
+  <!-- Arrow tip -->
+  <path d="M 105,230 L 95,245 L 115,245 Z" fill="#4a1a1a"/>
+</svg>

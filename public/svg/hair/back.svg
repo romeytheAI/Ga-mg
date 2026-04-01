@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 150 250">
+  <defs>
+    <linearGradient id="hairGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#5a4a3a;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#4a3728;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#3a2718;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+
+  <!-- Long hair back -->
+  <path d="M 45,-20 Q 20,20 25,80 Q 30,140 35,200 L 40,220 L 50,220 L 48,180 Q 45,120 50,60 Q 55,20 75,10" fill="url(#hairGrad)"/>
+  <path d="M 105,-20 Q 130,20 125,80 Q 120,140 115,200 L 110,220 L 100,220 L 102,180 Q 105,120 100,60 Q 95,20 75,10" fill="url(#hairGrad)"/>
+
+  <!-- Hair shine -->
+  <path d="M 50,20 Q 45,60 48,100" stroke="#6a5a4a" stroke-width="3" fill="none" opacity="0.5"/>
+  <path d="M 100,20 Q 105,60 102,100" stroke="#6a5a4a" stroke-width="3" fill="none" opacity="0.5"/>
+</svg>
