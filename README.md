@@ -23,3 +23,8 @@ View your app in AI Studio: https://ai.studio/apps/c27ece4c-b654-4b65-a8ce-77dae
 
 - Roadmap: see `docs/agentic-roadmap.md` for the breakdown of automation sub-issues.
 - To open/update the issues automatically, run the **Sync Agentic Roadmap** workflow and (optionally) supply your Projects V2 `project-number`.
+
+## AI reference index
+
+- Character reference lookups for AI and developer workflows live in `src/data/characterReferenceIndex.ts`.
+- Usage and maintenance guidance: `docs/character-reference-index.md`.
