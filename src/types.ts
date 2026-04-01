@@ -417,6 +417,76 @@ export interface ActiveEncounter {
   anatomy: Anatomy;
 }
 
+// ── Graphics Quality Settings ────────────────────────────────────────────
+/** Quality preset levels for graphics rendering */
+export type GraphicsQualityPreset = 'low' | 'medium' | 'high' | 'ultra';
+
+/** Comprehensive graphics quality configuration for DoL-fidelity rendering */
+export interface GraphicsQuality {
+  /** Overall quality preset (overrides individual settings when changed) */
+  preset: GraphicsQualityPreset;
+
+  /** Sprite rendering quality */
+  sprite_quality: {
+    /** Enable subsurface scattering filters on skin */
+    subsurface_scattering: boolean;
+    /** Enable gradient shading (vs flat colors) */
+    gradient_shading: boolean;
+    /** Muscle definition detail level (0=none, 1=basic, 2=detailed, 3=full) */
+    muscle_detail_level: 0 | 1 | 2 | 3;
+    /** Enable fluid effects rendering */
+    fluid_effects: boolean;
+    /** Enable cosmetic details (freckles, tan lines, etc.) */
+    cosmetic_details: boolean;
+    /** Enable X-ray overlay rendering */
+    xray_overlay: boolean;
+  };
+
+  /** 3D rendering quality */
+  renderer_3d: {
+    /** Enable 3D rendering (if false, use 2D only) */
+    enabled: boolean;
+    /** Polygon count multiplier (0.5=low, 1.0=medium, 1.5=high, 2.0=ultra) */
+    polygon_multiplier: number;
+    /** Enable PBR materials (physically-based rendering) */
+    pbr_materials: boolean;
+    /** Enable normal mapping for surface detail */
+    normal_mapping: boolean;
+    /** Enable environment mapping for reflections */
+    environment_mapping: boolean;
+    /** Shadow quality (0=off, 1=low, 2=medium, 3=high) */
+    shadow_quality: 0 | 1 | 2 | 3;
+    /** Anti-aliasing samples (0=off, 2=FXAA, 4=MSAA4x, 8=MSAA8x) */
+    antialiasing: 0 | 2 | 4 | 8;
+    /** Pixel ratio multiplier (0.5=540p, 1.0=1080p, 1.5=1620p, 2.0=4K) */
+    pixel_ratio: number;
+  };
+
+  /** Animation quality */
+  animation: {
+    /** Enable smooth animation interpolation */
+    smooth_interpolation: boolean;
+    /** Animation frame rate limit (30 or 60) */
+    target_fps: 30 | 60;
+    /** Enable particle effects (sweat drops, blood splatter, etc.) */
+    particle_effects: boolean;
+    /** Enable physics-based animations (hair, clothing) */
+    physics_simulation: boolean;
+  };
+
+  /** Performance optimizations */
+  performance: {
+    /** Enable LOD (Level of Detail) system */
+    lod_enabled: boolean;
+    /** Asset cache size in MB (50, 100, 200, 500) */
+    cache_size_mb: 50 | 100 | 200 | 500;
+    /** Enable dynamic resolution scaling based on performance */
+    dynamic_resolution: boolean;
+    /** Minimum resolution scale when dynamic (0.5 to 1.0) */
+    min_resolution_scale: number;
+  };
+}
+
 export interface GameState {
   player: {
     identity: { name: string, race: string, birthsign: string, origin: string, gender: string },
@@ -532,7 +602,8 @@ export interface GameState {
       enable_parasites: boolean,
       enable_pregnancy: boolean,
       enable_extreme_content: boolean
-    }
+    },
+    graphics_quality: GraphicsQuality
   },
   sim_world: import('./sim/types').SimWorld | null,
   horde_queue: import('./sim/types').HordeRequest[],

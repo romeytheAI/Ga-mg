@@ -28,6 +28,7 @@ interface DoLCharacterSpriteProps {
 
 export const DoLCharacterSprite: React.FC<DoLCharacterSpriteProps> = ({ state, compact = false, showXRay = false }) => {
   const { clothing, identity, cosmetics, stats, biology } = state.player;
+  const graphicsQuality = state.ui.graphics_quality;
   const raceDef   = resolveRace(identity.race);
   const gender    = identity.gender || 'female';
   const geom      = buildBodyGeom(gender, raceDef);
@@ -286,14 +287,16 @@ export const DoLCharacterSprite: React.FC<DoLCharacterSpriteProps> = ({ state, c
         transition={{ duration: 0.45 }}
       >
         {/* ── Hikari-quality SVG definitions (gradients, filters) ── */}
-        <SpriteDefs
-          skin={skin}
-          skinShadow={skinTones.shadow}
-          skinHighlight={skinTones.highlight}
-          hairClr={hairClr}
-          hairHighlight={hairHiClr}
-          eyeClr={eyeClr}
-        />
+        {graphicsQuality.sprite_quality.gradient_shading && (
+          <SpriteDefs
+            skin={skin}
+            skinShadow={skinTones.shadow}
+            skinHighlight={skinTones.highlight}
+            hairClr={hairClr}
+            hairHighlight={hairHiClr}
+            eyeClr={eyeClr}
+          />
+        )}
 
         {/* ── BODY ANIMATION WRAPPER (breathing / tremble / flinch) ── */}
         <g className={bodyAnimClass}>
@@ -304,36 +307,43 @@ export const DoLCharacterSprite: React.FC<DoLCharacterSpriteProps> = ({ state, c
 
           <GenitalsAndChest geom={geom} s={finalSpriteState} skin={skin} hairClr={hairClr} raceDef={raceDef} isMale={isMale} isFemale={isFemale} isChestExposed={isChestExposed} isGroinExposed={isGroinExposed} isLegsExposed={isLegsExposed} isAroused={isAroused} isLactating={isLactating} nippleClr={nippleClr} />
 
-          <SkinPatterns geom={geom} s={finalSpriteState} skin={skin} accentClr={accentClr} raceDef={raceDef} isFemale={isFemale} isChestExposed={isChestExposed} isGroinExposed={isGroinExposed} isLegsExposed={isLegsExposed} isArmsExposed={isArmsExposed} hasFreckles={hasFreckles} hasTanLines={hasTanLines} scars={scars} tattoos={tattoos} piercings={piercings} bodyWriting={bodyWriting} hasCollar={hasCollar} bodyPartsIntegrity={state.player.anatomy.body_parts} />
+          {graphicsQuality.sprite_quality.cosmetic_details && (
+            <SkinPatterns geom={geom} s={finalSpriteState} skin={skin} accentClr={accentClr} raceDef={raceDef} isFemale={isFemale} isChestExposed={isChestExposed} isGroinExposed={isGroinExposed} isLegsExposed={isLegsExposed} isArmsExposed={isArmsExposed} hasFreckles={hasFreckles} hasTanLines={hasTanLines} scars={scars} tattoos={tattoos} piercings={piercings} bodyWriting={bodyWriting} hasCollar={hasCollar} bodyPartsIntegrity={state.player.anatomy.body_parts} />
+          )}
 
           {/* ── MUSCLE DEFINITION (enhanced DoL-parity detail levels) ── */}
-          <MuscleDefinition
-            geom={geom}
-            s={finalSpriteState}
-            skin={skin}
-            build={raceDef.build}
-            isChestExposed={isChestExposed}
-            shouldersExposed={!clothing.shoulders}
-            legsExposed={isLegsExposed}
-          />
+          {graphicsQuality.sprite_quality.muscle_detail_level > 0 && (
+            <MuscleDefinition
+              geom={geom}
+              s={finalSpriteState}
+              skin={skin}
+              build={raceDef.build}
+              isChestExposed={isChestExposed}
+              shouldersExposed={!clothing.shoulders}
+              legsExposed={isLegsExposed}
+              detailLevel={graphicsQuality.sprite_quality.muscle_detail_level}
+            />
+          )}
 
           <Clothing geom={geom} s={finalSpriteState} skin={skin} clothing={clothing} />
 
           {/* ── FLUID EFFECTS (enhanced DoL-parity rendering) ── */}
-          <FluidEffects
-            geom={geom}
-            s={finalSpriteState}
-            body_fluids={state.player.body_fluids}
-            isChestExposed={isChestExposed}
-            isGroinExposed={isGroinExposed}
-            isLegsExposed={isLegsExposed}
-            isFemale={isFemale}
-          />
+          {graphicsQuality.sprite_quality.fluid_effects && (
+            <FluidEffects
+              geom={geom}
+              s={finalSpriteState}
+              body_fluids={state.player.body_fluids}
+              isChestExposed={isChestExposed}
+              isGroinExposed={isGroinExposed}
+              isLegsExposed={isLegsExposed}
+              isFemale={isFemale}
+            />
+          )}
 
           <StatusEffects geom={geom} s={finalSpriteState} raceDef={raceDef} isChestExposed={isChestExposed} isLegsExposed={isLegsExposed} blushIntensity={blushIntensity} isSweating={isSweating} showHeartOverlay={showHeartOverlay} showCorruptionFx={showCorruptionFx} inEncounter={inEncounter} targetedPart={targetedPart} playerStance={playerStance} combatAnim={combatAnim} encounterAction={encounterAction} compact={compact} svgW={svgW} svgH={svgH} lowHealth={lowHealth} corruption={corruption} hallucination={stats.hallucination} parasites={biology.parasites} />
 
           {/* ── X-RAY OVERLAY (internal skeleton + organs view) ── */}
-          {showXRay && (
+          {showXRay && graphicsQuality.sprite_quality.xray_overlay && (
             <XRayOverlay
               geom={geom}
               s={finalSpriteState}

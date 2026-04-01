@@ -53,6 +53,8 @@ export const GltfViewer3D: React.FC<GltfViewer3DProps> = ({
   const dragStart = useRef({ x: 0, y: 0 });
   const rotationRef = useRef({ x: 0.15, y: 0 });
 
+  const graphicsQuality = state.ui.graphics_quality;
+
   /* ── build glTF JSON from current game state ───────────────── */
 
   const buildGltfFromState = useCallback((): string | null => {
@@ -220,11 +222,11 @@ export const GltfViewer3D: React.FC<GltfViewer3DProps> = ({
     cameraRef.current = camera;
 
     // Renderer
-    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
+    const renderer = new THREE.WebGLRenderer({ antialias: graphicsQuality.renderer_3d.antialiasing > 0, alpha: false });
     renderer.setSize(w, h);
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-    renderer.shadowMap.enabled = true;
-    renderer.shadowMap.type = THREE.PCFShadowMap;
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio * graphicsQuality.renderer_3d.pixel_ratio, 3));
+    renderer.shadowMap.enabled = graphicsQuality.renderer_3d.shadow_quality > 0;
+    renderer.shadowMap.type = graphicsQuality.renderer_3d.shadow_quality >= 2 ? THREE.PCFSoftShadowMap : THREE.PCFShadowMap;
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
     renderer.toneMappingExposure = 1.2;
     container.appendChild(renderer.domElement);
@@ -238,10 +240,13 @@ export const GltfViewer3D: React.FC<GltfViewer3DProps> = ({
     // Key light (warm directional)
     const key = new THREE.DirectionalLight(0xffeedd, 1.6);
     key.position.set(2, 3, 2);
-    key.castShadow = true;
-    key.shadow.mapSize.set(1024, 1024);
-    key.shadow.camera.near = 0.1;
-    key.shadow.camera.far = 6;
+    if (graphicsQuality.renderer_3d.shadow_quality > 0) {
+      key.castShadow = true;
+      const shadowMapSize = [512, 1024, 2048, 4096][graphicsQuality.renderer_3d.shadow_quality];
+      key.shadow.mapSize.set(shadowMapSize, shadowMapSize);
+      key.shadow.camera.near = 0.1;
+      key.shadow.camera.far = 6;
+    }
     scene.add(key);
 
     // Fill light (cool)
