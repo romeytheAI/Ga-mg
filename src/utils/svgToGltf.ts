@@ -14,6 +14,7 @@
  */
 
 import { BodyGeom, SpriteState } from '../components/dol/sprite/utils';
+import { GraphicsQuality, getMeshSegmentCounts } from './graphicsQuality';
 
 /* ── constants ───────────────────────────────────────────────────────── */
 
@@ -21,14 +22,46 @@ const VIEW_W = 100;
 const VIEW_H = 225;
 const S = 1 / VIEW_H;  // SVG unit → glTF unit
 
-// Radial segment counts
-const SEG_HIGH  = 32;   // head, torso
-const SEG_MED   = 24;   // limbs
-const SEG_LOW   = 16;   // hands, feet, neck
+/* ── mesh quality configuration ──────────────────────────────────────── */
 
-// Latitude rings for ellipsoids
-const RING_HIGH = 24;   // head
-const RING_MED  = 12;   // hands, feet
+interface MeshQualityConfig {
+  SEG_HIGH: number;    // head, torso
+  SEG_MED: number;     // limbs
+  SEG_LOW: number;     // hands, feet, neck
+  RING_HIGH: number;   // head
+  RING_MED: number;    // hands, feet
+  torsoRings: number;  // anatomical cross-sections for torso
+  limbSubdiv: number;  // interpolation subdivisions for limb tubes
+}
+
+function getMeshQualityConfig(quality?: GraphicsQuality): MeshQualityConfig {
+  if (!quality) {
+    // Default/fallback quality
+    return {
+      SEG_HIGH: 32,
+      SEG_MED: 24,
+      SEG_LOW: 16,
+      RING_HIGH: 24,
+      RING_MED: 12,
+      torsoRings: 10,
+      limbSubdiv: 3,
+    };
+  }
+
+  const segments = getMeshSegmentCounts(quality);
+  const multiplier = quality.renderer_3d.polygon_multiplier;
+
+  return {
+    SEG_HIGH: segments.high,
+    SEG_MED: segments.medium,
+    SEG_LOW: segments.low,
+    RING_HIGH: segments.ringHigh,
+    RING_MED: segments.ringMed,
+    // Scale torso detail and limb smoothness with quality
+    torsoRings: multiplier >= 1.5 ? 16 : multiplier >= 1.0 ? 12 : 10,
+    limbSubdiv: multiplier >= 1.5 ? 5 : multiplier >= 1.0 ? 4 : 3,
+  };
+}
 
 /* ── helpers ─────────────────────────────────────────────────────────── */
 
@@ -259,21 +292,32 @@ function toMeshData(name: string, raw: RawMesh, skinHex: string): MeshData {
 
 /* ── HEAD ─────────────────────────────────────────────────────────────── */
 
-function buildHeadMesh(geom: BodyGeom, s: SpriteState, skinHex: string): MeshData {
+function buildHeadMesh(
+  geom: BodyGeom,
+  s: SpriteState,
+  skinHex: string,
+  qualityConfig: MeshQualityConfig
+): MeshData {
   const [cx, cy] = svgToGl(s.cx, s.headCY);
   const depthR = geom.headRX * 0.82;      // skull front-to-back
+
+  // Main cranium with quality-based detail
   const headSphere = ellipsoid(
     cx, cy, 0,
     geom.headRX * S, geom.headRY * S, depthR * S,
-    RING_HIGH, SEG_HIGH,
+    qualityConfig.RING_HIGH, qualityConfig.SEG_HIGH,
   );
 
-  // Chin extension: a small ellipsoid fused at the bottom
+  // Chin/jaw extension with gender-specific width
   const chinCy = cy - geom.headRY * 0.92 * S;
+  const jawWidth = geom.jawW > 0 ? 1.0 + (geom.jawW * 0.08) : 1.0;
   const chin = ellipsoid(
     cx, chinCy, 0,
-    geom.headRX * 0.55 * S, geom.headRY * 0.18 * S, depthR * 0.5 * S,
-    6, SEG_LOW,
+    geom.headRX * 0.55 * jawWidth * S,
+    geom.headRY * 0.18 * S,
+    depthR * 0.5 * S,
+    Math.max(6, Math.round(qualityConfig.RING_MED * 0.5)),
+    qualityConfig.SEG_LOW,
   );
 
   return toMeshData('Head', merge(headSphere, chin), skinHex);
@@ -281,7 +325,12 @@ function buildHeadMesh(geom: BodyGeom, s: SpriteState, skinHex: string): MeshDat
 
 /* ── NECK ─────────────────────────────────────────────────────────────── */
 
-function buildNeckMesh(geom: BodyGeom, s: SpriteState, skinHex: string): MeshData {
+function buildNeckMesh(
+  geom: BodyGeom,
+  s: SpriteState,
+  skinHex: string,
+  qualityConfig: MeshQualityConfig
+): MeshData {
   const nwTop = geom.headRX * 0.42;
   const nwBot = geom.headRX * 0.48;
   const depthTop = nwTop * 0.72;
@@ -289,50 +338,155 @@ function buildNeckMesh(geom: BodyGeom, s: SpriteState, skinHex: string): MeshDat
   const [topCx, topCy] = svgToGl(s.cx, s.neckTopY);
   const [botCx, botCy] = svgToGl(s.cx, s.neckBotY);
 
+  // Enhanced neck with Adam's apple prominence for males
+  const midpoint = 0.4;  // Adam's apple position
   const rings: RingDef[] = [
     { cx: topCx, cy: topCy, rx: nwTop, rz: depthTop },
-    { cx: lerp(topCx, botCx, 0.3), cy: lerp(topCy, botCy, 0.3), rx: lerp(nwTop, nwBot, 0.25), rz: lerp(depthTop, depthBot, 0.25) },
-    { cx: lerp(topCx, botCx, 0.6), cy: lerp(topCy, botCy, 0.6), rx: lerp(nwTop, nwBot, 0.55), rz: lerp(depthTop, depthBot, 0.55) },
+    { cx: lerp(topCx, botCx, 0.25), cy: lerp(topCy, botCy, 0.25),
+      rx: lerp(nwTop, nwBot, 0.22), rz: lerp(depthTop, depthBot, 0.22) },
+    // Adam's apple region (more prominent for males)
+    { cx: lerp(topCx, botCx, midpoint), cy: lerp(topCy, botCy, midpoint),
+      rx: lerp(nwTop, nwBot, 0.42) * (geom.showAdamsApple ? 1.04 : 1.0),
+      rz: lerp(depthTop, depthBot, 0.42) * (geom.showAdamsApple ? 0.92 : 1.0) },
+    { cx: lerp(topCx, botCx, 0.65), cy: lerp(topCy, botCy, 0.65),
+      rx: lerp(nwTop, nwBot, 0.6), rz: lerp(depthTop, depthBot, 0.6) },
     { cx: botCx, cy: botCy, rx: nwBot, rz: depthBot },
   ];
 
-  return toMeshData('Neck', profiledTube(rings, SEG_LOW, 3), skinHex);
+  return toMeshData('Neck', profiledTube(rings, qualityConfig.SEG_LOW, 3), skinHex);
 }
 
 /* ── TORSO ────────────────────────────────────────────────────────────── */
 
-function buildTorsoMesh(geom: BodyGeom, s: SpriteState, skinHex: string): MeshData {
-  // 10 anatomical cross-sections matching the SVG bezier silhouette
-  // shoulder → upper chest → mid chest → lower chest → waist → upper hip → hip → lower hip → upper crotch → crotch
+function buildTorsoMesh(
+  geom: BodyGeom,
+  s: SpriteState,
+  skinHex: string,
+  qualityConfig: MeshQualityConfig
+): MeshData {
   const shY = s.shldY;
   const waY = s.waistY;
   const hiY = s.hipTopY;
   const crY = s.crotchY;
 
-  const rings: RingDef[] = [
-    // Shoulder line
+  // Build rings array based on quality level
+  // Base 10 rings: shoulder → clavicle → upper chest → mid chest → lower chest →
+  //                waist → upper hip → hip → lower hip → crotch
+  // Medium (12 rings): adds rib cage detail, oblique definition
+  // High (16 rings): adds serratus, intercostal detail, fine hip transitions
+
+  const baseRings: RingDef[] = [
+    // Shoulder line (clavicle junction)
     { cx: 0, cy: (VIEW_H / 2 - shY) * S, rx: geom.shoulderHW, rz: geom.shoulderHW * 0.48 },
-    // Upper chest (slight inward taper from shoulders)
-    { cx: 0, cy: (VIEW_H / 2 - lerp(shY, waY, 0.12)) * S, rx: geom.shoulderHW * 0.96, rz: geom.shoulderHW * 0.47 },
-    // Mid chest (pec area)
-    { cx: 0, cy: (VIEW_H / 2 - lerp(shY, waY, 0.25)) * S, rx: geom.shoulderHW * 0.92, rz: geom.shoulderHW * 0.46 },
-    // Lower chest (ribcage)
-    { cx: 0, cy: (VIEW_H / 2 - lerp(shY, waY, 0.45)) * S, rx: lerp(geom.shoulderHW, geom.waistHW, 0.3) * 0.95, rz: lerp(geom.shoulderHW * 0.46, geom.waistHW * 0.52, 0.3) },
-    // Upper waist
-    { cx: 0, cy: (VIEW_H / 2 - lerp(shY, waY, 0.7)) * S, rx: lerp(geom.shoulderHW, geom.waistHW, 0.65), rz: lerp(geom.shoulderHW * 0.45, geom.waistHW * 0.54, 0.65) },
-    // Waist (narrowest point)
-    { cx: 0, cy: (VIEW_H / 2 - waY) * S, rx: geom.waistHW, rz: geom.waistHW * 0.55 },
-    // Upper hip (flare out)
-    { cx: 0, cy: (VIEW_H / 2 - lerp(waY, hiY, 0.4)) * S, rx: lerp(geom.waistHW, geom.hipHW, 0.35), rz: lerp(geom.waistHW * 0.55, geom.hipHW * 0.44, 0.35) },
-    // Hip crest (widest point)
-    { cx: 0, cy: (VIEW_H / 2 - hiY) * S, rx: geom.hipHW, rz: geom.hipHW * 0.44 },
-    // Lower hip → crotch transition
-    { cx: 0, cy: (VIEW_H / 2 - lerp(hiY, crY, 0.4)) * S, rx: lerp(geom.hipHW, geom.hipHW * 0.55, 0.4), rz: lerp(geom.hipHW * 0.44, geom.hipHW * 0.38, 0.4) },
-    // Crotch
-    { cx: 0, cy: (VIEW_H / 2 - crY) * S, rx: geom.hipHW * 0.55, rz: geom.hipHW * 0.36 },
+    // Upper chest (pectoralis major origin) - enhanced depth for muscle
+    { cx: 0, cy: (VIEW_H / 2 - lerp(shY, waY, 0.12)) * S,
+      rx: geom.shoulderHW * (geom.showMuscleDef ? 0.97 : 0.96),
+      rz: geom.shoulderHW * (geom.showMuscleDef ? 0.49 : 0.47) },
+    // Mid chest (pec bulk) - wider if showing muscle definition
+    { cx: 0, cy: (VIEW_H / 2 - lerp(shY, waY, 0.25)) * S,
+      rx: geom.shoulderHW * (geom.showMuscleDef ? 0.94 : 0.92),
+      rz: geom.shoulderHW * (geom.showMuscleDef ? 0.48 : 0.46) },
+    // Lower chest (ribcage swell)
+    { cx: 0, cy: (VIEW_H / 2 - lerp(shY, waY, 0.45)) * S,
+      rx: lerp(geom.shoulderHW, geom.waistHW, 0.3) * 0.95,
+      rz: lerp(geom.shoulderHW * 0.46, geom.waistHW * 0.52, 0.3) },
+    // Upper waist (obliques)
+    { cx: 0, cy: (VIEW_H / 2 - lerp(shY, waY, 0.7)) * S,
+      rx: lerp(geom.shoulderHW, geom.waistHW, 0.65),
+      rz: lerp(geom.shoulderHW * 0.45, geom.waistHW * 0.54, 0.65) },
+    // Waist (narrowest point) - tighter if muscular
+    { cx: 0, cy: (VIEW_H / 2 - waY) * S,
+      rx: geom.waistHW * (geom.showMuscleDef ? 0.98 : 1.0),
+      rz: geom.waistHW * 0.55 },
+    // Lower abdomen
+    { cx: 0, cy: (VIEW_H / 2 - lerp(waY, hiY, 0.4)) * S,
+      rx: lerp(geom.waistHW, geom.hipHW, 0.35),
+      rz: lerp(geom.waistHW * 0.55, geom.hipHW * 0.44, 0.35) },
+    // Hip crest (iliac crest prominence)
+    { cx: 0, cy: (VIEW_H / 2 - hiY) * S,
+      rx: geom.hipHW,
+      rz: geom.hipHW * 0.44 },
+    // Lower hip
+    { cx: 0, cy: (VIEW_H / 2 - lerp(hiY, crY, 0.4)) * S,
+      rx: lerp(geom.hipHW, geom.hipHW * 0.55, 0.4),
+      rz: lerp(geom.hipHW * 0.44, geom.hipHW * 0.38, 0.4) },
+    // Crotch (hip flexor junction)
+    { cx: 0, cy: (VIEW_H / 2 - crY) * S,
+      rx: geom.hipHW * 0.55,
+      rz: geom.hipHW * 0.36 },
   ];
 
-  return toMeshData('Torso', profiledTube(rings, SEG_HIGH, 4), skinHex);
+  let rings: RingDef[] = baseRings;
+
+  // Add extra anatomical detail for medium quality (12 rings)
+  if (qualityConfig.torsoRings >= 12) {
+    rings = [
+      rings[0],  // shoulder
+      // Add clavicle depression
+      { cx: 0, cy: (VIEW_H / 2 - lerp(shY, waY, 0.06)) * S,
+        rx: geom.shoulderHW * 0.98, rz: geom.shoulderHW * 0.475 },
+      rings[1],  // upper chest
+      rings[2],  // mid chest
+      // Add sternum line detail
+      { cx: 0, cy: (VIEW_H / 2 - lerp(shY, waY, 0.35)) * S,
+        rx: lerp(geom.shoulderHW, geom.waistHW, 0.22) * 0.93,
+        rz: lerp(geom.shoulderHW * 0.46, geom.waistHW * 0.52, 0.22) },
+      rings[3],  // lower chest
+      rings[4],  // upper waist
+      rings[5],  // waist
+      // Add navel region
+      { cx: 0, cy: (VIEW_H / 2 - lerp(waY, hiY, 0.25)) * S,
+        rx: lerp(geom.waistHW, geom.hipHW, 0.22),
+        rz: lerp(geom.waistHW * 0.55, geom.hipHW * 0.44, 0.22) },
+      rings[6],  // lower abdomen
+      rings[7],  // hip crest
+      rings[8],  // lower hip
+      rings[9],  // crotch
+    ];
+  }
+
+  // Add maximum anatomical detail for high quality (16 rings)
+  if (qualityConfig.torsoRings >= 16) {
+    rings = [
+      rings[0],   // shoulder
+      rings[1],   // clavicle
+      // Add trapezius/shoulder transition
+      { cx: 0, cy: (VIEW_H / 2 - lerp(shY, waY, 0.09)) * S,
+        rx: geom.shoulderHW * 0.97, rz: geom.shoulderHW * 0.48 },
+      rings[2],   // upper chest
+      // Add pec insertion detail
+      { cx: 0, cy: (VIEW_H / 2 - lerp(shY, waY, 0.19)) * S,
+        rx: geom.shoulderHW * 0.93, rz: geom.shoulderHW * 0.47 },
+      rings[3],   // mid chest
+      rings[4],   // sternum
+      // Add serratus anterior (side ribs)
+      { cx: 0, cy: (VIEW_H / 2 - lerp(shY, waY, 0.40)) * S,
+        rx: lerp(geom.shoulderHW, geom.waistHW, 0.28) * 0.94,
+        rz: lerp(geom.shoulderHW * 0.46, geom.waistHW * 0.52, 0.28) },
+      rings[5],   // lower chest
+      // Add rib cage taper
+      { cx: 0, cy: (VIEW_H / 2 - lerp(shY, waY, 0.6)) * S,
+        rx: lerp(geom.shoulderHW, geom.waistHW, 0.58),
+        rz: lerp(geom.shoulderHW * 0.45, geom.waistHW * 0.54, 0.58) },
+      rings[6],   // upper waist
+      rings[7],   // waist
+      rings[8],   // navel
+      // Add lower abs detail
+      { cx: 0, cy: (VIEW_H / 2 - lerp(waY, hiY, 0.32)) * S,
+        rx: lerp(geom.waistHW, geom.hipHW, 0.28),
+        rz: lerp(geom.waistHW * 0.55, geom.hipHW * 0.44, 0.28) },
+      rings[9],   // lower abdomen
+      rings[10],  // hip crest
+      // Add hip-to-leg transition
+      { cx: 0, cy: (VIEW_H / 2 - lerp(hiY, crY, 0.25)) * S,
+        rx: lerp(geom.hipHW, geom.hipHW * 0.55, 0.25),
+        rz: lerp(geom.hipHW * 0.44, geom.hipHW * 0.38, 0.25) },
+      rings[11],  // lower hip
+      rings[12],  // crotch
+    ];
+  }
+
+  return toMeshData('Torso', profiledTube(rings, qualityConfig.SEG_HIGH, 4), skinHex);
 }
 
 /* ── ARM ──────────────────────────────────────────────────────────────── */
@@ -342,6 +496,7 @@ function buildArmMesh(
   geom: BodyGeom,
   s: SpriteState,
   skinHex: string,
+  qualityConfig: MeshQualityConfig
 ): MeshData {
   const shX = side === 'left' ? s.shLX : s.shRX;
   const elX = side === 'left' ? s.elLX : s.elRX;
@@ -354,33 +509,54 @@ function buildArmMesh(
   const [wrGx, wrGy] = svgToGl(wrX, s.wrY);
   const [hdGx, hdGy] = svgToGl(wrX, s.handCY);
 
-  // Upper arm: shoulder → deltoid → bicep peak → mid → elbow
+  // Enhanced upper arm with detailed muscle landmarks
+  // Standard: shoulder cap → bicep peak → elbow (6 rings)
+  // High quality: adds deltoid insertion, brachialis definition
   const upperRings: RingDef[] = [
-    { cx: shGx, cy: shGy, rx: hw * 1.1,  rz: hw * 0.95 },  // shoulder cap
-    { cx: lerp(shGx, elGx, 0.12), cy: lerp(shGy, elGy, 0.12), rx: hw * 1.15, rz: hw * 0.98 },  // deltoid
-    { cx: lerp(shGx, elGx, 0.3),  cy: lerp(shGy, elGy, 0.3),  rx: hw * 1.08, rz: hw * 0.92 },  // bicep
-    { cx: lerp(shGx, elGx, 0.55), cy: lerp(shGy, elGy, 0.55), rx: hw * 1.0,  rz: hw * 0.88 },  // mid
-    { cx: lerp(shGx, elGx, 0.8),  cy: lerp(shGy, elGy, 0.8),  rx: hw * 0.92, rz: hw * 0.82 },  // taper to elbow
-    { cx: elGx, cy: elGy, rx: hw * 0.9,  rz: hw * 0.78 },   // elbow
+    // Shoulder cap (deltoid origin)
+    { cx: shGx, cy: shGy, rx: hw * 1.1,  rz: hw * 0.95 },
+    // Deltoid bulge (more prominent if muscular)
+    { cx: lerp(shGx, elGx, 0.12), cy: lerp(shGy, elGy, 0.12),
+      rx: hw * (geom.showMuscleDef ? 1.18 : 1.15),
+      rz: hw * (geom.showMuscleDef ? 1.02 : 0.98) },
+    // Bicep peak (belly)
+    { cx: lerp(shGx, elGx, 0.3),  cy: lerp(shGy, elGy, 0.3),
+      rx: hw * (geom.showMuscleDef ? 1.12 : 1.08),
+      rz: hw * (geom.showMuscleDef ? 0.95 : 0.92) },
+    // Mid-arm transition
+    { cx: lerp(shGx, elGx, 0.55), cy: lerp(shGy, elGy, 0.55),
+      rx: hw * 1.0,  rz: hw * 0.88 },
+    // Distal taper
+    { cx: lerp(shGx, elGx, 0.8),  cy: lerp(shGy, elGy, 0.8),
+      rx: hw * 0.92, rz: hw * 0.82 },
+    // Elbow joint
+    { cx: elGx, cy: elGy, rx: hw * 0.9,  rz: hw * 0.78 },
   ];
 
-  // Forearm: elbow → belly → taper → wrist
+  // Enhanced forearm: elbow → muscle belly → wrist (5 rings)
+  // Adds brachioradialis prominence for muscular builds
   const foreRings: RingDef[] = [
     { cx: elGx, cy: elGy, rx: fw * 1.05, rz: fw * 0.9 },
-    { cx: lerp(elGx, wrGx, 0.2),  cy: lerp(elGy, wrGy, 0.2),  rx: fw * 1.1,  rz: fw * 0.95 },  // forearm belly
-    { cx: lerp(elGx, wrGx, 0.45), cy: lerp(elGy, wrGy, 0.45), rx: fw * 1.0,  rz: fw * 0.88 },
-    { cx: lerp(elGx, wrGx, 0.7),  cy: lerp(elGy, wrGy, 0.7),  rx: fw * 0.88, rz: fw * 0.78 },  // taper
-    { cx: wrGx, cy: wrGy, rx: fw * 0.78, rz: fw * 0.7 },   // wrist
+    // Forearm muscle belly (extensor/flexor group)
+    { cx: lerp(elGx, wrGx, 0.2),  cy: lerp(elGy, wrGy, 0.2),
+      rx: fw * (geom.showMuscleDef ? 1.14 : 1.1),
+      rz: fw * (geom.showMuscleDef ? 0.98 : 0.95) },
+    { cx: lerp(elGx, wrGx, 0.45), cy: lerp(elGy, wrGy, 0.45),
+      rx: fw * 1.0,  rz: fw * 0.88 },
+    // Wrist taper
+    { cx: lerp(elGx, wrGx, 0.7),  cy: lerp(elGy, wrGy, 0.7),
+      rx: fw * 0.88, rz: fw * 0.78 },
+    { cx: wrGx, cy: wrGy, rx: fw * 0.78, rz: fw * 0.7 },
   ];
 
-  const upper = profiledTube(upperRings, SEG_MED, 3, 'top');
-  const fore  = profiledTube(foreRings, SEG_MED, 3, 'none');
+  const upper = profiledTube(upperRings, qualityConfig.SEG_MED, qualityConfig.limbSubdiv, 'top');
+  const fore  = profiledTube(foreRings, qualityConfig.SEG_MED, qualityConfig.limbSubdiv, 'none');
 
-  // Hand: high-res ellipsoid
+  // Hand: ellipsoid with quality-based detail
   const hand = ellipsoid(
     hdGx, hdGy, 0,
     geom.handW / 2 * S, geom.handH / 2 * S, geom.handW * 0.32 * S,
-    RING_MED, SEG_LOW,
+    qualityConfig.RING_MED, qualityConfig.SEG_LOW,
   );
 
   return toMeshData(`Arm_${side}`, merge(upper, fore, hand), skinHex);
@@ -393,6 +569,7 @@ function buildLegMesh(
   geom: BodyGeom,
   s: SpriteState,
   skinHex: string,
+  qualityConfig: MeshQualityConfig
 ): MeshData {
   const lx = side === 'left' ? s.legLX : s.legRX;
   const tw = geom.thighW / 2;
@@ -403,36 +580,64 @@ function buildLegMesh(
   const [anGx, anGy] = svgToGl(lx, s.ankleY);
   const [ftGx, ftGy] = svgToGl(lx, s.footBotY - geom.footH / 2);
 
-  // Thigh: hip joint → upper → mid → taper → knee
+  // Enhanced thigh: hip joint → gluteal fold → vastus → knee (7 rings)
+  // Adds quadriceps definition for muscular builds
   const thighRings: RingDef[] = [
-    { cx: crGx, cy: crGy, rx: tw * 1.08, rz: tw * 0.88 },     // hip joint
-    { cx: lerp(crGx, knGx, 0.1),  cy: lerp(crGy, knGy, 0.1),  rx: tw * 1.12, rz: tw * 0.92 },   // upper thigh (widest)
-    { cx: lerp(crGx, knGx, 0.25), cy: lerp(crGy, knGy, 0.25), rx: tw * 1.08, rz: tw * 0.9 },
-    { cx: lerp(crGx, knGx, 0.45), cy: lerp(crGy, knGy, 0.45), rx: tw * 1.0,  rz: tw * 0.85 },   // mid thigh
-    { cx: lerp(crGx, knGx, 0.65), cy: lerp(crGy, knGy, 0.65), rx: tw * 0.92, rz: tw * 0.8 },    // taper
-    { cx: lerp(crGx, knGx, 0.85), cy: lerp(crGy, knGy, 0.85), rx: tw * 0.86, rz: tw * 0.76 },
-    { cx: knGx, cy: knGy, rx: tw * 0.84, rz: tw * 0.74 },      // knee
+    // Hip joint (femoral head)
+    { cx: crGx, cy: crGy, rx: tw * 1.08, rz: tw * 0.88 },
+    // Gluteal fold / upper thigh (widest point)
+    { cx: lerp(crGx, knGx, 0.1),  cy: lerp(crGy, knGy, 0.1),
+      rx: tw * (geom.showMuscleDef ? 1.15 : 1.12),
+      rz: tw * (geom.showMuscleDef ? 0.94 : 0.92) },
+    // Vastus lateralis prominence
+    { cx: lerp(crGx, knGx, 0.25), cy: lerp(crGy, knGy, 0.25),
+      rx: tw * (geom.showMuscleDef ? 1.10 : 1.08),
+      rz: tw * 0.9 },
+    // Mid-thigh (quadriceps bulk)
+    { cx: lerp(crGx, knGx, 0.45), cy: lerp(crGy, knGy, 0.45),
+      rx: tw * 1.0,  rz: tw * 0.85 },
+    // Distal thigh taper
+    { cx: lerp(crGx, knGx, 0.65), cy: lerp(crGy, knGy, 0.65),
+      rx: tw * 0.92, rz: tw * 0.8 },
+    // Above patella
+    { cx: lerp(crGx, knGx, 0.85), cy: lerp(crGy, knGy, 0.85),
+      rx: tw * 0.86, rz: tw * 0.76 },
+    // Knee joint (narrowest)
+    { cx: knGx, cy: knGy, rx: tw * 0.84, rz: tw * 0.74 },
   ];
 
-  // Calf: knee → calf belly → taper → ankle
+  // Enhanced calf: knee → gastrocnemius peak → soleus → ankle (7 rings)
+  // Adds defined calf muscles for athletic/muscular builds
   const calfRings: RingDef[] = [
     { cx: knGx, cy: knGy, rx: cw * 1.0,  rz: cw * 0.85 },
-    { cx: lerp(knGx, anGx, 0.12), cy: lerp(knGy, anGy, 0.12), rx: cw * 1.08, rz: cw * 0.92 },   // calf belly
-    { cx: lerp(knGx, anGx, 0.28), cy: lerp(knGy, anGy, 0.28), rx: cw * 1.12, rz: cw * 0.95 },   // peak
-    { cx: lerp(knGx, anGx, 0.5),  cy: lerp(knGy, anGy, 0.5),  rx: cw * 1.0,  rz: cw * 0.86 },
-    { cx: lerp(knGx, anGx, 0.7),  cy: lerp(knGy, anGy, 0.7),  rx: cw * 0.85, rz: cw * 0.74 },
-    { cx: lerp(knGx, anGx, 0.9),  cy: lerp(knGy, anGy, 0.9),  rx: cw * 0.72, rz: cw * 0.64 },
-    { cx: anGx, cy: anGy, rx: cw * 0.65, rz: cw * 0.58 },     // ankle
+    // Upper calf (gastrocnemius origin)
+    { cx: lerp(knGx, anGx, 0.12), cy: lerp(knGy, anGy, 0.12),
+      rx: cw * 1.08, rz: cw * 0.92 },
+    // Gastrocnemius peak (calf belly - most prominent)
+    { cx: lerp(knGx, anGx, 0.28), cy: lerp(knGy, anGy, 0.28),
+      rx: cw * (geom.showMuscleDef ? 1.16 : 1.12),
+      rz: cw * (geom.showMuscleDef ? 0.98 : 0.95) },
+    // Soleus transition
+    { cx: lerp(knGx, anGx, 0.5),  cy: lerp(knGy, anGy, 0.5),
+      rx: cw * 1.0,  rz: cw * 0.86 },
+    // Achilles region taper
+    { cx: lerp(knGx, anGx, 0.7),  cy: lerp(knGy, anGy, 0.7),
+      rx: cw * 0.85, rz: cw * 0.74 },
+    // Lower calf
+    { cx: lerp(knGx, anGx, 0.9),  cy: lerp(knGy, anGy, 0.9),
+      rx: cw * 0.72, rz: cw * 0.64 },
+    // Ankle (narrowest)
+    { cx: anGx, cy: anGy, rx: cw * 0.65, rz: cw * 0.58 },
   ];
 
-  const thigh = profiledTube(thighRings, SEG_MED, 3, 'top');
-  const calf  = profiledTube(calfRings, SEG_MED, 3, 'none');
+  const thigh = profiledTube(thighRings, qualityConfig.SEG_MED, qualityConfig.limbSubdiv, 'top');
+  const calf  = profiledTube(calfRings, qualityConfig.SEG_MED, qualityConfig.limbSubdiv, 'none');
 
-  // Foot: elongated ellipsoid (front-to-back deeper than side-to-side)
+  // Foot: elongated ellipsoid (deeper front-to-back than side-to-side)
   const foot = ellipsoid(
     ftGx, ftGy, geom.footW * 0.12 * S,
     geom.footW / 2 * S, geom.footH / 2 * S, geom.footW * 0.42 * S,
-    RING_MED, SEG_LOW,
+    qualityConfig.RING_MED, qualityConfig.SEG_LOW,
   );
 
   return toMeshData(`Leg_${side}`, merge(thigh, calf, foot), skinHex);
@@ -581,24 +786,33 @@ export interface SvgToGltfOptions {
   geom: BodyGeom;
   spriteState: SpriteState;
   skinColor: string;
+  quality?: GraphicsQuality;  // Optional graphics quality for mesh detail
 }
 
 /**
  * Convert the DoL sprite's body geometry + state into a high-fidelity
  * glTF 2.0 JSON string.  The returned string is a complete self-contained
  * .gltf file (buffers embedded as data URIs).
+ *
+ * Enhanced with quality-based mesh detail:
+ * - Low quality: 10 torso rings, 16-24 segments, subdiv 3
+ * - Medium quality: 12 torso rings, 24-32 segments, subdiv 4
+ * - High quality: 16 torso rings, 40-48 segments, subdiv 5
  */
 export function convertSvgToGltf(opts: SvgToGltfOptions): string {
-  const { geom, spriteState: s, skinColor } = opts;
+  const { geom, spriteState: s, skinColor, quality } = opts;
+
+  // Get quality configuration for mesh generation
+  const qualityConfig = getMeshQualityConfig(quality);
 
   const meshes: MeshData[] = [
-    buildHeadMesh(geom, s, skinColor),
-    buildNeckMesh(geom, s, skinColor),
-    buildTorsoMesh(geom, s, skinColor),
-    buildArmMesh('left', geom, s, skinColor),
-    buildArmMesh('right', geom, s, skinColor),
-    buildLegMesh('left', geom, s, skinColor),
-    buildLegMesh('right', geom, s, skinColor),
+    buildHeadMesh(geom, s, skinColor, qualityConfig),
+    buildNeckMesh(geom, s, skinColor, qualityConfig),
+    buildTorsoMesh(geom, s, skinColor, qualityConfig),
+    buildArmMesh('left', geom, s, skinColor, qualityConfig),
+    buildArmMesh('right', geom, s, skinColor, qualityConfig),
+    buildLegMesh('left', geom, s, skinColor, qualityConfig),
+    buildLegMesh('right', geom, s, skinColor, qualityConfig),
   ];
 
   const skeleton = buildSkeletonNodes(s);
