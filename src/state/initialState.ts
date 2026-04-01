@@ -1,6 +1,7 @@
 import { GameState } from '../types';
 import { LOCATIONS } from '../data/locations';
 import { generateStartingWorld } from '../sim/ProceduralGen';
+import { getDefaultGraphicsQuality } from '../utils/graphicsQuality';
 
 export const initialState: GameState = {
   player: {
@@ -207,7 +208,8 @@ export const initialState: GameState = {
       enable_parasites: true,
       enable_pregnancy: true,
       enable_extreme_content: false
-    }
+    },
+    graphics_quality: getDefaultGraphicsQuality()
   },
   sim_world: (() => {
     const { locations, npcs, economy } = generateStartingWorld(42);

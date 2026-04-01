@@ -14,13 +14,15 @@ interface MuscleDefinitionProps {
   isChestExposed: boolean;
   shouldersExposed: boolean;
   legsExposed: boolean;
+  /** Optional override for detail level from graphics quality settings (0-3) */
+  detailLevel?: 0 | 1 | 2 | 3;
 }
 
 export const MuscleDefinition: React.FC<MuscleDefinitionProps> = ({
-  geom, s, skin, build, isChestExposed, shouldersExposed, legsExposed
+  geom, s, skin, build, isChestExposed, shouldersExposed, legsExposed, detailLevel: overrideDetailLevel
 }) => {
 
-  // Determine detail level based on build
+  // Determine detail level based on build (if not overridden)
   const getDetailLevel = (): number => {
     if (build === 'muscular') return 3;
     if (build === 'athletic' || build === 'heavy') return 2;
@@ -28,7 +30,10 @@ export const MuscleDefinition: React.FC<MuscleDefinitionProps> = ({
     return 0;
   };
 
-  const detailLevel = getDetailLevel();
+  // Use override from graphics quality if provided, otherwise use build-based level
+  const detailLevel = overrideDetailLevel !== undefined
+    ? Math.min(overrideDetailLevel, getDetailLevel()) // Cap at build's natural level
+    : getDetailLevel();
   if (detailLevel === 0) return null;
 
   const opacity = (detailLevel / 3) * 0.4 + 0.15;
