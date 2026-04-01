@@ -7,6 +7,9 @@
 
 import { GraphicsQuality, GraphicsQualityPreset } from '../types';
 
+// Re-export GraphicsQuality type for convenience
+export type { GraphicsQuality } from '../types';
+
 /**
  * Get graphics quality preset configuration
  */
