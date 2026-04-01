@@ -22,6 +22,10 @@ import {
   getQuestMetadata,
   getIndexStats,
   getEntityCounts,
+  asNpcId,
+  asLocationId,
+  asQuestId,
+  asItemId,
 } from './referenceIndex';
 import type { ReferenceIndex } from './referenceIndex.types';
 
@@ -76,25 +80,25 @@ describe('Reference Index System', () => {
 
   describe('NPC Lookups', () => {
     it('should find locations for robin', () => {
-      const locations = getNpcLocations('robin');
+      const locations = getNpcLocations(asNpcId('robin'));
       expect(Array.isArray(locations)).toBe(true);
       expect(locations.length).toBeGreaterThan(0);
       expect(locations).toContain('orphanage');
     });
 
     it('should return empty array for non-existent NPC', () => {
-      const locations = getNpcLocations('nonexistent_npc');
+      const locations = getNpcLocations(asNpcId('nonexistent_npc'));
       expect(locations).toEqual([]);
     });
 
     it('should find NPCs at orphanage', () => {
-      const npcs = getLocationNpcs('orphanage');
+      const npcs = getLocationNpcs(asLocationId('orphanage'));
       expect(Array.isArray(npcs)).toBe(true);
       expect(npcs.length).toBeGreaterThan(0);
     });
 
     it('should return empty array for non-existent location', () => {
-      const npcs = getLocationNpcs('nonexistent_location');
+      const npcs = getLocationNpcs(asLocationId('nonexistent_location'));
       expect(npcs).toEqual([]);
     });
   });
@@ -116,7 +120,7 @@ describe('Reference Index System', () => {
         expect(prereqs).toEqual(prereqsFromIndex);
       } else {
         // If no quests have prerequisites, that's ok, just verify empty query works
-        const prereqs = getQuestPrerequisites('any_quest');
+        const prereqs = getQuestPrerequisites(asQuestId('any_quest'));
         expect(prereqs).toEqual([]);
       }
     });
@@ -146,14 +150,14 @@ describe('Reference Index System', () => {
     });
 
     it('should return empty array for unknown item', () => {
-      const quests = getQuestsRewardingItem('nonexistent_item');
+      const quests = getQuestsRewardingItem(asItemId('nonexistent_item'));
       expect(quests).toEqual([]);
     });
   });
 
   describe('Location Connections', () => {
     it('should find connected locations', () => {
-      const connections = getConnectedLocations('orphanage');
+      const connections = getConnectedLocations(asLocationId('orphanage'));
       expect(Array.isArray(connections)).toBe(true);
       // Orphanage should connect to at least town_square or school
       if (connections.length > 0) {
@@ -163,7 +167,7 @@ describe('Reference Index System', () => {
 
     it('should return empty array for location with no connections', () => {
       // Some locations may not have connections
-      const connections = getConnectedLocations('nonexistent_location');
+      const connections = getConnectedLocations(asLocationId('nonexistent_location'));
       expect(connections).toEqual([]);
     });
   });
@@ -216,7 +220,7 @@ describe('Reference Index System', () => {
 
   describe('Metadata Queries', () => {
     it('should get NPC metadata for robin', () => {
-      const metadata = getNpcMetadata('robin');
+      const metadata = getNpcMetadata(asNpcId('robin'));
       expect(metadata).toBeDefined();
       if (metadata) {
         expect(metadata.id).toBe('robin');
@@ -230,12 +234,12 @@ describe('Reference Index System', () => {
     });
 
     it('should return null for non-existent NPC metadata', () => {
-      const metadata = getNpcMetadata('nonexistent_npc');
+      const metadata = getNpcMetadata(asNpcId('nonexistent_npc'));
       expect(metadata).toBeNull();
     });
 
     it('should get location metadata', () => {
-      const metadata = getLocationMetadata('orphanage');
+      const metadata = getLocationMetadata(asLocationId('orphanage'));
       expect(metadata).toBeDefined();
       if (metadata) {
         expect(metadata.id).toBe('orphanage');
@@ -300,8 +304,8 @@ describe('Reference Index System', () => {
       const start = performance.now();
 
       for (let i = 0; i < iterations; i++) {
-        getNpcLocations('robin');
-        getLocationNpcs('orphanage');
+        getNpcLocations(asNpcId('robin'));
+        getLocationNpcs(asLocationId('orphanage'));
         getLoveInterests();
       }
 
@@ -318,14 +322,14 @@ describe('Reference Index System', () => {
 
       // Simulate multiple concurrent queries
       const results = [
-        getNpcLocations('robin'),
-        getLocationNpcs('orphanage'),
+        getNpcLocations(asNpcId('robin')),
+        getLocationNpcs(asLocationId('orphanage')),
         getLoveInterests(),
         getAntagonists(),
         getNpcsByRace('Human'),
         getQuestsByType('main'),
-        getNpcMetadata('robin'),
-        getLocationMetadata('orphanage'),
+        getNpcMetadata(asNpcId('robin')),
+        getLocationMetadata(asLocationId('orphanage')),
       ];
 
       const end = performance.now();
@@ -374,14 +378,14 @@ describe('Reference Index System', () => {
 
   describe('Edge Cases', () => {
     it('should handle empty queries gracefully', () => {
-      expect(getNpcLocations('')).toEqual([]);
-      expect(getLocationNpcs('')).toEqual([]);
-      expect(getQuestPrerequisites('')).toEqual([]);
+      expect(getNpcLocations(asNpcId(''))).toEqual([]);
+      expect(getLocationNpcs(asLocationId(''))).toEqual([]);
+      expect(getQuestPrerequisites(asQuestId(''))).toEqual([]);
     });
 
     it('should handle special characters in IDs', () => {
       // Some NPCs have underscores
-      const locations = getNpcLocations('constance_michel');
+      const locations = getNpcLocations(asNpcId('constance_michel'));
       expect(Array.isArray(locations)).toBe(true);
     });
 
@@ -401,7 +405,7 @@ describe('Reference Index System', () => {
   describe('Integration', () => {
     it('should provide complete workflow: NPC → Locations → Connected Locations', () => {
       // Start with an NPC
-      const robinLocations = getNpcLocations('robin');
+      const robinLocations = getNpcLocations(asNpcId('robin'));
       expect(robinLocations.length).toBeGreaterThan(0);
 
       // For each location, find connected locations

@@ -10,6 +10,8 @@ import {
   getQuestsByType,
   getIndexStats,
   validateReferences,
+  asNpcId,
+  asLocationId,
 } from '../data/referenceIndex';
 
 console.log('='.repeat(60));
@@ -49,13 +51,13 @@ loveInterests.slice(0, 5).forEach(npcId => {
 
 // 4. Location Exploration
 console.log('\n🏛️  ORPHANAGE DETAILS:');
-const orphanage = getLocationMetadata('orphanage');
+const orphanage = getLocationMetadata(asLocationId('orphanage'));
 if (orphanage) {
   console.log(`  Name: ${orphanage.name}`);
   console.log(`  Danger Level: ${orphanage.danger}/100`);
   console.log(`  NPCs Present: ${orphanage.npcCount}`);
 
-  const npcs = getLocationNpcs('orphanage');
+  const npcs = getLocationNpcs(asLocationId('orphanage'));
   npcs.forEach(npcId => {
     const npc = getNpcMetadata(npcId);
     if (npc) {
@@ -67,7 +69,7 @@ if (orphanage) {
 
 // 5. Character Deep Dive
 console.log('\n🌟 ROBIN PROFILE:');
-const robinData = getNpcMetadata('robin');
+const robinData = getNpcMetadata(asNpcId('robin'));
 if (robinData) {
   console.log(`  Name: ${robinData.name}`);
   console.log(`  Race: ${robinData.race}`);
@@ -91,22 +93,27 @@ romanceQuests.slice(0, 5).forEach(questId => {
 });
 
 // 7. Performance Benchmark
+// Each iteration runs 3 queries; report both iteration time and per-query time.
 console.log('\n⚡ PERFORMANCE BENCHMARK:');
+const queriesPerIteration = 3;
 const iterations = 1000;
 const benchmarkStart = performance.now();
 
 for (let i = 0; i < iterations; i++) {
-  getNpcLocations('robin');
-  getLocationNpcs('orphanage');
+  getNpcLocations(asNpcId('robin'));
+  getLocationNpcs(asLocationId('orphanage'));
   getLoveInterests();
 }
 
 const benchmarkEnd = performance.now();
-const avgTime = (benchmarkEnd - benchmarkStart) / iterations;
-const queriesPerSecond = Math.floor(1000 / avgTime);
+const totalMs = benchmarkEnd - benchmarkStart;
+const avgIterationTime = totalMs / iterations;
+const avgQueryTime = avgIterationTime / queriesPerIteration;
+const queriesPerSecond = Math.floor(1000 / avgQueryTime);
 
 console.log(`  Iterations: ${iterations}`);
-console.log(`  Average Query Time: ${avgTime.toFixed(3)}ms`);
+console.log(`  Queries per Iteration: ${queriesPerIteration}`);
+console.log(`  Average Query Time: ${avgQueryTime.toFixed(4)}ms`);
 console.log(`  Queries Per Second: ${queriesPerSecond.toLocaleString()}`);
 console.log(`  Target: <1ms per query ✓`);
 

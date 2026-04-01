@@ -11,15 +11,17 @@ import {
   getNpcMetadata,
   getLoveInterests,
   validateReferences,
-} from '@/data/referenceIndex';
+  asNpcId,
+  asLocationId,
+} from './data/referenceIndex';
 
 // Find where Robin appears
-const robinLocations = getNpcLocations('robin');
+const robinLocations = getNpcLocations(asNpcId('robin'));
 console.log('Robin appears at:', robinLocations);
-// => ['orphanage', 'school', 'town_square']
+// => ['orphanage']
 
 // Find all NPCs at the orphanage
-const orphanageNpcs = getLocationNpcs('orphanage');
+const orphanageNpcs = getLocationNpcs(asLocationId('orphanage'));
 console.log('NPCs at orphanage:', orphanageNpcs);
 // => ['robin', 'bailey', 'constance_michel', 'grelod_the_kind']
 
@@ -34,7 +36,7 @@ console.log('Robin is a love interest:', robinData?.isLoveInterest);
 ### 1. Character Discovery
 
 ```typescript
-import { getLoveInterests, getAntagonists, getNpcsByRace } from '@/data/referenceIndex';
+import { getLoveInterests, getAntagonists, getNpcsByRace } from './data/referenceIndex';
 
 // Find all romance options
 const romanceOptions = getLoveInterests();
@@ -59,7 +61,7 @@ import {
   getLocationNpcs,
   getConnectedLocations,
   getLocationsByDangerRange,
-} from '@/data/referenceIndex';
+} from './data/referenceIndex';
 
 // Explore a location
 const orphanage = getLocationMetadata('orphanage');
@@ -85,7 +87,7 @@ import {
   getQuestPrerequisites,
   getQuestDependents,
   getQuestMetadata,
-} from '@/data/referenceIndex';
+} from './data/referenceIndex';
 
 // Find all romance quests
 const romanceQuests = getQuestsByType('romance');
@@ -111,7 +113,7 @@ console.log(`${questData?.title} (${questData?.type})`);
 ### 4. Item and Reward Tracking
 
 ```typescript
-import { getQuestsRewardingItem, getQuestMetadata } from '@/data/referenceIndex';
+import { getQuestsRewardingItem, getQuestMetadata } from './data/referenceIndex';
 
 // Find which quests reward a specific item
 const questsWithSword = getQuestsRewardingItem('rusty_iron_dagger');
@@ -127,7 +129,7 @@ for (const questId of questsWithSword) {
 ### 5. Validation and Debugging
 
 ```typescript
-import { validateReferences, getIndexStats } from '@/data/referenceIndex';
+import { validateReferences, getIndexStats } from './data/referenceIndex';
 
 // Check for broken references
 const validation = validateReferences();
@@ -156,7 +158,7 @@ import {
   getNpcLocations,
   getLocationMetadata,
   getConnectedLocations,
-} from '@/data/referenceIndex';
+} from './data/referenceIndex';
 
 // Find all locations where love interests can be found
 const loveInterests = getLoveInterests();
@@ -177,7 +179,7 @@ for (const locId of loveInterestLocations) {
 ### 7. Character Analysis
 
 ```typescript
-import { getNpcMetadata, getNpcLocations } from '@/data/referenceIndex';
+import { getNpcMetadata, getNpcLocations } from './data/referenceIndex';
 
 // Analyze a character
 function analyzeCharacter(npcId: string) {
@@ -204,7 +206,7 @@ analyzeCharacter('robin');
 ### 8. NPC Encounter System
 
 ```typescript
-import { getLocationNpcs, getNpcMetadata } from '@/data/referenceIndex';
+import { getLocationNpcs, getNpcMetadata } from './data/referenceIndex';
 
 // Simulate entering a location
 function enterLocation(locationId: string) {
@@ -228,7 +230,7 @@ enterLocation('orphanage');
 ### 9. Quest Chain Visualization
 
 ```typescript
-import { getQuestMetadata, getQuestPrerequisites, getQuestDependents } from '@/data/referenceIndex';
+import { getQuestMetadata, getQuestPrerequisites, getQuestDependents } from './data/referenceIndex';
 
 // Show quest chain
 function showQuestChain(questId: string, depth = 0) {
@@ -254,7 +256,7 @@ showQuestChain('q_ch1_orphans_cage');
 ### 10. Performance Benchmarking
 
 ```typescript
-import { getNpcLocations, getLocationNpcs, getIndex } from '@/data/referenceIndex';
+import { getNpcLocations, getLocationNpcs, getIndex } from './data/referenceIndex';
 
 // Benchmark query performance
 function benchmarkQueries(iterations = 1000) {
@@ -284,7 +286,7 @@ benchmarkQueries();
 ### AI Context Retrieval
 
 ```typescript
-import { getNpcMetadata, getNpcLocations } from '@/data/referenceIndex';
+import { getNpcMetadata, getNpcLocations } from './data/referenceIndex';
 
 // AI agent function to get character context
 function getCharacterContextForAI(npcId: string) {
@@ -308,7 +310,7 @@ console.log('AI Context:', context);
 ### Dynamic Dialogue Generation
 
 ```typescript
-import { getNpcMetadata, getLocationNpcs } from '@/data/referenceIndex';
+import { getNpcMetadata, getLocationNpcs } from './data/referenceIndex';
 
 // Generate contextual dialogue options based on location
 function generateDialogueOptions(locationId: string) {
@@ -342,7 +344,7 @@ console.log('Available interactions:', dialogue.slice(0, 5));
 
 ```typescript
 // Good - cache the index if making multiple queries
-import { getIndex } from '@/data/referenceIndex';
+import { getIndex } from './data/referenceIndex';
 
 const index = getIndex();
 const npcs = Array.from(index.npcMetadata.keys());
@@ -355,7 +357,7 @@ for (const npcId of npcs) {
 ### 2. Use Type Guards
 
 ```typescript
-import { getNpcMetadata } from '@/data/referenceIndex';
+import { getNpcMetadata } from './data/referenceIndex';
 
 const metadata = getNpcMetadata('robin');
 if (metadata) {
@@ -367,7 +369,7 @@ if (metadata) {
 ### 3. Validate Before Production
 
 ```typescript
-import { validateReferences } from '@/data/referenceIndex';
+import { validateReferences } from './data/referenceIndex';
 
 // In development or CI/CD
 if (process.env.NODE_ENV === 'development') {
@@ -391,4 +393,4 @@ if (process.env.NODE_ENV === 'development') {
 - [Technical Specification](../docs/REFERENCE-INDEX-SPEC.md)
 - [Maintenance Guide](../docs/AI-REFERENCE-INDEX-MAINTENANCE.md)
 - [AI Context Cards](../docs/ai-context/README.md)
-- [Type Definitions](./referenceIndex.types.ts)
+- [Type Definitions](../src/data/referenceIndex.types.ts)

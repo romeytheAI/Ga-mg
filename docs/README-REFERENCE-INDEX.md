@@ -21,14 +21,15 @@ import {
   getNpcLocations,
   getNpcMetadata,
   getLoveInterests,
-} from '@/data/referenceIndex';
+  asNpcId,
+} from './data/referenceIndex';
 
 // Find where a character appears (instant)
-const locations = getNpcLocations('robin');
+const locations = getNpcLocations(asNpcId('robin'));
 console.log(locations); // ['orphanage']
 
 // Get rich character metadata
-const metadata = getNpcMetadata('robin');
+const metadata = getNpcMetadata(asNpcId('robin'));
 console.log(metadata?.isLoveInterest); // true
 console.log(metadata?.responseTypes); // ['social', 'work', 'flirt', ...]
 
@@ -39,9 +40,9 @@ console.log(romances); // ['robin', 'whitney', 'eden', ...]
 
 ## Performance
 
-- **Build Time**: 1.28ms (target: <100ms) - **78x faster**
-- **Query Time**: <0.001ms (target: <1ms) - **>1000x faster**
-- **Throughput**: 2,004,855 queries/second
+- **Build Time**: <100ms target (actual: measured at runtime)
+- **Query Time**: <1ms target (actual: <0.001ms)
+- **Throughput**: >1,000,000 queries/second (machine-dependent; run the demo for your environment)
 - **Tests**: 364/364 passing (100%)
 - **Validation**: Zero broken references
 
@@ -113,7 +114,7 @@ AI REFERENCE INDEX SYSTEM - DEMO
 ============================================================
 
 📊 INDEX STATISTICS:
-  Build Time: 1.28ms
+  Build Time: <5ms (varies by machine)
   Total NPCs: 25
   Total Locations: 35
   Total Quests: 39
@@ -122,7 +123,7 @@ AI REFERENCE INDEX SYSTEM - DEMO
 ✓ All references valid - no broken links!
 
 ⚡ PERFORMANCE:
-  Queries Per Second: 2,004,855
+  Queries Per Second: >1,000,000 (varies by machine; run demo for your environment)
 ```
 
 ## Documentation

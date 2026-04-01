@@ -84,11 +84,8 @@ Before committing changes to data files, run validation:
 # Run TypeScript type checking
 npm run lint
 
-# Run tests (includes reference validation)
+# Run tests (includes reference validation via validateReferences() in the test suite)
 npm test
-
-# Manual validation check
-npm run validate-refs  # TODO: Add this script
 ```
 
 ### Continuous Integration
@@ -115,7 +112,6 @@ jobs:
       - run: npm install
       - run: npm run lint
       - run: npm test
-      - run: npm run validate-refs
 ```
 
 ---
@@ -230,10 +226,10 @@ Link related entities:
 
 **Validation**:
 ```typescript
-import { getQuestPrerequisites, validateReferences } from '@/data/referenceIndex';
+import { getQuestPrerequisites, validateReferences, asQuestId } from './data/referenceIndex';
 
 // Check if prerequisites exist
-const prereqs = getQuestPrerequisites('q_my_new_quest');
+const prereqs = getQuestPrerequisites(asQuestId('q_my_new_quest'));
 console.log('Prerequisites:', prereqs);
 
 // Validate all references
@@ -388,7 +384,6 @@ prereqs.forEach(id => {
 // package.json
 {
   "scripts": {
-    "validate-refs": "tsx scripts/validateReferences.ts",
     "build-index": "tsx scripts/buildReferenceIndex.ts",
     "check-context": "tsx scripts/checkContextCards.ts",
     "export-index": "tsx scripts/exportIndexToJson.ts"
@@ -402,7 +397,7 @@ prereqs.forEach(id => {
 # .git/hooks/pre-commit
 #!/bin/bash
 npm run lint
-npm run validate-refs
+npm test
 if [ $? -ne 0 ]; then
   echo "Reference validation failed. Commit aborted."
   exit 1
@@ -414,7 +409,7 @@ fi
 Add to GitHub Actions:
 ```yaml
 - name: Validate References
-  run: npm run validate-refs
+  run: npm test
 
 - name: Check Context Cards
   run: npm run check-context
@@ -454,7 +449,7 @@ A: Update when character content changes significantly (new quests, dialogue, or
 A: No. Validation catches errors before they reach players.
 
 **Q: How do I test my changes locally?**
-A: Run `npm test` and `npm run validate-refs`
+A: Run `npm test` (reference validation is included in the test suite)
 
 **Q: What if validation is slow?**
 A: Index building should be < 100ms. If slower, report performance issue.
@@ -473,8 +468,7 @@ A: Index building should be < 100ms. If slower, report performance issue.
 ### Key Commands
 ```bash
 npm run lint          # Type checking
-npm test              # Run all tests
-npm run validate-refs # Validate references
+npm test              # Run all tests (includes reference validation)
 npm run dev           # Start dev server
 ```
 

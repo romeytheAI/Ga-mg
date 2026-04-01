@@ -231,10 +231,10 @@ export function validateReferences(): {
  * @returns Array of location IDs, empty if NPC not found
  *
  * @example
- * getNpcLocations('robin')
- * // => ['orphanage', 'school', 'town_square']
+ * getNpcLocations(asNpcId('robin'))
+ * // => ['orphanage']
  */
-export function getNpcLocations(npcId: string): LocationId[];
+export function getNpcLocations(npcId: NpcId): LocationId[];
 
 /**
  * Get all NPCs present at a location.
@@ -583,14 +583,14 @@ function validateAllReferences(index: ReferenceIndex): {
 ### Example 1: Finding Robin's Locations
 
 ```typescript
-import { getNpcLocations, getNpcMetadata } from '@/data/referenceIndex';
+import { getNpcLocations, getNpcMetadata, asNpcId } from './data/referenceIndex';
 
 // Get all locations where Robin appears
-const locations = getNpcLocations('robin');
-console.log(locations); // ['orphanage', 'school', 'town_square']
+const locations = getNpcLocations(asNpcId('robin'));
+console.log(locations); // ['orphanage']
 
 // Get rich metadata
-const metadata = getNpcMetadata('robin');
+const metadata = getNpcMetadata(asNpcId('robin'));
 console.log(metadata?.primaryLocation); // 'orphanage'
 console.log(metadata?.isLoveInterest); // true
 console.log(metadata?.responseTypes); // ['social', 'work', 'flirt', ...]
@@ -599,7 +599,7 @@ console.log(metadata?.responseTypes); // ['social', 'work', 'flirt', ...]
 ### Example 2: Quest Dependency Checking
 
 ```typescript
-import { getQuestPrerequisites, getQuestDependents } from '@/data/referenceIndex';
+import { getQuestPrerequisites, getQuestDependents } from './data/referenceIndex';
 
 // Check if player can start a quest
 function canStartQuest(questId: string, completedQuests: Set<string>): boolean {
@@ -620,7 +620,7 @@ import {
   getLocationNpcs,
   getLocationMetadata,
   getConnectedLocations
-} from '@/data/referenceIndex';
+} from './data/referenceIndex';
 
 function exploreLocation(locationId: string) {
   const metadata = getLocationMetadata(locationId);
@@ -637,7 +637,7 @@ function exploreLocation(locationId: string) {
 ### Example 4: Character Discovery
 
 ```typescript
-import { getLoveInterests, getNpcsByRace, getNpcMetadata } from '@/data/referenceIndex';
+import { getLoveInterests, getNpcsByRace, getNpcMetadata } from './data/referenceIndex';
 
 // Find all romance options
 const romanceOptions = getLoveInterests();
@@ -694,7 +694,7 @@ The index must be rebuilt when:
 
 ```typescript
 // In CI/CD pipeline or pre-commit hook
-import { validateReferences } from '@/data/referenceIndex';
+import { validateReferences } from './data/referenceIndex';
 
 const validation = validateReferences();
 if (!validation.valid) {

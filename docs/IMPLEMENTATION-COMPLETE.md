@@ -117,8 +117,9 @@ getEntityCounts(): EntityCounts
 
 ⚡ PERFORMANCE BENCHMARK:
   Iterations: 1000
-  Average Query Time: 0.000ms
-  Queries Per Second: 2,004,855
+  Queries per Iteration: 3
+  Average Query Time: <0.001ms (varies by machine)
+  Queries Per Second: >1,000,000 (varies by machine; run demo for your environment)
   Target: <1ms per query ✓
 ```
 
@@ -132,15 +133,16 @@ import {
   getNpcMetadata,
   getLoveInterests,
   validateReferences,
-} from '@/data/referenceIndex';
+  asNpcId,
+} from './data/referenceIndex';
 
 // Find where Robin appears
-const locations = getNpcLocations('robin');
+const locations = getNpcLocations(asNpcId('robin'));
 console.log(locations);
 // => ['orphanage']
 
 // Get rich metadata
-const robinData = getNpcMetadata('robin');
+const robinData = getNpcMetadata(asNpcId('robin'));
 console.log(robinData?.isLoveInterest); // => true
 console.log(robinData?.responseTypes.length); // => 15
 
@@ -357,8 +359,8 @@ npx tsx src/examples/referenceIndexDemo.ts
 npm test
 
 # Use in code
-import { getNpcLocations } from '@/data/referenceIndex';
-const locations = getNpcLocations('robin');
+import { getNpcLocations, asNpcId } from './data/referenceIndex';
+const locations = getNpcLocations(asNpcId('robin'));
 ```
 
 ---

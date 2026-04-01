@@ -16,6 +16,18 @@ export type QuestId = string & { readonly [QuestIdBrand]: never };
 declare const ItemIdBrand: unique symbol;
 export type ItemId = string & { readonly [ItemIdBrand]: never };
 
+/**
+ * Safe constructor helpers for converting plain strings into branded ID types.
+ * Use these when passing string literals into the typed query API.
+ *
+ * @example
+ * const locations = getNpcLocations(asNpcId('robin'));
+ */
+export function asNpcId(id: string): NpcId { return id as NpcId; }
+export function asLocationId(id: string): LocationId { return id as LocationId; }
+export function asQuestId(id: string): QuestId { return id as QuestId; }
+export function asItemId(id: string): ItemId { return id as ItemId; }
+
 /** Response/interaction types for NPCs */
 export type ResponseType =
   | 'social' | 'work' | 'flirt' | 'threaten' | 'gift'
@@ -103,7 +115,7 @@ export interface ReferenceIndex {
   /** NPCs grouped by race */
   npcsByRace: Map<string, NpcId[]>;
 
-  /** Locations sorted by danger level (0-10 = index, 11-20 = index, etc.) */
+  /** Locations grouped into 10-point danger buckets (0–9 => 0, 10–19 => 10, etc.) */
   locationsByDanger: Map<number, LocationId[]>;
 
   /** Quests grouped by type */

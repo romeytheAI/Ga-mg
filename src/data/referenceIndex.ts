@@ -16,6 +16,7 @@ import type {
   LocationMetadata,
   QuestMetadata,
 } from './referenceIndex.types';
+export { asNpcId, asLocationId, asQuestId, asItemId } from './referenceIndex.types';
 
 // Singleton index instance
 let cachedIndex: ReferenceIndex | null = null;
@@ -100,13 +101,9 @@ function buildNpcMetadata(npcId: string, npc: any, index: ReferenceIndex): NpcMe
     }
   }
 
-  // Find related quests
+  // Related quests: not yet supported — quest metadata does not currently track involved NPCs.
+  // TODO: Implement involvedNpcs extraction in buildQuestMetadata (e.g., parse quest objectives).
   const relatedQuests: QuestId[] = [];
-  for (const [questId, metadata] of index.questMetadata.entries()) {
-    if (metadata.involvedNpcs.includes(npcId as NpcId)) {
-      relatedQuests.push(questId);
-    }
-  }
 
   return {
     id: npcId as NpcId,
@@ -298,12 +295,19 @@ export function buildReferenceIndex(): ReferenceIndex {
   // Step 7: Statistics
   const endTime = performance.now();
   index.stats.indexBuildTime = endTime - startTime;
+
+  // Count reference edges (total entries across all arrays), not just key counts
+  const countEdges = <V>(map: Map<unknown, V[]>): number => {
+    let n = 0;
+    for (const v of map.values()) n += v.length;
+    return n;
+  };
   index.stats.totalReferences =
-    index.npcToLocations.size +
-    index.locationToNpcs.size +
-    index.questToPrerequisites.size +
-    index.itemToQuests.size +
-    index.locationToConnections.size;
+    countEdges(index.npcToLocations) +
+    countEdges(index.locationToNpcs) +
+    countEdges(index.questToPrerequisites) +
+    countEdges(index.itemToQuests) +
+    countEdges(index.locationToConnections);
 
   // Estimate size (rough approximation)
   index.stats.indexSizeBytes = JSON.stringify({
@@ -386,6 +390,42 @@ function validateAllReferences(index: ReferenceIndex): {
     }
   }
 
+  // Validate Location→Connection targets (new_location action targets)
+  for (const [locationId, connectedIds] of index.locationToConnections) {
+    for (const targetId of connectedIds) {
+      if (!LOCATIONS[targetId]) {
+        errors.push({
+          sourceType: 'location',
+          sourceId: locationId,
+          field: 'actions.new_location',
+          targetType: 'location',
+          targetId,
+          message: `Location "${locationId}" action targets non-existent location "${targetId}"`,
+        });
+      }
+    }
+  }
+
+  // Validate Location→NPC references via action.npc fields
+  interface ActionWithNpc { npc?: string; }
+  for (const [locationId, location] of Object.entries(LOCATIONS)) {
+    if (location.actions) {
+      for (const action of location.actions) {
+        const npcRef = (action as ActionWithNpc).npc;
+        if (npcRef && !NPCS[npcRef]) {
+          errors.push({
+            sourceType: 'location',
+            sourceId: locationId,
+            field: 'actions.npc',
+            targetType: 'npc',
+            targetId: npcRef,
+            message: `Location "${locationId}" action references non-existent NPC "${npcRef}"`,
+          });
+        }
+      }
+    }
+  }
+
   return {
     valid: errors.length === 0,
     errors,
@@ -430,67 +470,67 @@ export function validateReferences(): {
 /**
  * Get all locations where an NPC appears.
  *
- * @param npcId - The NPC identifier
+ * @param npcId - The NPC identifier (use `asNpcId('robin')` to convert a plain string)
  * @returns Array of location IDs, empty if NPC not found
  */
-export function getNpcLocations(npcId: string): LocationId[] {
+export function getNpcLocations(npcId: NpcId): LocationId[] {
   const index = getIndex();
-  return index.npcToLocations.get(npcId as NpcId) || [];
+  return index.npcToLocations.get(npcId) || [];
 }
 
 /**
  * Get all NPCs present at a location.
  *
- * @param locationId - The location identifier
+ * @param locationId - The location identifier (use `asLocationId(...)` to convert a plain string)
  * @returns Array of NPC IDs, empty if location not found
  */
-export function getLocationNpcs(locationId: string): NpcId[] {
+export function getLocationNpcs(locationId: LocationId): NpcId[] {
   const index = getIndex();
-  return index.locationToNpcs.get(locationId as LocationId) || [];
+  return index.locationToNpcs.get(locationId) || [];
 }
 
 /**
  * Get all prerequisite quests for a quest.
  *
- * @param questId - The quest identifier
+ * @param questId - The quest identifier (use `asQuestId(...)` to convert a plain string)
  * @returns Array of prerequisite quest IDs
  */
-export function getQuestPrerequisites(questId: string): QuestId[] {
+export function getQuestPrerequisites(questId: QuestId): QuestId[] {
   const index = getIndex();
-  return index.questToPrerequisites.get(questId as QuestId) || [];
+  return index.questToPrerequisites.get(questId) || [];
 }
 
 /**
  * Get all quests that depend on a given quest.
  *
- * @param questId - The quest identifier
+ * @param questId - The quest identifier (use `asQuestId(...)` to convert a plain string)
  * @returns Array of dependent quest IDs
  */
-export function getQuestDependents(questId: string): QuestId[] {
+export function getQuestDependents(questId: QuestId): QuestId[] {
   const index = getIndex();
-  return index.questToDependents.get(questId as QuestId) || [];
+  return index.questToDependents.get(questId) || [];
 }
 
 /**
  * Get all quests that reward a specific item.
  *
- * @param itemId - The item identifier
+ * @param itemId - The item identifier (use `asItemId(...)` to convert a plain string)
  * @returns Array of quest IDs
  */
-export function getQuestsRewardingItem(itemId: string): QuestId[] {
+export function getQuestsRewardingItem(itemId: ItemId): QuestId[] {
   const index = getIndex();
-  return index.itemToQuests.get(itemId as ItemId) || [];
+  return index.itemToQuests.get(itemId) || [];
 }
 
 /**
  * Get all locations directly connected to a location.
  *
- * @param locationId - The location identifier
+ * @param locationId - The location identifier (use `asLocationId(...)` to convert a plain string)
  * @returns Array of connected location IDs
  */
-export function getConnectedLocations(locationId: string): LocationId[] {
+export function getConnectedLocations(locationId: LocationId): LocationId[] {
   const index = getIndex();
-  return index.locationToConnections.get(locationId as LocationId) || [];
+  return index.locationToConnections.get(locationId) || [];
 }
 
 // ═══════════════════════════════════════════════════════════════════
@@ -576,34 +616,34 @@ export function getQuestsByChapter(chapter: number): QuestId[] {
 /**
  * Get rich metadata for an NPC.
  *
- * @param npcId - The NPC identifier
+ * @param npcId - The NPC identifier (use `asNpcId(...)` to convert a plain string)
  * @returns NPC metadata or null if not found
  */
-export function getNpcMetadata(npcId: string): NpcMetadata | null {
+export function getNpcMetadata(npcId: NpcId): NpcMetadata | null {
   const index = getIndex();
-  return index.npcMetadata.get(npcId as NpcId) || null;
+  return index.npcMetadata.get(npcId) || null;
 }
 
 /**
  * Get rich metadata for a location.
  *
- * @param locationId - The location identifier
+ * @param locationId - The location identifier (use `asLocationId(...)` to convert a plain string)
  * @returns Location metadata or null if not found
  */
-export function getLocationMetadata(locationId: string): LocationMetadata | null {
+export function getLocationMetadata(locationId: LocationId): LocationMetadata | null {
   const index = getIndex();
-  return index.locationMetadata.get(locationId as LocationId) || null;
+  return index.locationMetadata.get(locationId) || null;
 }
 
 /**
  * Get rich metadata for a quest.
  *
- * @param questId - The quest identifier
+ * @param questId - The quest identifier (use `asQuestId(...)` to convert a plain string)
  * @returns Quest metadata or null if not found
  */
-export function getQuestMetadata(questId: string): QuestMetadata | null {
+export function getQuestMetadata(questId: QuestId): QuestMetadata | null {
   const index = getIndex();
-  return index.questMetadata.get(questId as QuestId) || null;
+  return index.questMetadata.get(questId) || null;
 }
 
 // ═══════════════════════════════════════════════════════════════════
