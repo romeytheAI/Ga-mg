@@ -24,6 +24,17 @@ export function gameReducer(state: GameState, action: any): GameState {
           active_encounter: action.payload
         }
       };
+    case 'SET_STORY_EVENT':
+      return {
+        ...state,
+        world: { ...state.world, active_story_event: action.payload }
+      };
+    case 'CLEAR_STORY_EVENT':
+      return {
+        ...state,
+        world: { ...state.world, active_story_event: null }
+      };
+
     case 'UPDATE_ACTIVE_ENCOUNTER':
       return {
         ...state,

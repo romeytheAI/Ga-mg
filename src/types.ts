@@ -326,6 +326,12 @@ export interface RecipeIngredient {
   quantity: number;
 }
 
+export interface ActiveStoryEvent {
+  id: string;
+  current_node: string;
+}
+
+
 export interface Recipe {
   id: string;
   name: string;
@@ -473,7 +479,8 @@ export interface GameState {
     dreamscape: any,
     ascension_state: 'none' | 'pure_soul' | 'void_lord' | 'broodmother' | 'asylum',
     director_cut: boolean,
-    active_encounter: ActiveEncounter | null
+    active_encounter: ActiveEncounter | null,
+    active_story_event: ActiveStoryEvent | null
   },
   memory_graph: string[],
   ui: {

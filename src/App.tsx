@@ -14,6 +14,7 @@ import { LOCATIONS } from './data/locations';
 import { NPCS } from './data/npcs';
 import { BASIC_ITEMS } from './data/items';
 import { ENCOUNTERS } from './data/encounters';
+import { DIALOGUE_TREES } from './data/dialogueTrees';
 import { initialState } from './state/initialState';
 import { gameReducer } from './reducers/gameReducer';
 import { PREDEFINED_ANATOMIES, STABLE_API, DEFAULT_API_KEY, AGE_APPEARANCE } from './constants';
@@ -343,6 +344,62 @@ function App({ state, dispatch }: { state: GameState, dispatch: React.Dispatch<a
     };
 
     dispatch({ type: 'START_TURN', payload: { actionText, intent } });
+
+    if (state.world.active_story_event) {
+      const eventId = state.world.active_story_event.id;
+      const nodeId = actionId || state.world.active_story_event.current_node; // Default to starting node or actionId
+      
+      const tree = DIALOGUE_TREES[eventId];
+      if (tree) {
+        const node = tree.nodes[nodeId];
+        if (node) {
+          // If this is the execution of a choice, check if it ends dialogue
+          const choice = actionId ? tree.nodes[state.world.active_story_event.current_node]?.choices.find(c => c.id === actionId) : null;
+          
+          if (choice && choice.end_dialogue) {
+            dispatch({ type: 'CLEAR_STORY_EVENT' });
+            
+            // Generate parsed text for the final outcome
+            let parsedText: any = {
+              narrative_text: "You step away.", // Usually handled by the choice text if we had it, but here we can just close it.
+              follow_up_choices: [],
+              stat_deltas: choice.stat_deltas,
+              skill_deltas: choice.skill_deltas,
+              new_location: choice.new_location
+            };
+            
+            if (choice.new_location) {
+               // Load location choices
+               const { LOCATIONS } = await import('./data/locations');
+               const nextLoc = LOCATIONS[choice.new_location];
+               if (nextLoc) {
+                 parsedText.follow_up_choices = (nextLoc.actions || []).map((a: any) => ({...a}));
+               }
+            }
+
+            dispatch({ type: 'RESOLVE_TEXT', payload: { parsedText, actionText } });
+            return;
+          }
+
+          // Move to next node or render current node
+          const nextNodeId = choice ? choice.next_node : nodeId;
+          if (nextNodeId && tree.nodes[nextNodeId]) {
+            const nextNode = tree.nodes[nextNodeId];
+            dispatch({ type: 'SET_STORY_EVENT', payload: { id: eventId, current_node: nextNodeId } });
+
+            dispatch({ type: 'RESOLVE_TEXT', payload: { 
+              parsedText: {
+                narrative_text: nextNode.narrative_text,
+                follow_up_choices: nextNode.choices,
+                image_url: nextNode.image_url
+              }, 
+              actionText 
+            } });
+            return;
+          }
+        }
+      }
+    }
 
     if (state.world.active_encounter) {
       // Handle encounter logic
@@ -849,6 +906,26 @@ function App({ state, dispatch }: { state: GameState, dispatch: React.Dispatch<a
       });
 
       if (hardcodedAction.npc) {
+      if (hardcodedAction.story_event) {
+        const eventId = hardcodedAction.story_event;
+        const tree = DIALOGUE_TREES[eventId];
+        if (tree) {
+          const startNodeId = tree.start_node;
+          const nextNode = tree.nodes[startNodeId];
+          dispatch({ type: 'SET_STORY_EVENT', payload: { id: eventId, current_node: startNodeId } });
+
+          dispatch({ type: 'RESOLVE_TEXT', payload: { 
+            parsedText: {
+              narrative_text: nextNode.narrative_text,
+              follow_up_choices: nextNode.choices,
+              image_url: nextNode.image_url
+            }, 
+            actionText 
+          } });
+          return;
+        }
+      }
+
         const npc = NPCS[hardcodedAction.npc];
         const response = npc.responses[hardcodedAction.intent || 'social'];
         if (response) {

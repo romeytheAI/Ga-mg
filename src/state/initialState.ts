@@ -146,7 +146,8 @@ export const initialState: GameState = {
     dreamscape: { active: false, nightmare_cascade: false, shared_dreams: [], reality_blurring: false, dream_merchant_present: false },
     ascension_state: 'none',
     director_cut: false,
-    active_encounter: null
+    active_encounter: null,
+    active_story_event: null
   },
   memory_graph: ["You are an orphan in Honorhall Orphanage in Riften, Skyrim. Life under Matron Grelod is harsh, but you are learning to survive in Tamriel."],
   ui: {
