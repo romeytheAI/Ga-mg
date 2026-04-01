@@ -1,4 +1,5 @@
 import { GameState } from '../types';
+import { getCharacterReferenceContext } from '../data/characterReferenceIndex';
 import { NPCS } from '../data/npcs';
 import { getSynergies, getAgeTag } from './gameLogic';
 import { AGE_APPEARANCE } from '../constants';
@@ -13,7 +14,7 @@ if (typeof window !== 'undefined') {
 
 const compressionWorkerCode = `
 self.onmessage = function(e) {
-  const { state, actionText, localNPCs, synergies } = e.data;
+  const { state, actionText, localNPCs, localCharacterReferences, synergies } = e.data;
   
   const translateLust = (lust) => {
     if (lust > 80) return "[Player is overwhelmed by intense arousal]";
@@ -143,7 +144,10 @@ self.onmessage = function(e) {
 
   let localNPCsTag = "";
   if (localNPCs.length > 0) {
-    localNPCsTag = \`Local NPCs:\\n\${localNPCs.map(npc => \`- \${npc.name} (\${npc.race}): \${npc.description}\`).join('\\\\n')}\\n\\n\`;
+    if (localCharacterReferences) {
+      localNPCsTag += \`Local Character Reference Index:\\n\${localCharacterReferences}\\n\\n\`;
+    }
+    localNPCsTag += \`Local NPCs:\\n\${localNPCs.map(npc => \`- \${npc.name} (\${npc.race}): \${npc.description}\`).join('\\\\n')}\\n\\n\`;
   }
 
   let prompt = \`You are the AI Director of a dark fantasy RPG set in the Elder Scrolls universe (Tamriel).
@@ -250,9 +254,10 @@ export function buildTextPromptAsync(state: GameState, actionText: string): Prom
     // Resolve local NPCs before sending to worker
     const localNPCIds = state.world.current_location.npcs || [];
     const localNPCs = localNPCIds.map((id: string) => NPCS[id]).filter(Boolean);
+    const localCharacterReferences = getCharacterReferenceContext(localNPCIds);
     
     const synergies = getSynergies(state.player.skills);
-    compressionWorker.postMessage({ state, actionText, localNPCs, synergies });
+    compressionWorker.postMessage({ state, actionText, localNPCs, localCharacterReferences, synergies });
   });
 }
 
