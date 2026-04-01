@@ -1,7 +1,16 @@
-import { GameState } from '../types';
+import { Anatomy, GameState } from '../types';
 import { PREDEFINED_ANATOMIES } from '../constants';
 
-export const ENCOUNTERS = [
+export interface EncounterDefinition {
+  id: string;
+  condition: (state: GameState) => boolean;
+  outcome: string;
+  anatomy: Anatomy;
+  image_url?: string;
+  story_event?: string;
+}
+
+export const ENCOUNTERS: EncounterDefinition[] = [
   {
     id: 'alley_mugger',
     condition: (state: GameState) => state.world.current_location.danger > 20 && state.world.current_location.id !== 'swamp',

@@ -782,15 +782,33 @@ function App({ state, dispatch }: { state: GameState, dispatch: React.Dispatch<a
     // Default 50 encounter_rate = 15% chance
     const encounterChance = (state.ui.settings?.encounter_rate ?? 50) / 100 * 0.30;
     
-    if (Math.random() < encounterChance) {
-      const validEncounters = ENCOUNTERS.filter(e => e.condition(state));
-      if (validEncounters.length > 0) {
-        const encounter = validEncounters[Math.floor(Math.random() * validEncounters.length)];
-        
-        const activeEncounter: ActiveEncounter = {
-          id: encounter.id,
-          enemy_name: encounter.id.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' '),
-          enemy_type: encounter.id,
+      if (Math.random() < encounterChance) {
+        const validEncounters = ENCOUNTERS.filter(e => e.condition(state));
+        if (validEncounters.length > 0) {
+          const encounter = validEncounters[Math.floor(Math.random() * validEncounters.length)];
+          const encounterStoryEventId = encounter.story_event || `${encounter.id}_story`;
+          const encounterTree = DIALOGUE_TREES[encounterStoryEventId];
+
+          if (encounterTree) {
+            const startNodeId = encounterTree.start_node;
+            const nextNode = encounterTree.nodes[startNodeId];
+
+            dispatch({ type: 'SET_STORY_EVENT', payload: { id: encounterStoryEventId, current_node: startNodeId } });
+            dispatch({ type: 'RESOLVE_TEXT', payload: {
+              parsedText: {
+                narrative_text: nextNode.narrative_text,
+                follow_up_choices: nextNode.choices,
+                image_url: nextNode.image_url
+              },
+              actionText
+            } });
+            return;
+          }
+         
+          const activeEncounter: ActiveEncounter = {
+            id: encounter.id,
+            enemy_name: encounter.id.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' '),
+            enemy_type: encounter.id,
           enemy_health: 100,
           enemy_max_health: 100,
           enemy_lust: 0,
@@ -906,9 +924,8 @@ function App({ state, dispatch }: { state: GameState, dispatch: React.Dispatch<a
       });
 
       if (hardcodedAction.npc) {
-      if (hardcodedAction.story_event) {
-        const eventId = hardcodedAction.story_event;
-        const tree = DIALOGUE_TREES[eventId];
+        const eventId = hardcodedAction.story_event || (hardcodedAction.intent === 'social' ? `${hardcodedAction.npc}_social` : undefined);
+        const tree = eventId ? DIALOGUE_TREES[eventId] : undefined;
         if (tree) {
           const startNodeId = tree.start_node;
           const nextNode = tree.nodes[startNodeId];
@@ -924,7 +941,6 @@ function App({ state, dispatch }: { state: GameState, dispatch: React.Dispatch<a
           } });
           return;
         }
-      }
 
         const npc = NPCS[hardcodedAction.npc];
         const response = npc.responses[hardcodedAction.intent || 'social'];
