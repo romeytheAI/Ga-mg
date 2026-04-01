@@ -824,7 +824,7 @@ const ENCOUNTER_STORY_TREES = Object.fromEntries(
           intent: 'submissive',
           response: "You keep your hands visible and your voice steady. The mugger snatches the coins, but greed makes him linger instead of leaving. 'Smart enough to survive,' he says. 'Maybe smart enough to tell me where you sleep too.'",
           choices: [
-            { id: 'pay_exit', label: 'Back away while flattering his ego', end_dialogue: true, stat_deltas: { stress: 8, gold: -10, willpower: 3 }, next_node: undefined },
+            { id: 'pay_exit', label: 'Back away while flattering his ego', end_dialogue: true, stat_deltas: { stress: 8, gold: -10, willpower: 3 } },
             { id: 'pay_lie', label: 'Feed him a false lead', next_node: 'pay_lie_result', intent: 'stealth' },
           ],
         },
@@ -903,7 +903,7 @@ const ENCOUNTER_STORY_TREES = Object.fromEntries(
           response: "The noble blinks, then smiles again — this time warier. 'Ah. So you do understand negotiation.' In trying to control the exchange, they've revealed exactly how transactional their interest was from the start.",
           choices: [
             { id: 'flip_mock', label: 'Mock them and walk off', end_dialogue: true, stat_deltas: { stress: -3, willpower: 4 } },
-            { id: 'flip_extract', label: 'Extract a small gift, then vanish', end_dialogue: true, stat_deltas: { stress: 2 }, new_items: [{ name: "Gold Coin", type: "misc", rarity: "common", description: "The currency of the realm." }] },
+            { id: 'flip_extract', label: 'Extract a small gift, then vanish', end_dialogue: true, stat_deltas: { stress: 2, gold: 1 } },
           ],
         },
       ],

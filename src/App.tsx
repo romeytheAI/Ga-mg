@@ -786,7 +786,7 @@ function App({ state, dispatch }: { state: GameState, dispatch: React.Dispatch<a
         const validEncounters = ENCOUNTERS.filter(e => e.condition(state));
         if (validEncounters.length > 0) {
           const encounter = validEncounters[Math.floor(Math.random() * validEncounters.length)];
-          const encounterStoryEventId = (encounter as any).story_event || `${encounter.id}_story`;
+          const encounterStoryEventId = encounter.story_event || `${encounter.id}_story`;
           const encounterTree = DIALOGUE_TREES[encounterStoryEventId];
 
           if (encounterTree) {

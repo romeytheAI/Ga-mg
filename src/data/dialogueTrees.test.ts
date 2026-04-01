@@ -31,7 +31,11 @@ describe('dialogue tree integrity', () => {
         if (action.npc && action.intent === 'social') {
           const explicitTree = action.story_event ? DIALOGUE_TREES[action.story_event] : undefined;
           const implicitTree = DIALOGUE_TREES[`${action.npc}_social`];
-          expect(Boolean(explicitTree || implicitTree), `${location.id}:${action.id} should map to a dialogue tree`).toBe(true);
+          const resolvedTree = explicitTree || implicitTree;
+          expect(Boolean(resolvedTree), `${location.id}:${action.id} should map to a dialogue tree`).toBe(true);
+          if (resolvedTree?.npc_id) {
+            expect(resolvedTree.npc_id, `${location.id}:${action.id} should point at the same NPC`).toBe(action.npc);
+          }
         }
       }
     }
