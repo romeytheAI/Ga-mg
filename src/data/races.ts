@@ -256,16 +256,16 @@ export const ELDER_SCROLLS_RACES: Record<string, RacialBodyFeatures> = {
     eye_shape: 'round',
     ear_type: 'round',
     has_tail: false,
-    has_tusks: true,
-    has_heavy_brow: true,
+    has_tusks: false,  // Made more humanoid - removed tusks
+    has_heavy_brow: false,  // Made more humanoid - removed heavy brow
     has_muzzle: false,
     has_head_protrusions: false,
     leg_type: 'plantigrade',
-    hand_type: 'clawed_light',
+    hand_type: 'human',  // Made more humanoid - removed claws
     foot_type: 'human',
     surface_pattern: 'none',
     accent_colors: ['#8a4020'],
-    special_features: ['tusks', 'heavy_brow', 'claws_hands'],
+    special_features: [],  // Made more humanoid - removed special features
     racial_bonuses: { health: 15, max_health: 20, pain: -10 },
     racial_traits: ['Berserker Rage (2x damage/resist once/day)', 'Hard Worker (50% more resources)', 'Orcish Forging'],
   },
@@ -275,25 +275,25 @@ export const ELDER_SCROLLS_RACES: Record<string, RacialBodyFeatures> = {
     lore_tag: 'Cat-folk of Elsweyr, lithe and silver-tongued.',
     height_cm: 168,
     build: 'athletic',
-    skin_type: 'fur',
+    skin_type: 'skin',  // Made more humanoid - changed from fur to skin
     skin_colors: ['#c8a878', '#b89868', '#d0b888', '#a07858', '#886040'],
-    hair_colors: null,  // No separate hair - fur IS the hair
+    hair_colors: ['#6a4020', '#9a6030', '#e8d0a0', '#c8a878', '#5a3010'],  // Made more humanoid - added hair
     eye_colors: ['#c8a020', '#e0c030', '#50b050', '#2090c8', '#c83030'],
-    eye_shape: 'slit_pupil',
-    ear_type: 'cat',
-    has_tail: true,
+    eye_shape: 'almond',  // Made more humanoid - changed from slit_pupil
+    ear_type: 'pointed_short',  // Made more humanoid - changed from cat ears
+    has_tail: false,  // Made more humanoid - removed tail
     has_tusks: false,
     has_heavy_brow: false,
-    has_muzzle: true,
+    has_muzzle: false,  // Made more humanoid - removed muzzle
     has_head_protrusions: false,
-    leg_type: 'digitigrade',
-    hand_type: 'pawed',
-    foot_type: 'pawed_digitigrade',
-    surface_pattern: 'fur_spotted',
+    leg_type: 'plantigrade',  // Made more humanoid - changed from digitigrade
+    hand_type: 'human',  // Made more humanoid - changed from pawed
+    foot_type: 'human',  // Made more humanoid - changed from pawed_digitigrade
+    surface_pattern: 'none',  // Made more humanoid - removed fur pattern
     accent_colors: ['#6a4020', '#9a6030', '#e8d0a0'],
-    special_features: ['cat_ears', 'tail_thin', 'claws_hands', 'claws_feet', 'muzzle_cat', 'fur_overlay'],
+    special_features: ['pointed_ears_short'],  // Made more humanoid - only keep pointed ears
     racial_bonuses: { seduction: 10, skulduggery: 10, athletics: 5 },
-    racial_traits: ['Night Eye (see in darkness)', 'Claws (natural weapon +15 damage)', 'Feline Agility (sprint boost once/day)'],
+    racial_traits: ['Night Eye (see in darkness)', 'Feline Agility (sprint boost once/day)', 'Stealthy Movement'],
   },
 
   Argonian: {
@@ -301,23 +301,23 @@ export const ELDER_SCROLLS_RACES: Record<string, RacialBodyFeatures> = {
     lore_tag: 'Lizard-folk of Black Marsh, creatures of the Hist.',
     height_cm: 172,
     build: 'athletic',
-    skin_type: 'scales',
+    skin_type: 'skin',  // Made more humanoid - changed from scales to skin
     skin_colors: ['#3a6830', '#4a7838', '#5a5820', '#2a5828', '#486840'],
-    hair_colors: null,  // No hair - has head frills/horns instead
+    hair_colors: ['#2a1a08', '#3a2810', '#1a1a0a', '#4a3818'],  // Made more humanoid - added hair
     eye_colors: ['#e06020', '#c85018', '#d07030', '#f08040'],
-    eye_shape: 'reptilian',
-    ear_type: 'reptilian_none',
-    has_tail: true,
+    eye_shape: 'almond',  // Made more humanoid - changed from reptilian
+    ear_type: 'round',  // Made more humanoid - changed from reptilian_none
+    has_tail: false,  // Made more humanoid - removed tail
     has_tusks: false,
     has_heavy_brow: false,
-    has_muzzle: true,
-    has_head_protrusions: true,
+    has_muzzle: false,  // Made more humanoid - removed muzzle
+    has_head_protrusions: false,  // Made more humanoid - removed horns/frills
     leg_type: 'plantigrade',
-    hand_type: 'clawed_heavy',
-    foot_type: 'clawed',
-    surface_pattern: 'scales_smooth',
+    hand_type: 'human',  // Made more humanoid - changed from clawed_heavy
+    foot_type: 'human',  // Made more humanoid - changed from clawed
+    surface_pattern: 'none',  // Made more humanoid - removed scales pattern
     accent_colors: ['#8a5820', '#a07030', '#c0b840'],
-    special_features: ['tail_thick', 'horns', 'frills', 'claws_hands', 'claws_feet', 'muzzle_lizard', 'scales_overlay'],
+    special_features: [],  // Made more humanoid - removed all special features
     racial_bonuses: { swimming: 20, health: 5, corruption: -5 },
     racial_traits: ['Histskin (restore health once/day)', 'Waterbreathing (innate)', 'Resist Disease (50%)', 'Amphibious'],
   },
