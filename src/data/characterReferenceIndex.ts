@@ -285,9 +285,16 @@ export function searchCharacterReferences(filters: CharacterReferenceSearch = {}
 }
 
 export function getCharacterReferenceContext(npcIds: string[]): string {
-  return uniq(npcIds)
-    .map((npcId) => getCharacterReference(npcId))
-    .filter((reference): reference is CharacterReference => Boolean(reference))
+  const references: CharacterReference[] = [];
+
+  for (const npcId of uniq(npcIds)) {
+    const reference = getCharacterReference(npcId);
+    if (reference) {
+      references.push(reference);
+    }
+  }
+
+  return references
     .map((reference) => {
       const sources = reference.referenceFiles.join(', ');
       const assets = reference.assetKeywords.join(', ');
