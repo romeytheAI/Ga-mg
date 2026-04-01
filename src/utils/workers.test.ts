@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { buildImagePrompt, getVisualEffectClasses } from './workers';
+import { buildImagePrompt, getVisualEffectClasses, resolveLocalNpcIds } from './workers';
+import { asLocationId, getLocationNpcs } from '../data/referenceIndex';
 import { initialState } from '../state/initialState';
 
 describe('buildImagePrompt', () => {
@@ -62,5 +63,27 @@ describe('getVisualEffectClasses', () => {
     expect(classes).toContain('low-control-tremor');
     expect(classes).toContain('pain-flash');
     expect(classes).toContain('hallucination-distortion');
+  });
+});
+
+describe('resolveLocalNpcIds', () => {
+  it('uses the reference index for indexed locations before raw location npc data', () => {
+    const location = {
+      ...initialState.world.current_location,
+      id: 'orphanage',
+      npcs: ['incorrect_npc'],
+    };
+
+    expect(resolveLocalNpcIds(location)).toEqual(getLocationNpcs(asLocationId('orphanage')));
+  });
+
+  it('falls back to the current location npc list when the location is not indexed', () => {
+    const location = {
+      ...initialState.world.current_location,
+      id: undefined,
+      npcs: ['custom_npc', { id: 'ignored-object' }, 'second_npc'],
+    };
+
+    expect(resolveLocalNpcIds(location as typeof initialState.world.current_location)).toEqual(['custom_npc', 'second_npc']);
   });
 });

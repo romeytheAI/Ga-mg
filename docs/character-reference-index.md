@@ -33,7 +33,7 @@ const schoolLoveInterests = searchCharacterReferences({ locationId: 'school', lo
 const promptContext = getCharacterReferenceContext(['constance_michel', 'robin']);
 ```
 
-Current AI prompt generation already consumes this index via `src/utils/workers.ts`, where local NPC prompt context now includes the structured character reference block before the freeform NPC descriptions.
+Current AI prompt generation consumes this index via `src/utils/workers.ts`, resolving local NPC ids through the location reference index before falling back to raw location data, then injecting the structured character reference block before the freeform NPC descriptions.
 
 ## Maintenance guidelines
 

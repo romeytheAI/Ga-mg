@@ -1,5 +1,6 @@
 import { GameState } from '../types';
 import { getCharacterReferenceContext } from '../data/characterReferenceIndex';
+import { asLocationId, getLocationNpcs } from '../data/referenceIndex';
 import { NPCS } from '../data/npcs';
 import { getSynergies, getAgeTag } from './gameLogic';
 import { AGE_APPEARANCE } from '../constants';
@@ -239,6 +240,18 @@ if (typeof window !== 'undefined') {
   compressionWorker = new Worker(URL.createObjectURL(blob));
 }
 
+export function resolveLocalNpcIds(currentLocation: GameState['world']['current_location']): string[] {
+  const indexedNpcIds = currentLocation.id
+    ? getLocationNpcs(asLocationId(currentLocation.id))
+    : [];
+
+  if (indexedNpcIds.length > 0) {
+    return indexedNpcIds;
+  }
+
+  return (currentLocation.npcs || []).filter((npcId): npcId is string => typeof npcId === 'string');
+}
+
 export function buildTextPromptAsync(state: GameState, actionText: string): Promise<string> {
   return new Promise((resolve) => {
     if (!compressionWorker) {
@@ -251,8 +264,8 @@ export function buildTextPromptAsync(state: GameState, actionText: string): Prom
     };
     compressionWorker.addEventListener('message', handler);
     
-    // Resolve local NPCs before sending to worker
-    const localNPCIds = state.world.current_location.npcs || [];
+    // Resolve local NPCs from the reference index first, then fall back to local state.
+    const localNPCIds = resolveLocalNpcIds(state.world.current_location);
     const localNPCs = localNPCIds.map((id: string) => NPCS[id]).filter(Boolean);
     const localCharacterReferences = getCharacterReferenceContext(localNPCIds);
     
