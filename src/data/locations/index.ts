@@ -1,0 +1,28 @@
+/**
+ * Elder Scrolls Locations - Ported from DOL
+ * 
+ * All locations reskinned from Degrees of Lewdity to fit Elder Scrolls lore
+ */
+
+export { templeOfMaraData } from './temple_of_mara';
+export { ratwayData } from './ratway';
+export { skyforgeData } from './skyforge';
+export { darkSanctuaryData } from './dark_sanctuary';
+export { sleepingGiantData } from './sleeping_giant';
+export { khajiitCaravanData } from './khajiit_caravan';
+export { jorrvaskrData } from './jorrvaskr';
+
+export type { LocationData, LocationEvent } from './temple_of_mara';
+
+// Location registry
+export const elderscrollsLocations = [
+  { id: 'temple_of_mara', name: 'Temple of Mara', region: 'Riften' },
+  { id: 'ratway', name: 'The Ratway', region: 'Riften' },
+  { id: 'skyforge', name: 'Skyforge', region: 'Whiterun' },
+  { id: 'dark_sanctuary', name: 'Dark Brotherhood Sanctuary', region: 'Dawnstar' },
+  { id: 'sleeping_giant', name: 'Sleeping Giant Inn', region: 'Riverwood' },
+  { id: 'khajiit_caravan', name: 'Khajiit Caravan', region: 'Travelling' },
+  { id: 'jorrvaskr', name: 'Jorrvaskr', region: 'Whiterun' },
+];
+
+export default elderscrollsLocations;
