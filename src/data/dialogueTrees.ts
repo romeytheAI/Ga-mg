@@ -203,7 +203,7 @@ const NPC_SOCIAL_TREES = Object.fromEntries(
     buildBranchingDialogueTree({
       id: 'robin_social',
       npc_id: 'robin',
-      opening: "Robin sits close enough that your shoulders nearly touch. They pick at a loose thread in their sleeve, then glance up with that small, careful smile they only show you. 'You look like you've got a lot on your mind.'",
+      opening: "Robin sits close enough that your shoulders nearly touch. They're carefully arranging dried lavender into a small linen sachet — one of the ones they sell at the Riften docks. They glance up with that small, careful smile they only show you. 'You look like you've got a lot on your mind.'",
       branches: [
         {
           id: 'dream_future',
@@ -252,7 +252,7 @@ const NPC_SOCIAL_TREES = Object.fromEntries(
           id: 'offer_pause',
           label: 'Offer a truce for one conversation',
           intent: 'comfort',
-          response: "Whitney rolls their eyes so hard it should hurt, but they don't walk away. Instead they lean back against the lockers and talk about everything except anything that matters. That, somehow, feels like trust from them.",
+          response: "Whitney rolls their eyes so hard it should hurt, but they don't walk away. Instead they lean back against the stone pillars and talk about everything except anything that matters. That, somehow, feels like trust from them.",
           stat_deltas: { stress: -8, purity: 3 },
         },
       ],
@@ -288,13 +288,13 @@ const NPC_SOCIAL_TREES = Object.fromEntries(
     buildBranchingDialogueTree({
       id: 'kylar_social',
       npc_id: 'kylar',
-      opening: "Kylar bounces a ball lightly against the wall, all restless energy and easy confidence. 'If this is about school, you've got the wrong person. If it's about surviving school, now we're talking.'",
+      opening: "Kylar traces the Black Sacrament symbols on the sanctuary wall with their fingertips. 'If this is about the other novices, they don't want you here. If it's about what I want — that's different.'",
       branches: [
         {
           id: 'ask_survive',
           label: 'Ask how they handle pressure',
           intent: 'social',
-          response: "'Move first,' Kylar says. 'People sense hesitation like blood in the water. Doesn't matter if you're scared. Just don't stand still long enough for them to smell it.'",
+          response: "'Move first,' Kylar says. 'The Night Mother teaches that hesitation is a weakness Sithis punishes. Doesn't matter if you're scared. Just don't stand still long enough for the shadows to claim you.'",
           stat_deltas: { stress: -3, willpower: 6 },
           skill_deltas: { athletics: 1 },
         },
@@ -302,14 +302,14 @@ const NPC_SOCIAL_TREES = Object.fromEntries(
           id: 'ask_team',
           label: 'Ask who they trust',
           intent: 'confide',
-          response: "Kylar catches the ball and doesn't throw it again. 'Not many. Fewer than I joke about.' Then they toss it to you instead. 'Try not to make me regret answering that.'",
+          response: "Kylar catches the ball and doesn't throw it again. 'Not many. The Sanctuary teaches that trust is only for the marked.' Then they step closer to you instead. 'Try not to make me regret saying that.'",
           stat_deltas: { stress: -4, willpower: 4 },
         },
         {
           id: 'challenge_drill',
           label: 'Ask them to teach you something practical',
           intent: 'work',
-          response: "Kylar immediately drags you into a footwork drill that leaves your calves burning and your lungs open to the cold hall air. 'There,' they grin. 'Now if someone corners you, maybe you don't go down easy.'",
+          response: "Kylar immediately drags you into a stealth exercise that leaves your muscles aching and silent in the shadowed corridor. 'There,' they grin. 'Now if someone corners you, maybe you vanish before they see it.'",
           stat_deltas: { stamina: -8, stress: -4 },
           skill_deltas: { athletics: 2 },
         },
@@ -462,20 +462,20 @@ const NPC_SOCIAL_TREES = Object.fromEntries(
     buildBranchingDialogueTree({
       id: 'leighton_social',
       npc_id: 'leighton',
-      opening: "Leighton clasps their hands neatly behind their back, every inch the polished educator. 'A student seeking guidance should ask a precise question. Imprecision wastes everybody's time.'",
+      opening: "Leighton clasps their hands neatly behind their back, every inch the Master of Initiation. 'An initiate seeking guidance should ask a precise question. Imprecision wastes everybody's time, and the College has little patience for fools.'",
       branches: [
         {
           id: 'ask_expectations',
           label: 'Ask what they expect from students',
           intent: 'social',
-          response: "'Control,' Leighton says. 'Potential without discipline is merely chaos with flattering manners.' Their smile never reaches their eyes. 'The world rewards those who are useful, not merely earnest.'",
+          response: "'Control,' Leighton says. 'Potential without discipline is merely raw talent that gets people killed in the field.' Their smile never reaches their eyes. 'The College rewards those who are useful, not merely earnest.'",
           stat_deltas: { stress: 5, willpower: 5 },
         },
         {
           id: 'probe_favoritism',
           label: 'Ask why some students get special treatment',
           intent: 'confide',
-          response: "Leighton tilts their head, amused rather than offended. 'Because institutions are mirrors of power, not fairness. You will learn faster once you stop mistaking the two.' The answer is frank enough to be unnerving.",
+          response: "Leighton tilts their head, amused rather than offended. 'Because the College is a mirror of power, not fairness. You will learn faster once you stop mistaking the two — the mages don't.' The answer is frank enough to be unnerving.",
           stat_deltas: { stress: 6, willpower: 4 },
         },
         {
@@ -484,7 +484,7 @@ const NPC_SOCIAL_TREES = Object.fromEntries(
           intent: 'work',
           response: "Leighton studies you, then assigns a stack of exercises meant to break weaker students. Finishing them leaves your head aching, but the challenge teaches you something valuable about endurance — and about what sort of mentor Leighton chooses to be.",
           stat_deltas: { stress: 4, stamina: -4 },
-          skill_deltas: { school_grades: 2 },
+          skill_deltas: { academy_grades: 2 },
         },
       ],
     }),
@@ -520,29 +520,29 @@ const NPC_SOCIAL_TREES = Object.fromEntries(
     buildBranchingDialogueTree({
       id: 'charlie_social',
       npc_id: 'charlie',
-      opening: "Charlie corrects a student's posture with exacting precision before gliding back to you. 'If you're here to talk, make it worthwhile. If you're here to complain about sore muscles, save us both the breath.'",
+      opening: "Charlie adjusts a student's fingering on the lute with exacting precision before turning to you. 'If you're here to talk, make it worthwhile. If you're here to complain about callused fingers, save us both the breath.'",
       branches: [
         {
           id: 'ask_discipline',
           label: 'Ask why they teach so hard',
           intent: 'social',
-          response: "'Because grace built on comfort falls apart the moment life stops being kind,' Charlie says. 'Technique is what remains when confidence abandons you. That's why I drill it until your bones remember.'",
+          response: "'Because a melody learned on comfort falls apart the moment your audience stops being patient,' Charlie says. 'Technique is what remains when inspiration abandons you. That's why I drill it until your fingers remember.'",
           stat_deltas: { stress: -4, willpower: 6 },
         },
         {
           id: 'ask_stage',
           label: 'Ask what the stage feels like',
           intent: 'confide',
-          response: "Charlie's expression softens unexpectedly. 'Terrifying. Exposing. Holy, if the night is right.' They glance toward the mirrors. 'You spend weeks becoming a shape, then one song later the shape is gone. I think I chase that loss.'",
+          response: "Charlie's expression softens unexpectedly. 'Terrifying. Exposing. Sacred, if the fire's right.' They glance toward the hearth. 'You spend weeks learning a ballad, then one night you play it and the notes aren't yours anymore — they belong to the room. I think I chase that surrender.'",
           stat_deltas: { stress: -7, allure: 2 },
         },
         {
           id: 'request_drill',
           label: 'Ask for one brutal correction',
           intent: 'work',
-          response: "Charlie obliges with frightening enthusiasm. By the time they're done repositioning your shoulders, hips, and breath, you're shaking — but your center of balance finally clicks into place.",
+          response: "Charlie obliges with frightening enthusiasm. By the time they're done correcting your fingering, breath, and rhythm, your fingertips are sore — but the chord finally sounds like music.",
           stat_deltas: { stamina: -6, stress: -5 },
-          skill_deltas: { dancing: 2, athletics: 1 },
+          skill_deltas: { bardic_performance: 2, athletics: 1 },
         },
       ],
     }),
@@ -615,7 +615,7 @@ const NPC_SOCIAL_TREES = Object.fromEntries(
           intent: 'social',
           response: "'The possibility that the next drawer, next ruin, next impossible mechanism changes everything,' Winter says with shining eyes. 'History is just a locked room full of people insisting the key no longer exists.'",
           stat_deltas: { stress: -8, willpower: 5 },
-          skill_deltas: { school_grades: 1 },
+          skill_deltas: { academy_grades: 1 },
         },
         {
           id: 'ask_failure',
@@ -630,7 +630,7 @@ const NPC_SOCIAL_TREES = Object.fromEntries(
           intent: 'work',
           response: "You spend an hour translating Winter's chaos into piles that can be used by mortal minds. They are so grateful they forget to be embarrassed by how much easier you made their work.",
           stat_deltas: { stress: -6 },
-          skill_deltas: { school_grades: 2, housekeeping: 1 },
+          skill_deltas: { academy_grades: 2, housekeeping: 1 },
         },
       ],
     }),
@@ -669,8 +669,8 @@ const NPC_SOCIAL_TREES = Object.fromEntries(
       opening: "River closes a ledger with precise annoyance. 'If this is another complaint about the headmaster, you'll need evidence. If it isn't, congratulations — you've already made my day more interesting.'",
       branches: [
         {
-          id: 'ask_school',
-          label: 'Ask what keeps the school from collapsing',
+          id: 'ask_academy',
+          label: 'Ask what keeps the academy from collapsing',
           intent: 'social',
           response: "'Spite, paperwork, and the occasional competent student,' River says dryly. Then, more seriously: 'Institutions survive because somebody keeps dragging them toward decency even when it's unfashionable.'",
           stat_deltas: { stress: -5, willpower: 5 },
@@ -688,7 +688,7 @@ const NPC_SOCIAL_TREES = Object.fromEntries(
           intent: 'work',
           response: "River puts you to work on attendance books and disciplinary notices. It's dull until you start seeing the patterns hidden inside the paperwork. 'Exactly,' River says when you point one out. 'Now you're thinking like a witness.'",
           stat_deltas: { stress: -3 },
-          skill_deltas: { school_grades: 2, skulduggery: 1 },
+          skill_deltas: { academy_grades: 2, skulduggery: 1 },
         },
       ],
     }),
@@ -867,7 +867,7 @@ const ENCOUNTER_STORY_TREES = Object.fromEntries(
         },
         fight_feint_result: {
           id: 'fight_feint_result',
-          narrative_text: "You draw his guard high and then duck past him. His blade catches only cloth as you tear free and disappear into the street before he can turn.",
+          narrative_text: "You draw his guard high and then duck past him. His blade catches only cloth as you tear free and disappear into the canal-side before he can turn.",
           choices: [{ id: 'end', label: 'Do not look back', end_dialogue: true, stat_deltas: { stamina: -8, willpower: 4 }, new_location: 'town_square' }],
         },
       },
@@ -910,7 +910,7 @@ const ENCOUNTER_STORY_TREES = Object.fromEntries(
       extraNodes: {},
     },
     {
-      id: 'school_bully_story',
+      id: 'academy_bully_story',
       opening: "A knot of older students closes around you in the hallway. Their leader cracks his knuckles and grins. 'Inspection time, orphan. Empty your pockets.'",
       branches: [
         {
@@ -930,14 +930,14 @@ const ENCOUNTER_STORY_TREES = Object.fromEntries(
           response: "The corridor goes still for a beat. They expected fear, not poise. That uncertainty buys you more space than any shove would have.",
           choices: [
             { id: 'banter_cut', label: 'Turn their cruelty into a joke at their expense', end_dialogue: true, stat_deltas: { stress: 4, willpower: 5 } },
-            { id: 'banter_name', label: 'Invoke a teacher who might come looking', end_dialogue: true, stat_deltas: { stress: 3, school_grades: 0 } },
+            { id: 'banter_name', label: 'Invoke a teacher who might come looking', end_dialogue: true, stat_deltas: { stress: 3, academy_grades: 0 } },
           ],
         },
         {
           id: 'strike',
           label: 'Shove through the smallest gap',
           intent: 'aggressive',
-          response: "You commit before doubt can catch up. The first student hits the lockers, the second curses, and suddenly the neat little ambush is a scramble.",
+          response: "You commit before doubt can catch up. The first student hits the stone pillars, the second curses, and suddenly the neat little ambush is a scramble.",
           choices: [
             { id: 'strike_run', label: 'Run before they regroup', end_dialogue: true, stat_deltas: { stamina: -8, willpower: 4 } },
             { id: 'strike_stand', label: 'Dare them to try again in public', end_dialogue: true, stat_deltas: { stress: 8, willpower: 6 } },
