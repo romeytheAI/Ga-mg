@@ -24,6 +24,7 @@ import { buildTextPromptAsync, buildImagePrompt, getVisualEffectClasses, imageWo
 import { getSynergies, getAgeTag, getFallbackResponse, getHealthSemantic, getStaminaSemantic, getTraumaSemantic } from './utils/gameLogic';
 import { useEncounterBuffer } from './hooks/useEncounterBuffer';
 import { saveGame } from './utils/saveManager';
+import { resolveStoryEventStep, startStoryEvent } from './utils/storyEventEngine';
 import { FloatingDeltas } from './components/TextComponents';
 
 // ── Lazy-loaded modals (only fetched when opened) ───────────────────────
@@ -346,58 +347,12 @@ function App({ state, dispatch }: { state: GameState, dispatch: React.Dispatch<a
     dispatch({ type: 'START_TURN', payload: { actionText, intent } });
 
     if (state.world.active_story_event) {
-      const eventId = state.world.active_story_event.id;
-      const nodeId = actionId || state.world.active_story_event.current_node; // Default to starting node or actionId
-      
-      const tree = DIALOGUE_TREES[eventId];
-      if (tree) {
-        const node = tree.nodes[nodeId];
-        if (node) {
-          // If this is the execution of a choice, check if it ends dialogue
-          const choice = actionId ? tree.nodes[state.world.active_story_event.current_node]?.choices.find(c => c.id === actionId) : null;
-          
-          if (choice && choice.end_dialogue) {
-            dispatch({ type: 'CLEAR_STORY_EVENT' });
-            
-            // Generate parsed text for the final outcome
-            let parsedText: any = {
-              narrative_text: "You step away.", // Usually handled by the choice text if we had it, but here we can just close it.
-              follow_up_choices: [],
-              stat_deltas: choice.stat_deltas,
-              skill_deltas: choice.skill_deltas,
-              new_location: choice.new_location
-            };
-            
-            if (choice.new_location) {
-               // Load location choices
-               const { LOCATIONS } = await import('./data/locations');
-               const nextLoc = LOCATIONS[choice.new_location];
-               if (nextLoc) {
-                 parsedText.follow_up_choices = (nextLoc.actions || []).map((a: any) => ({...a}));
-               }
-            }
-
-            dispatch({ type: 'RESOLVE_TEXT', payload: { parsedText, actionText } });
-            return;
-          }
-
-          // Move to next node or render current node
-          const nextNodeId = choice ? choice.next_node : nodeId;
-          if (nextNodeId && tree.nodes[nextNodeId]) {
-            const nextNode = tree.nodes[nextNodeId];
-            dispatch({ type: 'SET_STORY_EVENT', payload: { id: eventId, current_node: nextNodeId } });
-
-            dispatch({ type: 'RESOLVE_TEXT', payload: { 
-              parsedText: {
-                narrative_text: nextNode.narrative_text,
-                follow_up_choices: nextNode.choices,
-                image_url: nextNode.image_url
-              }, 
-              actionText 
-            } });
-            return;
-          }
-        }
+      const resolution = resolveStoryEventStep(state.world.active_story_event, actionId);
+      if (resolution) {
+        if (resolution.nextStoryEvent) dispatch({ type: 'SET_STORY_EVENT', payload: resolution.nextStoryEvent });
+        else dispatch({ type: 'CLEAR_STORY_EVENT' });
+        dispatch({ type: 'RESOLVE_TEXT', payload: { parsedText: resolution.parsedText, actionText } });
+        return;
       }
     }
 
@@ -787,21 +742,11 @@ function App({ state, dispatch }: { state: GameState, dispatch: React.Dispatch<a
         if (validEncounters.length > 0) {
           const encounter = validEncounters[Math.floor(Math.random() * validEncounters.length)];
           const encounterStoryEventId = encounter.story_event || `${encounter.id}_story`;
-          const encounterTree = DIALOGUE_TREES[encounterStoryEventId];
+          const startedEncounterStory = startStoryEvent(encounterStoryEventId);
 
-          if (encounterTree) {
-            const startNodeId = encounterTree.start_node;
-            const nextNode = encounterTree.nodes[startNodeId];
-
-            dispatch({ type: 'SET_STORY_EVENT', payload: { id: encounterStoryEventId, current_node: startNodeId } });
-            dispatch({ type: 'RESOLVE_TEXT', payload: {
-              parsedText: {
-                narrative_text: nextNode.narrative_text,
-                follow_up_choices: nextNode.choices,
-                image_url: nextNode.image_url
-              },
-              actionText
-            } });
+          if (startedEncounterStory) {
+            dispatch({ type: 'SET_STORY_EVENT', payload: startedEncounterStory.nextStoryEvent });
+            dispatch({ type: 'RESOLVE_TEXT', payload: { parsedText: startedEncounterStory.parsedText, actionText } });
             return;
           }
          
@@ -925,20 +870,10 @@ function App({ state, dispatch }: { state: GameState, dispatch: React.Dispatch<a
 
       if (hardcodedAction.npc) {
         const eventId = hardcodedAction.story_event || (hardcodedAction.intent === 'social' ? `${hardcodedAction.npc}_social` : undefined);
-        const tree = eventId ? DIALOGUE_TREES[eventId] : undefined;
-        if (tree) {
-          const startNodeId = tree.start_node;
-          const nextNode = tree.nodes[startNodeId];
-          dispatch({ type: 'SET_STORY_EVENT', payload: { id: eventId, current_node: startNodeId } });
-
-          dispatch({ type: 'RESOLVE_TEXT', payload: { 
-            parsedText: {
-              narrative_text: nextNode.narrative_text,
-              follow_up_choices: nextNode.choices,
-              image_url: nextNode.image_url
-            }, 
-            actionText 
-          } });
+        const startedNpcStory = eventId ? startStoryEvent(eventId) : null;
+        if (startedNpcStory) {
+          dispatch({ type: 'SET_STORY_EVENT', payload: startedNpcStory.nextStoryEvent });
+          dispatch({ type: 'RESOLVE_TEXT', payload: { parsedText: startedNpcStory.parsedText, actionText } });
           return;
         }
 
