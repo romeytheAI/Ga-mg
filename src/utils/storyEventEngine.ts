@@ -46,7 +46,7 @@ export function resolveStoryEventStep(
   if (!currentNode) return null;
 
   const choice = actionId
-    ? tree.nodes[activeStoryEvent.current_node]?.choices.find(c => c.id === actionId)
+    ? currentNode.choices.find(c => c.id === actionId)
     : null;
 
   if (choice?.end_dialogue) {

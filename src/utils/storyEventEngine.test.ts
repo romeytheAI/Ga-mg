@@ -91,6 +91,38 @@ describe('saveManager migrations', () => {
     expect(migrated.player.inventory[0].is_equipped).toBe(true);
   });
 
+  it('preserves unequipped items when no clothing slot match exists', () => {
+    const migrated = migrateGameState({
+      player: {
+        inventory: [
+          {
+            id: 'loose-boots',
+            name: 'Loose Boots',
+            type: 'clothing',
+            slot: 'feet',
+            rarity: 'common',
+            description: 'test',
+            value: 1,
+            weight: 1,
+            is_equipped: false,
+          },
+        ],
+      },
+    });
+
+    expect(migrated.player.inventory[0].is_equipped).toBe(false);
+  });
+
+  it('resolves legacy string location ids during migration', () => {
+    const migrated = migrateGameState({
+      world: {
+        current_location: 'school',
+      },
+    });
+
+    expect(migrated.world.current_location.id).toBe('school');
+  });
+
   it('migrates legacy academy bully story ids', () => {
     const migrated = migrateGameState({
       world: {

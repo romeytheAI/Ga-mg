@@ -744,7 +744,7 @@ function App({ state, dispatch }: { state: GameState, dispatch: React.Dispatch<a
           const encounterStoryEventId = encounter.story_event || `${encounter.id}_story`;
           const startedEncounterStory = startStoryEvent(encounterStoryEventId);
 
-          if (startedEncounterStory) {
+          if (startedEncounterStory?.nextStoryEvent) {
             dispatch({ type: 'SET_STORY_EVENT', payload: startedEncounterStory.nextStoryEvent });
             dispatch({ type: 'RESOLVE_TEXT', payload: { parsedText: startedEncounterStory.parsedText, actionText } });
             return;
@@ -871,7 +871,7 @@ function App({ state, dispatch }: { state: GameState, dispatch: React.Dispatch<a
       if (hardcodedAction.npc) {
         const eventId = hardcodedAction.story_event || (hardcodedAction.intent === 'social' ? `${hardcodedAction.npc}_social` : undefined);
         const startedNpcStory = eventId ? startStoryEvent(eventId) : null;
-        if (startedNpcStory) {
+        if (startedNpcStory?.nextStoryEvent) {
           dispatch({ type: 'SET_STORY_EVENT', payload: startedNpcStory.nextStoryEvent });
           dispatch({ type: 'RESOLVE_TEXT', payload: { parsedText: startedNpcStory.parsedText, actionText } });
           return;
