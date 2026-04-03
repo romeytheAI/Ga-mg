@@ -38,6 +38,21 @@ const CRY_OUT_SKILL_BONUS = 0.003;
 const CRY_OUT_LOW_DANGER_BONUS = 0.15;
 
 /**
+ * Check whether a pregnancy incubation can start right now.
+ * Returns true when all three conditions are satisfied:
+ *   1. Pregnancy feature is enabled in settings
+ *   2. The player is not sterile
+ *   3. No pregnancy incubation is already active
+ */
+function canStartPregnancy(state: GameState): boolean {
+  return (
+    state.ui.settings.enable_pregnancy === true &&
+    state.player.biology.sterility !== true &&
+    state.player.biology.incubations.length === 0
+  );
+}
+
+/**
  * Pure encounter-action resolver. Extracts all game-logic from App.tsx.
  *
  * @param state      Full game state (read-only).
@@ -192,10 +207,9 @@ export function resolveEncounterAction(
         narrative += ' The violation cuts deep, your insecurities screaming...';
       }
 
-      if (sexType === 'vaginal' && state.ui.settings.enable_pregnancy) {
+      if (sexType === 'vaginal' && canStartPregnancy(state)) {
         const fertility = state.player.biology.fertility ?? 0.5;
-        const isSterile = state.player.biology.sterility === true;
-        if (!isSterile && rng() < fertility * PREGNANCY_BASE_CHANCE && state.player.biology.incubations.length === 0) {
+        if (rng() < fertility * PREGNANCY_BASE_CHANCE) {
           side_effects.push({ type: 'START_INCUBATION', payload: { type: 'humanoid', days: 66 } });
           narrative += ' You feel a strange warmth spreading through your body...';
         }

@@ -8,6 +8,7 @@ import {
   resolveRelationshipInteraction,
   MILESTONE_ORDER,
   UNIVERSAL_RECURRING_SCENES,
+  SCENE_FLAG_TODAY_COUNT,
   milestoneRank,
   type RecurringScene,
 } from './relationshipEngine';
@@ -115,7 +116,7 @@ describe('computeIntentDeltas', () => {
   it('applies diminishing returns on same day repeat', () => {
     const rel = makeRel({
       last_interaction_day: 5,
-      scene_flags: { _today_count: 1 },
+      scene_flags: { [SCENE_FLAG_TODAY_COUNT]: 1 },
     });
     const firstDay = computeIntentDeltas('social', makeRel(), 5);
     const secondInteraction = computeIntentDeltas('social', rel, 5);
@@ -125,7 +126,7 @@ describe('computeIntentDeltas', () => {
   it('does NOT apply diminishing returns on a new day', () => {
     const rel = makeRel({
       last_interaction_day: 4,
-      scene_flags: { _today_count: 5 },
+      scene_flags: { [SCENE_FLAG_TODAY_COUNT]: 5 },
     });
     const freshDay = computeIntentDeltas('social', makeRel(), 5);
     const newDay = computeIntentDeltas('social', rel, 5);
@@ -340,15 +341,15 @@ describe('resolveRelationshipInteraction', () => {
   });
 
   it('tracks same-day interaction count in _today_count flag', () => {
-    const rel = makeRel({ last_interaction_day: 3, scene_flags: { _today_count: 2 } });
+    const rel = makeRel({ last_interaction_day: 3, scene_flags: { [SCENE_FLAG_TODAY_COUNT]: 2 } });
     const result = resolveRelationshipInteraction(rel, 'social', 3, UNIVERSAL_RECURRING_SCENES, rng);
-    expect(result.updated_relationship.scene_flags['_today_count']).toBe(3);
+    expect(result.updated_relationship.scene_flags[SCENE_FLAG_TODAY_COUNT]).toBe(3);
   });
 
   it('resets _today_count on a new day', () => {
-    const rel = makeRel({ last_interaction_day: 3, scene_flags: { _today_count: 5 } });
+    const rel = makeRel({ last_interaction_day: 3, scene_flags: { [SCENE_FLAG_TODAY_COUNT]: 5 } });
     const result = resolveRelationshipInteraction(rel, 'social', 4, UNIVERSAL_RECURRING_SCENES, rng);
-    expect(result.updated_relationship.scene_flags['_today_count']).toBe(1);
+    expect(result.updated_relationship.scene_flags[SCENE_FLAG_TODAY_COUNT]).toBe(1);
   });
 
   it('stat_summary contains the deltas that were applied', () => {

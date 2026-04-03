@@ -52,6 +52,9 @@ export interface RelationshipInteractionResult {
 
 // ── Constants ────────────────────────────────────────────────────────────────
 
+/** Scene flag key used to track same-day interaction count for diminishing returns */
+export const SCENE_FLAG_TODAY_COUNT = '_today_count' as const;
+
 export const MILESTONE_ORDER: ReadonlyArray<NpcRelationship['milestone']> = [
   'stranger', 'acquaintance', 'friend', 'close', 'lover', 'bonded',
 ];
@@ -200,7 +203,7 @@ export function computeIntentDeltas(
 
   // Diminishing returns for same-day spam
   const interactionsToday = rel.last_interaction_day === currentDay
-    ? Math.min(Number(rel.scene_flags['_today_count'] ?? 0), SAME_DAY_MULTIPLIERS.length - 1)
+    ? Math.min(Number(rel.scene_flags[SCENE_FLAG_TODAY_COUNT] ?? 0), SAME_DAY_MULTIPLIERS.length - 1)
     : 0;
   const drMult = SAME_DAY_MULTIPLIERS[interactionsToday];
 
@@ -382,8 +385,8 @@ export function resolveRelationshipInteraction(
   updated.interaction_count = rel.interaction_count + 1;
   updated.scene_flags = {
     ...rel.scene_flags,
-    _today_count: sameDayAsLast
-      ? (Number(rel.scene_flags['_today_count'] ?? 0) + 1)
+    [SCENE_FLAG_TODAY_COUNT]: sameDayAsLast
+      ? (Number(rel.scene_flags[SCENE_FLAG_TODAY_COUNT] ?? 0) + 1)
       : 1,
   };
 
