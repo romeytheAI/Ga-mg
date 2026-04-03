@@ -30,4 +30,4 @@ google-generativeai==0.8.0  # Gemini
 # Utilities
 aiofiles==24.1.0
 Pillow==12.1.1  # Updated: CVE fix for out-of-bounds write in PSD images
-requests==2.32.0
+requests==2.33.0
