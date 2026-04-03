@@ -879,6 +879,14 @@ describe('gameReducer', () => {
       expect(state.player.attitudes.crime).toBe('submissive');
       expect(state.player.attitudes.labour).toBe('defiant');
     });
+
+    it('should handle UPDATE_ATTITUDES', () => {
+      const action = { type: 'UPDATE_ATTITUDES', payload: { sexual: 'submissive', crime: 'defiant' } };
+      const next = gameReducer(initialState, action);
+      expect(next.player.attitudes.sexual).toBe('submissive');
+      expect(next.player.attitudes.crime).toBe('defiant');
+      expect(next.player.attitudes.labour).toBe('neutral');
+    });
   });
 
   describe('DoL-parity: Feats system', () => {
@@ -1017,6 +1025,52 @@ describe('gameReducer', () => {
       const action = { type: 'UPDATE_INSECURITY', payload: { part: 'chest', amount: -200 } };
       const next = gameReducer(initialState, action);
       expect(next.player.insecurity.chest).toBe(0);
+    });
+  });
+
+  describe('DoL-parity: Direct stat update actions', () => {
+    it('should handle UPDATE_LEWDITY_STATS', () => {
+      const action = { type: 'UPDATE_LEWDITY_STATS', payload: { exhibitionism: 15, deviancy: 10 } };
+      const next = gameReducer(initialState, action);
+      expect(next.player.lewdity_stats.exhibitionism).toBe(15);
+      expect(next.player.lewdity_stats.deviancy).toBe(10);
+      expect(next.player.lewdity_stats.promiscuity).toBe(0);
+    });
+
+    it('should clamp UPDATE_LEWDITY_STATS to 0-100', () => {
+      const action = { type: 'UPDATE_LEWDITY_STATS', payload: { masochism: -50, promiscuity: 150 } };
+      const next = gameReducer(initialState, action);
+      expect(next.player.lewdity_stats.masochism).toBe(0);
+      expect(next.player.lewdity_stats.promiscuity).toBe(100);
+    });
+
+    it('should handle UPDATE_SENSITIVITY', () => {
+      const action = { type: 'UPDATE_SENSITIVITY', payload: { mouth: 12, genitals: -15 } };
+      const next = gameReducer(initialState, action);
+      expect(next.player.sensitivity.mouth).toBe(initialState.player.sensitivity.mouth + 12);
+      expect(next.player.sensitivity.genitals).toBe(initialState.player.sensitivity.genitals - 15);
+    });
+
+    it('should clamp UPDATE_SENSITIVITY to 0-100', () => {
+      const action = { type: 'UPDATE_SENSITIVITY', payload: { feet: -50, chest: 200 } };
+      const next = gameReducer(initialState, action);
+      expect(next.player.sensitivity.feet).toBe(0);
+      expect(next.player.sensitivity.chest).toBe(100);
+    });
+
+    it('should handle UPDATE_TEMPERATURE', () => {
+      const action = { type: 'UPDATE_TEMPERATURE', payload: { ambient_temp: -8, clothing_warmth: 55, body_temp: 'cold' } };
+      const next = gameReducer(initialState, action);
+      expect(next.player.temperature.ambient_temp).toBe(-8);
+      expect(next.player.temperature.clothing_warmth).toBe(55);
+      expect(next.player.temperature.body_temp).toBe('cold');
+    });
+
+    it('should clamp UPDATE_TEMPERATURE numeric values', () => {
+      const action = { type: 'UPDATE_TEMPERATURE', payload: { ambient_temp: 999, clothing_warmth: -25 } };
+      const next = gameReducer(initialState, action);
+      expect(next.player.temperature.ambient_temp).toBe(50);
+      expect(next.player.temperature.clothing_warmth).toBe(0);
     });
   });
 

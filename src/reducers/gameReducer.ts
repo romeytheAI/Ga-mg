@@ -1149,6 +1149,26 @@ export function gameReducer(state: GameState, action: any): GameState {
       };
     }
 
+    case 'UPDATE_ATTITUDES': {
+      const allowedAttitudes = new Set(['defiant', 'submissive', 'neutral']);
+      const updates = action.payload as Partial<typeof state.player.attitudes>;
+      const nextAttitudes = { ...state.player.attitudes };
+
+      for (const [key, value] of Object.entries(updates)) {
+        if (key in nextAttitudes && typeof value === 'string' && allowedAttitudes.has(value)) {
+          nextAttitudes[key as keyof typeof nextAttitudes] = value as typeof nextAttitudes[keyof typeof nextAttitudes];
+        }
+      }
+
+      return {
+        ...state,
+        player: {
+          ...state.player,
+          attitudes: nextAttitudes,
+        },
+      };
+    }
+
     // ── DoL-parity: Unlock feat ───────────────────────────────────────────
     case 'UNLOCK_FEAT': {
       const featId = action.payload as string;
@@ -1253,6 +1273,48 @@ export function gameReducer(state: GameState, action: any): GameState {
       };
     }
 
+    // ── DoL-parity: Update lewdity stats ──────────────────────────────────
+    case 'UPDATE_LEWDITY_STATS': {
+      const lewdityUpdates = action.payload as Partial<Record<keyof typeof state.player.lewdity_stats, number>>;
+      const nextLewdity = { ...state.player.lewdity_stats };
+
+      for (const [key, value] of Object.entries(lewdityUpdates)) {
+        if (typeof value === 'number' && key in nextLewdity) {
+          const statKey = key as keyof typeof nextLewdity;
+          nextLewdity[statKey] = Math.max(0, Math.min(100, nextLewdity[statKey] + value));
+        }
+      }
+
+      return {
+        ...state,
+        player: {
+          ...state.player,
+          lewdity_stats: nextLewdity,
+        },
+      };
+    }
+
+    // ── DoL-parity: Update sensitivity ────────────────────────────────────
+    case 'UPDATE_SENSITIVITY': {
+      const sensitivityUpdates = action.payload as Partial<Record<keyof typeof state.player.sensitivity, number>>;
+      const nextSensitivity = { ...state.player.sensitivity };
+
+      for (const [key, value] of Object.entries(sensitivityUpdates)) {
+        if (typeof value === 'number' && key in nextSensitivity) {
+          const partKey = key as keyof typeof nextSensitivity;
+          nextSensitivity[partKey] = Math.max(0, Math.min(100, nextSensitivity[partKey] + value));
+        }
+      }
+
+      return {
+        ...state,
+        player: {
+          ...state.player,
+          sensitivity: nextSensitivity,
+        },
+      };
+    }
+
     // ── DoL-parity: Start pregnancy/incubation ───────────────────────────
     case 'START_INCUBATION': {
       const { type, days } = action.payload as { type: string; days: number };
@@ -1294,6 +1356,31 @@ export function gameReducer(state: GameState, action: any): GameState {
         player: {
           ...state.player,
           body_fluids: newBodyFluids,
+        },
+      };
+    }
+
+    // ── DoL-parity: Update temperature ────────────────────────────────────
+    case 'UPDATE_TEMPERATURE': {
+      const updates = action.payload as Partial<typeof state.player.temperature>;
+      const nextTemperature = { ...state.player.temperature };
+      const allowedBodyTemps = new Set(['freezing', 'cold', 'chilly', 'comfortable', 'warm', 'hot', 'overheating']);
+
+      if (typeof updates.ambient_temp === 'number') {
+        nextTemperature.ambient_temp = Math.max(-20, Math.min(50, updates.ambient_temp));
+      }
+      if (typeof updates.clothing_warmth === 'number') {
+        nextTemperature.clothing_warmth = Math.max(0, Math.min(100, updates.clothing_warmth));
+      }
+      if (typeof updates.body_temp === 'string' && allowedBodyTemps.has(updates.body_temp)) {
+        nextTemperature.body_temp = updates.body_temp;
+      }
+
+      return {
+        ...state,
+        player: {
+          ...state.player,
+          temperature: nextTemperature,
         },
       };
     }
