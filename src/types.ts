@@ -262,6 +262,48 @@ export interface LifeSim {
   };
 }
 
+// ── Phase 4: NPC Schedule Types ───────────────────────────────────────────
+
+/** Hour range during which a schedule slot is active (24h, inclusive start/exclusive end) */
+export interface NpcTimeWindow {
+  /** Start hour (0–23) */
+  from: number;
+  /** End hour (1–24, exclusive) */
+  to: number;
+}
+
+/** Flags controlling when a schedule slot is active */
+export interface NpcScheduleConditions {
+  /** Restrict to specific days of week (0=Monday … 6=Sunday). Omit for every day. */
+  days_of_week?: number[];
+  /** Minimum relationship milestone required */
+  min_milestone?: NpcRelationship['milestone'];
+  /** event_flag that must be truthy */
+  requires_event_flag?: string;
+  /** event_flag that must be falsy/absent */
+  blocks_event_flag?: string;
+}
+
+/** A single timed activity block for an NPC */
+export interface NpcScheduleSlot {
+  /** Human-readable label (e.g. "At school") */
+  label: string;
+  /** Location id where the NPC can be found */
+  location_id: string;
+  /** Time window when active */
+  time: NpcTimeWindow;
+  /** Optional conditions that restrict availability */
+  conditions?: NpcScheduleConditions;
+}
+
+/** Full weekly schedule for one NPC */
+export interface NpcSchedule {
+  /** NPC id (matches NPCS key) */
+  npc_id: string;
+  /** Ordered list of schedule slots checked top-to-bottom; first match wins */
+  slots: NpcScheduleSlot[];
+}
+
 // ── DoL-parity: NPC Relationship State ───────────────────────────────────
 export interface NpcRelationship {
   /** NPC id (same key as used in npcs.ts) */
@@ -654,7 +696,10 @@ export interface GameState {
     known_recipes: string[]
   },
   world: {
-    day: number, hour: number, weather: string,
+    day: number, hour: number,
+    /** Day of week: 0 = Monday … 6 = Sunday */
+    week_day: number,
+    weather: string,
     current_location: { id?: string, name: string, danger: number, atmosphere: string, npcs: any[], actions?: any[] },
     macro_events: string[],
     local_tension: number,

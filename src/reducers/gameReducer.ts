@@ -5,6 +5,7 @@ import { RECIPES, buildResultItem, canCookRecipe } from '../data/recipes';
 import { QUESTS } from '../data/quests';
 import { initialState } from '../state/initialState';
 import { tickSimulation } from '../sim/SimulationEngine';
+import { advanceWeekDay, computeDailyStatDeltas } from '../utils/scheduleEngine';
 
 export function gameReducer(state: GameState, action: any): GameState {
   switch (action.type) {
@@ -1765,10 +1766,45 @@ export function gameReducer(state: GameState, action: any): GameState {
 
       return {
         ...state,
-        world: { ...state.world, day: newDay, hour: newHour },
+        world: {
+          ...state.world,
+          day: newDay,
+          hour: newHour,
+          week_day: advanceWeekDay(state.world.week_day ?? 0, daysElapsed),
+          // Apply NPC trust deltas from daily stat tick
+          npc_relationships: daysElapsed > 0
+            ? (() => {
+                const dailyDeltas = computeDailyStatDeltas(state, daysElapsed);
+                const updated = { ...state.world.npc_relationships };
+                for (const [npcId, delta] of Object.entries(dailyDeltas.npc_trust_deltas)) {
+                  if (updated[npcId]) {
+                    updated[npcId] = {
+                      ...updated[npcId],
+                      trust: Math.max(0, Math.min(100, updated[npcId].trust + delta)),
+                    };
+                  }
+                }
+                return updated;
+              })()
+            : state.world.npc_relationships,
+        },
         player: {
           ...state.player,
-          stats: newStats,
+          stats: (() => {
+            if (daysElapsed <= 0) return newStats;
+            const dailyDeltas = computeDailyStatDeltas(state, daysElapsed);
+            const s = { ...newStats };
+            for (const [key, delta] of Object.entries(dailyDeltas.stats)) {
+              const k = key as StatKey;
+              if (typeof s[k] === 'number') {
+                (s as any)[k] = Math.max(0, Math.min(100, (s[k] as number) + (delta ?? 0)));
+              }
+            }
+            return s;
+          })(),
+          gold: daysElapsed > 0
+            ? state.player.gold + computeDailyStatDeltas(state, daysElapsed).gold_earned
+            : state.player.gold,
           bailey_payment: newBailey,
           biology: newBiology,
           temperature: { ...state.player.temperature, body_temp },

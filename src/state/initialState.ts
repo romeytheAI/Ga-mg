@@ -128,7 +128,7 @@ export const initialState: GameState = {
     known_recipes: ['recipe_foraged_salad', 'recipe_herb_tea'],
   },
   world: {
-    day: 1, hour: 7, weather: "Foggy",
+    day: 1, hour: 7, week_day: 0, weather: "Foggy",
     current_location: LOCATIONS.orphanage,
     macro_events: [],
     local_tension: 0.1,

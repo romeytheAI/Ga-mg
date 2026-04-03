@@ -44,7 +44,7 @@ Completed:
 - `initialState.ts` — uses `annotateActionsWithChance` instead of inline mapping.
 - 36 new tests across `encounterEngine.test.ts` and `locationEventEngine.test.ts` (439 tests total).
 
-## Milestone 4 — schedules and daily-life loop
+## Milestone 4 — schedules and daily-life loop ✅
 
 Scope:
 
@@ -52,10 +52,22 @@ Scope:
 - class/work/job loops
 - availability windows and population shifts
 
-Acceptance:
+Completed:
 
-- location content changes by time/state
-- daily systems drive meaningful stat, economy, and relationship changes
+- `src/types.ts` — `NpcScheduleSlot`, `NpcTimeWindow`, `NpcScheduleConditions`, `NpcSchedule` interfaces; `week_day` field added to world state
+- `src/state/initialState.ts` — `week_day: 0` initialised
+- `src/utils/saveManager.ts` — old saves normalised via `{ ...initialState.world, ...world }` spread (week_day defaults to 0)
+- `src/data/npcSchedules.ts` — schedule definitions for all 25 NPCs (school/work/leisure/sleep slots, weekday vs weekend variants, midnight-wrap time windows, milestone/event-flag conditions)
+- `src/utils/scheduleEngine.ts` — pure query helpers:
+  - `isSlotActive()` — time window + conditions check with midnight wrap
+  - `getActiveSlot()` — first matching slot for an NPC
+  - `getNpcCurrentLocation()` — where one NPC is right now
+  - `getAvailableNpcsAtLocation()` — all NPCs at a given location right now
+  - `getAllNpcCurrentLocations()` — full NPC→location map for the current moment
+  - `computeDailyStatDeltas()` — passive stat decay, NPC trust drift, economy income tick
+  - `advanceWeekDay()` — modular week-day arithmetic
+- `src/reducers/gameReducer.ts` — `ADVANCE_TIME` now maintains `week_day`, applies `computeDailyStatDeltas` for NPC trust decay and economy income, and increments player gold
+- 36 new tests in `scheduleEngine.test.ts` (475 tests total)
 
 ## Milestone 5 — NPC relationship depth
 
