@@ -58,8 +58,20 @@ This matrix is the implementation source of truth for bringing Ga-mg to Degrees 
 
 ## Current milestone focus
 
-Phase 1 currently targets:
+Phase 1 ✅:
 
 - parity checklist documentation
 - save compatibility groundwork
 - event-engine extraction from one-off App flows
+
+Phase 2 ✅:
+
+- Replaced `any` types with proper TypeScript interfaces for all player domains
+- Added `NpcRelationship` type and `npc_relationships` map to world state
+- Added `event_flags` to world state for content gating
+- Added `ADVANCE_TIME` reducer (hour/day, stat drains, Bailey debt, incubation tick, temperature)
+- Added `UPDATE_NPC_RELATIONSHIP` / `SET_NPC_SCENE_FLAG` reducers
+- Added `SET_EVENT_FLAG` / `CLEAR_EVENT_FLAG` reducers
+- Added `DAMAGE_CLOTHING` reducer
+- Added `ADD_JUSTICE_BOUNTY` / `CLEAR_JUSTICE_BOUNTY` reducers
+- Full reducer test coverage for all Phase 2 actions

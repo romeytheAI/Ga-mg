@@ -14,17 +14,20 @@ Acceptance:
 - saves load through a migration/normalization layer
 - story-event start/step logic is reusable and tested
 
-## Milestone 2 — gameplay state completion
+## Milestone 2 — gameplay state completion ✅
 
 Scope:
 
 - close remaining gaps in persistent player/world state
 - ensure reducer support for direct mutation and long-term state transitions
 
-Acceptance:
+Completed:
 
-- all parity-critical state exists in `src/types.ts` and `src/state/initialState.ts`
-- reducer tests cover state transitions for newly added parity systems
+- Replaced `any` types with proper interfaces: `PlayerJustice`, `PlayerPsychology`, `PlayerPerksFlaws`, `PlayerSocial`, `PlayerArcane`, `PlayerBase`, `PlayerSubconscious`
+- Added `NpcRelationship` interface and `npc_relationships` map on world
+- Added `event_flags: Record<string, boolean | number>` on world for content gating
+- New reducers: `ADVANCE_TIME`, `UPDATE_NPC_RELATIONSHIP`, `SET_NPC_SCENE_FLAG`, `SET_EVENT_FLAG`, `CLEAR_EVENT_FLAG`, `DAMAGE_CLOTHING`, `ADD_JUSTICE_BOUNTY`, `CLEAR_JUSTICE_BOUNTY`
+- Full reducer test coverage for Phase 2 actions (403 tests total)
 
 ## Milestone 3 — unified event engine
 

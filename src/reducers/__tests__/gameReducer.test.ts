@@ -1206,3 +1206,146 @@ describe('gameReducer', () => {
     });
   });
 });
+
+// ── Phase 2 reducer tests ────────────────────────────────────────────────
+describe('Phase 2: event flags', () => {
+  it('SET_EVENT_FLAG sets a boolean flag', () => {
+    const next = gameReducer(initialState, { type: 'SET_EVENT_FLAG', payload: { flag: 'bailey_intro_done' } });
+    expect(next.world.event_flags.bailey_intro_done).toBe(true);
+  });
+
+  it('SET_EVENT_FLAG sets a numeric flag', () => {
+    const next = gameReducer(initialState, { type: 'SET_EVENT_FLAG', payload: { flag: 'school_strikes', value: 3 } });
+    expect(next.world.event_flags.school_strikes).toBe(3);
+  });
+
+  it('CLEAR_EVENT_FLAG removes a flag', () => {
+    const withFlag = gameReducer(initialState, { type: 'SET_EVENT_FLAG', payload: { flag: 'temp_flag' } });
+    const cleared = gameReducer(withFlag, { type: 'CLEAR_EVENT_FLAG', payload: { flag: 'temp_flag' } });
+    expect(cleared.world.event_flags.temp_flag).toBeUndefined();
+  });
+});
+
+describe('Phase 2: NPC relationships', () => {
+  it('UPDATE_NPC_RELATIONSHIP creates a new relationship entry', () => {
+    const next = gameReducer(initialState, {
+      type: 'UPDATE_NPC_RELATIONSHIP',
+      payload: { npc_id: 'robin', deltas: { trust: 20, love: 10 } },
+    });
+    expect(next.world.npc_relationships.robin).toBeDefined();
+    expect(next.world.npc_relationships.robin.trust).toBe(20);
+    expect(next.world.npc_relationships.robin.love).toBe(10);
+    expect(next.world.npc_relationships.robin.milestone).toBe('acquaintance');
+  });
+
+  it('UPDATE_NPC_RELATIONSHIP accumulates on existing entry', () => {
+    const withRel = gameReducer(initialState, {
+      type: 'UPDATE_NPC_RELATIONSHIP',
+      payload: { npc_id: 'robin', deltas: { trust: 50, love: 50 } },
+    });
+    const next = gameReducer(withRel, {
+      type: 'UPDATE_NPC_RELATIONSHIP',
+      payload: { npc_id: 'robin', deltas: { trust: 40, love: 40 } },
+    });
+    expect(next.world.npc_relationships.robin.trust).toBe(90);
+    expect(next.world.npc_relationships.robin.milestone).toBe('bonded');
+  });
+
+  it('UPDATE_NPC_RELATIONSHIP clamps values to 0-100', () => {
+    const next = gameReducer(initialState, {
+      type: 'UPDATE_NPC_RELATIONSHIP',
+      payload: { npc_id: 'whitney', deltas: { fear: 999, dom: -50 } },
+    });
+    expect(next.world.npc_relationships.whitney.fear).toBe(100);
+    expect(next.world.npc_relationships.whitney.dom).toBe(0);
+  });
+
+  it('SET_NPC_SCENE_FLAG marks a scene flag on an NPC', () => {
+    const next = gameReducer(initialState, {
+      type: 'SET_NPC_SCENE_FLAG',
+      payload: { npc_id: 'eden', flag: 'first_meeting_done', value: true },
+    });
+    expect(next.world.npc_relationships.eden.scene_flags.first_meeting_done).toBe(true);
+  });
+});
+
+describe('Phase 2: ADVANCE_TIME', () => {
+  it('advances hour correctly without crossing midnight', () => {
+    const next = gameReducer(initialState, { type: 'ADVANCE_TIME', payload: { hours: 3 } });
+    expect(next.world.hour).toBe(10); // starts at 7
+    expect(next.world.day).toBe(initialState.world.day);
+  });
+
+  it('increments day and wraps hour on midnight crossing', () => {
+    const next = gameReducer(initialState, { type: 'ADVANCE_TIME', payload: { hours: 20 } });
+    expect(next.world.hour).toBe(3);   // 7 + 20 = 27 => 27 % 24 = 3
+    expect(next.world.day).toBe(initialState.world.day + 1);
+  });
+
+  it('drains life sim needs', () => {
+    const next = gameReducer(initialState, { type: 'ADVANCE_TIME', payload: { hours: 4 } });
+    expect(next.player.life_sim.needs.hunger).toBeLessThan(initialState.player.life_sim.needs.hunger);
+    expect(next.player.life_sim.needs.thirst).toBeLessThan(initialState.player.life_sim.needs.thirst);
+  });
+
+  it('adds bailey debt on payment due day crossing', () => {
+    // Set due_day to 0 (Monday) and advance by 7 days
+    const state7 = { ...initialState, world: { ...initialState.world, day: 1, hour: 0 } };
+    const next = gameReducer(state7, { type: 'ADVANCE_TIME', payload: { hours: 24 * 7 } });
+    expect(next.player.bailey_payment.debt).toBeGreaterThan(0);
+  });
+
+  it('recalculates body temperature', () => {
+    // Cold environment, no clothing warmth
+    const coldState = {
+      ...initialState,
+      player: {
+        ...initialState.player,
+        temperature: { ambient_temp: -5, clothing_warmth: 0, body_temp: 'comfortable' as const },
+      },
+    };
+    const next = gameReducer(coldState, { type: 'ADVANCE_TIME', payload: { hours: 1 } });
+    expect(['cold', 'chilly', 'freezing']).toContain(next.player.temperature.body_temp);
+  });
+});
+
+describe('Phase 2: DAMAGE_CLOTHING', () => {
+  it('reduces integrity of targeted item', () => {
+    const next = gameReducer(initialState, {
+      type: 'DAMAGE_CLOTHING',
+      payload: { item_id: 'orphan-rags', amount: 15 },
+    });
+    const item = next.player.inventory.find(i => i.id === 'orphan-rags');
+    expect(item?.integrity).toBe(45); // starts at 60
+  });
+
+  it('clamps integrity to 0 on heavy damage', () => {
+    const next = gameReducer(initialState, {
+      type: 'DAMAGE_CLOTHING',
+      payload: { item_id: 'orphan-rags', amount: 500 },
+    });
+    const item = next.player.inventory.find(i => i.id === 'orphan-rags');
+    expect(item?.integrity).toBe(0);
+  });
+});
+
+describe('Phase 2: justice system', () => {
+  it('ADD_JUSTICE_BOUNTY increases bounty', () => {
+    const next = gameReducer(initialState, {
+      type: 'ADD_JUSTICE_BOUNTY',
+      payload: { amount: 50, suspicion: 20 },
+    });
+    expect(next.player.justice.bounty).toBe(50);
+    expect(next.player.justice.suspicion).toBe(20);
+  });
+
+  it('CLEAR_JUSTICE_BOUNTY resets bounty, suspicion, and jail sentence', () => {
+    const withBounty = gameReducer(initialState, {
+      type: 'ADD_JUSTICE_BOUNTY',
+      payload: { amount: 100, suspicion: 80 },
+    });
+    const cleared = gameReducer(withBounty, { type: 'CLEAR_JUSTICE_BOUNTY' });
+    expect(cleared.player.justice.bounty).toBe(0);
+    expect(cleared.player.justice.suspicion).toBe(0);
+  });
+});

@@ -135,6 +135,8 @@ export const initialState: GameState = {
     active_world_events: [],
     turn_count: 0,
     last_intent: null,
+    event_flags: {},
+    npc_relationships: {},
     economy: { inflation: 1.0, shortages: [], caravans: false, taxation: 0, black_market: "active", currency_value: 1.0, smuggling: "open", bounties: 0, property_values: "low", resource_depletion: 0, businesses: [], staff: [], tavern_owned: false, brothel_owned: false, business_reputation: 0, advertising_days: 0, rival_businesses: false, vault_balance: 0 },
     ecology: { predator_pop: "low", flora: "urban", herb_regrowth: 0, animal_migration: "none", disease: "none", water: "stagnant", soil: "none", weather_spawns: "inactive", lunar: "waxing", eclipse: false },
     factions: { guild_wars: false, guard_patrols: "high", cult_uprisings: false, noble_feuds: false, peasant_rebellions: false, religious_schisms: false, bandit_expansion: false, smuggler_cartels: false, beggar_syndicates: true, assassin_contracts: false },
