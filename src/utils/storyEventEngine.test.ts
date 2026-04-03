@@ -27,6 +27,14 @@ describe('storyEventEngine', () => {
 });
 
 describe('saveManager migrations', () => {
+  it('hydrates an empty object to a valid initial-state shaped save', () => {
+    const migrated = migrateGameState({});
+
+    expect(migrated.player.identity.name).toBe(initialState.player.identity.name);
+    expect(migrated.world.current_location.id).toBe(initialState.world.current_location.id);
+    expect(migrated.ui.settings.enable_pregnancy).toBe(initialState.ui.settings.enable_pregnancy);
+  });
+
   it('hydrates missing parity systems from the initial state', () => {
     const migrated = migrateGameState({
       player: {
@@ -81,6 +89,19 @@ describe('saveManager migrations', () => {
     });
 
     expect(migrated.player.inventory[0].is_equipped).toBe(true);
+  });
+
+  it('migrates legacy academy bully story ids', () => {
+    const migrated = migrateGameState({
+      world: {
+        active_story_event: {
+          id: 'academy_bully_story',
+          current_node: 'start',
+        },
+      },
+    });
+
+    expect(migrated.world.active_story_event?.id).toBe('school_bully_story');
   });
 
   it('exports the active save schema version', () => {

@@ -18,6 +18,9 @@ const DB_NAME = 'AetheriusSaveDB';
 const STORE_NAME = 'saves';
 const DB_VERSION = 1;
 export const SAVE_SCHEMA_VERSION = 2;
+const LEGACY_STORY_ID_MAP: Record<string, string> = {
+  academy_bully_story: 'school_bully_story',
+};
 
 type PartialGameState = Partial<GameState> & {
   player?: Partial<GameState['player']>;
@@ -56,9 +59,18 @@ function normalizeInventory(inventory: Item[] | undefined, clothing: GameState['
     const equippedFromSlot = clothing[item.slot];
     return {
       ...item,
-      is_equipped: equippedFromSlot?.id === item.id ? true : item.is_equipped,
+      is_equipped: equippedFromSlot?.id === item.id || item.is_equipped,
     };
   });
+}
+
+function normalizeActiveStoryEvent(activeStoryEvent: Partial<GameState['world']['active_story_event']> | null | undefined) {
+  if (!activeStoryEvent?.id) return activeStoryEvent ?? null;
+
+  return {
+    ...activeStoryEvent,
+    id: LEGACY_STORY_ID_MAP[activeStoryEvent.id] || activeStoryEvent.id,
+  };
 }
 
 function resolveCurrentLocation(world: Partial<GameState['world']> | undefined): GameState['world']['current_location'] {
@@ -133,6 +145,7 @@ export function migrateGameState(rawState: unknown): GameState {
       ...initialState.world,
       ...world,
       current_location: resolveCurrentLocation(world),
+      active_story_event: normalizeActiveStoryEvent(world.active_story_event),
       economy: { ...initialState.world.economy, ...(world.economy || {}) },
       ecology: { ...initialState.world.ecology, ...(world.ecology || {}) },
       factions: { ...initialState.world.factions, ...(world.factions || {}) },
@@ -188,7 +201,7 @@ export async function saveGame(id: string, state: GameState): Promise<void> {
       trauma: state.player?.stats?.trauma || 0,
       timestamp: Date.now(),
       schemaVersion: SAVE_SCHEMA_VERSION,
-      state: migrateGameState(state),
+      state,
     };
     
     const request = store.put(saveObj);
