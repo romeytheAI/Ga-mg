@@ -1770,7 +1770,7 @@ export function gameReducer(state: GameState, action: any): GameState {
           ...state.world,
           day: newDay,
           hour: newHour,
-          week_day: advanceWeekDay(state.world.week_day ?? 0, daysElapsed),
+          week_day: advanceWeekDay(state.world.week_day ?? 0 /* legacy saves default to Monday */, daysElapsed),
           // Apply NPC trust deltas from daily stat tick
           npc_relationships: daysElapsed > 0
             ? (() => {

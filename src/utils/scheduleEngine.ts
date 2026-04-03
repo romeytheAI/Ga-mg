@@ -181,7 +181,9 @@ export function computeDailyStatDeltas(
   // ── Passive stat decay (per day) ─────────────────────────────────────────
   const drain = state.ui.settings.stat_drain_multiplier ?? 1;
   stats.stress     = -(2 * daysElapsed * drain);   // slight stress recovery
-  stats.corruption = Math.min(0, -(0.5 * daysElapsed * drain)); // slow corruption decay if positive
+  stats.corruption = state.player.stats.corruption > 0
+    ? -(0.5 * daysElapsed * drain)
+    : 0; // decay corruption only when it's positive
   stats.lust       = -(1 * daysElapsed * drain);   // lust fades if no action
 
   // ── NPC trust drift ──────────────────────────────────────────────────────
@@ -209,5 +211,5 @@ export function computeDailyStatDeltas(
  * @param daysElapsed     Days to advance
  */
 export function advanceWeekDay(currentWeekDay: number, daysElapsed: number): number {
-  return (currentWeekDay + daysElapsed) % 7;
+  return ((currentWeekDay + daysElapsed) % 7 + 7) % 7;
 }

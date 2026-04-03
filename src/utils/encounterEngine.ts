@@ -194,7 +194,8 @@ export function resolveEncounterAction(
 
       if (sexType === 'vaginal' && state.ui.settings.enable_pregnancy) {
         const fertility = state.player.biology.fertility ?? 0.5;
-        if (rng() < fertility * PREGNANCY_BASE_CHANCE && state.player.biology.incubations.length === 0) {
+        const isSterile = state.player.biology.sterility === true;
+        if (!isSterile && rng() < fertility * PREGNANCY_BASE_CHANCE && state.player.biology.incubations.length === 0) {
           side_effects.push({ type: 'START_INCUBATION', payload: { type: 'humanoid', days: 66 } });
           narrative += ' You feel a strange warmth spreading through your body...';
         }

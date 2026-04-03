@@ -13,7 +13,6 @@ import { NpcSchedule } from '../types';
 
 const WEEKDAYS = [0, 1, 2, 3, 4];
 const WEEKEND  = [5, 6];
-const EVERY_DAY: undefined = undefined; // omit = all days
 
 export const NPC_SCHEDULES: Record<string, NpcSchedule> = {
   // ── Orphanage NPCs ──────────────────────────────────────────────────────
