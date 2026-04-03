@@ -910,7 +910,7 @@ const ENCOUNTER_STORY_TREES = Object.fromEntries(
       extraNodes: {},
     },
     {
-      id: 'academy_bully_story',
+      id: 'school_bully_story',
       opening: "A knot of older students closes around you in the hallway. Their leader cracks his knuckles and grins. 'Inspection time, orphan. Empty your pockets.'",
       branches: [
         {

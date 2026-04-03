@@ -5,6 +5,8 @@ import { RECIPES, buildResultItem, canCookRecipe } from '../data/recipes';
 import { QUESTS } from '../data/quests';
 import { initialState } from '../state/initialState';
 import { tickSimulation } from '../sim/SimulationEngine';
+import { advanceWeekDay, computeDailyStatDeltas } from '../utils/scheduleEngine';
+import { resolveRelationshipInteraction } from '../utils/relationshipEngine';
 
 export function gameReducer(state: GameState, action: any): GameState {
   switch (action.type) {
@@ -1149,6 +1151,26 @@ export function gameReducer(state: GameState, action: any): GameState {
       };
     }
 
+    case 'UPDATE_ATTITUDES': {
+      const allowedAttitudes = new Set(['defiant', 'submissive', 'neutral']);
+      const updates = action.payload as Partial<typeof state.player.attitudes>;
+      const nextAttitudes = { ...state.player.attitudes };
+
+      for (const [key, value] of Object.entries(updates)) {
+        if (key in nextAttitudes && typeof value === 'string' && allowedAttitudes.has(value)) {
+          nextAttitudes[key as keyof typeof nextAttitudes] = value as typeof nextAttitudes[keyof typeof nextAttitudes];
+        }
+      }
+
+      return {
+        ...state,
+        player: {
+          ...state.player,
+          attitudes: nextAttitudes,
+        },
+      };
+    }
+
     // ── DoL-parity: Unlock feat ───────────────────────────────────────────
     case 'UNLOCK_FEAT': {
       const featId = action.payload as string;
@@ -1253,6 +1275,48 @@ export function gameReducer(state: GameState, action: any): GameState {
       };
     }
 
+    // ── DoL-parity: Update lewdity stats ──────────────────────────────────
+    case 'UPDATE_LEWDITY_STATS': {
+      const lewdityUpdates = action.payload as Partial<Record<keyof typeof state.player.lewdity_stats, number>>;
+      const nextLewdity = { ...state.player.lewdity_stats };
+
+      for (const [key, value] of Object.entries(lewdityUpdates)) {
+        if (typeof value === 'number' && key in nextLewdity) {
+          const statKey = key as keyof typeof nextLewdity;
+          nextLewdity[statKey] = Math.max(0, Math.min(100, nextLewdity[statKey] + value));
+        }
+      }
+
+      return {
+        ...state,
+        player: {
+          ...state.player,
+          lewdity_stats: nextLewdity,
+        },
+      };
+    }
+
+    // ── DoL-parity: Update sensitivity ────────────────────────────────────
+    case 'UPDATE_SENSITIVITY': {
+      const sensitivityUpdates = action.payload as Partial<Record<keyof typeof state.player.sensitivity, number>>;
+      const nextSensitivity = { ...state.player.sensitivity };
+
+      for (const [key, value] of Object.entries(sensitivityUpdates)) {
+        if (typeof value === 'number' && key in nextSensitivity) {
+          const partKey = key as keyof typeof nextSensitivity;
+          nextSensitivity[partKey] = Math.max(0, Math.min(100, nextSensitivity[partKey] + value));
+        }
+      }
+
+      return {
+        ...state,
+        player: {
+          ...state.player,
+          sensitivity: nextSensitivity,
+        },
+      };
+    }
+
     // ── DoL-parity: Start pregnancy/incubation ───────────────────────────
     case 'START_INCUBATION': {
       const { type, days } = action.payload as { type: string; days: number };
@@ -1294,6 +1358,31 @@ export function gameReducer(state: GameState, action: any): GameState {
         player: {
           ...state.player,
           body_fluids: newBodyFluids,
+        },
+      };
+    }
+
+    // ── DoL-parity: Update temperature ────────────────────────────────────
+    case 'UPDATE_TEMPERATURE': {
+      const updates = action.payload as Partial<typeof state.player.temperature>;
+      const nextTemperature = { ...state.player.temperature };
+      const allowedBodyTemps = new Set(['freezing', 'cold', 'chilly', 'comfortable', 'warm', 'hot', 'overheating']);
+
+      if (typeof updates.ambient_temp === 'number') {
+        nextTemperature.ambient_temp = Math.max(-20, Math.min(50, updates.ambient_temp));
+      }
+      if (typeof updates.clothing_warmth === 'number') {
+        nextTemperature.clothing_warmth = Math.max(0, Math.min(100, updates.clothing_warmth));
+      }
+      if (typeof updates.body_temp === 'string' && allowedBodyTemps.has(updates.body_temp)) {
+        nextTemperature.body_temp = updates.body_temp;
+      }
+
+      return {
+        ...state,
+        player: {
+          ...state.player,
+          temperature: nextTemperature,
         },
       };
     }
@@ -1516,9 +1605,302 @@ export function gameReducer(state: GameState, action: any): GameState {
       };
     }
 
+    // ── DoL-parity: Event flags ───────────────────────────────────────────
+    case 'SET_EVENT_FLAG': {
+      const { flag, value: flagValue = true } = action.payload as { flag: string; value?: boolean | number };
+      return {
+        ...state,
+        world: {
+          ...state.world,
+          event_flags: { ...state.world.event_flags, [flag]: flagValue },
+        },
+      };
+    }
+
+    case 'CLEAR_EVENT_FLAG': {
+      const { flag: clearFlag } = action.payload as { flag: string };
+      const nextFlags = { ...state.world.event_flags };
+      delete nextFlags[clearFlag];
+      return {
+        ...state,
+        world: { ...state.world, event_flags: nextFlags },
+      };
+    }
+
+    // ── DoL-parity: NPC Relationships ─────────────────────────────────────
+    case 'UPDATE_NPC_RELATIONSHIP': {
+      const { npc_id, deltas } = action.payload as {
+        npc_id: string;
+        deltas: Partial<{ trust: number; love: number; fear: number; dom: number; sub: number }>;
+      };
+
+      const existing = state.world.npc_relationships[npc_id] ?? {
+        npc_id,
+        trust: 0,
+        love: 0,
+        fear: 0,
+        dom: 0,
+        sub: 0,
+        milestone: 'stranger' as const,
+        met_on_day: state.world.day,
+        last_interaction_day: state.world.day,
+        interaction_count: 0,
+        scene_flags: {},
+      };
+
+      const updated = { ...existing };
+      const numericKeys = new Set<string>(['trust', 'love', 'fear', 'dom', 'sub']);
+      for (const [k, v] of Object.entries(deltas)) {
+        if (typeof v === 'number' && numericKeys.has(k) && k in updated) {
+          const key = k as 'trust' | 'love' | 'fear' | 'dom' | 'sub';
+          updated[key] = Math.max(0, Math.min(100, existing[key] + v));
+        }
+      }
+
+      // Derive milestone from combined relationship stats
+      const total = updated.trust + updated.love;
+      updated.milestone =
+        total >= 180 ? 'bonded' :
+        total >= 140 ? 'lover' :
+        total >= 100 ? 'close' :
+        total >= 60  ? 'friend' :
+        total >= 20  ? 'acquaintance' :
+        'stranger';
+
+      return {
+        ...state,
+        world: {
+          ...state.world,
+          npc_relationships: { ...state.world.npc_relationships, [npc_id]: updated },
+        },
+      };
+    }
+
+    case 'SET_NPC_SCENE_FLAG': {
+      const { npc_id: sfNpc, flag: sfFlag, value: sfValue = true } = action.payload as {
+        npc_id: string;
+        flag: string;
+        value?: boolean | number;
+      };
+      const sfExisting = state.world.npc_relationships[sfNpc] ?? {
+        npc_id: sfNpc,
+        trust: 0, love: 0, fear: 0, dom: 0, sub: 0,
+        milestone: 'stranger' as const,
+        met_on_day: state.world.day,
+        last_interaction_day: state.world.day,
+        interaction_count: 0,
+        scene_flags: {},
+      };
+      return {
+        ...state,
+        world: {
+          ...state.world,
+          npc_relationships: {
+            ...state.world.npc_relationships,
+            [sfNpc]: { ...sfExisting, scene_flags: { ...sfExisting.scene_flags, [sfFlag]: sfValue } },
+          },
+        },
+      };
+    }
+
+    // ── Phase 5: Stateful NPC interaction via relationshipEngine ─────────────
+    case 'RESOLVE_NPC_INTERACTION': {
+      const { npc_id: riNpc, intent: riIntent } = action.payload as { npc_id: string; intent: string };
+      const riExisting = state.world.npc_relationships[riNpc] ?? {
+        npc_id: riNpc,
+        trust: 0, love: 0, fear: 0, dom: 0, sub: 0,
+        milestone: 'stranger' as const,
+        met_on_day: state.world.day,
+        last_interaction_day: 0,
+        interaction_count: 0,
+        scene_flags: {},
+      };
+      const { updated_relationship } = resolveRelationshipInteraction(
+        riExisting,
+        riIntent,
+        state.world.day,
+      );
+      return {
+        ...state,
+        world: {
+          ...state.world,
+          npc_relationships: {
+            ...state.world.npc_relationships,
+            [riNpc]: updated_relationship,
+          },
+        },
+      };
+    }
+
+    // ── DoL-parity: Time advancement ──────────────────────────────────────
+    case 'ADVANCE_TIME': {
+      const { hours } = action.payload as { hours: number };
+      const totalHours = state.world.hour + hours;
+      const newHour = totalHours % 24;
+      const daysElapsed = Math.floor(totalHours / 24);
+      const newDay = state.world.day + daysElapsed;
+
+      // Life sim needs drain per hour
+      const drainRate = state.ui.settings.stat_drain_multiplier;
+      const newNeeds = { ...state.player.life_sim.needs };
+      newNeeds.hunger   = Math.max(0, newNeeds.hunger   - 2 * hours * drainRate);
+      newNeeds.thirst   = Math.max(0, newNeeds.thirst   - 3 * hours * drainRate);
+      newNeeds.energy   = Math.max(0, newNeeds.energy   - 1 * hours * drainRate);
+      newNeeds.hygiene  = Math.max(0, newNeeds.hygiene  - 1 * hours * drainRate);
+      newNeeds.social   = Math.max(0, newNeeds.social   - 0.5 * hours * drainRate);
+
+      // Stat drains
+      const newStats = { ...state.player.stats };
+      newStats.hygiene = Math.max(0, Math.min(100, newStats.hygiene - hours * drainRate));
+      newStats.stress  = Math.max(0, Math.min(100, newStats.stress + (hours > 4 ? 2 * drainRate : 0)));
+
+      // Bailey payment: add debt each missed payment day
+      let newBailey = { ...state.player.bailey_payment };
+      if (daysElapsed > 0) {
+        for (let d = 1; d <= daysElapsed; d++) {
+          const checkDay = state.world.day + d;
+          if (checkDay > 0 && ((checkDay - 1) % 7) === newBailey.due_day) {
+            newBailey = {
+              ...newBailey,
+              debt: newBailey.debt + newBailey.weekly_amount,
+              missed_payments: newBailey.missed_payments + 1,
+              punishment_level: Math.min(3, Math.floor((newBailey.missed_payments + 1) / 2)),
+            };
+          }
+        }
+      }
+
+      // Incubation tick
+      const dayFraction = hours / 24;
+      const newBiology = {
+        ...state.player.biology,
+        cycle_day: daysElapsed > 0
+          ? ((state.player.biology.cycle_day + daysElapsed - 1) % 28) + 1
+          : state.player.biology.cycle_day,
+        incubations: state.player.biology.incubations
+          .map(inc => ({
+            ...inc,
+            days_remaining: Math.max(0, inc.days_remaining - dayFraction),
+            progress: inc.days_remaining > 0
+              ? Math.min(1, inc.progress + dayFraction / inc.days_remaining)
+              : 1,
+          }))
+          .filter(inc => inc.days_remaining > 0),
+      };
+
+      // Recalculate body temperature
+      const effectiveTemp = state.player.temperature.ambient_temp + state.player.temperature.clothing_warmth * 0.3;
+      const body_temp: typeof state.player.temperature.body_temp =
+        effectiveTemp < -10 ? 'freezing' :
+        effectiveTemp < 0   ? 'cold' :
+        effectiveTemp < 8   ? 'chilly' :
+        effectiveTemp < 20  ? 'comfortable' :
+        effectiveTemp < 28  ? 'warm' :
+        effectiveTemp < 35  ? 'hot' : 'overheating';
+
+      return {
+        ...state,
+        world: {
+          ...state.world,
+          day: newDay,
+          hour: newHour,
+          week_day: advanceWeekDay(state.world.week_day ?? 0 /* legacy saves default to Monday */, daysElapsed),
+          // Apply NPC trust deltas from daily stat tick
+          npc_relationships: daysElapsed > 0
+            ? (() => {
+                const dailyDeltas = computeDailyStatDeltas(state, daysElapsed);
+                const updated = { ...state.world.npc_relationships };
+                for (const [npcId, delta] of Object.entries(dailyDeltas.npc_trust_deltas)) {
+                  if (updated[npcId]) {
+                    updated[npcId] = {
+                      ...updated[npcId],
+                      trust: Math.max(0, Math.min(100, updated[npcId].trust + delta)),
+                    };
+                  }
+                }
+                return updated;
+              })()
+            : state.world.npc_relationships,
+        },
+        player: {
+          ...state.player,
+          stats: (() => {
+            if (daysElapsed <= 0) return newStats;
+            const dailyDeltas = computeDailyStatDeltas(state, daysElapsed);
+            const s = { ...newStats };
+            for (const [key, delta] of Object.entries(dailyDeltas.stats)) {
+              const k = key as StatKey;
+              if (typeof s[k] === 'number') {
+                (s as any)[k] = Math.max(0, Math.min(100, (s[k] as number) + (delta ?? 0)));
+              }
+            }
+            return s;
+          })(),
+          gold: daysElapsed > 0
+            ? state.player.gold + computeDailyStatDeltas(state, daysElapsed).gold_earned
+            : state.player.gold,
+          bailey_payment: newBailey,
+          biology: newBiology,
+          temperature: { ...state.player.temperature, body_temp },
+          life_sim: { ...state.player.life_sim, needs: newNeeds },
+        },
+      };
+    }
+
+    // ── DoL-parity: Clothing damage ───────────────────────────────────────
+    case 'DAMAGE_CLOTHING': {
+      const { item_id, amount: dmgAmt } = action.payload as { item_id: string; amount: number };
+      return {
+        ...state,
+        player: {
+          ...state.player,
+          inventory: state.player.inventory.map(item =>
+            item.id === item_id && typeof item.integrity === 'number'
+              ? { ...item, integrity: Math.max(0, item.integrity - dmgAmt) }
+              : item
+          ),
+          // Mirror damage in the clothing slot if equipped
+          clothing: Object.fromEntries(
+            Object.entries(state.player.clothing).map(([slot, equipped]) => [
+              slot,
+              equipped?.id === item_id && typeof equipped.integrity === 'number'
+                ? { ...equipped, integrity: Math.max(0, equipped.integrity - dmgAmt) }
+                : equipped,
+            ])
+          ) as typeof state.player.clothing,
+        },
+      };
+    }
+
+    // ── DoL-parity: Justice / Crime ───────────────────────────────────────
+    case 'ADD_JUSTICE_BOUNTY': {
+      const { amount: bountyAmt, suspicion: suspAmt = 0 } = action.payload as { amount: number; suspicion?: number };
+      const j = state.player.justice;
+      return {
+        ...state,
+        player: {
+          ...state.player,
+          justice: {
+            ...j,
+            bounty: j.bounty + bountyAmt,
+            suspicion: Math.max(0, Math.min(100, j.suspicion + suspAmt)),
+          },
+        },
+      };
+    }
+
+    case 'CLEAR_JUSTICE_BOUNTY': {
+      return {
+        ...state,
+        player: {
+          ...state.player,
+          justice: { ...state.player.justice, bounty: 0, suspicion: 0, jail_sentence: 0 },
+        },
+      };
+    }
+
     // ── Base Upgrades ─────────────────────────────────────────────────────
-    case 'UPGRADE_BASE': {
-      const { upgrade, cost } = action.payload as { upgrade: string; cost: number };
+    case 'UPGRADE_BASE': {      const { upgrade, cost } = action.payload as { upgrade: string; cost: number };
       if (state.player.gold < cost) {
         return {
           ...state,

@@ -24,6 +24,9 @@ import { buildTextPromptAsync, buildImagePrompt, getVisualEffectClasses, imageWo
 import { getSynergies, getAgeTag, getFallbackResponse, getHealthSemantic, getStaminaSemantic, getTraumaSemantic } from './utils/gameLogic';
 import { useEncounterBuffer } from './hooks/useEncounterBuffer';
 import { saveGame } from './utils/saveManager';
+import { resolveStoryEventStep, startStoryEvent } from './utils/storyEventEngine';
+import { resolveEncounterAction } from './utils/encounterEngine';
+import { resolveLocationAction, annotateActionsWithChance } from './utils/locationEventEngine';
 import { FloatingDeltas } from './components/TextComponents';
 
 // ── Lazy-loaded modals (only fetched when opened) ───────────────────────
@@ -346,431 +349,62 @@ function App({ state, dispatch }: { state: GameState, dispatch: React.Dispatch<a
     dispatch({ type: 'START_TURN', payload: { actionText, intent } });
 
     if (state.world.active_story_event) {
-      const eventId = state.world.active_story_event.id;
-      const nodeId = actionId || state.world.active_story_event.current_node; // Default to starting node or actionId
-      
-      const tree = DIALOGUE_TREES[eventId];
-      if (tree) {
-        const node = tree.nodes[nodeId];
-        if (node) {
-          // If this is the execution of a choice, check if it ends dialogue
-          const choice = actionId ? tree.nodes[state.world.active_story_event.current_node]?.choices.find(c => c.id === actionId) : null;
-          
-          if (choice && choice.end_dialogue) {
-            dispatch({ type: 'CLEAR_STORY_EVENT' });
-            
-            // Generate parsed text for the final outcome
-            let parsedText: any = {
-              narrative_text: "You step away.", // Usually handled by the choice text if we had it, but here we can just close it.
-              follow_up_choices: [],
-              stat_deltas: choice.stat_deltas,
-              skill_deltas: choice.skill_deltas,
-              new_location: choice.new_location
-            };
-            
-            if (choice.new_location) {
-               // Load location choices
-               const { LOCATIONS } = await import('./data/locations');
-               const nextLoc = LOCATIONS[choice.new_location];
-               if (nextLoc) {
-                 parsedText.follow_up_choices = (nextLoc.actions || []).map((a: any) => ({...a}));
-               }
-            }
-
-            dispatch({ type: 'RESOLVE_TEXT', payload: { parsedText, actionText } });
-            return;
-          }
-
-          // Move to next node or render current node
-          const nextNodeId = choice ? choice.next_node : nodeId;
-          if (nextNodeId && tree.nodes[nextNodeId]) {
-            const nextNode = tree.nodes[nextNodeId];
-            dispatch({ type: 'SET_STORY_EVENT', payload: { id: eventId, current_node: nextNodeId } });
-
-            dispatch({ type: 'RESOLVE_TEXT', payload: { 
-              parsedText: {
-                narrative_text: nextNode.narrative_text,
-                follow_up_choices: nextNode.choices,
-                image_url: nextNode.image_url
-              }, 
-              actionText 
-            } });
-            return;
-          }
-        }
+      const resolution = resolveStoryEventStep(state.world.active_story_event, actionId);
+      if (resolution) {
+        if (resolution.nextStoryEvent) dispatch({ type: 'SET_STORY_EVENT', payload: resolution.nextStoryEvent });
+        else dispatch({ type: 'CLEAR_STORY_EVENT' });
+        dispatch({ type: 'RESOLVE_TEXT', payload: { parsedText: resolution.parsedText, actionText } });
+        return;
       }
     }
 
     if (state.world.active_encounter) {
-      // Handle encounter logic
       const encounter = state.world.active_encounter;
-      let narrative = "";
-      let stat_deltas: any = {};
-      let skill_deltas: any = {};
-      let encounterUpdates: any = { turn: encounter.turn + 1 };
-      let endEncounter = false;
+      const resolution = resolveEncounterAction(state, intent ?? '', targetedPart);
 
-      // Simple combat/struggle logic
-      const synergies = getSynergies(state.player.skills);
-      const hasAcrobaticLover = synergies.some(s => s.name === "Acrobatic Lover");
-      const hasShadowWalker = synergies.some(s => s.name === "Shadow Walker");
-      const hasAquaticPredator = synergies.some(s => s.name === "Aquatic Predator");
-
-      if (intent === 'aggressive') {
-        const athletics = state.player.skills?.athletics || 0;
-        const damage = Math.floor(Math.random() * 20) + 10 + Math.floor(athletics / 10) + (hasAquaticPredator && state.world.current_location.name.includes('Water') ? 10 : 0);
-
-        triggerCombatFeedback(damage > 25 ? 'special_attack' : 'attack', damage > 20, damage > 25 ? 'heart' : 'ribs');
-
-        encounterUpdates.enemy_health = Math.max(0, encounter.enemy_health - damage);
-        encounterUpdates.enemy_anger = Math.min(100, encounter.enemy_anger + 15);
-
-        // DoL: Shift attitude toward defiant when fighting back
-        if (state.player.attitudes.sexual !== 'defiant') {
-          const shiftChance = 0.05;  // 5% chance per aggressive action
-          if (Math.random() < shiftChance) {
-            dispatch({ type: 'SET_ATTITUDE', payload: { type: 'sexual', value: 'defiant' } });
-            narrative = "Your fighting spirit burns brighter. You refuse to submit!";
-          }
-        }
-
-        if (targetedPart) {
-          if (targetedPart === 'legs') {
-            encounterUpdates.debuffs = [...(encounter.debuffs || []), { type: 'slowed', duration: 2 }];
-            narrative = `You hit their legs, slowing them down! Dealing ${damage} damage!`;
-          } else if (targetedPart === 'arms') {
-            encounterUpdates.debuffs = [...(encounter.debuffs || []), { type: 'weakened', duration: 2 }];
-            narrative = `You hit their arms, weakening their attacks! Dealing ${damage} damage!`;
-          } else {
-            narrative = `You struggle fiercely, dealing ${damage} damage!`;
-          }
-        } else {
-          narrative = `You struggle fiercely, dealing ${damage} damage!`;
-        }
-
-        stat_deltas.stamina = -10;
-        skill_deltas.athletics = 1;
-        if (encounterUpdates.enemy_health <= 0) {
-          narrative += " The enemy is defeated!";
-          endEncounter = true;
-          // DoL: Unlock feat for first combat victory
-          if (!state.player.feats.find(f => f.id === 'first_victory')?.unlocked) {
-            dispatch({ type: 'UNLOCK_FEAT', payload: 'first_victory' });
-          }
-        } else {
-          narrative += " The enemy retaliates!";
-          stat_deltas.health = -15 + Math.floor(athletics / 20);
-          stat_deltas.pain = 10;
-          encounterUpdates.encounter_action = 'grabbed';
-        }
-      } else if (intent === 'submissive') {
-        triggerCombatFeedback('lust_action', false, null);
-        encounterUpdates.enemy_lust = Math.min(100, encounter.enemy_lust + 20);
-        encounterUpdates.enemy_anger = Math.max(0, encounter.enemy_anger - 10);
-
-        // DoL: Attitude modifiers for stress/trauma
-        const isSubmissiveAttitude = state.player.attitudes.sexual === 'submissive';
-        const isDefiantAttitude = state.player.attitudes.sexual === 'defiant';
-
-        stat_deltas.stress = isSubmissiveAttitude ? 10 : isDefiantAttitude ? 20 : 15;  // Less stress if naturally submissive
-        stat_deltas.lust = 10;
-        stat_deltas.arousal = 8;  // Base arousal, will be modified by sensitivity
-        stat_deltas.purity = -5;
-
-        // DoL: Determine sexual action type based on enemy lust level
-        const lustLevel = encounterUpdates.enemy_lust;
-        if (lustLevel < 30) {
-          narrative = "You submit to their advances. They grope you roughly, testing your limits.";
-          encounterUpdates.encounter_action = 'groped';
-
-          // DoL: Sensitivity-based arousal for chest/bottom touching
-          const avgSensitivity = (state.player.sensitivity.chest + state.player.sensitivity.bottom) / 2;
-          const sensitivityBonus = Math.floor(avgSensitivity / 20);  // 0-5 bonus arousal
-          stat_deltas.arousal = (stat_deltas.arousal || 0) + sensitivityBonus;
-
-          // DoL: Insecurity increases trauma when body parts are exposed/touched
-          const chestInsecurity = state.player.insecurity.chest;
-          if (chestInsecurity > 60) {
-            const insecurityTrauma = Math.floor((chestInsecurity - 60) / 10);  // 0-4 extra trauma
-            stat_deltas.trauma = (stat_deltas.trauma || 0) + insecurityTrauma;
-            if (insecurityTrauma > 0) {
-              narrative += " You feel deeply self-conscious as they touch you...";
-            }
-          }
-        } else if (lustLevel < 60) {
-          narrative = "You submit as they become more forceful. Their hands explore your body intimately.";
-          encounterUpdates.encounter_action = 'caressed';
-
-          // DoL: Update sexual skill (hand) when being touched
-          dispatch({ type: 'UPDATE_SEXUAL_SKILL', payload: { skill: 'hand', amount: 1 } });
-
-          // DoL: Sensitivity-based arousal for hands touching multiple areas
-          const avgSensitivity = (state.player.sensitivity.chest + state.player.sensitivity.genitals + state.player.sensitivity.thighs) / 3;
-          const sensitivityBonus = Math.floor(avgSensitivity / 15);  // 0-6 bonus arousal
-          stat_deltas.arousal = (stat_deltas.arousal || 0) + sensitivityBonus;
-
-          // DoL: Insecurity for body exposure
-          const bodyInsecurity = state.player.insecurity.body;
-          if (bodyInsecurity > 50) {
-            const insecurityTrauma = Math.floor((bodyInsecurity - 50) / 15);  // 0-3 extra trauma
-            stat_deltas.trauma = (stat_deltas.trauma || 0) + insecurityTrauma;
-          }
-        } else if (lustLevel < 90) {
-          narrative = "You submit as they push you down and force themselves upon you.";
-          encounterUpdates.encounter_action = 'thrust';
-          // DoL: Update appropriate sexual skills based on encounter type
-          const sexType = Math.random() < 0.5 ? 'oral' : 'vaginal';
-          dispatch({ type: 'UPDATE_SEXUAL_SKILL', payload: { skill: sexType, amount: 2 } });
-
-          // DoL: Check for virginity loss
-          if (state.player.virginities[sexType] === null) {
-            dispatch({ type: 'LOSE_VIRGINITY', payload: { type: sexType, description: `Day ${state.world.day}: Taken by force during encounter with ${encounter.enemy_name}` } });
-            stat_deltas.trauma = 15;  // Extra trauma from losing virginity this way
-
-            // DoL: Major insecurity increase on virginity loss
-            const relevantInsecurity = sexType === 'oral' ? 'face' : 'genitals';
-            dispatch({ type: 'UPDATE_INSECURITY', payload: { part: relevantInsecurity, amount: 10 } });
-          }
-
-          // DoL: Sensitivity-based arousal for penetration
-          const relevantSensitivity = sexType === 'oral' ? state.player.sensitivity.mouth : state.player.sensitivity.genitals;
-          const sensitivityBonus = Math.floor(relevantSensitivity / 10);  // 0-10 bonus arousal
-          stat_deltas.arousal = 15 + sensitivityBonus;
-
-          // DoL: High genital insecurity increases trauma during penetration
-          const genitalInsecurity = state.player.insecurity.genitals;
-          if (genitalInsecurity > 70) {
-            const insecurityTrauma = Math.floor((genitalInsecurity - 70) / 8);  // 0-3 extra trauma
-            stat_deltas.trauma = (stat_deltas.trauma || 0) + insecurityTrauma;
-            narrative += " The violation cuts deep, your insecurities screaming...";
-          }
-
-          // DoL: Pregnancy risk from vaginal encounter
-          if (sexType === 'vaginal' && state.ui.settings.enable_pregnancy) {
-            const fertility = state.player.biology.fertility || 0.5;
-            const pregnancyChance = fertility * 0.3;  // 30% base chance at peak fertility
-            if (Math.random() < pregnancyChance && state.player.biology.incubations.length === 0) {
-              dispatch({ type: 'START_INCUBATION', payload: { type: 'humanoid', days: 66 } });
-              narrative += " You feel a strange warmth spreading through your body...";
-            }
-          }
-        } else {
-          narrative = "You submit completely as they reach climax, overwhelming you with their desire.";
-          encounterUpdates.encounter_action = 'climax';
-
-          // DoL: Climax increases body fluids (semen_level, arousal_wetness)
-          const climaxArousal = 20;
-          const genitalSensitivity = state.player.sensitivity.genitals;
-          const sensitivityBonus = Math.floor(genitalSensitivity / 8);  // 0-12 bonus arousal
-          stat_deltas.arousal = climaxArousal + sensitivityBonus;
-
-          // DoL: Update body fluids after climax
-          dispatch({ type: 'UPDATE_BODY_FLUIDS', payload: { semen_level: 30, arousal_wetness: 25 } });
-
-          // DoL: Saliva increase for oral encounters
-          if (Math.random() < 0.5) {
-            dispatch({ type: 'UPDATE_BODY_FLUIDS', payload: { saliva: 15 } });
-          }
-        }
-
-        // DoL: Shift attitude toward submissive
-        if (state.player.attitudes.sexual !== 'submissive') {
-          const shiftChance = 0.08;  // 8% chance per submissive action
-          if (Math.random() < shiftChance) {
-            dispatch({ type: 'SET_ATTITUDE', payload: { type: 'sexual', value: 'submissive' } });
-            narrative += " You feel yourself accepting this treatment more readily...";
-          }
-        }
-
-        if (encounterUpdates.enemy_lust >= 100) {
-          narrative += " They are satisfied and leave you alone, spent.";
-          endEncounter = true;
-        }
-      } else if (intent === 'social') {
-        triggerCombatFeedback('spellcast', false, null);
-        const seduction = state.player.skills?.seduction || 0;
-        const seduceChance = ((state.player.stats.allure || 10) + seduction + (hasAcrobaticLover ? 20 : 0)) / 200;
-        if (Math.random() < seduceChance) {
-          encounterUpdates.enemy_lust = Math.min(100, encounter.enemy_lust + 30 + Math.floor(seduction / 5));
-          narrative = "You successfully seduce them, increasing their lust.";
-          skill_deltas.seduction = 2;
-          encounterUpdates.encounter_action = 'caressed';
-
-          // DoL: Arousal increase during seduction
-          stat_deltas.arousal = 5;
-
-          // DoL: If seduction is very successful, consensual sexual encounter
-          if (encounterUpdates.enemy_lust >= 80 && Math.random() < 0.3) {
-            narrative = "Your seduction succeeds completely. They're overcome with desire. You decide to take control of the encounter.";
-            encounterUpdates.encounter_action = 'kissed';
-
-            // DoL: Consensual sex increases promiscuity
-            stat_deltas.arousal = 15;
-
-            // DoL: Check for first kiss virginity
-            if (state.player.virginities.kiss === null) {
-              dispatch({ type: 'LOSE_VIRGINITY', payload: { type: 'kiss', description: `Day ${state.world.day}: First kiss during encounter with ${encounter.enemy_name}` } });
-              narrative += " Your first kiss... passionate and wild.";
-            }
-
-            // DoL: Update oral skill (seduction often involves kissing/oral)
-            dispatch({ type: 'UPDATE_SEXUAL_SKILL', payload: { skill: 'oral', amount: 1 } });
-          }
-
-          if (encounterUpdates.enemy_lust >= 100) {
-            narrative += " They are completely enamored and let you go.";
-            endEncounter = true;
-          }
-        } else {
-          encounterUpdates.enemy_anger = Math.min(100, encounter.enemy_anger + 10);
-          narrative = "Your seduction attempt fails. They are annoyed.";
-          stat_deltas.health = -5;
-          skill_deltas.seduction = 1;
-          encounterUpdates.encounter_action = 'grabbed';
-        }
-        stat_deltas.lust = 5;
-      } else if (intent === 'flee') {
-        triggerCombatFeedback('dodge', false, null);
-        const athletics = state.player.skills?.athletics || 0;
-        const fleeChance = ((state.player.stats.stamina || 50) + athletics + (hasShadowWalker ? 30 : 0)) / 200;
-        if (Math.random() < fleeChance) {
-          narrative = "You manage to escape!";
-          skill_deltas.athletics = 2;
-          endEncounter = true;
-        } else {
-          narrative = "You try to run, but they catch you!";
-          stat_deltas.stamina = -15 + (hasAcrobaticLover ? 5 : 0);
-          stat_deltas.stress = 10;
-          skill_deltas.athletics = 1;
-          encounterUpdates.enemy_anger = Math.min(100, encounter.enemy_anger + 10);
-        }
-      } else if (intent === 'resist') {
-        triggerCombatFeedback('block', true, 'ribs');
-        const willpower = state.player.stats.willpower || 50;
-        const control = state.player.stats.control || 50;  // DoL: Control stat affects resistance
-        const athleticsSkill = state.player.skills?.athletics || 0;
-
-        // DoL: Resistance strength = willpower + control + athletics
-        const resistStrength = willpower + control * 0.8 + athleticsSkill * 0.5;
-        const resistChance = resistStrength / 250;  // Adjusted for control stat inclusion
-
-        if (Math.random() < resistChance) {
-          encounterUpdates.enemy_anger = Math.min(100, encounter.enemy_anger + 20);
-          encounterUpdates.enemy_lust = Math.max(0, encounter.enemy_lust - 10);
-          narrative = "You resist with all your strength! They are forced back, frustrated and angry.";
-          encounterUpdates.encounter_action = 'resist_break';
-
-          // DoL: High control reduces stress from resistance
-          const controlBonus = Math.floor(control / 25);  // 0-4 stress reduction
-          stat_deltas.stress = Math.max(0, 5 - controlBonus);
-
-          // DoL: Shift attitude toward defiant when resisting successfully
-          if (state.player.attitudes.sexual !== 'defiant') {
-            const shiftChance = 0.06;  // 6% chance per successful resist
-            if (Math.random() < shiftChance) {
-              dispatch({ type: 'SET_ATTITUDE', payload: { type: 'sexual', value: 'defiant' } });
-              narrative += " You feel empowered by your resistance!";
-            }
-          }
-
-          if (encounter.enemy_anger >= 90) {
-            narrative += " Enraged beyond reason, they give up and storm off!";
-            endEncounter = true;
-          }
-        } else {
-          narrative = "You try to resist, but they overpower you! Your body aches from the effort.";
-          stat_deltas.stamina = -20;
-          stat_deltas.pain = 15;
-          stat_deltas.stress = 10;
-
-          // DoL: Failed resistance reduces control temporarily
-          stat_deltas.control = -3;
-
-          encounterUpdates.encounter_action = 'arms_pinned';
-        }
-        stat_deltas.willpower = -5;
-        skill_deltas.athletics = 1;
-      } else if (intent === 'endure') {
-        triggerCombatFeedback('defend', false, null);
-        const control = state.player.stats.control || 50;
-        const enduranceBonus = Math.floor(control / 20);
-        encounterUpdates.enemy_lust = Math.min(100, encounter.enemy_lust + 10);
-        encounterUpdates.enemy_anger = Math.max(0, encounter.enemy_anger - 5);
-        stat_deltas.stress = 10 - enduranceBonus;
-        stat_deltas.trauma = 3;
-        stat_deltas.pain = 5;
-        stat_deltas.stamina = 5; // resting / conserving energy
-        narrative = "You grit your teeth and endure, waiting for an opening. The ordeal takes its toll on your mind.";
-        encounterUpdates.encounter_action = 'grabbed';
-        // After enough enduring, enemy tires out
-        if (encounter.turn >= 8) {
-          const tiredChance = (encounter.turn - 7) * 0.15;
-          if (Math.random() < tiredChance) {
-            narrative += " They grow bored and wander off, leaving you shaken but alive.";
-            endEncounter = true;
-          }
-        }
-      } else if (intent === 'cry_out') {
-        triggerCombatFeedback('special', false, null);
-        const socialSkill = state.player.skills?.seduction || 0;
-        const rescueChance = 0.15 + (socialSkill * 0.003) + (state.world.current_location.danger < 30 ? 0.15 : 0);
-        if (Math.random() < rescueChance) {
-          narrative = "Your desperate cry echoes through the area! Someone hears you and rushes to help. Your attacker flees!";
-          endEncounter = true;
-        } else {
-          encounterUpdates.enemy_anger = Math.min(100, encounter.enemy_anger + 25);
-          narrative = "You cry out for help, but no one comes. Your attacker is furious at the noise!";
-          stat_deltas.health = -10;
-          stat_deltas.pain = 10;
-          stat_deltas.stress = 15;
-          encounterUpdates.encounter_action = 'grabbed';
-        }
+      // Dispatch serialisable side-effects (feat unlocks, skill updates, etc.)
+      for (const effect of resolution.side_effects) {
+        dispatch(effect);
       }
 
-      // Tick debuff durations — decrement by 1 per turn, remove expired
-      if (encounterUpdates.debuffs || encounter.debuffs?.length) {
-        const currentDebuffs = encounterUpdates.debuffs || encounter.debuffs || [];
-        encounterUpdates.debuffs = currentDebuffs
-          .map((d: { type: string; duration: number }) => ({ ...d, duration: d.duration - 1 }))
-          .filter((d: { type: string; duration: number }) => d.duration > 0);
+      // Trigger combat feedback animation
+      if (resolution.combatFeedback) {
+        const { animation, showXRay, highlightedPart } = resolution.combatFeedback;
+        triggerCombatFeedback(animation, showXRay, highlightedPart);
       }
 
-      encounterUpdates.log = [...(encounter.log || []), narrative];
-
-      if (endEncounter) {
+      if (resolution.endEncounter) {
         dispatch({ type: 'SET_ACTIVE_ENCOUNTER', payload: null });
         dispatch({ type: 'INITIAL_IMAGE_START' });
         generateImage(buildImagePrompt(state), state.ui.apiKey, state.ui.hordeApiKey, state.ui.selectedImageModel, dispatch)
           .then(img => dispatch({ type: 'RESOLVE_IMAGE', payload: img }))
           .catch(() => dispatch({ type: 'RESOLVE_IMAGE_FAILED' }));
       } else {
-        dispatch({ type: 'UPDATE_ACTIVE_ENCOUNTER', payload: encounterUpdates });
+        dispatch({ type: 'UPDATE_ACTIVE_ENCOUNTER', payload: resolution.encounterUpdates });
       }
 
-      const prompt = `The player is in a dark fantasy encounter with ${encounter.enemy_name}. The player chooses to ${actionText} (${intent}). The enemy's health is ${encounterUpdates.enemy_health}, lust is ${encounterUpdates.enemy_lust}, anger is ${encounterUpdates.enemy_anger}. Describe what happens next in 2-3 sentences. Return ONLY valid JSON with a 'narrative_text' field. Example: {"narrative_text": "You struggle fiercely, but the enemy retaliates."}`;
-      
-      let aiNarrative = narrative;
+      // Optional AI narrative enhancement
+      const encPrompt = `The player is in a dark fantasy encounter with ${encounter.enemy_name}. The player chooses to ${actionText} (${intent}). The enemy's health is ${resolution.encounterUpdates.enemy_health}, lust is ${resolution.encounterUpdates.enemy_lust}, anger is ${resolution.encounterUpdates.enemy_anger}. Describe what happens next in 2-3 sentences. Return ONLY valid JSON with a 'narrative_text' field. Example: {"narrative_text": "You struggle fiercely, but the enemy retaliates."}`;
+      let aiNarrative = resolution.narrative;
       try {
-        const textResult = await generateText(prompt, state.ui.apiKey, state.ui.hordeApiKey, state.ui.selectedTextModel, dispatch);
+        const textResult = await generateText(encPrompt, state.ui.apiKey, state.ui.hordeApiKey, state.ui.selectedTextModel, dispatch);
         const jsonMatch = textResult.match(/\{[\s\S]*\}/);
         if (jsonMatch) {
           const parsed = JSON.parse(jsonMatch[0]);
-          if (parsed.narrative_text) {
-            aiNarrative = parsed.narrative_text;
-          }
+          if (parsed.narrative_text) aiNarrative = parsed.narrative_text;
         }
       } catch (e) {
-        console.warn("Encounter narrative generation failed, using fallback", e);
+        console.warn('Encounter narrative generation failed, using fallback', e);
       }
 
-      dispatch({ type: 'RESOLVE_TEXT', payload: { 
+      dispatch({ type: 'RESOLVE_TEXT', payload: {
         parsedText: {
           narrative_text: aiNarrative,
-          stat_deltas,
-          skill_deltas,
-          follow_up_choices: []
-        }, 
-        actionText 
+          stat_deltas: resolution.stat_deltas,
+          skill_deltas: resolution.skill_deltas,
+          follow_up_choices: [],
+        },
+        actionText,
       } });
       return;
     }
@@ -787,21 +421,11 @@ function App({ state, dispatch }: { state: GameState, dispatch: React.Dispatch<a
         if (validEncounters.length > 0) {
           const encounter = validEncounters[Math.floor(Math.random() * validEncounters.length)];
           const encounterStoryEventId = encounter.story_event || `${encounter.id}_story`;
-          const encounterTree = DIALOGUE_TREES[encounterStoryEventId];
+          const startedEncounterStory = startStoryEvent(encounterStoryEventId);
 
-          if (encounterTree) {
-            const startNodeId = encounterTree.start_node;
-            const nextNode = encounterTree.nodes[startNodeId];
-
-            dispatch({ type: 'SET_STORY_EVENT', payload: { id: encounterStoryEventId, current_node: startNodeId } });
-            dispatch({ type: 'RESOLVE_TEXT', payload: {
-              parsedText: {
-                narrative_text: nextNode.narrative_text,
-                follow_up_choices: nextNode.choices,
-                image_url: nextNode.image_url
-              },
-              actionText
-            } });
+          if (startedEncounterStory?.nextStoryEvent) {
+            dispatch({ type: 'SET_STORY_EVENT', payload: startedEncounterStory.nextStoryEvent });
+            dispatch({ type: 'RESOLVE_TEXT', payload: { parsedText: startedEncounterStory.parsedText, actionText } });
             return;
           }
          
@@ -888,78 +512,17 @@ function App({ state, dispatch }: { state: GameState, dispatch: React.Dispatch<a
 
 
     if (hardcodedAction) {
-      // Calculate success chance if there's a skill check
-      let isSuccess = true;
-      let outcomeText = hardcodedAction.outcome;
-      let statDeltas = hardcodedAction.stat_deltas;
-      let skillDeltas = hardcodedAction.skill_deltas;
-      let newItems = hardcodedAction.new_items;
+      const locResult = resolveLocationAction(state, hardcodedAction);
 
-      if (hardcodedAction.skill_check) {
-        const statValue = (state.player.stats as any)[hardcodedAction.skill_check.stat] || (state.player.skills as any)[hardcodedAction.skill_check.stat] || 0;
-        const difficulty = hardcodedAction.skill_check.difficulty;
-        // Simple chance calculation: base 25% + (stat / difficulty) * 50%
-        const chance = Math.min(100, Math.max(5, (statValue / difficulty) * 50 + 25));
-        
-        const roll = Math.random() * 100;
-        isSuccess = roll <= chance;
-
-        if (!isSuccess && hardcodedAction.fail_outcome) {
-          outcomeText = hardcodedAction.fail_outcome;
-          statDeltas = hardcodedAction.fail_stat_deltas || {};
-          skillDeltas = hardcodedAction.fail_skill_deltas || {};
-          newItems = []; // No items on failure
-        }
-      }
-
-      // Map choices to include success chance for UI
-      const nextLocation = hardcodedAction.new_location ? LOCATIONS[hardcodedAction.new_location] : currentLocation;
-      const followUpChoices = (nextLocation.actions || []).map((a: any) => {
-        if (a.skill_check) {
-          const statValue = (state.player.stats as any)[a.skill_check.stat] || 0;
-          const chance = Math.min(100, Math.max(5, (statValue / a.skill_check.difficulty) * 50 + 25));
-          return { ...a, successChance: Math.round(chance) };
-        }
-        return a;
-      });
-
-      if (hardcodedAction.npc) {
-        const eventId = hardcodedAction.story_event || (hardcodedAction.intent === 'social' ? `${hardcodedAction.npc}_social` : undefined);
-        const tree = eventId ? DIALOGUE_TREES[eventId] : undefined;
-        if (tree) {
-          const startNodeId = tree.start_node;
-          const nextNode = tree.nodes[startNodeId];
-          dispatch({ type: 'SET_STORY_EVENT', payload: { id: eventId, current_node: startNodeId } });
-
-          dispatch({ type: 'RESOLVE_TEXT', payload: { 
-            parsedText: {
-              narrative_text: nextNode.narrative_text,
-              follow_up_choices: nextNode.choices,
-              image_url: nextNode.image_url
-            }, 
-            actionText 
-          } });
+      if (locResult.kind === 'story_event') {
+        const started = startStoryEvent(locResult.eventId);
+        if (started?.nextStoryEvent) {
+          dispatch({ type: 'SET_STORY_EVENT', payload: started.nextStoryEvent });
+          dispatch({ type: 'RESOLVE_TEXT', payload: { parsedText: started.parsedText, actionText } });
           return;
         }
-
-        const npc = NPCS[hardcodedAction.npc];
-        const response = npc.responses[hardcodedAction.intent || 'social'];
-        if (response) {
-          dispatch({ type: 'RESOLVE_TEXT', payload: { parsedText: { ...response, follow_up_choices: followUpChoices, new_location: hardcodedAction.new_location }, actionText } });
-          return;
-        }
-      } else if (outcomeText) {
-        dispatch({ type: 'RESOLVE_TEXT', payload: { 
-          parsedText: {
-            narrative_text: outcomeText, 
-            stat_deltas: statDeltas,
-            skill_deltas: skillDeltas,
-            new_items: newItems,
-            follow_up_choices: followUpChoices,
-            new_location: hardcodedAction.new_location
-          }, 
-          actionText 
-        } });
+      } else if (locResult.kind === 'narrative') {
+        dispatch({ type: 'RESOLVE_TEXT', payload: { parsedText: locResult.parsedText, actionText } });
         return;
       }
     }
@@ -998,14 +561,7 @@ function App({ state, dispatch }: { state: GameState, dispatch: React.Dispatch<a
 
       // Map choices to include success chance for UI
       if (parsedText.follow_up_choices) {
-        parsedText.follow_up_choices = parsedText.follow_up_choices.map((a: any) => {
-          if (a.skill_check) {
-            const statValue = (state.player.stats as any)[a.skill_check.stat] || 0;
-            const chance = Math.min(100, Math.max(5, (statValue / a.skill_check.difficulty) * 50 + 25));
-            return { ...a, successChance: Math.round(chance) };
-          }
-          return a;
-        });
+        parsedText.follow_up_choices = annotateActionsWithChance(parsedText.follow_up_choices, state);
       }
       
       dispatch({ type: 'RESOLVE_TEXT', payload: { parsedText, actionText } });

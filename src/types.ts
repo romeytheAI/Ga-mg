@@ -262,6 +262,177 @@ export interface LifeSim {
   };
 }
 
+// ── Phase 4: NPC Schedule Types ───────────────────────────────────────────
+
+/** Hour range during which a schedule slot is active (24h, inclusive start/exclusive end) */
+export interface NpcTimeWindow {
+  /** Start hour (0–23) */
+  from: number;
+  /** End hour (1–24, exclusive) */
+  to: number;
+}
+
+/** Flags controlling when a schedule slot is active */
+export interface NpcScheduleConditions {
+  /** Restrict to specific days of week (0=Monday … 6=Sunday). Omit for every day. */
+  days_of_week?: number[];
+  /** Minimum relationship milestone required */
+  min_milestone?: NpcRelationship['milestone'];
+  /** event_flag that must be truthy */
+  requires_event_flag?: string;
+  /** event_flag that must be falsy/absent */
+  blocks_event_flag?: string;
+}
+
+/** A single timed activity block for an NPC */
+export interface NpcScheduleSlot {
+  /** Human-readable label (e.g. "At school") */
+  label: string;
+  /** Location id where the NPC can be found */
+  location_id: string;
+  /** Time window when active */
+  time: NpcTimeWindow;
+  /** Optional conditions that restrict availability */
+  conditions?: NpcScheduleConditions;
+}
+
+/** Full weekly schedule for one NPC */
+export interface NpcSchedule {
+  /** NPC id (matches NPCS key) */
+  npc_id: string;
+  /** Ordered list of schedule slots checked top-to-bottom; first match wins */
+  slots: NpcScheduleSlot[];
+}
+
+// ── DoL-parity: NPC Relationship State ───────────────────────────────────
+export interface NpcRelationship {
+  /** NPC id (same key as used in npcs.ts) */
+  npc_id: string;
+  /** 0–100: how much the NPC trusts the player */
+  trust: number;
+  /** 0–100: romantic attachment */
+  love: number;
+  /** 0–100: how afraid the NPC is of the player */
+  fear: number;
+  /** 0–100: player's dominance over this NPC */
+  dom: number;
+  /** 0–100: player's submission to this NPC */
+  sub: number;
+  /** Highest relationship milestone reached */
+  milestone: 'stranger' | 'acquaintance' | 'friend' | 'close' | 'lover' | 'bonded';
+  /** Game day this NPC was first met */
+  met_on_day: number;
+  /** Last game day the player interacted with this NPC */
+  last_interaction_day: number;
+  /** Total number of meaningful interactions with this NPC */
+  interaction_count: number;
+  /** Encounter/scene flags specific to this NPC */
+  scene_flags: Record<string, boolean | number>;
+}
+
+// ── DoL-parity: Player Justice ────────────────────────────────────────────
+export interface PlayerJustice {
+  suspicion: number;
+  bounty: number;
+  evidence_left: number;
+  jail_sentence: number;
+  contraband_slots: number;
+  fence_reputation: number;
+  black_book_debt: number;
+  banishment: boolean;
+  extortion_targets: string[];
+}
+
+// ── DoL-parity: Player Psychology ─────────────────────────────────────────
+export interface PlayerPsychology {
+  outlook: string;
+  innate: string;
+  paranoia: number;
+  empathy: number;
+  psychopathy: number;
+  phobias: string[];
+  touch_starved: boolean;
+  sexuality: string;
+  stoic: boolean;
+  fragile_ego: boolean;
+}
+
+// ── DoL-parity: Player Perks / Flaws ──────────────────────────────────────
+export interface PlayerPerksFlaws {
+  hidden_pockets: boolean;
+  silver_tongue: boolean;
+  nimble_fingers: boolean;
+  danger_sense: boolean;
+  animal_whisperer: boolean;
+  green_thumb: boolean;
+  eidetic_memory: boolean;
+  debt_ridden: boolean;
+  hunted: boolean;
+  cursed: boolean;
+  addictive_personality: boolean;
+  mute: boolean;
+  blind_one_eye: boolean;
+  frail: boolean;
+  unlucky: boolean;
+}
+
+// ── DoL-parity: Player Social Flags ───────────────────────────────────────
+export interface PlayerSocial {
+  wanted_sibling: boolean;
+  betrothed: boolean;
+  exiled: boolean;
+  guild_member: boolean;
+  town_pariah: boolean;
+}
+
+// ── DoL-parity: Player Arcane ──────────────────────────────────────────────
+export interface PlayerArcane {
+  spells: string[];
+  magicka_overcharge: boolean;
+  blood_vials: number;
+  true_sight: boolean;
+  telepathy_unlocked: boolean;
+  toxicity: number;
+  withdrawal_timer: number;
+  soul_gems: number;
+  tattoos: string[];
+  corruption_taint: number;
+  astral_projection: boolean;
+}
+
+// ── DoL-parity: Player Base / Property ────────────────────────────────────
+export interface PlayerBase {
+  owned: boolean;
+  location: string;
+  furniture: string[];
+  bed_tier: number;
+  security_tier: number;
+  storage: string[];
+  alchemy_station: boolean;
+  bathhouse: boolean;
+  garden_plot: { planted: boolean; days_left: number };
+  captive_cell: string[];
+  secret_exit: boolean;
+  property_taxes_due: number;
+  infestations: boolean;
+  mannequins: string[];
+  library: boolean;
+  shrine: boolean;
+}
+
+// ── DoL-parity: Player Subconscious ──────────────────────────────────────
+export interface PlayerSubconscious {
+  rem_phase: number;
+  lucid_dreaming: boolean;
+  sleep_paralysis: boolean;
+  prophetic_dreams: string[];
+  trauma_demons_defeated: string[];
+  insomnia: number;
+  dreamless_potions: number;
+  coma_days: number;
+  dream_journal: string[];
+}
+
 export type StatKey = 'health' | 'stamina' | 'willpower' | 'lust' | 'trauma' | 'hygiene' | 'corruption' | 'allure' | 'arousal' | 'pain' | 'control' | 'stress' | 'hallucination' | 'purity';
 
 export interface Item {
@@ -511,15 +682,15 @@ export interface GameState {
     clothing: ClothingLayer,
     inventory: Item[],
     anatomy: Anatomy,
-    psychology: any,
-    perks_flaws: any,
-    social: any,
+    psychology: PlayerPsychology,
+    perks_flaws: PlayerPerksFlaws,
+    social: PlayerSocial,
     cosmetics: Cosmetics,
-    arcane: any,
-    justice: any,
+    arcane: PlayerArcane,
+    justice: PlayerJustice,
     companions: { active_party: Companion[], roster: Companion[], max_encumbrance_bonus: number },
-    base: any,
-    subconscious: any,
+    base: PlayerBase,
+    subconscious: PlayerSubconscious,
     biology: { cycle_day: number, heat_rut_active: boolean, parasites: Parasite[], incubations: Incubation[], cravings: string[], exhaustion_multiplier: number, post_partum_debuff: number, sterility: boolean, fertility_cycle: string, fertility: number, lactation_level: number },
     status_effects: string[],
     life_sim: LifeSim,
@@ -529,7 +700,10 @@ export interface GameState {
     known_recipes: string[]
   },
   world: {
-    day: number, hour: number, weather: string,
+    day: number, hour: number,
+    /** Day of week: 0 = Monday … 6 = Sunday */
+    week_day: number,
+    weather: string,
     current_location: { id?: string, name: string, danger: number, atmosphere: string, npcs: any[], actions?: any[] },
     macro_events: string[],
     local_tension: number,
@@ -537,6 +711,10 @@ export interface GameState {
     active_world_events: string[],
     turn_count: number,
     last_intent: string | null,
+    /** Persistent event/scene/content-gate flags */
+    event_flags: Record<string, boolean | number>,
+    /** Per-NPC relationship state, keyed by npc_id */
+    npc_relationships: Record<string, NpcRelationship>,
     economy: any,
     ecology: any,
     factions: any,

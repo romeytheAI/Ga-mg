@@ -2,6 +2,7 @@ import { GameState } from '../types';
 import { LOCATIONS } from '../data/locations';
 import { generateStartingWorld } from '../sim/ProceduralGen';
 import { getDefaultGraphicsQuality } from '../utils/graphicsQuality';
+import { annotateActionsWithChance } from '../utils/locationEventEngine';
 
 export const initialState: GameState = {
   player: {
@@ -127,7 +128,7 @@ export const initialState: GameState = {
     known_recipes: ['recipe_foraged_salad', 'recipe_herb_tea'],
   },
   world: {
-    day: 1, hour: 7, weather: "Foggy",
+    day: 1, hour: 7, week_day: 0, weather: "Foggy",
     current_location: LOCATIONS.orphanage,
     macro_events: [],
     local_tension: 0.1,
@@ -135,6 +136,8 @@ export const initialState: GameState = {
     active_world_events: [],
     turn_count: 0,
     last_intent: null,
+    event_flags: {},
+    npc_relationships: {},
     economy: { inflation: 1.0, shortages: [], caravans: false, taxation: 0, black_market: "active", currency_value: 1.0, smuggling: "open", bounties: 0, property_values: "low", resource_depletion: 0, businesses: [], staff: [], tavern_owned: false, brothel_owned: false, business_reputation: 0, advertising_days: 0, rival_businesses: false, vault_balance: 0 },
     ecology: { predator_pop: "low", flora: "urban", herb_regrowth: 0, animal_migration: "none", disease: "none", water: "stagnant", soil: "none", weather_spawns: "inactive", lunar: "waxing", eclipse: false },
     factions: { guild_wars: false, guard_patrols: "high", cult_uprisings: false, noble_feuds: false, peasant_rebellions: false, religious_schisms: false, bandit_expansion: false, smuggler_cartels: false, beggar_syndicates: true, assassin_contracts: false },
@@ -157,15 +160,13 @@ export const initialState: GameState = {
     isGeneratingAvatar: false,
     currentLog: [{ text: "The morning bell clangs, its harsh sound echoing through the cold stone halls of Honorhall Orphanage. You shiver in your thin clothes, the damp mist from Lake Honrich seeping through the cracks in the walls. The other children are already moving between the beds, whispering to wake up before the matron arrives.", type: 'narrative' }],
     currentImage: null,
-    choices: LOCATIONS.orphanage.actions.map((a: any) => {
-      if (a.skill_check) {
-        const initialStats: any = { health: 80, willpower: 90, stamina: 70, lust: 0, trauma: 10, hygiene: 40, corruption: 0, allure: 5, arousal: 0, pain: 5, control: 80, stress: 20, hallucination: 0, purity: 100 };
-        const val = initialStats[a.skill_check.stat] || 0;
-        const chance = Math.min(100, Math.max(5, (val / a.skill_check.difficulty) * 50 + 25));
-        return { ...a, successChance: Math.round(chance) };
-      }
-      return a;
-    }),
+    choices: (() => {
+      const initialStats = { health: 80, willpower: 90, stamina: 70, lust: 0, trauma: 10, hygiene: 40, corruption: 0, allure: 5, arousal: 0, pain: 5, control: 80, stress: 20, hallucination: 0, purity: 100 };
+      const initialSkills = { seduction: 0, athletics: 5, skulduggery: 10, swimming: 0, dancing: 0, housekeeping: 15, school_grades: 50, tending: 0, cooking: 5, foraging: 0 };
+      return annotateActionsWithChance(LOCATIONS.orphanage.actions, {
+        player: { stats: initialStats, skills: initialSkills },
+      } as any);
+    })(),
     apiKey: "",
     hordeApiKey: "0000000000",
     ui_scale: 1,

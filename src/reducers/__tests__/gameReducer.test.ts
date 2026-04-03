@@ -879,6 +879,14 @@ describe('gameReducer', () => {
       expect(state.player.attitudes.crime).toBe('submissive');
       expect(state.player.attitudes.labour).toBe('defiant');
     });
+
+    it('should handle UPDATE_ATTITUDES', () => {
+      const action = { type: 'UPDATE_ATTITUDES', payload: { sexual: 'submissive', crime: 'defiant' } };
+      const next = gameReducer(initialState, action);
+      expect(next.player.attitudes.sexual).toBe('submissive');
+      expect(next.player.attitudes.crime).toBe('defiant');
+      expect(next.player.attitudes.labour).toBe('neutral');
+    });
   });
 
   describe('DoL-parity: Feats system', () => {
@@ -1020,6 +1028,52 @@ describe('gameReducer', () => {
     });
   });
 
+  describe('DoL-parity: Direct stat update actions', () => {
+    it('should handle UPDATE_LEWDITY_STATS', () => {
+      const action = { type: 'UPDATE_LEWDITY_STATS', payload: { exhibitionism: 15, deviancy: 10 } };
+      const next = gameReducer(initialState, action);
+      expect(next.player.lewdity_stats.exhibitionism).toBe(15);
+      expect(next.player.lewdity_stats.deviancy).toBe(10);
+      expect(next.player.lewdity_stats.promiscuity).toBe(0);
+    });
+
+    it('should clamp UPDATE_LEWDITY_STATS to 0-100', () => {
+      const action = { type: 'UPDATE_LEWDITY_STATS', payload: { masochism: -50, promiscuity: 150 } };
+      const next = gameReducer(initialState, action);
+      expect(next.player.lewdity_stats.masochism).toBe(0);
+      expect(next.player.lewdity_stats.promiscuity).toBe(100);
+    });
+
+    it('should handle UPDATE_SENSITIVITY', () => {
+      const action = { type: 'UPDATE_SENSITIVITY', payload: { mouth: 12, genitals: -15 } };
+      const next = gameReducer(initialState, action);
+      expect(next.player.sensitivity.mouth).toBe(initialState.player.sensitivity.mouth + 12);
+      expect(next.player.sensitivity.genitals).toBe(initialState.player.sensitivity.genitals - 15);
+    });
+
+    it('should clamp UPDATE_SENSITIVITY to 0-100', () => {
+      const action = { type: 'UPDATE_SENSITIVITY', payload: { feet: -50, chest: 200 } };
+      const next = gameReducer(initialState, action);
+      expect(next.player.sensitivity.feet).toBe(0);
+      expect(next.player.sensitivity.chest).toBe(100);
+    });
+
+    it('should handle UPDATE_TEMPERATURE', () => {
+      const action = { type: 'UPDATE_TEMPERATURE', payload: { ambient_temp: -8, clothing_warmth: 55, body_temp: 'cold' } };
+      const next = gameReducer(initialState, action);
+      expect(next.player.temperature.ambient_temp).toBe(-8);
+      expect(next.player.temperature.clothing_warmth).toBe(55);
+      expect(next.player.temperature.body_temp).toBe('cold');
+    });
+
+    it('should clamp UPDATE_TEMPERATURE numeric values', () => {
+      const action = { type: 'UPDATE_TEMPERATURE', payload: { ambient_temp: 999, clothing_warmth: -25 } };
+      const next = gameReducer(initialState, action);
+      expect(next.player.temperature.ambient_temp).toBe(50);
+      expect(next.player.temperature.clothing_warmth).toBe(0);
+    });
+  });
+
   describe('DoL-parity: Temperature system', () => {
     it('should compute temperature from weather in RESOLVE_TEXT', () => {
       const coldState: GameState = {
@@ -1150,5 +1204,148 @@ describe('gameReducer', () => {
         expect(val).toBe(0);
       }
     });
+  });
+});
+
+// ── Phase 2 reducer tests ────────────────────────────────────────────────
+describe('Phase 2: event flags', () => {
+  it('SET_EVENT_FLAG sets a boolean flag', () => {
+    const next = gameReducer(initialState, { type: 'SET_EVENT_FLAG', payload: { flag: 'bailey_intro_done' } });
+    expect(next.world.event_flags.bailey_intro_done).toBe(true);
+  });
+
+  it('SET_EVENT_FLAG sets a numeric flag', () => {
+    const next = gameReducer(initialState, { type: 'SET_EVENT_FLAG', payload: { flag: 'school_strikes', value: 3 } });
+    expect(next.world.event_flags.school_strikes).toBe(3);
+  });
+
+  it('CLEAR_EVENT_FLAG removes a flag', () => {
+    const withFlag = gameReducer(initialState, { type: 'SET_EVENT_FLAG', payload: { flag: 'temp_flag' } });
+    const cleared = gameReducer(withFlag, { type: 'CLEAR_EVENT_FLAG', payload: { flag: 'temp_flag' } });
+    expect(cleared.world.event_flags.temp_flag).toBeUndefined();
+  });
+});
+
+describe('Phase 2: NPC relationships', () => {
+  it('UPDATE_NPC_RELATIONSHIP creates a new relationship entry', () => {
+    const next = gameReducer(initialState, {
+      type: 'UPDATE_NPC_RELATIONSHIP',
+      payload: { npc_id: 'robin', deltas: { trust: 20, love: 10 } },
+    });
+    expect(next.world.npc_relationships.robin).toBeDefined();
+    expect(next.world.npc_relationships.robin.trust).toBe(20);
+    expect(next.world.npc_relationships.robin.love).toBe(10);
+    expect(next.world.npc_relationships.robin.milestone).toBe('acquaintance');
+  });
+
+  it('UPDATE_NPC_RELATIONSHIP accumulates on existing entry', () => {
+    const withRel = gameReducer(initialState, {
+      type: 'UPDATE_NPC_RELATIONSHIP',
+      payload: { npc_id: 'robin', deltas: { trust: 50, love: 50 } },
+    });
+    const next = gameReducer(withRel, {
+      type: 'UPDATE_NPC_RELATIONSHIP',
+      payload: { npc_id: 'robin', deltas: { trust: 40, love: 40 } },
+    });
+    expect(next.world.npc_relationships.robin.trust).toBe(90);
+    expect(next.world.npc_relationships.robin.milestone).toBe('bonded');
+  });
+
+  it('UPDATE_NPC_RELATIONSHIP clamps values to 0-100', () => {
+    const next = gameReducer(initialState, {
+      type: 'UPDATE_NPC_RELATIONSHIP',
+      payload: { npc_id: 'whitney', deltas: { fear: 999, dom: -50 } },
+    });
+    expect(next.world.npc_relationships.whitney.fear).toBe(100);
+    expect(next.world.npc_relationships.whitney.dom).toBe(0);
+  });
+
+  it('SET_NPC_SCENE_FLAG marks a scene flag on an NPC', () => {
+    const next = gameReducer(initialState, {
+      type: 'SET_NPC_SCENE_FLAG',
+      payload: { npc_id: 'eden', flag: 'first_meeting_done', value: true },
+    });
+    expect(next.world.npc_relationships.eden.scene_flags.first_meeting_done).toBe(true);
+  });
+});
+
+describe('Phase 2: ADVANCE_TIME', () => {
+  it('advances hour correctly without crossing midnight', () => {
+    const next = gameReducer(initialState, { type: 'ADVANCE_TIME', payload: { hours: 3 } });
+    expect(next.world.hour).toBe(10); // starts at 7
+    expect(next.world.day).toBe(initialState.world.day);
+  });
+
+  it('increments day and wraps hour on midnight crossing', () => {
+    const next = gameReducer(initialState, { type: 'ADVANCE_TIME', payload: { hours: 20 } });
+    expect(next.world.hour).toBe(3);   // 7 + 20 = 27 => 27 % 24 = 3
+    expect(next.world.day).toBe(initialState.world.day + 1);
+  });
+
+  it('drains life sim needs', () => {
+    const next = gameReducer(initialState, { type: 'ADVANCE_TIME', payload: { hours: 4 } });
+    expect(next.player.life_sim.needs.hunger).toBeLessThan(initialState.player.life_sim.needs.hunger);
+    expect(next.player.life_sim.needs.thirst).toBeLessThan(initialState.player.life_sim.needs.thirst);
+  });
+
+  it('adds bailey debt on payment due day crossing', () => {
+    // Set due_day to 0 (Monday) and advance by 7 days
+    const state7 = { ...initialState, world: { ...initialState.world, day: 1, hour: 0 } };
+    const next = gameReducer(state7, { type: 'ADVANCE_TIME', payload: { hours: 24 * 7 } });
+    expect(next.player.bailey_payment.debt).toBeGreaterThan(0);
+  });
+
+  it('recalculates body temperature', () => {
+    // Cold environment, no clothing warmth
+    const coldState = {
+      ...initialState,
+      player: {
+        ...initialState.player,
+        temperature: { ambient_temp: -5, clothing_warmth: 0, body_temp: 'comfortable' as const },
+      },
+    };
+    const next = gameReducer(coldState, { type: 'ADVANCE_TIME', payload: { hours: 1 } });
+    expect(['cold', 'chilly', 'freezing']).toContain(next.player.temperature.body_temp);
+  });
+});
+
+describe('Phase 2: DAMAGE_CLOTHING', () => {
+  it('reduces integrity of targeted item', () => {
+    const next = gameReducer(initialState, {
+      type: 'DAMAGE_CLOTHING',
+      payload: { item_id: 'orphan-rags', amount: 15 },
+    });
+    const item = next.player.inventory.find(i => i.id === 'orphan-rags');
+    expect(item?.integrity).toBe(45); // starts at 60
+  });
+
+  it('clamps integrity to 0 on heavy damage', () => {
+    const next = gameReducer(initialState, {
+      type: 'DAMAGE_CLOTHING',
+      payload: { item_id: 'orphan-rags', amount: 500 },
+    });
+    const item = next.player.inventory.find(i => i.id === 'orphan-rags');
+    expect(item?.integrity).toBe(0);
+  });
+});
+
+describe('Phase 2: justice system', () => {
+  it('ADD_JUSTICE_BOUNTY increases bounty', () => {
+    const next = gameReducer(initialState, {
+      type: 'ADD_JUSTICE_BOUNTY',
+      payload: { amount: 50, suspicion: 20 },
+    });
+    expect(next.player.justice.bounty).toBe(50);
+    expect(next.player.justice.suspicion).toBe(20);
+  });
+
+  it('CLEAR_JUSTICE_BOUNTY resets bounty, suspicion, and jail sentence', () => {
+    const withBounty = gameReducer(initialState, {
+      type: 'ADD_JUSTICE_BOUNTY',
+      payload: { amount: 100, suspicion: 80 },
+    });
+    const cleared = gameReducer(withBounty, { type: 'CLEAR_JUSTICE_BOUNTY' });
+    expect(cleared.player.justice.bounty).toBe(0);
+    expect(cleared.player.justice.suspicion).toBe(0);
   });
 });
