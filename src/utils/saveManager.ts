@@ -65,7 +65,7 @@ function normalizeInventory(inventory: Item[] | undefined, clothing: GameState['
 }
 
 function normalizeActiveStoryEvent(activeStoryEvent: Partial<GameState['world']['active_story_event']> | null | undefined) {
-  if (!activeStoryEvent?.id) return activeStoryEvent ?? null;
+  if (!activeStoryEvent?.id) return null;
 
   return {
     ...activeStoryEvent,

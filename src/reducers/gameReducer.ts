@@ -1645,9 +1645,11 @@ export function gameReducer(state: GameState, action: any): GameState {
       };
 
       const updated = { ...existing };
+      const numericKeys = new Set<string>(['trust', 'love', 'fear', 'dom', 'sub']);
       for (const [k, v] of Object.entries(deltas)) {
-        if (typeof v === 'number' && k in updated) {
-          (updated as any)[k] = Math.max(0, Math.min(100, (existing as any)[k] + v));
+        if (typeof v === 'number' && numericKeys.has(k) && k in updated) {
+          const key = k as 'trust' | 'love' | 'fear' | 'dom' | 'sub';
+          updated[key] = Math.max(0, Math.min(100, existing[key] + v));
         }
       }
 
@@ -1744,7 +1746,9 @@ export function gameReducer(state: GameState, action: any): GameState {
           .map(inc => ({
             ...inc,
             days_remaining: Math.max(0, inc.days_remaining - dayFraction),
-            progress: Math.min(1, inc.progress + dayFraction / (inc.days_remaining || 1)),
+            progress: inc.days_remaining > 0
+              ? Math.min(1, inc.progress + dayFraction / inc.days_remaining)
+              : 1,
           }))
           .filter(inc => inc.days_remaining > 0),
       };
