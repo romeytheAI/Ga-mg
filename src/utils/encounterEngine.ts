@@ -28,6 +28,15 @@ export interface EncounterResolution {
   combatFeedback: CombatFeedback | null;
 }
 
+/** Base chance a pregnancy occurs per vaginal encounter at peak fertility. */
+const PREGNANCY_BASE_CHANCE = 0.3;
+/** Base probability that a cry_out summons a rescuer. */
+const CRY_OUT_BASE_RESCUE_CHANCE = 0.15;
+/** Per-seduction-point bonus to rescue chance. */
+const CRY_OUT_SKILL_BONUS = 0.003;
+/** Extra rescue chance when location danger is below threshold. */
+const CRY_OUT_LOW_DANGER_BONUS = 0.15;
+
 /**
  * Pure encounter-action resolver. Extracts all game-logic from App.tsx.
  *
@@ -185,7 +194,7 @@ export function resolveEncounterAction(
 
       if (sexType === 'vaginal' && state.ui.settings.enable_pregnancy) {
         const fertility = state.player.biology.fertility ?? 0.5;
-        if (rng() < fertility * 0.3 && state.player.biology.incubations.length === 0) {
+        if (rng() < fertility * PREGNANCY_BASE_CHANCE && state.player.biology.incubations.length === 0) {
           side_effects.push({ type: 'START_INCUBATION', payload: { type: 'humanoid', days: 66 } });
           narrative += ' You feel a strange warmth spreading through your body...';
         }
@@ -337,7 +346,7 @@ export function resolveEncounterAction(
 
     const socialSkill = state.player.skills.seduction ?? 0;
     const dangerLow = state.world.current_location.danger < 30;
-    const rescueChance = 0.15 + socialSkill * 0.003 + (dangerLow ? 0.15 : 0);
+    const rescueChance = CRY_OUT_BASE_RESCUE_CHANCE + socialSkill * CRY_OUT_SKILL_BONUS + (dangerLow ? CRY_OUT_LOW_DANGER_BONUS : 0);
 
     if (rng() < rescueChance) {
       narrative = 'Your desperate cry echoes through the area! Someone hears you and rushes to help. Your attacker flees!';

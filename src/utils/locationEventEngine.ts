@@ -25,14 +25,16 @@ export function annotateActionsWithChance(
   state: GameState,
 ): unknown[] {
   if (!Array.isArray(actions)) return [];
-  return actions.map((a: any) => {
-    if (!a.skill_check) return a;
+  return actions.map((item: unknown) => {
+    const action = item as Record<string, unknown>;
+    if (!action.skill_check) return action;
+    const check = action.skill_check as { stat: string; difficulty: number };
     const statVal =
-      (state.player.stats as any)[a.skill_check.stat] ??
-      (state.player.skills as any)[a.skill_check.stat] ??
+      (state.player.stats as any)[check.stat] ??
+      (state.player.skills as any)[check.stat] ??
       0;
-    const chance = Math.min(100, Math.max(5, (statVal / a.skill_check.difficulty) * 50 + 25));
-    return { ...a, successChance: Math.round(chance) };
+    const chance = Math.min(100, Math.max(5, (statVal / check.difficulty) * 50 + 25));
+    return { ...action, successChance: Math.round(chance) };
   });
 }
 
