@@ -322,6 +322,10 @@ export interface NpcRelationship {
   milestone: 'stranger' | 'acquaintance' | 'friend' | 'close' | 'lover' | 'bonded';
   /** Game day this NPC was first met */
   met_on_day: number;
+  /** Last game day the player interacted with this NPC */
+  last_interaction_day: number;
+  /** Total number of meaningful interactions with this NPC */
+  interaction_count: number;
   /** Encounter/scene flags specific to this NPC */
   scene_flags: Record<string, boolean | number>;
 }

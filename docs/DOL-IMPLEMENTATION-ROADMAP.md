@@ -69,16 +69,26 @@ Completed:
 - `src/reducers/gameReducer.ts` — `ADVANCE_TIME` now maintains `week_day`, applies `computeDailyStatDeltas` for NPC trust decay and economy income, and increments player gold
 - 36 new tests in `scheduleEngine.test.ts` (475 tests total)
 
-## Milestone 5 — NPC relationship depth
+## Milestone 5 — NPC relationship depth ✅
 
 Scope:
 
 - trust, love, fear, dominance/submission, milestones, recurring scenes
 
-Acceptance:
+Completed:
 
-- NPC interactions are stateful and schedule-aware
-- dialogue/event conditions react to relationship state
+- `src/types.ts` — `NpcRelationship` extended with `last_interaction_day` and `interaction_count`
+- `src/utils/saveManager.ts` — old saves auto-migrated: `last_interaction_day` and `interaction_count` default to 0
+- `src/utils/relationshipEngine.ts` — pure relationship mechanics:
+  - `computeMilestone()` — derives milestone from trust+love sum (6 thresholds)
+  - `computeIntentDeltas()` — per-intent base deltas × milestone bonus × same-day diminishing returns
+  - `getTriggeredScene()` / `canTriggerScene()` — recurring-scene gates (milestone, interaction count, seen flag, repeatability)
+  - `getInteractionNarrative()` — contextual narrative lines per intent × milestone (injectable RNG)
+  - `resolveRelationshipInteraction()` — master resolver: applies deltas, recomputes milestone, gates scenes, marks seen flags, tracks `_today_count`
+  - `UNIVERSAL_RECURRING_SCENES` — 8 milestone-gated scenes (first_meeting through bonded_ritual + repeatable regular_date)
+  - `BASE_INTENT_DELTAS` — deltas for all 15 dialogue intents plus dom/submit
+- `src/reducers/gameReducer.ts` — `RESOLVE_NPC_INTERACTION` action; updated fallback NPC objects for `UPDATE_NPC_RELATIONSHIP` and `SET_NPC_SCENE_FLAG` to include new fields
+- 45 new tests in `relationshipEngine.test.ts` (520 tests total)
 
 ## Milestone 6 — clothing and exposure mechanics
 

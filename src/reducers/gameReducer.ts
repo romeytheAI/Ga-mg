@@ -6,6 +6,7 @@ import { QUESTS } from '../data/quests';
 import { initialState } from '../state/initialState';
 import { tickSimulation } from '../sim/SimulationEngine';
 import { advanceWeekDay, computeDailyStatDeltas } from '../utils/scheduleEngine';
+import { resolveRelationshipInteraction } from '../utils/relationshipEngine';
 
 export function gameReducer(state: GameState, action: any): GameState {
   switch (action.type) {
@@ -1642,6 +1643,8 @@ export function gameReducer(state: GameState, action: any): GameState {
         sub: 0,
         milestone: 'stranger' as const,
         met_on_day: state.world.day,
+        last_interaction_day: state.world.day,
+        interaction_count: 0,
         scene_flags: {},
       };
 
@@ -1684,6 +1687,8 @@ export function gameReducer(state: GameState, action: any): GameState {
         trust: 0, love: 0, fear: 0, dom: 0, sub: 0,
         milestone: 'stranger' as const,
         met_on_day: state.world.day,
+        last_interaction_day: state.world.day,
+        interaction_count: 0,
         scene_flags: {},
       };
       return {
@@ -1693,6 +1698,35 @@ export function gameReducer(state: GameState, action: any): GameState {
           npc_relationships: {
             ...state.world.npc_relationships,
             [sfNpc]: { ...sfExisting, scene_flags: { ...sfExisting.scene_flags, [sfFlag]: sfValue } },
+          },
+        },
+      };
+    }
+
+    // ── Phase 5: Stateful NPC interaction via relationshipEngine ─────────────
+    case 'RESOLVE_NPC_INTERACTION': {
+      const { npc_id: riNpc, intent: riIntent } = action.payload as { npc_id: string; intent: string };
+      const riExisting = state.world.npc_relationships[riNpc] ?? {
+        npc_id: riNpc,
+        trust: 0, love: 0, fear: 0, dom: 0, sub: 0,
+        milestone: 'stranger' as const,
+        met_on_day: state.world.day,
+        last_interaction_day: 0,
+        interaction_count: 0,
+        scene_flags: {},
+      };
+      const { updated_relationship } = resolveRelationshipInteraction(
+        riExisting,
+        riIntent,
+        state.world.day,
+      );
+      return {
+        ...state,
+        world: {
+          ...state.world,
+          npc_relationships: {
+            ...state.world.npc_relationships,
+            [riNpc]: updated_relationship,
           },
         },
       };

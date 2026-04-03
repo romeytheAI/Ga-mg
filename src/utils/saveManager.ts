@@ -147,7 +147,16 @@ export function migrateGameState(rawState: unknown): GameState {
       current_location: resolveCurrentLocation(world),
       active_story_event: normalizeActiveStoryEvent(world.active_story_event),
       event_flags: { ...(world.event_flags || {}) },
-      npc_relationships: { ...(world.npc_relationships || {}) },
+      npc_relationships: Object.fromEntries(
+        Object.entries(world.npc_relationships || {}).map(([id, rel]: [string, any]) => [
+          id,
+          {
+            last_interaction_day: 0,
+            interaction_count: 0,
+            ...rel,
+          },
+        ])
+      ),
       economy: { ...initialState.world.economy, ...(world.economy || {}) },
       ecology: { ...initialState.world.ecology, ...(world.ecology || {}) },
       factions: { ...initialState.world.factions, ...(world.factions || {}) },
