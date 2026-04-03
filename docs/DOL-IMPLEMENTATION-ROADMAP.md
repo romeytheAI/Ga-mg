@@ -29,17 +29,20 @@ Completed:
 - New reducers: `ADVANCE_TIME`, `UPDATE_NPC_RELATIONSHIP`, `SET_NPC_SCENE_FLAG`, `SET_EVENT_FLAG`, `CLEAR_EVENT_FLAG`, `DAMAGE_CLOTHING`, `ADD_JUSTICE_BOUNTY`, `CLEAR_JUSTICE_BOUNTY`
 - Full reducer test coverage for Phase 2 actions (403 tests total)
 
-## Milestone 3 — unified event engine
+## Milestone 3 — unified event engine ✅
 
 Scope:
 
 - move encounter, location, and NPC branching to a shared event model
 - support conditions, consequences, flags, and repeatability
 
-Acceptance:
+Completed:
 
-- App no longer contains duplicated event-start/event-step branches
-- event definitions are data-driven and testable
+- `src/utils/encounterEngine.ts` — pure `resolveEncounterAction(state, intent, targetedPart?, rng?)` replaces 370-line encounter block. Returns `{ narrative, stat_deltas, skill_deltas, encounterUpdates, endEncounter, side_effects, combatFeedback }`. Injectable RNG for deterministic testing.
+- `src/utils/locationEventEngine.ts` — pure `resolveLocationAction(state, action, ...)` and `annotateActionsWithChance()`. Returns discriminated union `{ kind: 'story_event' | 'narrative' | 'none' }`.
+- `App.tsx` reduced by ~330 lines — now a thin coordinator that calls the engines and dispatches results.
+- `initialState.ts` — uses `annotateActionsWithChance` instead of inline mapping.
+- 36 new tests across `encounterEngine.test.ts` and `locationEventEngine.test.ts` (439 tests total).
 
 ## Milestone 4 — schedules and daily-life loop
 

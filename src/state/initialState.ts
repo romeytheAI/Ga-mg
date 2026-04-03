@@ -2,6 +2,7 @@ import { GameState } from '../types';
 import { LOCATIONS } from '../data/locations';
 import { generateStartingWorld } from '../sim/ProceduralGen';
 import { getDefaultGraphicsQuality } from '../utils/graphicsQuality';
+import { annotateActionsWithChance } from '../utils/locationEventEngine';
 
 export const initialState: GameState = {
   player: {
@@ -159,15 +160,13 @@ export const initialState: GameState = {
     isGeneratingAvatar: false,
     currentLog: [{ text: "The morning bell clangs, its harsh sound echoing through the cold stone halls of Honorhall Orphanage. You shiver in your thin clothes, the damp mist from Lake Honrich seeping through the cracks in the walls. The other children are already moving between the beds, whispering to wake up before the matron arrives.", type: 'narrative' }],
     currentImage: null,
-    choices: LOCATIONS.orphanage.actions.map((a: any) => {
-      if (a.skill_check) {
-        const initialStats: any = { health: 80, willpower: 90, stamina: 70, lust: 0, trauma: 10, hygiene: 40, corruption: 0, allure: 5, arousal: 0, pain: 5, control: 80, stress: 20, hallucination: 0, purity: 100 };
-        const val = initialStats[a.skill_check.stat] || 0;
-        const chance = Math.min(100, Math.max(5, (val / a.skill_check.difficulty) * 50 + 25));
-        return { ...a, successChance: Math.round(chance) };
-      }
-      return a;
-    }),
+    choices: (() => {
+      const initialStats = { health: 80, willpower: 90, stamina: 70, lust: 0, trauma: 10, hygiene: 40, corruption: 0, allure: 5, arousal: 0, pain: 5, control: 80, stress: 20, hallucination: 0, purity: 100 };
+      const initialSkills = { seduction: 0, athletics: 5, skulduggery: 10, swimming: 0, dancing: 0, housekeeping: 15, school_grades: 50, tending: 0, cooking: 5, foraging: 0 };
+      return annotateActionsWithChance(LOCATIONS.orphanage.actions, {
+        player: { stats: initialStats, skills: initialSkills },
+      } as any);
+    })(),
     apiKey: "",
     hordeApiKey: "0000000000",
     ui_scale: 1,
