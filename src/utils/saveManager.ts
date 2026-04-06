@@ -27,11 +27,12 @@ const DB_VERSION = 1;
  * - v2: Extended state (Phases 3-6) - schedules, factions, crime system, relationship milestones
  * - v3: Clothing exposure state + warmth summary persisted
  * - v4: Player restraints system (Milestone 7 - visual parity)
+ * - v5: Jobs system (player_job, life_sim.schedule.work) + addiction_state (Milestone 9)
  *
  * @see docs/STATE-SCHEMA.md for complete state documentation
  * @see migrateGameState() for backward compatibility logic
  */
-export const SAVE_SCHEMA_VERSION = 4;
+export const SAVE_SCHEMA_VERSION = 5;
 const LEGACY_STORY_ID_MAP: Record<string, string> = {
   academy_bully_story: 'school_bully_story',
 };
@@ -189,6 +190,9 @@ export function migrateGameState(rawState: unknown): GameState {
       status_effects: player.status_effects || initialState.player.status_effects,
       // v4: restraints default to null for old saves
       restraints: (player as any).restraints ?? null,
+      // v5: job system and addiction state
+      player_job: (player as any).player_job ?? 'none',
+      addiction_state: (player as any).addiction_state ?? { addictions: [], overall_dependency: 0 },
     },
     world: {
       ...initialState.world,

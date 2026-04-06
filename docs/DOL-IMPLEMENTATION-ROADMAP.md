@@ -138,3 +138,39 @@ Completed:
 - `src/components/EncounterUI.tsx` — `RestraintPanel` component shows active restraint slot badges (wrists/ankles/neck/waist/mouth), escape progress bar, movement and action penalty labels; Struggle/Resist/Escape buttons visually dimmed at ≥50%/≥75% action/movement penalty; Cry Out button strikethrough + "(gagged)" label when mouth slot is bound
 - `src/components/modals/MapModal.tsx` — NPC location integration via `getAllNpcCurrentLocations()`: each location pin shows NPC count badge, hover tooltip lists up to 5 NPC names; new "NPCs Present Nearby" sidebar card shows all NPCs at current location
 - `src/components/SaveLoadModal.tsx` — save cards show: schema version badge (v1–v4), trauma value, legacy-save warning (AlertTriangle) for saves below current schema, "⛓ Bound" badge when player was restrained at save time, formatted save timestamp
+
+## Milestone 9 — Jobs, Economy and Substance Systems ✅
+
+Scope:
+
+- wire EconomySystem (sim) into player state via a game-layer bridge
+- wire AddictionSystem (sim) into player state and the daily-life loop
+- player job selection, work shifts, and income
+- substance use, tolerance, withdrawal effects on ADVANCE_TIME
+
+Completed:
+
+- `src/types.ts` — `JobType`, `SubstanceType`, `AddictionEntry`, `PlayerAddictionState` interfaces; `LifeSim.schedule.work` typed as `JobType | null`; `player_job: JobType` and `addiction_state: PlayerAddictionState` added to `GameState.player`
+- `src/state/initialState.ts` — `player_job: 'none'` and `addiction_state: { addictions: [], overall_dependency: 0 }` initialised
+- `src/utils/jobEngine.ts` — game-layer bridge over `EconomySystem.collectWage()`:
+  - `JOB_LABELS` / `JOB_DESCRIPTIONS` — display metadata for all 9 job types
+  - `jobRiskLevel()` — safe / moderate / dangerous per job
+  - `getAvailableJobs()` — jobs the player meets skill requirements for
+  - `resolveWorkShift()` — returns `{ gold_earned, skill_deltas, stat_deltas, narrative, feat_id?, crime_committed? }`; gold scales with primary skill; injectable RNG
+- `src/utils/addictionEngine.ts` — game-layer bridge over `AddictionSystem.ts`:
+  - `resolveSubstanceUse()` — applies tolerance, returns `{ addiction_state, stress_relief, energy_boost, corruption_risk, narrative, new_addiction }`
+  - `getWithdrawalEffects()` — per-hour stress/stamina drain for ADVANCE_TIME
+  - `tickPlayerAddictions()` — advances withdrawal/recovery over elapsed hours
+  - `addictionSummary()` — human-readable dependency/withdrawal labels per substance
+  - `substanceLabel()` / `SUBSTANCE_LABELS` — display names for all 6 substance types
+- `src/reducers/gameReducer.ts` — four new reducer cases:
+  - `TAKE_JOB` — sets `player_job`, syncs `life_sim.schedule.work`, sets `guild_member` for legitimate jobs
+  - `QUIT_JOB` — resets `player_job` to `'none'`
+  - `WORK_SHIFT` — calls `resolveWorkShift()`, applies gold/skill/stat deltas, unlocks `feat_first_job`
+  - `USE_SUBSTANCE` — calls `resolveSubstanceUse()`, applies immediate stress/stamina/corruption to stats
+  - `ADVANCE_TIME` extended: ticks addiction via `tickPlayerAddictions()`, applies `getWithdrawalEffects()` withdrawal stress/stamina drain each tick
+- `src/utils/saveManager.ts` — schema version bumped to v5; v5 migration hydrates `player_job: 'none'` and `addiction_state: { addictions: [], overall_dependency: 0 }` for old saves
+- `src/utils/jobEngine.test.ts` — 25 tests: JOB_LABELS coverage, risk levels, skill requirements, gold range, skill/stat deltas, crime flag, feat unlocks, narrative content
+- `src/utils/addictionEngine.test.ts` — 18 tests: substance labels, stress relief, addiction growth, tolerance reduction, withdrawal effects, tick pruning, summary labels
+- 638 total tests pass (43 new), 16 test files, build clean
+

@@ -125,6 +125,8 @@ export const initialState: GameState = {
       needs: { hunger: 100, thirst: 100, energy: 100, hygiene: 100, social: 100 },
       schedule: { work: null, leisure: null, sleep: null }
     },
+    player_job: 'none' as const,
+    addiction_state: { addictions: [], overall_dependency: 0 },
     age_days: 6570, // 18 years
     avatar_url: null,
     quests: [

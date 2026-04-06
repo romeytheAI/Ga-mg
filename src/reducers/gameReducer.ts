@@ -9,6 +9,8 @@ import { advanceWeekDay, computeDailyStatDeltas } from '../utils/scheduleEngine'
 import { resolveRelationshipInteraction } from '../utils/relationshipEngine';
 import { applyRepWithRivalSpillover, processCrimeEvent, processPayBounty, processServeSentence, defaultCriminalRecord, defaultFactions } from '../utils/factionEngine';
 import { computeClothingState, exposureConsequences } from '../utils/clothingState';
+import { tickPlayerAddictions, getWithdrawalEffects } from '../utils/addictionEngine';
+import { resolveWorkShift } from '../utils/jobEngine';
 
 const clamp = (value: number, min = 0, max = 100) => Math.min(max, Math.max(min, value));
 
@@ -1905,6 +1907,21 @@ export function gameReducer(state: GameState, action: any): GameState {
           biology: newBiology,
           temperature: { ...state.player.temperature, clothing_warmth: clothingWarmth, body_temp },
           life_sim: { ...state.player.life_sim, needs: newNeeds },
+          // ── Milestone 9: tick addiction withdrawal ──────────────────────
+          addiction_state: (() => {
+            const ticked = tickPlayerAddictions(
+              state.player.addiction_state,
+              state.world.turn_count,
+              hours,
+            );
+            // Apply withdrawal stress and stamina drain into stats
+            const wdEffects = getWithdrawalEffects(ticked);
+            if (wdEffects.in_withdrawal) {
+              newStats.stress  = clamp(newStats.stress  + wdEffects.stress_per_hour  * hours, 0, 100);
+              newStats.stamina = clamp(newStats.stamina - wdEffects.stamina_per_hour * hours, 0, state.player.stats.max_stamina);
+            }
+            return ticked;
+          })(),
         },
       };
     }
@@ -2172,6 +2189,104 @@ export function gameReducer(state: GameState, action: any): GameState {
         player: {
           ...state.player,
           restraints: { ...state.player.restraints, escape_progress: newProgress },
+        },
+      };
+    }
+
+    // ── Milestone 9: Job system ───────────────────────────────────────────
+
+    case 'TAKE_JOB': {
+      const { job } = action.payload as { job: import('../types').JobType };
+      return {
+        ...state,
+        player: {
+          ...state.player,
+          player_job: job,
+          life_sim: {
+            ...state.player.life_sim,
+            schedule: { ...state.player.life_sim.schedule, work: job === 'none' ? null : job },
+          },
+          // Guild membership when taking a legitimate job
+          social: job !== 'none' && job !== 'thief'
+            ? { ...state.player.social, guild_member: true }
+            : state.player.social,
+        },
+      };
+    }
+
+    case 'QUIT_JOB': {
+      return {
+        ...state,
+        player: {
+          ...state.player,
+          player_job: 'none',
+          life_sim: {
+            ...state.player.life_sim,
+            schedule: { ...state.player.life_sim.schedule, work: null },
+          },
+        },
+      };
+    }
+
+    case 'WORK_SHIFT': {
+      const job = (action.payload as { job?: import('../types').JobType })?.job ?? state.player.player_job;
+      const result = resolveWorkShift(state, job);
+
+      // Apply skill deltas
+      const newSkills = { ...state.player.skills };
+      for (const [skill, delta] of Object.entries(result.skill_deltas)) {
+        const k = skill as keyof typeof newSkills;
+        if (typeof newSkills[k] === 'number') {
+          (newSkills as any)[k] = Math.min(100, (newSkills[k] as number) + (delta as number));
+        }
+      }
+
+      // Apply stat costs
+      const newStats = { ...state.player.stats };
+      for (const [stat, delta] of Object.entries(result.stat_deltas)) {
+        const k = stat as keyof typeof newStats;
+        if (typeof newStats[k] === 'number') {
+          (newStats as any)[k] = Math.max(0, Math.min(
+            stat === 'stamina' ? newStats.max_stamina : 100,
+            (newStats[k] as number) + (delta as number),
+          ));
+        }
+      }
+
+      // Unlock first-job feat
+      const newFeats = result.feat_id
+        ? state.player.feats.map(f => f.id === result.feat_id ? { ...f, unlocked: true } : f)
+        : state.player.feats;
+
+      return {
+        ...state,
+        player: {
+          ...state.player,
+          gold: state.player.gold + result.gold_earned,
+          skills: newSkills,
+          stats: newStats,
+          feats: newFeats,
+        },
+      };
+    }
+
+    // ── Milestone 9: Substance / Addiction ───────────────────────────────
+
+    case 'USE_SUBSTANCE': {
+      const { substance } = action.payload as { substance: import('../types').SubstanceType };
+      const { resolveSubstanceUse } = require('../utils/addictionEngine');      const result = resolveSubstanceUse(state, substance, state.world.turn_count);
+
+      const newStats = { ...state.player.stats };
+      newStats.stress  = clamp(newStats.stress  - result.stress_relief, 0, 100);
+      newStats.stamina = clamp(newStats.stamina  + result.energy_boost, 0, state.player.stats.max_stamina);
+      newStats.corruption = clamp(newStats.corruption + result.corruption_risk, 0, 100);
+
+      return {
+        ...state,
+        player: {
+          ...state.player,
+          stats: newStats,
+          addiction_state: result.addiction_state,
         },
       };
     }

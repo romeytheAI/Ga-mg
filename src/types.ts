@@ -264,13 +264,37 @@ export interface LifeSim {
     social: number;
   };
   schedule: {
-    work: string | null;
+    /** Active job type — null means unemployed */
+    work: JobType | null;
     leisure: string | null;
     sleep: string | null;
   };
 }
 
-// ── Phase 4: NPC Schedule Types ───────────────────────────────────────────
+// ── Milestone 9: Job / Economy types ─────────────────────────────────────
+/**
+ * Player job types — mirrors EconomySystem's JobType from sim/types.ts but
+ * re-exported at the game-layer so reducers don't need to import from sim/.
+ */
+export type JobType = 'laborer' | 'merchant' | 'guard' | 'healer' | 'scholar' | 'thief' | 'farmer' | 'innkeeper' | 'none';
+
+// ── Milestone 9: Addiction / Substance types ──────────────────────────────
+export type SubstanceType = 'alcohol' | 'moonsugar' | 'skooma' | 'bloodwine' | 'dreamdust' | 'void_essence';
+
+export interface AddictionEntry {
+  substance: SubstanceType;
+  dependency: number;    // 0–100
+  tolerance: number;     // 0–100
+  withdrawal: number;    // 0–100
+  last_use_turn: number;
+  total_uses: number;
+}
+
+export interface PlayerAddictionState {
+  addictions: AddictionEntry[];
+  overall_dependency: number; // 0–100 mean of all active substances
+}
+
 
 /** Hour range during which a schedule slot is active (24h, inclusive start/exclusive end) */
 export interface NpcTimeWindow {
@@ -798,6 +822,10 @@ export interface GameState {
     restraints: PlayerRestraints | null,
     status_effects: string[],
     life_sim: LifeSim,
+    /** Active job type — 'none' when unemployed (Milestone 9) */
+    player_job: JobType,
+    /** Substance addiction state — tracks dependency, tolerance, withdrawal (Milestone 9) */
+    addiction_state: PlayerAddictionState,
     age_days: number,
     avatar_url?: string | null,
     quests: Quest[],
