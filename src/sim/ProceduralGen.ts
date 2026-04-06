@@ -17,6 +17,7 @@ import { defaultParasiteState } from './ParasiteSystem';
 import { defaultCompanionState } from './CompanionSystem';
 import { defaultAllureState } from './AllureSystem';
 import { defaultRestraintState } from './RestraintSystem';
+import { defaultFactions } from './FactionSystem';
 
 // ── Name tables ────────────────────────────────────────────────────────────
 const FIRST_NAMES_MALE = [
@@ -243,6 +244,8 @@ export function generateStartingWorld(seed: number): {
   locations: SimLocation[];
   npcs: SimNpc[];
   economy: ReturnType<typeof initEconomy>;
+  factions: ReturnType<typeof defaultFactions>;
+  criminal_records: Record<string, import('./types').CriminalRecord>;
 } {
   const locations = generateWorldLocations(seed);
 
@@ -259,7 +262,7 @@ export function generateStartingWorld(seed: number): {
     npcs.push(...locNpcs);
   });
 
-  return { locations, npcs, economy: initEconomy() };
+  return { locations, npcs, economy: initEconomy(), factions: defaultFactions(), criminal_records: {} };
 }
 
 // ── Event generation ───────────────────────────────────────────────────────
