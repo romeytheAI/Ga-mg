@@ -23,6 +23,7 @@ View your app in AI Studio: https://ai.studio/apps/c27ece4c-b654-4b65-a8ce-77dae
 
 - **Start here**: `docs/foundation-roadmap.md` - prerequisite issues for repository structure, type safety, performance, persistence, and CI/CD.
 - These foundation issues should be completed before major feature work to ensure a stable, maintainable codebase.
+- To open/update the issues automatically, run the **Sync Foundation Roadmap** workflow and (optionally) supply your Projects V2 `project-number`.
 
 ## MaxVP agentic roadmap
 

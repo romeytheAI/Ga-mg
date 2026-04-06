@@ -1,0 +1,203 @@
+name: Sync Foundation Roadmap
+
+on:
+  workflow_dispatch:
+    inputs:
+      project-number:
+        description: Projects V2 number to add items into (optional)
+        required: false
+        type: string
+      dry-run:
+        description: Only log actions without writing
+        required: false
+        default: false
+        type: boolean
+  push:
+    paths:
+      - docs/foundation-roadmap.json
+      - .github/workflows/sync-foundation-roadmap.yml
+
+permissions:
+  contents: read
+  issues: write
+  projects: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Sync roadmap issues and project
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const fs = require('fs');
+            const path = require('path');
+            const core = require('@actions/core');
+
+            const roadmapPath = path.join(process.cwd(), 'docs', 'foundation-roadmap.json');
+            if (!fs.existsSync(roadmapPath)) {
+              throw new Error(`Roadmap file not found at ${roadmapPath}`);
+            }
+
+            const roadmap = JSON.parse(fs.readFileSync(roadmapPath, 'utf8'));
+            const items = Array.isArray(roadmap.issues) ? roadmap.issues : [];
+            if (!items.length) {
+              core.info('No roadmap items found; exiting.');
+              return;
+            }
+
+            const { owner, repo } = context.repo;
+            const repoInfo = await github.rest.repos.get({ owner, repo });
+            const ownerLogin = repoInfo.data.owner.login;
+            const ownerType = repoInfo.data.owner.type; // User or Organization
+
+            const dryRun = core.getBooleanInput('dry-run');
+            const projectInput = core.getInput('project-number');
+            const projectNumber = projectInput ? parseInt(projectInput, 10) : null;
+            const baseLabels = ['roadmap', 'foundation'];
+
+            const desiredIssues = items.map(item => ({
+              title: item.title,
+              body: Array.isArray(item.body_lines) ? item.body_lines.join('\n') : '',
+              labels: Array.from(new Set([...(item.labels || []), ...baseLabels])),
+              assignees: item.assignees || []
+            }));
+
+            const openIssues = await github.paginate(github.rest.issues.listForRepo, {
+              owner,
+              repo,
+              state: 'open',
+              per_page: 100
+            });
+
+            let projectId = null;
+            if (projectNumber) {
+              const query =
+                ownerType === 'Organization'
+                  ? `query($login:String!, $number:Int!) { organization(login:$login) { projectV2(number:$number) { id } } }`
+                  : `query($login:String!, $number:Int!) { user(login:$login) { projectV2(number:$number) { id } } }`;
+
+              const projectData = await github.graphql(query, { login: ownerLogin, number: projectNumber });
+              const projectNode = ownerType === 'Organization'
+                ? projectData.organization?.projectV2
+                : projectData.user?.projectV2;
+
+              if (!projectNode?.id) {
+                throw new Error(`Project number ${projectNumber} not found for ${ownerType} ${ownerLogin}`);
+              }
+              projectId = projectNode.id;
+              core.info(`Resolved project ${projectNumber} to node ${projectId}`);
+            }
+
+            const addedIssues = [];
+            const updatedIssues = [];
+
+            const labelNames = labels => labels.map(l => (typeof l === 'string' ? l : l.name));
+            const hasLabelDelta = (current, desired) => {
+              const curr = new Set(labelNames(current));
+              const want = new Set(desired);
+              if (curr.size !== want.size) return true;
+              for (const label of want) {
+                if (!curr.has(label)) return true;
+              }
+              return false;
+            };
+
+            for (const item of desiredIssues) {
+              const existing = openIssues.find(i => i.title === item.title);
+
+              if (existing) {
+                const needsBodyUpdate = (existing.body || '').trim() !== item.body.trim();
+                const needsLabelUpdate = hasLabelDelta(existing.labels || [], item.labels);
+
+                if (needsBodyUpdate || needsLabelUpdate) {
+                  if (dryRun) {
+                    core.info(`[dry-run] Would update issue #${existing.number} (${item.title})`);
+                  } else {
+                    await github.rest.issues.update({
+                      owner,
+                      repo,
+                      issue_number: existing.number,
+                      body: item.body,
+                      labels: item.labels
+                    });
+                    updatedIssues.push(existing.number);
+                    core.info(`Updated issue #${existing.number} (${item.title})`);
+                  }
+                } else {
+                  core.info(`Issue #${existing.number} (${item.title}) already up to date`);
+                }
+
+                if (projectId && !dryRun) {
+                  try {
+                    await github.graphql(
+                      `mutation($projectId:ID!, $contentId:ID!) {
+                        addProjectV2ItemById(input: { projectId: $projectId, contentId: $contentId }) {
+                          item { id }
+                        }
+                      }`,
+                      { projectId, contentId: existing.node_id }
+                    );
+                    core.info(`Linked issue #${existing.number} to project ${projectNumber}`);
+                  } catch (error) {
+                    const msg = error?.message || '';
+                    if (msg.includes('already exists')) {
+                      core.info(`Issue #${existing.number} already linked to project`);
+                    } else {
+                      throw error;
+                    }
+                  }
+                }
+                continue;
+              }
+
+              if (dryRun) {
+                core.info(`[dry-run] Would create issue: ${item.title}`);
+                continue;
+              }
+
+              const created = await github.rest.issues.create({
+                owner,
+                repo,
+                title: item.title,
+                body: item.body,
+                labels: item.labels,
+                assignees: item.assignees
+              });
+
+              addedIssues.push(created.data.number);
+              core.info(`Created issue #${created.data.number} (${item.title})`);
+
+              if (projectId) {
+                try {
+                  await github.graphql(
+                    `mutation($projectId:ID!, $contentId:ID!) {
+                      addProjectV2ItemById(input: { projectId: $projectId, contentId: $contentId }) {
+                        item { id }
+                      }
+                    }`,
+                    { projectId, contentId: created.data.node_id }
+                  );
+                  core.info(`Linked issue #${created.data.number} to project ${projectNumber}`);
+                } catch (error) {
+                  const msg = error?.message || '';
+                  if (msg.includes('already exists')) {
+                    core.info(`Issue #${created.data.number} already linked to project`);
+                  } else {
+                    throw error;
+                  }
+                }
+              }
+            }
+
+            core.summary.addHeading('Foundation roadmap sync results');
+            core.summary.addList([
+              `Created: ${addedIssues.length ? addedIssues.join(', ') : '0'}`,
+              `Updated: ${updatedIssues.length ? updatedIssues.join(', ') : '0'}`,
+              `Project linked: ${projectId ? `yes (number ${projectNumber})` : 'no'}`
+            ]);
+            await core.summary.write();
