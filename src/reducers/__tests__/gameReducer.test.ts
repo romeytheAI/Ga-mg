@@ -1111,7 +1111,7 @@ describe('gameReducer', () => {
 
     it('initial temperature state should be valid', () => {
       expect(initialState.player.temperature.body_temp).toBe('chilly');
-      expect(initialState.player.temperature.clothing_warmth).toBe(20);
+      expect(initialState.player.temperature.clothing_warmth).toBe(15);
     });
   });
 

@@ -31,6 +31,11 @@ export const WardrobeModal: React.FC<WardrobeModalProps> = ({ state, dispatch })
     equippedBySlot[slot] = state.player.clothing[slot];
   }
 
+  const clothingState = state.player.clothing_state;
+  const exposureScore = clothingState?.summary.exposure_score ?? 0;
+  const indecentSlots = clothingState?.summary.indecent_slots ?? [];
+  const warmth = clothingState?.summary.warmth ?? state.player.temperature.clothing_warmth;
+
   const unequippedClothing = state.player.inventory.filter(
     i => (i.type === 'clothing' || i.type === 'armor') && !i.is_equipped && i.slot
   );
@@ -79,9 +84,19 @@ export const WardrobeModal: React.FC<WardrobeModalProps> = ({ state, dispatch })
             <Shirt className="w-5 h-5 text-indigo-400" />
             <h2 className="text-2xl font-serif text-white/90 tracking-widest uppercase">Wardrobe</h2>
           </div>
-          <div className="flex items-center gap-2 bg-amber-950/30 border border-amber-900/40 px-3 py-1.5 rounded-sm">
-            <Coins className="w-3.5 h-3.5 text-amber-400" />
-            <span className="text-amber-400 font-mono">{state.player.gold}</span>
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 bg-white/5 border border-white/10 px-3 py-1 rounded-sm text-[10px] uppercase tracking-widest">
+              <span className="text-white/60">Exposure</span>
+              <span className={`font-mono ${exposureScore >= 60 ? 'text-red-300' : 'text-emerald-200'}`}>{Math.round(exposureScore)}%</span>
+            </div>
+            <div className="flex items-center gap-2 bg-white/5 border border-white/10 px-3 py-1 rounded-sm text-[10px] uppercase tracking-widest">
+              <span className="text-white/60">Warmth</span>
+              <span className="font-mono text-amber-200">{Math.round(warmth)}</span>
+            </div>
+            <div className="flex items-center gap-2 bg-amber-950/30 border border-amber-900/40 px-3 py-1.5 rounded-sm">
+              <Coins className="w-3.5 h-3.5 text-amber-400" />
+              <span className="text-amber-400 font-mono">{state.player.gold}</span>
+            </div>
           </div>
         </div>
 
@@ -190,10 +205,15 @@ export const WardrobeModal: React.FC<WardrobeModalProps> = ({ state, dispatch })
             )}
 
             {/* Exposure warning */}
-            {(!state.player.clothing.chest || !state.player.clothing.underwear || !state.player.clothing.legs) && (
+            {(exposureScore >= 50 || indecentSlots.length > 0) && (
               <div className="mt-4 p-3 border border-red-900/30 bg-red-950/20 rounded-sm">
-                <p className="text-[10px] text-red-400/80 uppercase tracking-widest animate-pulse">
-                  ⚠ You are indecently exposed. This draws attention and increases danger.
+                <p className="text-[10px] text-red-400/80 uppercase tracking-widest animate-pulse flex flex-col gap-1">
+                  <span>⚠ You are indecently exposed. This draws attention and increases danger.</span>
+                  {indecentSlots.length > 0 && (
+                    <span className="text-white/50 normal-case">
+                      Exposed: {indecentSlots.join(', ')}
+                    </span>
+                  )}
                 </p>
               </div>
             )}

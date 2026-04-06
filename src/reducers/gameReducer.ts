@@ -8,6 +8,19 @@ import { tickSimulation } from '../sim/SimulationEngine';
 import { advanceWeekDay, computeDailyStatDeltas } from '../utils/scheduleEngine';
 import { resolveRelationshipInteraction } from '../utils/relationshipEngine';
 import { applyRepWithRivalSpillover, processCrimeEvent, processPayBounty, processServeSentence, defaultCriminalRecord, defaultFactions } from '../utils/factionEngine';
+import { computeClothingState, exposureConsequences } from '../utils/clothingState';
+
+const clamp = (value: number, min = 0, max = 100) => Math.min(max, Math.max(min, value));
+
+function withClothingState(player: GameState['player']) {
+  const clothing_state = computeClothingState(player.clothing, player.clothing_state);
+  const updatedPlayer = {
+    ...player,
+    clothing_state,
+    temperature: { ...player.temperature, clothing_warmth: clothing_state.summary.warmth },
+  };
+  return { player: updatedPlayer, clothing_state };
+}
 
 export function gameReducer(state: GameState, action: any): GameState {
   switch (action.type) {
@@ -142,6 +155,13 @@ export function gameReducer(state: GameState, action: any): GameState {
         });
       }
 
+      const syncedClothing = Object.fromEntries(
+        Object.entries(state.player.clothing).map(([slot, equipped]) => [
+          slot,
+          equipped ? newInventory.find(i => i.id === equipped.id) ?? equipped : null,
+        ])
+      ) as typeof state.player.clothing;
+
       // 6. Combat injury
       let newAnatomy = state.player.anatomy;
       if (parsedText.combat_injury) {
@@ -232,7 +252,8 @@ export function gameReducer(state: GameState, action: any): GameState {
       }
 
       // 13b. Lewdity stats adjustments (DoL-parity)
-      const newLewdity = { ...state.player.lewdity_stats };
+      let notoriety = state.player.notoriety;
+      let newLewdity = { ...state.player.lewdity_stats };
       if (appliedDeltas.purity && appliedDeltas.purity < 0) {
         newLewdity.exhibitionism = Math.min(100, newLewdity.exhibitionism + Math.abs(appliedDeltas.purity) * 0.15);
         newLewdity.promiscuity = Math.min(100, newLewdity.promiscuity + Math.abs(appliedDeltas.purity) * 0.1);
@@ -359,7 +380,7 @@ export function gameReducer(state: GameState, action: any): GameState {
       }
 
       // 15b. Temperature / Warmth system (DoL-parity)
-      const newTemperature = { ...state.player.temperature };
+      let newTemperature = { ...state.player.temperature };
       // Compute ambient temp from weather
       const weatherTempMap: Record<string, number> = {
         'Blizzard': -15, 'Freezing': -10, 'Light Snow': -5, 'Clear and Cold': -2,
@@ -560,33 +581,48 @@ export function gameReducer(state: GameState, action: any): GameState {
         }
       }
 
+      const { clothing_state } = withClothingState({ ...state.player, clothing: syncedClothing });
+      newTemperature = { ...newTemperature, clothing_warmth: clothing_state.summary.warmth };
+
+      const exposureImpact = exposureConsequences(clothing_state, hoursPassed);
+      newStats.stress = clamp(newStats.stress + exposureImpact.stress, 0, 100);
+      newStats.hygiene = clamp(newStats.hygiene - exposureImpact.hygiene, 0, 100);
+      newStats.allure = clamp(newStats.allure + exposureImpact.allure, 0, 100);
+      newLewdity = { ...newLewdity, exhibitionism: clamp(newLewdity.exhibitionism + exposureImpact.exhibitionism, 0, 100) };
+      notoriety = clamp(notoriety + exposureImpact.notoriety, 0, 100);
+
       // 16. Tick simulation engine if available
       let nextSimWorld = state.sim_world;
       if (nextSimWorld) {
         nextSimWorld = tickSimulation(nextSimWorld);
       }
 
+      const basePlayer = {
+        ...state.player,
+        stats: newStats,
+        skills: newSkills,
+        inventory: newInventory,
+        anatomy: newAnatomy,
+        afflictions: newAfflictions,
+        quests: newQuests,
+        psych_profile: newPsych,
+        lewdity_stats: newLewdity,
+        body_fluids: newBodyFluids,
+        sensitivity: newSensitivity,
+        temperature: newTemperature,
+        bailey_payment: newBaileyPayment,
+        life_sim: newLifeSim,
+        biology: newBiology,
+        traits: newTraits,
+        gold: state.player.gold + goldEarned,
+        clothing: syncedClothing,
+      } as GameState['player'];
+
+      const playerWithClothing = withClothingState(basePlayer).player;
+
       return {
         ...state,
-        player: {
-          ...state.player,
-          stats: newStats,
-          skills: newSkills,
-          inventory: newInventory,
-          anatomy: newAnatomy,
-          afflictions: newAfflictions,
-          quests: newQuests,
-          psych_profile: newPsych,
-          lewdity_stats: newLewdity,
-          body_fluids: newBodyFluids,
-          sensitivity: newSensitivity,
-          temperature: newTemperature,
-          bailey_payment: newBaileyPayment,
-          life_sim: newLifeSim,
-          biology: newBiology,
-          traits: newTraits,
-          gold: state.player.gold + goldEarned,
-        },
+        player: playerWithClothing,
         world: {
           ...state.world,
           day: newDay,
@@ -699,14 +735,15 @@ export function gameReducer(state: GameState, action: any): GameState {
       
       const newInventory = state.player.inventory.map(i => i.id === itemId ? { ...i, is_equipped: true } : (i.slot === item.slot ? { ...i, is_equipped: false } : i));
       const newClothing = { ...state.player.clothing, [item.slot!]: item };
+      const updated = withClothingState({
+        ...state.player,
+        inventory: newInventory,
+        clothing: newClothing,
+      }).player;
       
       return {
         ...state,
-        player: {
-          ...state.player,
-          inventory: newInventory,
-          clothing: newClothing
-        }
+        player: updated
       };
     }
     case 'UNEQUIP_ITEM': {
@@ -716,14 +753,15 @@ export function gameReducer(state: GameState, action: any): GameState {
       
       const newInventory = state.player.inventory.map(i => i.id === itemId ? { ...i, is_equipped: false } : i);
       const newClothing = { ...state.player.clothing, [item.slot!]: null };
+      const updated = withClothingState({
+        ...state.player,
+        inventory: newInventory,
+        clothing: newClothing,
+      }).player;
       
       return {
         ...state,
-        player: {
-          ...state.player,
-          inventory: newInventory,
-          clothing: newClothing
-        }
+        player: updated
       };
     }
     case 'USE_ITEM': {
@@ -1106,15 +1144,24 @@ export function gameReducer(state: GameState, action: any): GameState {
       const repairId = (action.payload as { itemId: string; cost: number }).itemId;
       const repairCost = (action.payload as { itemId: string; cost: number }).cost;
       if (state.player.gold < repairCost) return state;
+      const repairedInventory = state.player.inventory.map(i =>
+        i.id === repairId ? { ...i, integrity: i.max_integrity ?? 100 } : i
+      );
+      const repairedClothing = Object.fromEntries(
+        Object.entries(state.player.clothing).map(([slot, equipped]) => [
+          slot,
+          equipped?.id === repairId ? { ...equipped, integrity: equipped.max_integrity ?? 100 } : equipped,
+        ])
+      ) as typeof state.player.clothing;
+      const updated = withClothingState({
+        ...state.player,
+        gold: state.player.gold - repairCost,
+        inventory: repairedInventory,
+        clothing: repairedClothing,
+      }).player;
       return {
         ...state,
-        player: {
-          ...state.player,
-          gold: state.player.gold - repairCost,
-          inventory: state.player.inventory.map(i =>
-            i.id === repairId ? { ...i, integrity: i.max_integrity ?? 100 } : i
-          ),
-        },
+        player: updated,
       };
     }
 
@@ -1740,6 +1787,9 @@ export function gameReducer(state: GameState, action: any): GameState {
       const newHour = totalHours % 24;
       const daysElapsed = Math.floor(totalHours / 24);
       const newDay = state.world.day + daysElapsed;
+      const { clothing_state } = withClothingState(state.player);
+      let notoriety = state.player.notoriety;
+      let newLewdity = { ...state.player.lewdity_stats };
 
       // Life sim needs drain per hour
       const drainRate = state.ui.settings.stat_drain_multiplier;
@@ -1790,7 +1840,8 @@ export function gameReducer(state: GameState, action: any): GameState {
       };
 
       // Recalculate body temperature
-      const effectiveTemp = state.player.temperature.ambient_temp + state.player.temperature.clothing_warmth * 0.3;
+      const clothingWarmth = clothing_state.summary.warmth;
+      const effectiveTemp = state.player.temperature.ambient_temp + clothingWarmth * 0.3;
       const body_temp: typeof state.player.temperature.body_temp =
         effectiveTemp < -10 ? 'freezing' :
         effectiveTemp < 0   ? 'cold' :
@@ -1798,6 +1849,13 @@ export function gameReducer(state: GameState, action: any): GameState {
         effectiveTemp < 20  ? 'comfortable' :
         effectiveTemp < 28  ? 'warm' :
         effectiveTemp < 35  ? 'hot' : 'overheating';
+
+      const exposureImpact = exposureConsequences(clothing_state, hours);
+      newStats.stress = clamp(newStats.stress + exposureImpact.stress, 0, 100);
+      newStats.hygiene = clamp(newStats.hygiene - exposureImpact.hygiene, 0, 100);
+      newStats.allure = clamp(newStats.allure + exposureImpact.allure, 0, 100);
+      newLewdity = { ...newLewdity, exhibitionism: clamp(newLewdity.exhibitionism + exposureImpact.exhibitionism, 0, 100) };
+      notoriety = clamp(notoriety + exposureImpact.notoriety, 0, 100);
 
       return {
         ...state,
@@ -1837,12 +1895,15 @@ export function gameReducer(state: GameState, action: any): GameState {
             }
             return s;
           })(),
+          clothing_state,
           gold: daysElapsed > 0
             ? state.player.gold + computeDailyStatDeltas(state, daysElapsed).gold_earned
             : state.player.gold,
+          notoriety,
+          lewdity_stats: newLewdity,
           bailey_payment: newBailey,
           biology: newBiology,
-          temperature: { ...state.player.temperature, body_temp },
+          temperature: { ...state.player.temperature, clothing_warmth: clothingWarmth, body_temp },
           life_sim: { ...state.player.life_sim, needs: newNeeds },
         },
       };
@@ -1851,25 +1912,29 @@ export function gameReducer(state: GameState, action: any): GameState {
     // ── DoL-parity: Clothing damage ───────────────────────────────────────
     case 'DAMAGE_CLOTHING': {
       const { item_id, amount: dmgAmt } = action.payload as { item_id: string; amount: number };
+      const damagedInventory = state.player.inventory.map(item =>
+        item.id === item_id && typeof item.integrity === 'number'
+          ? { ...item, integrity: Math.max(0, item.integrity - dmgAmt) }
+          : item
+      );
+      const damagedClothing = Object.fromEntries(
+        Object.entries(state.player.clothing).map(([slot, equipped]) => [
+          slot,
+          equipped?.id === item_id && typeof equipped.integrity === 'number'
+            ? { ...equipped, integrity: Math.max(0, equipped.integrity - dmgAmt) }
+            : equipped,
+        ])
+      ) as typeof state.player.clothing;
+
+      const updated = withClothingState({
+        ...state.player,
+        inventory: damagedInventory,
+        clothing: damagedClothing,
+      }).player;
+
       return {
         ...state,
-        player: {
-          ...state.player,
-          inventory: state.player.inventory.map(item =>
-            item.id === item_id && typeof item.integrity === 'number'
-              ? { ...item, integrity: Math.max(0, item.integrity - dmgAmt) }
-              : item
-          ),
-          // Mirror damage in the clothing slot if equipped
-          clothing: Object.fromEntries(
-            Object.entries(state.player.clothing).map(([slot, equipped]) => [
-              slot,
-              equipped?.id === item_id && typeof equipped.integrity === 'number'
-                ? { ...equipped, integrity: Math.max(0, equipped.integrity - dmgAmt) }
-                : equipped,
-            ])
-          ) as typeof state.player.clothing,
-        },
+        player: updated,
       };
     }
 

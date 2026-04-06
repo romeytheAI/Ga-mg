@@ -1,8 +1,38 @@
-import { GameState } from '../types';
+import { ClothingLayer, GameState, Item } from '../types';
 import { LOCATIONS } from '../data/locations';
 import { generateStartingWorld } from '../sim/ProceduralGen';
 import { getDefaultGraphicsQuality } from '../utils/graphicsQuality';
 import { annotateActionsWithChance } from '../utils/locationEventEngine';
+import { computeClothingState } from '../utils/clothingState';
+
+const starterTunic: Item = {
+  id: 'orphan-rags',
+  name: "Threadbare Tunic",
+  type: 'clothing',
+  slot: 'chest',
+  rarity: 'common',
+  description: "A coarse, itchy wool tunic that has been patched a dozen times with mismatched thread. It barely covers you, offering little protection from the cold or prying eyes. It smells faintly of lye, sweat, and the damp desperation of the orphanage. Wearing it marks you as one of the lowest in society.",
+  lore: "Woven from the cheapest flax and wool scraps discarded by the city's tailors, these tunics are the standard issue for wards of the state. The matron of the orphanage claims they build character through discomfort. Many orphans believe the coarse fabric is intentionally chosen to make them easier to grab and harder to ignore. The mismatched patches tell a silent history of previous owners who either aged out, escaped, or succumbed to the harsh winters.",
+  value: 1,
+  weight: 0.5,
+  integrity: 60,
+  max_integrity: 100,
+  is_equipped: true
+};
+
+const starterClothing: ClothingLayer = {
+  head: null,
+  neck: null,
+  shoulders: null,
+  chest: starterTunic,
+  underwear: null,
+  legs: null,
+  feet: null,
+  hands: null,
+  waist: null
+};
+
+const starterClothingState = computeClothingState(starterClothing);
 
 export const initialState: GameState = {
   player: {
@@ -44,27 +74,13 @@ export const initialState: GameState = {
       { id: 'first_victory', name: 'First Blood', description: 'Win your first combat encounter.', unlocked: false },
       { id: 'first_birth', name: 'New Life', description: 'Give birth for the first time.', unlocked: false },
     ],
-    temperature: { ambient_temp: 12, clothing_warmth: 20, body_temp: 'chilly' },
+    temperature: { ambient_temp: 12, clothing_warmth: starterClothingState.summary.warmth, body_temp: 'chilly' },
     bailey_payment: { weekly_amount: 100, due_day: 0, missed_payments: 0, debt: 0, punishment_level: 0 },
     afflictions: [],
-    clothing: {
-      head: null, neck: null, shoulders: null, chest: null, underwear: null, legs: null, feet: null, hands: null, waist: null
-    },
+    clothing: starterClothing,
+    clothing_state: starterClothingState,
     inventory: [
-      {
-        id: 'orphan-rags',
-        name: "Threadbare Tunic",
-        type: 'clothing',
-        slot: 'chest',
-        rarity: 'common',
-        description: "A coarse, itchy wool tunic that has been patched a dozen times with mismatched thread. It barely covers you, offering little protection from the cold or prying eyes. It smells faintly of lye, sweat, and the damp desperation of the orphanage. Wearing it marks you as one of the lowest in society.",
-        lore: "Woven from the cheapest flax and wool scraps discarded by the city's tailors, these tunics are the standard issue for wards of the state. The matron of the orphanage claims they build character through discomfort. Many orphans believe the coarse fabric is intentionally chosen to make them easier to grab and harder to ignore. The mismatched patches tell a silent history of previous owners who either aged out, escaped, or succumbed to the harsh winters.",
-        value: 1,
-        weight: 0.5,
-        integrity: 60,
-        max_integrity: 100,
-        is_equipped: true
-      },
+      starterTunic,
       {
         id: 'amulet-of-mara',
         name: "Amulet of Mara",
