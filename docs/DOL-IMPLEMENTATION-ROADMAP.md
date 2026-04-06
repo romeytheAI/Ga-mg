@@ -90,7 +90,7 @@ Completed:
 - `src/reducers/gameReducer.ts` — `RESOLVE_NPC_INTERACTION` action; updated fallback NPC objects for `UPDATE_NPC_RELATIONSHIP` and `SET_NPC_SCENE_FLAG` to include new fields
 - 45 new tests in `relationshipEngine.test.ts` (520 tests total)
 
-## Milestone 6 — clothing and exposure mechanics
+## Milestone 6 — clothing and exposure mechanics ✅
 
 Scope:
 
@@ -98,22 +98,32 @@ Scope:
 - damage/displacement/wetness/exposure rules
 - gameplay consequences tied to visual state
 
-Acceptance:
+Completed:
 
-- clothing state is mechanically relevant and persisted
-- wardrobe and event systems read the same clothing-state model
+- `src/types.ts` — `ClothingSlot`, `ClothingDisplacement`, `ClothingExposure`, `ClothingSlotState`, `ClothingSummary`, `ClothingState` interfaces
+- `src/utils/clothingState.ts` — pure `computeClothingState()` (per-slot coverage, exposure, warmth) and `exposureConsequences()` (stress/hygiene/notoriety/allure/exhibitionism deltas)
+- `src/utils/saveManager.ts` — v3 migration hydrates `clothing_state` and `warmth` on old saves
+- `src/reducers/gameReducer.ts` — `ADVANCE_TIME` integrates clothing warmth into body temperature and exposure consequences; `DAMAGE_CLOTHING` recomputes clothing state
+- `src/sim/ClothingSystem.ts` — factory helpers, damage/repair/wear, combat targeting, concealment/warmth queries
+- `src/components/dol/sprite/Clothing.tsx` — displacement-aware rendering with per-slot visual offsets
 
-## Milestone 7 — visual parity completion
+## Milestone 7 — visual parity completion ✅
 
 Scope:
 
 - fill pose/state matrix across SVG and canvas renderers
 - complete fluids, marks, restraint, and expression coverage
 
-Acceptance:
+Completed:
 
-- major gameplay states are visibly represented in both renderers
-- renderer tests cover critical parity states
+- `src/types.ts` — `RestraintSlot`, `RestraintEntry`, `PlayerRestraints` interfaces; `restraints: PlayerRestraints | null` added to `GameState.player`
+- `src/state/initialState.ts` — `restraints: null` default for new games
+- `src/utils/saveManager.ts` — v4 migration hydrates `restraints` to null for old saves
+- `src/components/dol/sprite/RestraintLayer.tsx` — new sprite layer rendering rope/chain/leather/arcane bindings at wrists, ankles, neck, waist, and mouth slots; auto-detects restraint material from name; draws connecting link/chain between paired slots
+- `src/components/dol/sprite/Clothing.tsx` — displacement-aware per-slot rendering: `secure` (normal), `shifted` (partial offset + 85% opacity), `displaced` (full offset + 60% opacity), `removed` (hidden); clothing receives `clothingState` prop
+- `src/components/DoLCharacterSprite.tsx` — passes `clothing_state` to Clothing layer; adds `RestraintLayer` above clothing in render stack
+- `src/reducers/gameReducer.ts` — `APPLY_RESTRAINT` (upsert by slot, recalculate penalties), `REMOVE_RESTRAINT`, `CLEAR_RESTRAINTS`, `UPDATE_ESCAPE_PROGRESS` (clears restraints at 100)
+- `src/components/dol/sprite/spriteRenderer.test.tsx` — 30 new parity tests: restraint slot rendering, displacement states, expression 8-state coverage, pose transform matrix (595 tests total)
 
 ## Milestone 8 — UI completion and balancing
 

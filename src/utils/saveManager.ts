@@ -26,11 +26,12 @@ const DB_VERSION = 1;
  * - v1: Initial implementation (Phases 1-2) - base state, event flags, NPC relationships
  * - v2: Extended state (Phases 3-6) - schedules, factions, crime system, relationship milestones
  * - v3: Clothing exposure state + warmth summary persisted
+ * - v4: Player restraints system (Milestone 7 - visual parity)
  *
  * @see docs/STATE-SCHEMA.md for complete state documentation
  * @see migrateGameState() for backward compatibility logic
  */
-export const SAVE_SCHEMA_VERSION = 3;
+export const SAVE_SCHEMA_VERSION = 4;
 const LEGACY_STORY_ID_MAP: Record<string, string> = {
   academy_bully_story: 'school_bully_story',
 };
@@ -102,11 +103,12 @@ function resolveCurrentLocation(world: Partial<GameState['world']> | undefined):
  * 3. Normalizing inventory is_equipped flags based on clothing slots
  * 4. Resolving current_location from string IDs or legacy object formats
  * 5. Migrating legacy story event IDs (e.g., academy_bully_story → school_bully_story)
- * 6. Hydrating Phase 2-6 additions with safe defaults:
+ * 6. Hydrating Phase 2-7 additions with safe defaults:
  *    - event_flags, npc_relationships (Phase 2)
  *    - week_day, schedule fields (Phase 4)
  *    - last_interaction_day, interaction_count (Phase 5)
  *    - factions, criminal_records (Phase 6)
+ *    - restraints (Milestone 7)
  *
  * @param rawState - Unvalidated save data from IndexedDB (may be from older schema version)
  * @returns Fully hydrated GameState conforming to current SAVE_SCHEMA_VERSION
@@ -185,6 +187,8 @@ export function migrateGameState(rawState: unknown): GameState {
       quests: player.quests || initialState.player.quests,
       known_recipes: player.known_recipes || initialState.player.known_recipes,
       status_effects: player.status_effects || initialState.player.status_effects,
+      // v4: restraints default to null for old saves
+      restraints: (player as any).restraints ?? null,
     },
     world: {
       ...initialState.world,

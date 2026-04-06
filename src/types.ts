@@ -521,6 +521,24 @@ export interface ClothingState {
   summary: ClothingSummary;
 }
 
+// ── Restraint System ──────────────────────────────────────────────────────
+export type RestraintSlot = 'wrists' | 'ankles' | 'neck' | 'waist' | 'mouth';
+
+export interface RestraintEntry {
+  slot: RestraintSlot;
+  name: string;
+  strength: number;    // 0-100, difficulty to escape
+  comfort: number;     // 0-100, 0 = painful
+  turn_applied: number;
+}
+
+export interface PlayerRestraints {
+  entries: RestraintEntry[];
+  escape_progress: number;  // 0-100
+  movement_penalty: number; // 0-1, fraction of movement lost
+  action_penalty: number;   // 0-1, fraction of action effectiveness lost
+}
+
 // ── Quest System ─────────────────────────────────────────────────────────
 export interface QuestObjective {
   id: string;
@@ -777,6 +795,7 @@ export interface GameState {
     base: PlayerBase,
     subconscious: PlayerSubconscious,
     biology: { cycle_day: number, heat_rut_active: boolean, parasites: Parasite[], incubations: Incubation[], cravings: string[], exhaustion_multiplier: number, post_partum_debuff: number, sterility: boolean, fertility_cycle: string, fertility: number, lactation_level: number },
+    restraints: PlayerRestraints | null,
     status_effects: string[],
     life_sim: LifeSim,
     age_days: number,

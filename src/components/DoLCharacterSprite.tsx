@@ -19,6 +19,7 @@ import { FluidEffects } from './dol/sprite/FluidEffects';
 import { MuscleDefinition } from './dol/sprite/MuscleDefinition';
 import { StatusEffects } from './dol/sprite/StatusEffects';
 import { XRayOverlay } from './dol/sprite/XRayOverlay';
+import { RestraintLayer } from './dol/sprite/RestraintLayer';
 
 interface DoLCharacterSpriteProps {
   state: GameState;
@@ -27,7 +28,7 @@ interface DoLCharacterSpriteProps {
 }
 
 export const DoLCharacterSprite: React.FC<DoLCharacterSpriteProps> = ({ state, compact = false, showXRay = false }) => {
-  const { clothing, identity, cosmetics, stats, biology } = state.player;
+  const { clothing, clothing_state, identity, cosmetics, stats, biology } = state.player;
   const graphicsQuality = state.ui.graphics_quality;
   const raceDef   = resolveRace(identity.race);
   const gender    = identity.gender || 'female';
@@ -325,7 +326,10 @@ export const DoLCharacterSprite: React.FC<DoLCharacterSpriteProps> = ({ state, c
             />
           )}
 
-          <Clothing geom={geom} s={finalSpriteState} skin={skin} clothing={clothing} />
+          <Clothing geom={geom} s={finalSpriteState} skin={skin} clothing={clothing} clothingState={clothing_state} />
+
+          {/* ── RESTRAINT LAYER (bindings, cuffs, rope — above clothing) ── */}
+          <RestraintLayer geom={geom} s={finalSpriteState} restraints={state.player.restraints} />
 
           {/* ── FLUID EFFECTS (enhanced DoL-parity rendering) ── */}
           {graphicsQuality.sprite_quality.fluid_effects && (

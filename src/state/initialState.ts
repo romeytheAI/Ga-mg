@@ -119,6 +119,7 @@ export const initialState: GameState = {
     base: { owned: false, location: "none", furniture: [], bed_tier: 0, security_tier: 0, storage: [], alchemy_station: false, bathhouse: false, garden_plot: { planted: false, days_left: 0 }, captive_cell: [], secret_exit: false, property_taxes_due: 0, infestations: false, mannequins: [], library: false, shrine: false },
     subconscious: { rem_phase: 0, lucid_dreaming: false, sleep_paralysis: false, prophetic_dreams: [], trauma_demons_defeated: [], insomnia: 0, dreamless_potions: 0, coma_days: 0, dream_journal: [] },
     biology: { cycle_day: 1, heat_rut_active: false, parasites: [], incubations: [], cravings: [], exhaustion_multiplier: 1.0, post_partum_debuff: 0, sterility: false, fertility_cycle: 'Ovulation', fertility: 0.5, lactation_level: 0 },
+    restraints: null,
     status_effects: [],
     life_sim: {
       needs: { hunger: 100, thirst: 100, energy: 100, hygiene: 100, social: 100 },

@@ -2095,6 +2095,87 @@ export function gameReducer(state: GameState, action: any): GameState {
       }
     }
 
+    // ── Restraint System (Milestone 7 - visual parity) ────────────────────
+    case 'APPLY_RESTRAINT': {
+      const entry = action.payload as import('../types').RestraintEntry;
+      const current = state.player.restraints ?? {
+        entries: [],
+        escape_progress: 0,
+        movement_penalty: 0,
+        action_penalty: 0,
+      };
+      // Replace existing entry for the same slot, or append
+      const existingIdx = current.entries.findIndex(e => e.slot === entry.slot);
+      const newEntries = existingIdx >= 0
+        ? current.entries.map((e, i) => (i === existingIdx ? entry : e))
+        : [...current.entries, entry];
+
+      // Recalculate penalties based on bound slots
+      const wristsBound = newEntries.some(e => e.slot === 'wrists');
+      const anklesBound = newEntries.some(e => e.slot === 'ankles');
+      const movement_penalty = Math.min(1, (wristsBound ? 0.25 : 0) + (anklesBound ? 0.5 : 0));
+      const action_penalty   = Math.min(1, newEntries.length * 0.15);
+
+      return {
+        ...state,
+        player: {
+          ...state.player,
+          restraints: {
+            ...current,
+            entries: newEntries,
+            movement_penalty,
+            action_penalty,
+          },
+        },
+      };
+    }
+
+    case 'REMOVE_RESTRAINT': {
+      const { slot } = action.payload as { slot: import('../types').RestraintSlot };
+      if (!state.player.restraints) return state;
+      const newEntries = state.player.restraints.entries.filter(e => e.slot !== slot);
+      if (newEntries.length === 0) {
+        return { ...state, player: { ...state.player, restraints: null } };
+      }
+      const wristsBound = newEntries.some(e => e.slot === 'wrists');
+      const anklesBound = newEntries.some(e => e.slot === 'ankles');
+      const movement_penalty = Math.min(1, (wristsBound ? 0.25 : 0) + (anklesBound ? 0.5 : 0));
+      const action_penalty   = Math.min(1, newEntries.length * 0.15);
+      return {
+        ...state,
+        player: {
+          ...state.player,
+          restraints: {
+            ...state.player.restraints,
+            entries: newEntries,
+            movement_penalty,
+            action_penalty,
+            escape_progress: 0,
+          },
+        },
+      };
+    }
+
+    case 'CLEAR_RESTRAINTS': {
+      return { ...state, player: { ...state.player, restraints: null } };
+    }
+
+    case 'UPDATE_ESCAPE_PROGRESS': {
+      const { delta } = action.payload as { delta: number };
+      if (!state.player.restraints) return state;
+      const newProgress = Math.min(100, Math.max(0, state.player.restraints.escape_progress + delta));
+      if (newProgress >= 100) {
+        return { ...state, player: { ...state.player, restraints: null } };
+      }
+      return {
+        ...state,
+        player: {
+          ...state.player,
+          restraints: { ...state.player.restraints, escape_progress: newProgress },
+        },
+      };
+    }
+
     default:
       return state;
   }
