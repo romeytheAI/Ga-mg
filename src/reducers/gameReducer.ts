@@ -7,6 +7,7 @@ import { initialState } from '../state/initialState';
 import { tickSimulation } from '../sim/SimulationEngine';
 import { advanceWeekDay, computeDailyStatDeltas } from '../utils/scheduleEngine';
 import { resolveRelationshipInteraction } from '../utils/relationshipEngine';
+import { applyRepWithRivalSpillover, processCrimeEvent, processPayBounty, processServeSentence, defaultCriminalRecord, defaultFactions } from '../utils/factionEngine';
 
 export function gameReducer(state: GameState, action: any): GameState {
   switch (action.type) {
@@ -1935,6 +1936,98 @@ export function gameReducer(state: GameState, action: any): GameState {
           currentLog: [...state.ui.currentLog, { text: `You upgrade your base: ${upgrade}.`, type: 'system' as const }],
         },
       };
+    }
+
+    case 'ADD_FACTION_REP': {
+      const { faction_id, delta } = action.payload as { faction_id: string; delta: number };
+      const currentFactions = state.sim_world?.factions ?? defaultFactions();
+      const updatedFactions = applyRepWithRivalSpillover(currentFactions, faction_id as import('../sim/types').FactionId, delta);
+      return {
+        ...state,
+        sim_world: state.sim_world ? { ...state.sim_world, factions: updatedFactions } : state.sim_world,
+      };
+    }
+
+    case 'COMMIT_CRIME': {
+      const { crime_type, faction_id, witnessed } = action.payload as {
+        crime_type: string;
+        faction_id: string;
+        witnessed: boolean;
+      };
+      const currentFactions = state.sim_world?.factions ?? defaultFactions();
+      const currentRecord = (state.sim_world?.criminal_records ?? {})['player'] ?? defaultCriminalRecord();
+      const turn = state.sim_world?.turn ?? 0;
+      const { record, factions } = processCrimeEvent(
+        currentRecord,
+        currentFactions,
+        crime_type as import('../sim/types').CrimeType,
+        faction_id as import('../sim/types').FactionId,
+        turn,
+        witnessed,
+      );
+      const logText = witnessed
+        ? `You were seen committing ${crime_type}. Bounty increased.`
+        : `You committed ${crime_type} undetected.`;
+      return {
+        ...state,
+        sim_world: state.sim_world
+          ? {
+              ...state.sim_world,
+              factions,
+              criminal_records: { ...state.sim_world.criminal_records, player: record },
+            }
+          : state.sim_world,
+        ui: {
+          ...state.ui,
+          currentLog: [...state.ui.currentLog, { text: logText, type: 'system' as const }],
+        },
+      };
+    }
+
+    case 'RESOLVE_ARREST': {
+      const { resolution, faction_id } = action.payload as {
+        resolution: 'pay_bounty' | 'serve_sentence';
+        faction_id: string;
+      };
+      const currentFactions = state.sim_world?.factions ?? defaultFactions();
+      const currentRecord = (state.sim_world?.criminal_records ?? {})['player'] ?? defaultCriminalRecord();
+      const fid = faction_id as import('../sim/types').FactionId;
+
+      if (resolution === 'pay_bounty') {
+        const { record, factions, gold_paid } = processPayBounty(currentRecord, currentFactions, fid);
+        if (state.player.gold < gold_paid) {
+          return {
+            ...state,
+            ui: {
+              ...state.ui,
+              currentLog: [...state.ui.currentLog, { text: `You cannot afford the ${gold_paid}g bounty.`, type: 'system' as const }],
+            },
+          };
+        }
+        return {
+          ...state,
+          player: { ...state.player, gold: state.player.gold - gold_paid },
+          sim_world: state.sim_world
+            ? { ...state.sim_world, factions, criminal_records: { ...state.sim_world.criminal_records, player: record } }
+            : state.sim_world,
+          ui: {
+            ...state.ui,
+            currentLog: [...state.ui.currentLog, { text: `Bounty paid: ${gold_paid}g. Record cleared with ${faction_id}.`, type: 'system' as const }],
+          },
+        };
+      } else {
+        const { record, factions } = processServeSentence(currentRecord, currentFactions, fid);
+        return {
+          ...state,
+          sim_world: state.sim_world
+            ? { ...state.sim_world, factions, criminal_records: { ...state.sim_world.criminal_records, player: record } }
+            : state.sim_world,
+          ui: {
+            ...state.ui,
+            currentLog: [...state.ui.currentLog, { text: `You served your sentence. Record cleared with ${faction_id}.`, type: 'system' as const }],
+          },
+        };
+      }
     }
 
     default:

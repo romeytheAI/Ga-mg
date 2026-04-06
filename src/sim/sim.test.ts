@@ -24,6 +24,8 @@ import { defaultCompanionState, addCompanion, removeCompanion, tickCompanions, p
 import { defaultAllureState, computeAllure, allureEncounterModifier, intimidationDefense, socialAllureBonus, allureLabel, noticeabilityLabel, intimidationLabel } from './AllureSystem';
 import { defaultRestraintState, applyRestraint, removeRestraint, freeAll, attemptEscape, tickRestraints, restraintStress, isRestrained, canMove, canAct, restraintLabel, escapeProgressLabel } from './RestraintSystem';
 import { SimNpc, SimWorld, CompanionEntry, RestraintEntry } from './types';
+import { defaultFactions, getFactionStanding, applyRepDelta, computeRivalDeltas, applyMultiRepDelta, meetsStanding, getFactionRep, merchantPriceMultiplier, driftFactions, dissolveFaction } from './FactionSystem';
+import { defaultCriminalRecord, defaultGuardState, commitCrime, discoverCrime, payBounty, serveSentence, calculateSentence, escalateGuardAlert, tickGuardPursuit, guardStandDown, escapeChance, getActiveCrimes, isWanted, totalBounty, wantedLabel, guardAlertLabel } from './CrimeSystem';
 
 // ── Fixture helpers ──────────────────────────────────────────────────────────
 
@@ -74,6 +76,8 @@ function makeWorld(overrides: Partial<SimWorld> = {}): SimWorld {
     global_events: [],
     locations,
     active_combats: [],
+    factions: defaultFactions(),
+    criminal_records: {},
     ...overrides,
   };
 }
@@ -1503,5 +1507,304 @@ describe('RestraintSystem', () => {
   it('escapeProgressLabel returns correct labels', () => {
     expect(escapeProgressLabel(0)).toBe('No Progress');
     expect(escapeProgressLabel(90)).toBe('Almost Free');
+  });
+});
+
+// ── FactionSystem ────────────────────────────────────────────────────────────
+
+describe('FactionSystem', () => {
+  it('defaultFactions returns 8 active factions', () => {
+    const factions = defaultFactions();
+    expect(factions).toHaveLength(8);
+    expect(factions.every(f => f.is_active)).toBe(true);
+    expect(factions.every(f => f.reputation === 0)).toBe(true);
+  });
+
+  it('getFactionStanding returns correct tiers', () => {
+    expect(getFactionStanding(100)).toBe('exalted');
+    expect(getFactionStanding(80)).toBe('exalted');
+    expect(getFactionStanding(60)).toBe('honored');
+    expect(getFactionStanding(30)).toBe('friendly');
+    expect(getFactionStanding(0)).toBe('neutral');
+    expect(getFactionStanding(-1)).toBe('neutral');
+    expect(getFactionStanding(-25)).toBe('unfriendly');
+    expect(getFactionStanding(-55)).toBe('hostile');
+    expect(getFactionStanding(-100)).toBe('nemesis');
+  });
+
+  it('applyRepDelta modifies only the target faction', () => {
+    const factions = defaultFactions();
+    const updated = applyRepDelta(factions, 'town_guard', 30);
+    const guard = updated.find(f => f.id === 'town_guard')!;
+    const others = updated.filter(f => f.id !== 'town_guard');
+    expect(guard.reputation).toBe(30);
+    expect(others.every(f => f.reputation === 0)).toBe(true);
+  });
+
+  it('applyRepDelta clamps to [-100, 100]', () => {
+    const factions = defaultFactions();
+    const up = applyRepDelta(factions, 'church', 200);
+    expect(up.find(f => f.id === 'church')!.reputation).toBe(100);
+    const down = applyRepDelta(factions, 'church', -200);
+    expect(down.find(f => f.id === 'church')!.reputation).toBe(-100);
+  });
+
+  it('applyMultiRepDelta applies deltas to multiple factions', () => {
+    const factions = defaultFactions();
+    const updated = applyMultiRepDelta(factions, {
+      town_guard: 20,
+      church: -10,
+      academia: 5,
+    });
+    expect(updated.find(f => f.id === 'town_guard')!.reputation).toBe(20);
+    expect(updated.find(f => f.id === 'church')!.reputation).toBe(-10);
+    expect(updated.find(f => f.id === 'academia')!.reputation).toBe(5);
+  });
+
+  it('computeRivalDeltas returns negative spillover for rivals', () => {
+    const deltas = computeRivalDeltas('town_guard', 20);
+    expect(deltas['thieves_guild']).toBeLessThan(0);
+    expect(deltas['underground']).toBeLessThan(0);
+  });
+
+  it('computeRivalDeltas works in reverse direction', () => {
+    const deltas = computeRivalDeltas('thieves_guild', 30);
+    expect(deltas['town_guard']).toBeLessThan(0);
+  });
+
+  it('meetsStanding returns true when above required tier', () => {
+    const factions = applyRepDelta(defaultFactions(), 'merchants_guild', 60);
+    expect(meetsStanding(factions, 'merchants_guild', 'honored')).toBe(true);
+    expect(meetsStanding(factions, 'merchants_guild', 'exalted')).toBe(false);
+  });
+
+  it('meetsStanding returns false for inactive factions', () => {
+    const factions = dissolveFaction(defaultFactions(), 'underground');
+    expect(meetsStanding(factions, 'underground', 'neutral')).toBe(false);
+  });
+
+  it('getFactionRep returns 0 for unknown faction', () => {
+    expect(getFactionRep(defaultFactions(), 'town_guard')).toBe(0);
+  });
+
+  it('merchantPriceMultiplier returns less than 1 with positive rep', () => {
+    const factions = applyRepDelta(defaultFactions(), 'merchants_guild', 80);
+    expect(merchantPriceMultiplier(factions)).toBeLessThan(1.0);
+  });
+
+  it('merchantPriceMultiplier returns greater than 1 with negative rep', () => {
+    const factions = applyRepDelta(defaultFactions(), 'merchants_guild', -80);
+    expect(merchantPriceMultiplier(factions)).toBeGreaterThan(1.0);
+  });
+
+  it('driftFactions moves extreme reps toward neutral', () => {
+    const factions = applyRepDelta(defaultFactions(), 'nobility', 80);
+    const drifted = driftFactions(factions);
+    const nob = drifted.find(f => f.id === 'nobility')!;
+    expect(nob.reputation).toBeLessThan(80);
+  });
+
+  it('driftFactions does not move neutral-band reputations', () => {
+    const factions = applyRepDelta(defaultFactions(), 'church', 10);
+    const drifted = driftFactions(factions);
+    expect(drifted.find(f => f.id === 'church')!.reputation).toBe(10);
+  });
+
+  it('dissolveFaction marks faction inactive', () => {
+    const factions = dissolveFaction(defaultFactions(), 'thieves_guild');
+    expect(factions.find(f => f.id === 'thieves_guild')!.is_active).toBe(false);
+    expect(factions.filter(f => f.is_active)).toHaveLength(7);
+  });
+});
+
+// ── CrimeSystem ─────────────────────────────────────────────────────────────
+
+describe('CrimeSystem', () => {
+  it('defaultCriminalRecord starts clean', () => {
+    const rec = defaultCriminalRecord();
+    expect(rec.total_bounty).toBe(0);
+    expect(rec.crimes).toHaveLength(0);
+    expect(rec.wanted_by).toHaveLength(0);
+    expect(rec.guard_state).toBeNull();
+  });
+
+  it('commitCrime adds crime and sets bounty when witnessed', () => {
+    const rec = commitCrime(defaultCriminalRecord(), 'theft', 'town_guard', 10, true);
+    expect(rec.crimes).toHaveLength(1);
+    expect(rec.total_bounty).toBeGreaterThan(0);
+    expect(rec.wanted_by).toContain('town_guard');
+  });
+
+  it('commitCrime unwitnessed adds no bounty', () => {
+    const rec = commitCrime(defaultCriminalRecord(), 'trespassing', 'nobility', 5, false);
+    expect(rec.total_bounty).toBe(0);
+    expect(rec.wanted_by).toHaveLength(0);
+    expect(rec.crimes).toHaveLength(1);
+  });
+
+  it('murder has higher bounty than theft', () => {
+    const murder = commitCrime(defaultCriminalRecord(), 'murder', 'town_guard', 1, true);
+    const theft = commitCrime(defaultCriminalRecord(), 'theft', 'town_guard', 1, true);
+    expect(murder.total_bounty).toBeGreaterThan(theft.total_bounty);
+  });
+
+  it('discoverCrime upgrades unwitnessed crime to witnessed', () => {
+    let rec = commitCrime(defaultCriminalRecord(), 'vandalism', 'town_guard', 3, false);
+    expect(rec.total_bounty).toBe(0);
+    rec = discoverCrime(rec, 0);
+    expect(rec.total_bounty).toBeGreaterThan(0);
+    expect(rec.wanted_by).toContain('town_guard');
+  });
+
+  it('payBounty clears crimes for a faction and deducts correct gold', () => {
+    let rec = commitCrime(defaultCriminalRecord(), 'theft', 'town_guard', 1, true);
+    rec = commitCrime(rec, 'assault', 'town_guard', 2, true);
+    const originalBounty = rec.total_bounty;
+    const { record: paid, gold_paid } = payBounty(rec, 'town_guard');
+    expect(gold_paid).toBe(originalBounty);
+    expect(paid.total_bounty).toBe(0);
+    expect(paid.wanted_by).not.toContain('town_guard');
+  });
+
+  it('payBounty does not affect other faction crimes', () => {
+    let rec = commitCrime(defaultCriminalRecord(), 'theft', 'town_guard', 1, true);
+    rec = commitCrime(rec, 'espionage', 'nobility', 2, true);
+    const { record: paid } = payBounty(rec, 'town_guard');
+    expect(paid.wanted_by).toContain('nobility');
+    expect(paid.total_bounty).toBeGreaterThan(0);
+  });
+
+  it('serveSentence clears all crimes for a faction', () => {
+    let rec = commitCrime(defaultCriminalRecord(), 'assault', 'town_guard', 1, true);
+    rec = commitCrime(rec, 'theft', 'town_guard', 2, true);
+    const served = serveSentence(rec, 'town_guard');
+    expect(served.total_bounty).toBe(0);
+    expect(served.wanted_by).not.toContain('town_guard');
+  });
+
+  it('calculateSentence returns 0 when no active crimes', () => {
+    expect(calculateSentence(defaultCriminalRecord(), 'town_guard')).toBe(0);
+  });
+
+  it('calculateSentence is higher for murder than trespassing', () => {
+    const murder = commitCrime(defaultCriminalRecord(), 'murder', 'town_guard', 1, true);
+    const trespass = commitCrime(defaultCriminalRecord(), 'trespassing', 'town_guard', 1, true);
+    expect(calculateSentence(murder, 'town_guard')).toBeGreaterThan(calculateSentence(trespass, 'town_guard'));
+  });
+
+  it('murder always yields at least 5 day sentence', () => {
+    const rec = commitCrime(defaultCriminalRecord(), 'murder', 'town_guard', 1, true);
+    expect(calculateSentence(rec, 'town_guard')).toBeGreaterThanOrEqual(5);
+  });
+
+  it('escalateGuardAlert escalates to arresting for murder', () => {
+    const guard = defaultGuardState('town_guard');
+    const alerted = escalateGuardAlert(guard, 0, 'murder');
+    expect(alerted.alert_level).toBe('arresting');
+    expect(alerted.last_crime_seen).toBe('murder');
+  });
+
+  it('escalateGuardAlert escalates to pursuing for assault', () => {
+    const guard = defaultGuardState('town_guard');
+    const alerted = escalateGuardAlert(guard, 0, 'assault');
+    expect(alerted.alert_level).toBe('pursuing');
+  });
+
+  it('escalateGuardAlert escalates to arresting for high bounty', () => {
+    const guard = defaultGuardState('town_guard');
+    const alerted = escalateGuardAlert(guard, 250, null);
+    expect(alerted.alert_level).toBe('arresting');
+  });
+
+  it('tickGuardPursuit drains pursuit stamina', () => {
+    const guard = { ...defaultGuardState('town_guard'), alert_level: 'pursuing' as const, target_id: 'player', pursuit_stamina: 30 };
+    const ticked = tickGuardPursuit(guard, 'player');
+    expect(ticked.pursuit_stamina).toBeLessThan(30);
+  });
+
+  it('tickGuardPursuit stands down at 0 stamina', () => {
+    const guard = { ...defaultGuardState('town_guard'), alert_level: 'pursuing' as const, target_id: 'player', pursuit_stamina: 5 };
+    const ticked = tickGuardPursuit(guard, 'player');
+    expect(ticked.alert_level).toBe('unaware');
+    expect(ticked.target_id).toBeNull();
+  });
+
+  it('guardStandDown resets guard to unaware', () => {
+    const guard = { ...defaultGuardState('town_guard'), alert_level: 'pursuing' as const, target_id: 'player', pursuit_stamina: 50 };
+    const reset = guardStandDown(guard);
+    expect(reset.alert_level).toBe('unaware');
+    expect(reset.pursuit_stamina).toBe(100);
+    expect(reset.target_id).toBeNull();
+  });
+
+  it('escapeChance is higher with better athletics', () => {
+    expect(escapeChance(80, 50)).toBeGreaterThan(escapeChance(20, 50));
+  });
+
+  it('escapeChance is lower against fresh guard', () => {
+    expect(escapeChance(50, 10)).toBeGreaterThan(escapeChance(50, 90));
+  });
+
+  it('escapeChance is always within [0.05, 0.95]', () => {
+    expect(escapeChance(0, 100)).toBeGreaterThanOrEqual(0.05);
+    expect(escapeChance(100, 0)).toBeLessThanOrEqual(0.95);
+  });
+
+  it('getActiveCrimes returns only witnessed uncleared crimes for faction', () => {
+    let rec = commitCrime(defaultCriminalRecord(), 'theft', 'town_guard', 1, true);
+    rec = commitCrime(rec, 'trespassing', 'nobility', 2, false);
+    rec = commitCrime(rec, 'assault', 'town_guard', 3, true);
+    const active = getActiveCrimes(rec, 'town_guard');
+    expect(active).toHaveLength(2);
+    expect(active.every(c => c.faction_id === 'town_guard')).toBe(true);
+  });
+
+  it('isWanted returns true after witnessed crime', () => {
+    const rec = commitCrime(defaultCriminalRecord(), 'theft', 'thieves_guild', 1, true);
+    expect(isWanted(rec, 'thieves_guild')).toBe(true);
+    expect(isWanted(rec, 'town_guard')).toBe(false);
+  });
+
+  it('totalBounty matches sum of witnessed uncleared crimes', () => {
+    let rec = commitCrime(defaultCriminalRecord(), 'theft', 'town_guard', 1, true);
+    rec = commitCrime(rec, 'assault', 'town_guard', 2, true);
+    expect(totalBounty(rec)).toBe(rec.total_bounty);
+  });
+
+  it('wantedLabel returns correct tier labels', () => {
+    expect(wantedLabel(defaultCriminalRecord())).toBe('Clean');
+    let rec = commitCrime(defaultCriminalRecord(), 'theft', 'town_guard', 1, true);
+    expect(wantedLabel(rec)).not.toBe('Clean');
+    let rec2 = commitCrime(defaultCriminalRecord(), 'murder', 'town_guard', 1, true);
+    rec2 = commitCrime(rec2, 'murder', 'town_guard', 2, true);
+    expect(wantedLabel(rec2)).toBe('Most Wanted');
+  });
+
+  it('guardAlertLabel returns readable strings', () => {
+    expect(guardAlertLabel('unaware')).toBe('Unaware');
+    expect(guardAlertLabel('pursuing')).toBe('Pursuing');
+    expect(guardAlertLabel('arresting')).toBe('Arresting');
+  });
+
+  it('tickSimulation preserves factions across turns', () => {
+    const world = makeWorld({
+      npcs: [],
+      factions: applyRepDelta(defaultFactions(), 'town_guard', 50),
+    });
+    const next = tickSimulation(world);
+    const guard = next.factions.find(f => f.id === 'town_guard')!;
+    expect(guard).toBeDefined();
+    expect(guard.reputation).toBe(50); // no drift in same day
+  });
+
+  it('tickSimulation applies daily faction drift on day change', () => {
+    const world = makeWorld({
+      npcs: [],
+      hour: 23,
+      factions: applyRepDelta(defaultFactions(), 'nobility', 80),
+    });
+    const next = tickSimulation(world);
+    const nob = next.factions.find(f => f.id === 'nobility')!;
+    expect(nob.reputation).toBeLessThan(80);
   });
 });

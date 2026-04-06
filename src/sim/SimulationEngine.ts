@@ -31,6 +31,7 @@ import { tickCompanions, partyHealRate } from './CompanionSystem';
 import { computeAllure } from './AllureSystem';
 import { tickRestraints, restraintStress } from './RestraintSystem';
 import { tickAscension } from './TransformationSystem';
+import { driftFactions } from './FactionSystem';
 
 const HOURS_PER_TICK = 1;
 const EVENT_CHANCE_PER_DAY = 0.15; // 15% chance of a world event per day
@@ -54,6 +55,9 @@ export function tickSimulation(world: SimWorld): SimWorld {
   // Economy tick: update prices and rebalance demand
   let economy = balanceDemand(w.economy);
   economy = updatePrices(economy);
+
+  // Faction daily drift (reputation slowly returns to neutral)
+  const factions = dayChanged ? driftFactions(w.factions ?? []) : (w.factions ?? []);
 
   // Resolve active combats
   let activeCombats = [...(w.active_combats ?? [])];
@@ -122,6 +126,8 @@ export function tickSimulation(world: SimWorld): SimWorld {
     npcs: updatedNpcs,
     turn: w.turn + 1,
     active_combats: newCombats,
+    factions,
+    criminal_records: w.criminal_records ?? {},
   };
 }
 

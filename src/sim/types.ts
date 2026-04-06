@@ -201,6 +201,8 @@ export interface SimWorld {
   global_events: string[];
   locations: SimLocation[];
   active_combats: CombatEncounter[];
+  factions: FactionEntry[];
+  criminal_records: Record<string, CriminalRecord>; // keyed by entity id
 }
 
 export interface SimLocation {
@@ -382,4 +384,76 @@ export interface RestraintState {
   escape_progress: number; // 0-100
   movement_penalty: number; // 0-1, fraction of movement lost
   action_penalty: number;   // 0-1, fraction of action effectiveness lost
+}
+
+// ── Faction System ─────────────────────────────────────────────────────────
+
+/** All faction identifiers in the world. */
+export type FactionId =
+  | 'town_guard'
+  | 'thieves_guild'
+  | 'merchants_guild'
+  | 'church'
+  | 'nobility'
+  | 'underground'
+  | 'academia'
+  | 'wilderness_folk';
+
+/** Standing tier derived from reputation score. */
+export type FactionStanding =
+  | 'exalted'    // 80–100
+  | 'honored'    // 50–79
+  | 'friendly'   // 20–49
+  | 'neutral'    // -19–19
+  | 'unfriendly' // -20–-49
+  | 'hostile'    // -50–-79
+  | 'nemesis';   // -80–-100
+
+/** One faction's current state in the world. */
+export interface FactionEntry {
+  id: FactionId;
+  name: string;
+  reputation: number;     // -100 to 100, player standing
+  power: number;          // 0-100, faction influence
+  is_active: boolean;     // false = faction destroyed/dissolved
+}
+
+/** A crime committed by an entity. */
+export type CrimeType =
+  | 'theft'
+  | 'assault'
+  | 'murder'
+  | 'trespassing'
+  | 'contraband'
+  | 'vandalism'
+  | 'bribery'
+  | 'espionage';
+
+export interface CrimeRecord {
+  type: CrimeType;
+  turn: number;
+  severity: number;       // 0-100
+  faction_id: FactionId;  // which faction's law was broken
+  witnessed: boolean;
+  bounty_value: number;   // gold reward for capture
+  cleared: boolean;
+}
+
+/** Guard NPC reaction state. */
+export type GuardAlertLevel = 'unaware' | 'suspicious' | 'alerted' | 'pursuing' | 'arresting';
+
+export interface GuardState {
+  alert_level: GuardAlertLevel;
+  target_id: string | null;   // entity being tracked
+  pursuit_stamina: number;    // 0-100, decreases during pursuit
+  last_crime_seen: CrimeType | null;
+  faction_id: FactionId;
+}
+
+/** Crime + faction tracking bundled into the NPC. */
+export interface CriminalRecord {
+  crimes: CrimeRecord[];
+  total_bounty: number;
+  wanted_by: FactionId[];
+  guard_state: GuardState | null; // only populated if NPC is a guard
 }
