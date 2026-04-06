@@ -125,14 +125,16 @@ Completed:
 - `src/reducers/gameReducer.ts` — `APPLY_RESTRAINT` (upsert by slot, recalculate penalties), `REMOVE_RESTRAINT`, `CLEAR_RESTRAINTS`, `UPDATE_ESCAPE_PROGRESS` (clears restraints at 100)
 - `src/components/dol/sprite/spriteRenderer.test.tsx` — 30 new parity tests: restraint slot rendering, displacement states, expression 8-state coverage, pose transform matrix (595 tests total)
 
-## Milestone 8 — UI completion and balancing
+## Milestone 8 — UI completion and balancing ✅
 
 Scope:
 
 - complete parity surfaces for stats, social, wardrobe, events, and saves
 - tune systems after the parity foundation lands
 
-Acceptance:
+Completed:
 
-- all major mechanics are inspectable and controllable through UI
-- milestone validation passes for tests/build and targeted parity checks
+- `src/components/modals/SocialModal.tsx` — relationship depth panel added to NPCs tab: milestone badge (Stranger → Bonded) with 6-pip progress row, per-NPC trust/love/fear/dom/sub mini-bars, interaction count + last interaction day footer; imports `computeMilestone` and `MILESTONE_ORDER` from relationshipEngine
+- `src/components/EncounterUI.tsx` — `RestraintPanel` component shows active restraint slot badges (wrists/ankles/neck/waist/mouth), escape progress bar, movement and action penalty labels; Struggle/Resist/Escape buttons visually dimmed at ≥50%/≥75% action/movement penalty; Cry Out button strikethrough + "(gagged)" label when mouth slot is bound
+- `src/components/modals/MapModal.tsx` — NPC location integration via `getAllNpcCurrentLocations()`: each location pin shows NPC count badge, hover tooltip lists up to 5 NPC names; new "NPCs Present Nearby" sidebar card shows all NPCs at current location
+- `src/components/SaveLoadModal.tsx` — save cards show: schema version badge (v1–v4), trauma value, legacy-save warning (AlertTriangle) for saves below current schema, "⛓ Bound" badge when player was restrained at save time, formatted save timestamp

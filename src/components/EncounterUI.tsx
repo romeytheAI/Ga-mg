@@ -1,7 +1,7 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { CharacterModel } from './CharacterModel';
-import { GameState, ActiveEncounter } from '../types';
+import { GameState, ActiveEncounter, PlayerRestraints, RestraintSlot } from '../types';
 
 const GltfViewer3D = React.lazy(() => import('./GltfViewer3D').then(m => ({ default: m.GltfViewer3D })));
 
@@ -9,14 +9,90 @@ interface EncounterUIProps {
   encounter: ActiveEncounter;
   playerStats: GameState['player']['stats'];
   onAction: (action: string, intent: string, targetedPart?: string) => void;
-  /** Full game state — enables the high-fidelity 3D internal viewer. */
+  /** Full game state — enables the high-fidelity 3D internal viewer and restraint display. */
   state?: GameState;
+}
+
+const RESTRAINT_SLOT_LABEL: Record<RestraintSlot, string> = {
+  wrists: 'Wrists',
+  ankles: 'Ankles',
+  neck:   'Neck',
+  waist:  'Waist',
+  mouth:  'Mouth',
+};
+
+const RESTRAINT_SLOT_ICON: Record<RestraintSlot, string> = {
+  wrists: '🫱',
+  ankles: '🦶',
+  neck:   '🔒',
+  waist:  '⚙',
+  mouth:  '🔇',
+};
+
+function RestraintPanel({ restraints }: { restraints: PlayerRestraints }) {
+  const movPct = Math.round(restraints.movement_penalty * 100);
+  const actPct = Math.round(restraints.action_penalty * 100);
+  const escapePct = restraints.escape_progress;
+
+  return (
+    <div className="border border-violet-900/50 bg-violet-950/20 rounded-sm p-3 relative z-10">
+      <div className="flex items-center gap-2 mb-2">
+        <span className="text-[9px] uppercase tracking-widest text-violet-400 font-semibold">⛓ Restrained</span>
+        {movPct > 0 && (
+          <span className="text-[8px] text-amber-400/70 uppercase tracking-widest">
+            −{movPct}% movement
+          </span>
+        )}
+        {actPct > 0 && (
+          <span className="text-[8px] text-red-400/70 uppercase tracking-widest">
+            −{actPct}% actions
+          </span>
+        )}
+      </div>
+
+      {/* Slot badges */}
+      <div className="flex flex-wrap gap-1.5 mb-2">
+        {restraints.entries.map(entry => (
+          <span
+            key={entry.slot}
+            title={`${entry.name} — Strength: ${entry.strength}/100, Comfort: ${entry.comfort}/100`}
+            className="flex items-center gap-1 text-[8px] uppercase tracking-widest px-1.5 py-0.5 border border-violet-900/50 bg-violet-950/30 text-violet-300 rounded-sm"
+          >
+            <span>{RESTRAINT_SLOT_ICON[entry.slot]}</span>
+            {RESTRAINT_SLOT_LABEL[entry.slot]}
+          </span>
+        ))}
+      </div>
+
+      {/* Escape progress */}
+      {escapePct > 0 && (
+        <div className="flex items-center gap-2">
+          <span className="text-[8px] uppercase tracking-widest text-white/30 shrink-0">Escape</span>
+          <div className="flex-1 h-1 bg-white/[0.05] rounded-full overflow-hidden">
+            <motion.div
+              className="h-full bg-violet-400 rounded-full"
+              initial={{ width: 0 }}
+              animate={{ width: `${escapePct}%` }}
+              transition={{ type: 'spring', bounce: 0.1, duration: 0.6 }}
+            />
+          </div>
+          <span className="text-[8px] font-mono text-violet-300/60 w-7 text-right">{escapePct}%</span>
+        </div>
+      )}
+    </div>
+  );
 }
 
 export const EncounterUI: React.FC<EncounterUIProps> = ({ encounter, playerStats, onAction, state }) => {
   const [targetedPart, setTargetedPart] = React.useState<string | null>(null);
   const [show3D, setShow3D] = React.useState(false);
   const bodyParts = ['head', 'torso', 'arms', 'legs'];
+
+  const restraints = state?.player.restraints ?? null;
+  // Action penalty reduces effectiveness — penalise struggle/resist visually
+  const actPenalty = restraints?.action_penalty ?? 0;
+  // Movement penalty reduces escape/flee viability
+  const movPenalty = restraints?.movement_penalty ?? 0;
 
   return (
     <motion.div 
@@ -84,6 +160,11 @@ export const EncounterUI: React.FC<EncounterUIProps> = ({ encounter, playerStats
           {show3D ? '3D' : '2D'}
         </button>
       </div>
+
+      {/* ── Restraint Status (Milestone 8) ── */}
+      {restraints && restraints.entries.length > 0 && (
+        <RestraintPanel restraints={restraints} />
+      )}
 
       {/* Target Selection */}
       <div className="flex gap-2 relative z-10">
@@ -169,13 +250,14 @@ export const EncounterUI: React.FC<EncounterUIProps> = ({ encounter, playerStats
       )}
       
       <div className="grid grid-cols-2 gap-2 mt-4 relative z-10">
+        {/* Struggle — dimmed when heavily restrained (action penalty) */}
         <motion.button 
           whileHover={{ scale: 1.02, backgroundColor: "rgba(127, 29, 29, 0.6)" }}
           whileTap={{ scale: 0.98 }}
           onClick={() => onAction("Struggle and fight back", "aggressive", targetedPart || undefined)}
-          className="p-3 border border-red-900/50 bg-red-950/20 text-red-200 text-xs uppercase tracking-widest transition-colors"
+          className={`p-3 border border-red-900/50 bg-red-950/20 text-red-200 text-xs uppercase tracking-widest transition-colors ${actPenalty >= 0.75 ? 'opacity-40' : actPenalty >= 0.5 ? 'opacity-70' : ''}`}
         >
-          Struggle
+          Struggle{actPenalty >= 0.5 ? ' ⬇' : ''}
         </motion.button>
         <motion.button 
           whileHover={{ scale: 1.02, backgroundColor: "rgba(88, 28, 135, 0.6)" }}
@@ -193,21 +275,23 @@ export const EncounterUI: React.FC<EncounterUIProps> = ({ encounter, playerStats
         >
           Seduce
         </motion.button>
+        {/* Escape — dimmed when movement is restricted */}
         <motion.button 
           whileHover={{ scale: 1.02, backgroundColor: "rgba(30, 58, 138, 0.6)" }}
           whileTap={{ scale: 0.98 }}
           onClick={() => onAction("Try to escape", "flee", targetedPart || undefined)}
-          className="p-3 border border-blue-900/50 bg-blue-950/20 text-blue-200 text-xs uppercase tracking-widest transition-colors"
+          className={`p-3 border border-blue-900/50 bg-blue-950/20 text-blue-200 text-xs uppercase tracking-widest transition-colors ${movPenalty >= 0.75 ? 'opacity-40' : movPenalty >= 0.5 ? 'opacity-70' : ''}`}
         >
-          Escape
+          Escape{movPenalty >= 0.5 ? ' ⬇' : ''}
         </motion.button>
+        {/* Resist — dimmed when heavily restrained */}
         <motion.button 
           whileHover={{ scale: 1.02, backgroundColor: "rgba(160, 40, 40, 0.6)" }}
           whileTap={{ scale: 0.98 }}
           onClick={() => onAction("Resist with all your strength", "resist", targetedPart || undefined)}
-          className="p-3 border border-red-800/50 bg-red-900/20 text-red-300 text-xs uppercase tracking-widest transition-colors"
+          className={`p-3 border border-red-800/50 bg-red-900/20 text-red-300 text-xs uppercase tracking-widest transition-colors ${actPenalty >= 0.5 ? 'opacity-70' : ''}`}
         >
-          Resist
+          Resist{actPenalty >= 0.5 ? ' ⬇' : ''}
         </motion.button>
         <motion.button 
           whileHover={{ scale: 1.02, backgroundColor: "rgba(120, 60, 20, 0.6)" }}
@@ -221,9 +305,9 @@ export const EncounterUI: React.FC<EncounterUIProps> = ({ encounter, playerStats
           whileHover={{ scale: 1.02, backgroundColor: "rgba(180, 40, 80, 0.6)" }}
           whileTap={{ scale: 0.98 }}
           onClick={() => onAction("Cry out for help", "cry_out", targetedPart || undefined)}
-          className="p-3 border border-rose-800/50 bg-rose-950/20 text-rose-200 text-xs uppercase tracking-widest transition-colors col-span-2"
+          className={`p-3 border border-rose-800/50 bg-rose-950/20 text-rose-200 text-xs uppercase tracking-widest col-span-2 transition-colors ${restraints?.entries.some(e => e.slot === 'mouth') ? 'opacity-40 line-through' : ''}`}
         >
-          Cry Out
+          Cry Out{restraints?.entries.some(e => e.slot === 'mouth') ? ' (gagged)' : ''}
         </motion.button>
       </div>
     </motion.div>

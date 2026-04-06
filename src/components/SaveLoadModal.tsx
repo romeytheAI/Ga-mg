@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { saveGame, loadGame, getAllSaves, deleteSave } from '../utils/saveManager';
+import { saveGame, loadGame, getAllSaves, deleteSave, SAVE_SCHEMA_VERSION } from '../utils/saveManager';
 import { GameState } from '../types';
-import { X, Save, Download, Trash2 } from 'lucide-react';
+import { X, Save, Download, Trash2, AlertTriangle } from 'lucide-react';
 
 interface SaveLoadModalProps {
   onClose: () => void;
@@ -81,9 +81,12 @@ export const SaveLoadModal: React.FC<SaveLoadModalProps> = ({ onClose, onLoad, c
             <X className="w-6 h-6" />
           </button>
           
-          <h2 className="text-2xl font-serif text-white/90 mb-8 border-b border-white/10 pb-4 tracking-widest uppercase">
-            Chronicles
-          </h2>
+          <div className="flex items-start justify-between mb-8 border-b border-white/10 pb-4">
+            <h2 className="text-2xl font-serif text-white/90 tracking-widest uppercase">Chronicles</h2>
+            <span className="text-[9px] uppercase tracking-widest text-white/20 font-mono mt-1.5">
+              Schema v{SAVE_SCHEMA_VERSION}
+            </span>
+          </div>
           
           <motion.button 
             whileHover={{ scale: 1.02, backgroundColor: "rgba(16, 185, 129, 0.2)" }}
@@ -100,40 +103,75 @@ export const SaveLoadModal: React.FC<SaveLoadModalProps> = ({ onClose, onLoad, c
             {saves.length === 0 ? (
               <p className="text-white/40 italic text-sm text-center py-8">No chronicles found.</p>
             ) : (
-              saves.map((save, index) => (
-                <motion.div 
-                  key={save.id} 
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.05 }}
-                  className="flex justify-between items-center border border-white/5 bg-white/[0.02] p-4 rounded-sm group hover:border-white/10 transition-colors"
-                >
-                  <div>
-                    <p className="text-white/90 font-serif text-lg">{save.player_name}</p>
-                    <p className="text-white/50 text-xs tracking-widest uppercase mt-1">{save.location} - Day {save.day}</p>
-                  </div>
-                  <div className="flex gap-3">
-                    <motion.button 
-                      whileHover={{ scale: 1.1, color: "rgb(96, 165, 250)" }}
-                      whileTap={{ scale: 0.9 }}
-                      onClick={() => handleLoad(save.id)} 
-                      className="text-blue-400/70 p-2 border border-blue-900/30 rounded-sm bg-blue-950/20 transition-colors"
-                      title="Load"
-                    >
-                      <Download className="w-4 h-4" />
-                    </motion.button>
-                    <motion.button 
-                      whileHover={{ scale: 1.1, color: "rgb(248, 113, 113)" }}
-                      whileTap={{ scale: 0.9 }}
-                      onClick={() => handleDelete(save.id)} 
-                      className="text-red-400/70 p-2 border border-red-900/30 rounded-sm bg-red-950/20 transition-colors"
-                      title="Delete"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </motion.button>
-                  </div>
-                </motion.div>
-              ))
+              saves.map((save, index) => {
+                const schemaVersion: number = save.schemaVersion ?? 1;
+                const isMigrated = schemaVersion < SAVE_SCHEMA_VERSION;
+                const traumaVal: number = save.trauma ?? 0;
+                const isRestrained = !!(save.state?.player?.restraints?.entries?.length);
+
+                return (
+                  <motion.div 
+                    key={save.id} 
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.05 }}
+                    className="flex justify-between items-start border border-white/5 bg-white/[0.02] p-4 rounded-sm group hover:border-white/10 transition-colors"
+                  >
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-0.5">
+                        <p className="text-white/90 font-serif text-lg truncate">{save.name ?? save.player_name}</p>
+                        {isRestrained && (
+                          <span className="text-[8px] uppercase tracking-widest px-1.5 py-0.5 border border-violet-900/50 text-violet-400 rounded-sm shrink-0">⛓ Bound</span>
+                        )}
+                      </div>
+                      <p className="text-white/50 text-xs tracking-widest uppercase mt-1">
+                        {save.location} — Day {save.day}
+                      </p>
+                      <div className="flex items-center gap-3 mt-1.5 flex-wrap">
+                        {traumaVal > 0 && (
+                          <span className="text-[8px] uppercase tracking-widest text-red-400/60">
+                            Trauma {traumaVal}
+                          </span>
+                        )}
+                        <span className="text-[8px] uppercase tracking-widest text-white/20 font-mono">
+                          v{schemaVersion}
+                        </span>
+                        {isMigrated && (
+                          <span className="flex items-center gap-0.5 text-[8px] uppercase tracking-widest text-amber-400/60">
+                            <AlertTriangle className="w-2.5 h-2.5" />
+                            Legacy save
+                          </span>
+                        )}
+                        {save.timestamp && (
+                          <span className="text-[8px] text-white/15 font-mono">
+                            {new Date(save.timestamp).toLocaleDateString()}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    <div className="flex gap-3 shrink-0 ml-3">
+                      <motion.button 
+                        whileHover={{ scale: 1.1, color: "rgb(96, 165, 250)" }}
+                        whileTap={{ scale: 0.9 }}
+                        onClick={() => handleLoad(save.id)} 
+                        className="text-blue-400/70 p-2 border border-blue-900/30 rounded-sm bg-blue-950/20 transition-colors"
+                        title="Load"
+                      >
+                        <Download className="w-4 h-4" />
+                      </motion.button>
+                      <motion.button 
+                        whileHover={{ scale: 1.1, color: "rgb(248, 113, 113)" }}
+                        whileTap={{ scale: 0.9 }}
+                        onClick={() => handleDelete(save.id)} 
+                        className="text-red-400/70 p-2 border border-red-900/30 rounded-sm bg-red-950/20 transition-colors"
+                        title="Delete"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </motion.button>
+                    </div>
+                  </motion.div>
+                );
+              })
             )}
           </div>
         </motion.div>
