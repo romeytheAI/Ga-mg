@@ -55,10 +55,12 @@ The authoritative issue metadata lives in `docs/foundation-roadmap.json`. To cre
 - Copy issue content from the JSON file
 - Create issues with appropriate labels: `foundation`, `priority:P0` or `priority:P1`, area labels
 
-**Option 2: Automation (if workflow exists)**
-1. Navigate to **Actions → Sync Foundation Roadmap** (if created)
-2. Run workflow to auto-create issues from JSON
-3. Issues will have labels: `foundation`, area labels, priority labels
+**Option 2: Automation**
+1. Navigate to **Actions → Sync Foundation Roadmap**.
+2. Run the workflow to auto-create/update issues from `docs/foundation-roadmap.json`.
+   - Optionally set `project-number` (Projects V2) to auto-add items to a board.
+   - Use `dry-run: true` to preview changes without writing.
+3. Issues will have labels: `foundation`, area labels, and priority labels.
 
 ## Operating notes
 
