@@ -17,6 +17,17 @@ export interface SaveSlot {
 const DB_NAME = 'AetheriusSaveDB';
 const STORE_NAME = 'saves';
 const DB_VERSION = 1;
+
+/**
+ * Current save schema version - increment when making breaking changes to GameState.
+ *
+ * Version History:
+ * - v1: Initial implementation (Phases 1-2) - base state, event flags, NPC relationships
+ * - v2: Extended state (Phases 3-6) - schedules, factions, crime system, relationship milestones
+ *
+ * @see docs/STATE-SCHEMA.md for complete state documentation
+ * @see migrateGameState() for backward compatibility logic
+ */
 export const SAVE_SCHEMA_VERSION = 2;
 const LEGACY_STORY_ID_MAP: Record<string, string> = {
   academy_bully_story: 'school_bully_story',
@@ -80,6 +91,32 @@ function resolveCurrentLocation(world: Partial<GameState['world']> | undefined):
   return initialState.world.current_location;
 }
 
+/**
+ * Migrates raw save data to current GameState schema with full backward compatibility.
+ *
+ * This function ensures all saves can be loaded regardless of schema version by:
+ * 1. Handling missing/partial state objects (malformed saves)
+ * 2. Merging with initialState to populate new fields added in later versions
+ * 3. Normalizing inventory is_equipped flags based on clothing slots
+ * 4. Resolving current_location from string IDs or legacy object formats
+ * 5. Migrating legacy story event IDs (e.g., academy_bully_story → school_bully_story)
+ * 6. Hydrating Phase 2-6 additions with safe defaults:
+ *    - event_flags, npc_relationships (Phase 2)
+ *    - week_day, schedule fields (Phase 4)
+ *    - last_interaction_day, interaction_count (Phase 5)
+ *    - factions, criminal_records (Phase 6)
+ *
+ * @param rawState - Unvalidated save data from IndexedDB (may be from older schema version)
+ * @returns Fully hydrated GameState conforming to current SAVE_SCHEMA_VERSION
+ *
+ * @example
+ * // Load and migrate a save
+ * const rawSave = await loadRawSaveFromDB('save-slot-1');
+ * const currentState = migrateGameState(rawSave);
+ *
+ * @see SAVE_SCHEMA_VERSION for current version number
+ * @see docs/STATE-SCHEMA.md for complete schema documentation
+ */
 export function migrateGameState(rawState: unknown): GameState {
   const candidate = (rawState && typeof rawState === 'object' ? rawState : {}) as PartialGameState;
   const player = candidate.player || {};

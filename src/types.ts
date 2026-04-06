@@ -234,6 +234,14 @@ export interface TemperatureState {
 }
 
 // ── DoL-parity: Bailey Payment System ───────────────────────────────────
+/**
+ * Weekly payment obligation to Bailey (orphanage matron) - core DoL mechanic.
+ *
+ * Failing to pay on time triggers punishment escalation and debt accumulation.
+ * This is the primary money pressure that drives player behavior.
+ *
+ * @see ADVANCE_TIME reducer for weekly payment checks
+ */
 export interface BaileyPayment {
   /** Amount owed each week */
   weekly_amount: number;
@@ -305,6 +313,19 @@ export interface NpcSchedule {
 }
 
 // ── DoL-parity: NPC Relationship State ───────────────────────────────────
+/**
+ * NPC relationship tracking (Phase 2, extended Phase 5).
+ *
+ * Tracks player's relationship with a single NPC across multiple dimensions.
+ * Used for content gating, dialogue choices, and romance progression.
+ *
+ * @see src/utils/relationshipEngine.ts for interaction resolution logic
+ * @example
+ * const robin = gameState.world.npc_relationships['robin'];
+ * if (robin.milestone === 'lover') {
+ *   // Unlock romantic scenes
+ * }
+ */
 export interface NpcRelationship {
   /** NPC id (same key as used in npcs.ts) */
   npc_id: string;
@@ -592,7 +613,15 @@ export interface ActiveEncounter {
 /** Quality preset levels for graphics rendering */
 export type GraphicsQualityPreset = 'low' | 'medium' | 'high' | 'ultra';
 
-/** Comprehensive graphics quality configuration for DoL-fidelity rendering */
+/**
+ * Comprehensive graphics quality configuration for DoL-fidelity rendering.
+ *
+ * Controls 2D sprite quality, 3D rendering, animation fidelity, and performance.
+ * Presets auto-configure all settings based on device capabilities.
+ *
+ * @see src/utils/graphicsQuality.ts for presets and auto-detection
+ * @see docs/GRAPHICS-QUALITY-SYSTEM.md for full documentation
+ */
 export interface GraphicsQuality {
   /** Overall quality preset (overrides individual settings when changed) */
   preset: GraphicsQualityPreset;
@@ -658,14 +687,33 @@ export interface GraphicsQuality {
   };
 }
 
+/**
+ * Root game state interface - canonical schema for all durable game data.
+ *
+ * This is the complete state tree for Ga-mg (Aetherius), designed for:
+ * - Full save/load serialization (via saveManager.ts)
+ * - DoL-parity gameplay systems (stats, relationships, crime, factions)
+ * - React state management via gameReducer
+ *
+ * @see docs/STATE-SCHEMA.md for complete documentation and usage examples
+ * @version 2.0 (SAVE_SCHEMA_VERSION in saveManager.ts)
+ */
 export interface GameState {
+  /** Player character state - identity, stats, inventory, subsystems */
   player: {
+    /** Core character identity - immutable after character creation */
     identity: { name: string, race: string, birthsign: string, origin: string, gender: string },
+    /** Core stats - all StatKeys (health, stamina, willpower, lust, trauma, etc.) + max values */
     stats: Record<StatKey, number> & { max_health: number, max_willpower: number, max_stamina: number },
+    /** Player skills - all 0-100 scale, trainable through gameplay */
     skills: { seduction: number, athletics: number, skulduggery: number, swimming: number, dancing: number, housekeeping: number, school_grades: number, tending: number, cooking: number, foraging: number },
+    /** Currency - earned through jobs, theft, rewards */
     gold: number,
+    /** Positive reputation - increases from heroic acts, performance */
     fame: number,
+    /** Negative reputation - increases from crime, scandal */
     notoriety: number,
+    /** Behavioral tendencies (0-100 scale) - affects NPC reactions and content gating */
     psych_profile: { submission_index: number, cruelty_index: number, exhibitionism: number, promiscuity: number },
     attitudes: Attitudes,
     sensitivity: Sensitivity,
@@ -699,21 +747,29 @@ export interface GameState {
     quests: Quest[],
     known_recipes: string[]
   },
+  /** World simulation state - time, location, events, NPCs, factions */
   world: {
-    day: number, hour: number,
-    /** Day of week: 0 = Monday … 6 = Sunday */
+    /** Current game day (increments at midnight) */
+    day: number,
+    /** Current hour (0-23) */
+    hour: number,
+    /** Day of week: 0 = Monday … 6 = Sunday (Phase 4: NPC schedules) */
     week_day: number,
+    /** Weather descriptor - affects travel, encounters, NPC schedules */
     weather: string,
+    /** Player's current location - resolved from LOCATIONS registry */
     current_location: { id?: string, name: string, danger: number, atmosphere: string, npcs: any[], actions?: any[] },
+    /** World-level event tags (wars, plagues, festivals) */
     macro_events: string[],
+    /** Local danger level (0-1 scale) - affects encounter rate */
     local_tension: number,
     aggression_counter: number,
     active_world_events: string[],
     turn_count: number,
     last_intent: string | null,
-    /** Persistent event/scene/content-gate flags */
+    /** Persistent event/scene/content-gate flags (Phase 2) - boolean gates or numeric counters */
     event_flags: Record<string, boolean | number>,
-    /** Per-NPC relationship state, keyed by npc_id */
+    /** Per-NPC relationship state, keyed by npc_id (Phase 2, extended Phase 5) */
     npc_relationships: Record<string, NpcRelationship>,
     economy: any,
     ecology: any,
@@ -731,12 +787,19 @@ export interface GameState {
     active_story_event: ActiveStoryEvent | null
   },
   memory_graph: string[],
+  /** UI/presentation layer state - polling, display, settings (not persisted in saves) */
   ui: {
+    /** AI Horde text generation in progress */
     isPollingText: boolean,
+    /** AI Horde image generation in progress */
     isPollingImage: boolean,
+    /** Avatar generation in progress */
     isGeneratingAvatar: boolean,
+    /** Story/action log displayed in main panel */
     currentLog: { text: string, type: 'narrative' | 'action' | 'system' }[],
+    /** Current generated image URL */
     currentImage: string | null,
+    /** Available player actions - presented as buttons/choices */
     choices: { id: string, label: string, intent: string, successChance?: number }[],
     apiKey: string,
     hordeApiKey: string,
@@ -783,6 +846,10 @@ export interface GameState {
     },
     graphics_quality: GraphicsQuality
   },
+  /** Low-level simulation engine state (NPCs, economy, factions, crime) - see src/sim/types.ts */
   sim_world: import('./sim/types').SimWorld | null,
+  /** AI Horde request queue for async narrative generation */
   horde_queue: import('./sim/types').HordeRequest[],
+  /** Narrative memory graph - key story beats for AI context */
+  memory_graph: string[],
 }
