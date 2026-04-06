@@ -173,6 +173,21 @@ player: {
 ```typescript
 player: {
   clothing: ClothingLayer,  // Equipped items by slot
+  clothing_state: {
+    slots: Record<ClothingSlot, {
+      integrity: number;
+      wetness: number;
+      displacement: 'secure' | 'shifted' | 'displaced' | 'removed';
+      exposure: 'covered' | 'partial' | 'bare';
+      coverage: number; // 0-1 coverage fraction used for exposure math
+    }>;
+    summary: {
+      exposure_score: number;      // 0-100, higher = more exposed
+      indecent_slots: ClothingSlot[];
+      partial_slots: ClothingSlot[];
+      warmth: number;              // 0-100 derived clothing warmth
+    };
+  },
   inventory: Item[],
 
   // Clothing slots:
@@ -199,7 +214,7 @@ player: {
 player: {
   temperature: {
     ambient_temp: number;      // -20 to 50
-    clothing_warmth: number;   // 0-100
+    clothing_warmth: number;   // 0-100 (derived from clothing_state.summary.warmth)
     body_temp: 'freezing' | 'cold' | 'chilly' | 'comfortable' | 'warm' | 'hot' | 'overheating';
   },
 

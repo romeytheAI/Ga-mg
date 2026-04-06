@@ -456,11 +456,22 @@ export interface PlayerSubconscious {
 
 export type StatKey = 'health' | 'stamina' | 'willpower' | 'lust' | 'trauma' | 'hygiene' | 'corruption' | 'allure' | 'arousal' | 'pain' | 'control' | 'stress' | 'hallucination' | 'purity';
 
+export type ClothingSlot =
+  | 'head'
+  | 'neck'
+  | 'shoulders'
+  | 'chest'
+  | 'underwear'
+  | 'legs'
+  | 'feet'
+  | 'hands'
+  | 'waist';
+
 export interface Item {
   id: string;
   name: string;
   type: 'weapon' | 'armor' | 'consumable' | 'misc' | 'clothing';
-  slot?: 'head' | 'neck' | 'shoulders' | 'chest' | 'underwear' | 'legs' | 'feet' | 'hands' | 'waist';
+  slot?: ClothingSlot;
   rarity: 'common' | 'uncommon' | 'rare' | 'epic' | 'legendary' | 'mythic';
   stats?: Partial<Record<StatKey, number>>;
   description: string;
@@ -483,6 +494,31 @@ export interface ClothingLayer {
   feet: Item | null;
   hands: Item | null;
   waist: Item | null;
+}
+
+export type ClothingDisplacement = 'secure' | 'shifted' | 'displaced' | 'removed';
+export type ClothingExposure = 'covered' | 'partial' | 'bare';
+
+export interface ClothingSlotState {
+  slot: ClothingSlot;
+  equipped_item_id: string | null;
+  integrity: number;
+  wetness: number;
+  displacement: ClothingDisplacement;
+  coverage: number;
+  exposure: ClothingExposure;
+}
+
+export interface ClothingSummary {
+  exposure_score: number;
+  indecent_slots: ClothingSlot[];
+  partial_slots: ClothingSlot[];
+  warmth: number;
+}
+
+export interface ClothingState {
+  slots: Record<ClothingSlot, ClothingSlotState>;
+  summary: ClothingSummary;
 }
 
 // ── Quest System ─────────────────────────────────────────────────────────
@@ -696,7 +732,7 @@ export interface GraphicsQuality {
  * - React state management via gameReducer
  *
  * @see docs/STATE-SCHEMA.md for complete documentation and usage examples
- * @version 2.0 (SAVE_SCHEMA_VERSION in saveManager.ts)
+ * @version 3.0 (SAVE_SCHEMA_VERSION in saveManager.ts)
  */
 export interface GameState {
   /** Player character state - identity, stats, inventory, subsystems */
@@ -728,6 +764,7 @@ export interface GameState {
     bailey_payment: BaileyPayment,
     afflictions: string[],
     clothing: ClothingLayer,
+    clothing_state: ClothingState,
     inventory: Item[],
     anatomy: Anatomy,
     psychology: PlayerPsychology,

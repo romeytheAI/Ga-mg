@@ -1,6 +1,7 @@
 import { LOCATIONS } from '../data/locations';
 import { initialState } from '../state/initialState';
 import { GameState, GraphicsQuality, GraphicsQualityPreset, Item } from '../types';
+import { computeClothingState } from './clothingState';
 
 export interface SaveSlot {
   id: string;
@@ -24,11 +25,12 @@ const DB_VERSION = 1;
  * Version History:
  * - v1: Initial implementation (Phases 1-2) - base state, event flags, NPC relationships
  * - v2: Extended state (Phases 3-6) - schedules, factions, crime system, relationship milestones
+ * - v3: Clothing exposure state + warmth summary persisted
  *
  * @see docs/STATE-SCHEMA.md for complete state documentation
  * @see migrateGameState() for backward compatibility logic
  */
-export const SAVE_SCHEMA_VERSION = 2;
+export const SAVE_SCHEMA_VERSION = 3;
 const LEGACY_STORY_ID_MAP: Record<string, string> = {
   academy_bully_story: 'school_bully_story',
 };
@@ -126,6 +128,7 @@ export function migrateGameState(rawState: unknown): GameState {
     ...initialState.player.clothing,
     ...(player.clothing || {}),
   };
+  const clothing_state = computeClothingState(clothing, (player as any).clothing_state);
 
   return {
     ...initialState,
@@ -144,9 +147,14 @@ export function migrateGameState(rawState: unknown): GameState {
       body_fluids: { ...initialState.player.body_fluids, ...(player.body_fluids || {}) },
       insecurity: { ...initialState.player.insecurity, ...(player.insecurity || {}) },
       lewdity_stats: { ...initialState.player.lewdity_stats, ...(player.lewdity_stats || {}) },
-      temperature: { ...initialState.player.temperature, ...(player.temperature || {}) },
+      temperature: {
+        ...initialState.player.temperature,
+        ...(player.temperature || {}),
+        clothing_warmth: clothing_state.summary.warmth,
+      },
       bailey_payment: { ...initialState.player.bailey_payment, ...(player.bailey_payment || {}) },
       clothing,
+      clothing_state,
       anatomy: { ...initialState.player.anatomy, ...(player.anatomy || {}) },
       psychology: { ...initialState.player.psychology, ...(player.psychology || {}) },
       perks_flaws: { ...initialState.player.perks_flaws, ...(player.perks_flaws || {}) },
