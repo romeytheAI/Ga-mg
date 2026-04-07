@@ -1,22 +1,22 @@
 /**
  * Elder Scrolls Encounters - Ported from DOL
- * 
+ *
  * All encounters reskinned from Degrees of Lewdity to fit Elder Scrolls lore
  */
 
 // Combat Encounters
-export { banditAmbushEncounter } from './bandit_ambush';
-export { wolfPackEncounter } from './wolf_pack';
-export { sprigganAttackEncounter } from './spriggan_attack';
-export { draugrTombEncounter } from './draugr_tomb';
-export { forswornRaidEncounter } from './forsworn_raid';
+export { bandit_ambushEncounter as banditAmbushEncounter } from './bandit_ambush';
+export { wolf_packEncounter as wolfPackEncounter } from './wolf_pack';
+export { spriggan_attackEncounter as sprigganAttackEncounter } from './spriggan_attack';
+export { draugr_tombEncounter as draugrTombEncounter } from './draugr_tomb';
+export { forsworn_raidEncounter as forswornRaidEncounter } from './forsworn_raid';
 
 // Social Encounters
-export { thievesGuildShakedownEncounter } from './thieves_guild_shakedown';
-export { imperialPatrolEncounter } from './imperial_patrol';
-export { vampireHunterEncounter } from './vampire_hunter';
-export { seductionAttemptEncounter } from './seduction_attempt';
-export { corruptGuardEncounter } from './corrupt_guard';
+export { thieves_guild_shakedownEncounter as thievesGuildShakedownEncounter } from './thieves_guild_shakedown';
+export { imperial_patrolEncounter as imperialPatrolEncounter } from './imperial_patrol';
+export { vampire_hunterEncounter as vampireHunterEncounter } from './vampire_hunter';
+export { seduction_attemptEncounter as seductionAttemptEncounter } from './seduction_attempt';
+export { corrupt_guardEncounter as corruptGuardEncounter } from './corrupt_guard';
 
 export type { EncounterData, EncounterOutcome } from './bandit_ambush';
 

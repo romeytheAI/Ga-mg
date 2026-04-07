@@ -12,11 +12,11 @@ import {
   getAnimatedLayers,
   AssetLayer,
   ImageFormat,
-} from '../../data/dolAssetMapping';
+} from '../../../data/dolAssetMapping';
 import { SVGModelConfig, DEFAULT_MODEL_CONFIG } from './DOLImageSVGModel';
 
 // GIF Model props
-interface DOLImageGIFModelProps {
+export interface DOLImageGIFModelProps {
   config: Partial<SVGModelConfig>;
   width?: number;
   height?: number;
@@ -52,12 +52,12 @@ const GIFLayer: React.FC<{
   const [gifLoaded, setGifLoaded] = useState(false);
   const [gifError, setGifError] = useState(false);
   const [currentFrame, setCurrentFrame] = useState(0);
-  const animationRef = useRef<number>();
+  const animationRef = useRef<number | undefined>(undefined);
 
   // Get GIF URL
   const gifUrl = useMemo(() => {
-    if (!layer.gifPath) return null;
-    return getAssetUrl(layer, variant, 'gif');
+    if (!layer.dolGifPath) return null;
+    return getAssetUrl(layer, variant, 'dol_gif');
   }, [layer, variant]);
 
   // Animation loop for SVG fallback
@@ -229,8 +229,8 @@ export const DOLImageGIFModel: React.FC<DOLImageGIFModelProps> = ({
 }) => {
   const fullConfig = useMemo(() => ({ ...DEFAULT_MODEL_CONFIG, ...config }), [config]);
   const [globalFrame, setGlobalFrame] = useState(0);
-  const [loadedGifs, setLoadedGifs] = useState<Set<string>>(new Set());
-  const animationRef = useRef<number>();
+  const [loadedGifs, setLoadedGifs] = useState<Set<string>>(new Set<string>());
+  const animationRef = useRef<number | undefined>(undefined);
 
   const centerX = width / 2;
   const centerY = height / 2;

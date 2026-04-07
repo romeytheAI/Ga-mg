@@ -29,7 +29,7 @@
  */
 
 // Import all ported NPCs
-export {
+import {
   sigridDialogue,
   wulfgarDialogue,
   ralofDialogue,
@@ -40,20 +40,8 @@ export {
   portedNPCs,
 } from './dialogue/dol_ported';
 
-// Import all ported locations
-export {
-  templeOfMaraData,
-  ratwayData,
-  skyforgeData,
-  darkSanctuaryData,
-  sleepingGiantData,
-  khajiitCaravanData,
-  jorrvaskrData,
-  elderscrollsLocations,
-} from './locations';
-
-// Import all ported encounters
-export {
+// Import all ported encounters from the encounters subdirectory
+import {
   banditAmbushEncounter,
   wolfPackEncounter,
   sprigganAttackEncounter,
@@ -66,12 +54,56 @@ export {
   corruptGuardEncounter,
   encountersByDifficulty,
   encountersByLocation,
-} from './encounters';
+} from './encounters/index';
+
+// Import all ported locations from the locations subdirectory
+import {
+  templeOfMaraData,
+  ratwayData,
+  skyforgeData,
+  darkSanctuaryData,
+  sleepingGiantData,
+  khajiitCaravanData,
+  jorrvaskrData,
+  elderscrollsLocations,
+} from './locations/index';
+
+// Re-export for external use
+export {
+  sigridDialogue,
+  wulfgarDialogue,
+  ralofDialogue,
+  kharjoDialogue,
+  eorlundDialogue,
+  astridDialogue,
+  delphineDialogue,
+  portedNPCs,
+  banditAmbushEncounter,
+  wolfPackEncounter,
+  sprigganAttackEncounter,
+  draugrTombEncounter,
+  forswornRaidEncounter,
+  thievesGuildShakedownEncounter,
+  imperialPatrolEncounter,
+  vampireHunterEncounter,
+  seductionAttemptEncounter,
+  corruptGuardEncounter,
+  encountersByDifficulty,
+  encountersByLocation,
+  templeOfMaraData,
+  ratwayData,
+  skyforgeData,
+  darkSanctuaryData,
+  sleepingGiantData,
+  khajiitCaravanData,
+  jorrvaskrData,
+  elderscrollsLocations,
+};
 
 // Export types
 export type { NPCDialogue, DialogueLine } from './dialogue/dol_ported';
-export type { LocationData, LocationEvent } from './locations';
-export type { EncounterData, EncounterOutcome } from './encounters';
+export type { EncounterData, EncounterOutcome } from './encounters/index';
+export type { LocationData, LocationEvent } from './locations/index';
 
 // Integration helper functions
 export class DOLElderScrollsIntegration {
@@ -102,6 +134,7 @@ export class DOLElderScrollsIntegration {
    * Get location data by ID
    */
   static getLocation(locationId: string) {
+    // Placeholder: Elder Scrolls location data not yet implemented
     const locationMap: Record<string, any> = {
       temple_of_mara: templeOfMaraData,
       ratway: ratwayData,
@@ -111,7 +144,7 @@ export class DOLElderScrollsIntegration {
       khajiit_caravan: khajiitCaravanData,
       jorrvaskr: jorrvaskrData,
     };
-    return locationMap[locationId.toLowerCase()];
+    return locationMap[locationId.toLowerCase()] || null;
   }
 
   /**

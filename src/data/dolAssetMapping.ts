@@ -11,6 +11,9 @@ export const DOL_ASSET_BASE_URL = 'https://gitgud.io/Vrelnir/degrees-of-lewdity/
 // Local SVG asset path
 export const LOCAL_SVG_PATH = '/svg';
 
+// Legacy alias for LOCAL_SVG_PATH (for backwards compatibility)
+export const LOCAL_ASSET_PATH = LOCAL_SVG_PATH;
+
 // Asset type definitions
 export type AssetType = 
   | 'body_base'
@@ -393,6 +396,10 @@ export function getAnimatedLayers(): AssetLayer[] {
 
 export function getLayersWithLocalSVG(): AssetLayer[] {
   return Object.values(DOL_ASSET_REGISTRY).flat().filter(layer => layer.localSvgPath);
+}
+
+export function getLayersForGIF(): AssetLayer[] {
+  return Object.values(DOL_ASSET_REGISTRY).flat().filter(layer => layer.hasAnimation || layer.dolGifPath);
 }
 
 // Default layer order for rendering (back to front)

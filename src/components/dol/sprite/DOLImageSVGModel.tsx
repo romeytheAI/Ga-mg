@@ -10,13 +10,14 @@ import {
   DOL_ASSET_BASE_URL,
   AssetLayer,
   AssetType,
+  AssetSource,
   ImageFormat,
   getAssetUrl,
   getLayerById,
   DEFAULT_LAYER_ORDER,
   DOL_ASSET_REGISTRY,
-} from '../../data/dolAssetMapping';
-import { RacialBodyFeatures } from '../../data/races';
+} from '../../../data/dolAssetMapping';
+import { RacialBodyFeatures } from '../../../data/races';
 
 // Model configuration
 export interface SVGModelConfig {
@@ -111,7 +112,7 @@ export const DEFAULT_MODEL_CONFIG: SVGModelConfig = {
 };
 
 // Props for the renderer
-interface DOLImageSVGModelProps {
+export interface DOLImageSVGModelProps {
   config: Partial<SVGModelConfig>;
   width?: number;
   height?: number;
@@ -139,7 +140,12 @@ const ModelLayer: React.FC<{
 
   const assetUrl = useMemo(() => {
     if (!useImage) return null;
-    return getAssetUrl(layer, variant, imageFormat);
+    // Convert ImageFormat to AssetSource
+    const assetSource: AssetSource =
+      imageFormat === 'svg' ? 'local_svg' :
+      imageFormat === 'gif' ? 'dol_gif' :
+      'dol_png';
+    return getAssetUrl(layer, variant, assetSource);
   }, [layer, variant, useImage, imageFormat]);
 
   // SVG fallback content for each layer type
