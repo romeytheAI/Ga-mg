@@ -1,11 +1,13 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { X, Briefcase, Zap } from 'lucide-react';
+import { X, Briefcase, Zap, Star } from 'lucide-react';
 import { GameState, StatKey } from '../../types';
 import { CharacterModel } from '../CharacterModel';
 import { JOB_LABELS, jobRiskLevel } from '../../utils/jobEngine';
 import { addictionSummary, substanceLabel } from '../../utils/addictionEngine';
 import { transformationSummary, ascensionLabel, mutationResistanceLabel } from '../../utils/transformationEngine';
+import { fameSummary } from '../../utils/fameEngine';
+import { allureSummary } from '../../utils/allureEngine';
 
 interface StatsModalProps {
   state: GameState;
@@ -334,6 +336,57 @@ export const StatsModal: React.FC<StatsModalProps> = ({ state, dispatch }) => {
                     ))}
                   </div>
                 )}
+              </div>
+            );
+          })()}
+
+          {/* ── Milestone 11: Fame & Allure ──────────────────────────────── */}
+          {(() => {
+            const fs = fameSummary(state.player.fame_record);
+            const as_ = allureSummary(state);
+            const fameCategories = [
+              { key: 'social',      label: 'Social',      value: fs.social,      color: 'bg-sky-500' },
+              { key: 'wealth_fame', label: 'Wealth',      value: fs.wealth_fame, color: 'bg-amber-500' },
+              { key: 'combat_fame', label: 'Combat',      value: fs.combat_fame, color: 'bg-red-500' },
+              { key: 'crime',       label: 'Crime',       value: fs.crime,       color: 'bg-orange-500' },
+              { key: 'infamy',      label: 'Infamy',      value: fs.infamy,      color: 'bg-rose-700' },
+            ] as const;
+            return (
+              <div className="bg-white/[0.03] border border-white/10 rounded p-3 space-y-3">
+                <div className="flex items-center gap-2 text-amber-300/80 text-[10px] uppercase tracking-widest font-semibold">
+                  <Star className="w-3 h-3" /> Fame &amp; Allure
+                </div>
+
+                {/* Fame breakdown */}
+                <div className="space-y-1">
+                  {fameCategories.map(({ key, label, value, color }) => (
+                    <div key={key} className="flex items-center gap-2">
+                      <span className="text-[9px] text-white/40 w-14">{label}</span>
+                      <div className="flex-1 h-1.5 bg-white/10 rounded-full overflow-hidden">
+                        <div className={`h-full ${color} rounded-full`} style={{ width: `${value}%` }} />
+                      </div>
+                      <span className="text-[9px] text-white/40 w-6 text-right">{Math.round(value)}</span>
+                    </div>
+                  ))}
+                </div>
+                <div className="flex gap-2 text-[9px]">
+                  <span className="px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300/80">{fs.fame_label}</span>
+                  <span className="px-1.5 py-0.5 rounded bg-rose-700/20 text-rose-400/80">{fs.notoriety_label}</span>
+                </div>
+
+                {/* Allure panel */}
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="p-2 bg-white/[0.02] border border-white/5 rounded-sm">
+                    <span className="text-[9px] uppercase text-white/30 block mb-1">Allure</span>
+                    <span className="text-sm text-white/70 font-serif">{as_.allure_label}</span>
+                    <span className="text-[9px] text-white/30 block mt-0.5">{Math.round(as_.effective_allure)}/100</span>
+                  </div>
+                  <div className="p-2 bg-white/[0.02] border border-white/5 rounded-sm">
+                    <span className="text-[9px] uppercase text-white/30 block mb-1">Presence</span>
+                    <span className="text-sm text-white/70 font-serif">{as_.noticeability_label}</span>
+                    <span className="text-[9px] text-white/30 block mt-0.5">{as_.intimidation_label}</span>
+                  </div>
+                </div>
               </div>
             );
           })()}

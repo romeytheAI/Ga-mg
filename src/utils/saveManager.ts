@@ -29,11 +29,13 @@ const DB_VERSION = 1;
  * - v4: Player restraints system (Milestone 7 - visual parity)
  * - v5: Jobs system (player_job, life_sim.schedule.work) + addiction_state (Milestone 9)
  * - v6: transformation, disease_state, parasite_state, companion_state (Milestone 10)
+ * - v7: fame_record (PlayerFameRecord) + allure_state (PlayerAllureState) (Milestone 11)
+ * - v7: fame_record (PlayerFameRecord) + allure_state (PlayerAllureState) (Milestone 11)
  *
  * @see docs/STATE-SCHEMA.md for complete state documentation
  * @see migrateGameState() for backward compatibility logic
  */
-export const SAVE_SCHEMA_VERSION = 6;
+export const SAVE_SCHEMA_VERSION = 7;
 const LEGACY_STORY_ID_MAP: Record<string, string> = {
   academy_bully_story: 'school_bully_story',
 };
@@ -199,6 +201,9 @@ export function migrateGameState(rawState: unknown): GameState {
       disease_state: (player as any).disease_state ?? initialState.player.disease_state,
       parasite_state: (player as any).parasite_state ?? initialState.player.parasite_state,
       companion_state: (player as any).companion_state ?? initialState.player.companion_state,
+      // v7: fame_record + allure_state
+      fame_record: (player as any).fame_record ?? initialState.player.fame_record,
+      allure_state: (player as any).allure_state ?? initialState.player.allure_state,
     },
     world: {
       ...initialState.world,

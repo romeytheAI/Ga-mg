@@ -148,6 +148,19 @@ export const initialState: GameState = {
       max_party_size: 3,
       party_synergy: 0,
     },
+    fame_record: {
+      social: 0,
+      crime: 0,
+      wealth_fame: 0,
+      combat_fame: 0,
+      infamy: 0,
+    },
+    allure_state: {
+      base_allure: 50,
+      effective_allure: 50,
+      noticeability: 30,
+      intimidation: 20,
+    },
     age_days: 6570, // 18 years
     avatar_url: null,
     quests: [

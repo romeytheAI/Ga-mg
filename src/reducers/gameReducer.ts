@@ -15,6 +15,8 @@ import { tickPlayerTransformation } from '../utils/transformationEngine';
 import { tickPlayerDiseases, getDiseaseEffects } from '../utils/diseaseEngine';
 import { tickPlayerParasites, getParasiteEffects } from '../utils/parasiteEngine';
 import { tickPlayerCompanions, getPartyBonuses } from '../utils/companionEngine';
+import { tickPlayerFame } from '../utils/fameEngine';
+import { computePlayerAllure } from '../utils/allureEngine';
 
 const clamp = (value: number, min = 0, max = 100) => Math.min(max, Math.max(min, value));
 
@@ -1193,6 +1195,24 @@ export function gameReducer(state: GameState, action: any): GameState {
       };
     }
 
+    // ── Milestone 11: Gain fame of a specific type ────────────────────────
+    case 'GAIN_FAME': {
+      const { fameType, amount } = action.payload as { fameType: string; amount: number };
+      const { resolveGainFame } = require('../utils/fameEngine');
+      const { fame_record } = resolveGainFame(state, fameType, amount);
+      const newStateGF = {
+        ...state,
+        player: { ...state.player, fame_record },
+      };
+      return {
+        ...newStateGF,
+        player: {
+          ...newStateGF.player,
+          allure_state: computePlayerAllure(newStateGF),
+        },
+      };
+    }
+
     // ── DoL-parity: Attitude system ───────────────────────────────────────
     case 'SET_ATTITUDE': {
       const { type, value } = action.payload as { type: keyof typeof state.player.attitudes; value: 'defiant' | 'submissive' | 'neutral' };
@@ -1863,7 +1883,7 @@ export function gameReducer(state: GameState, action: any): GameState {
       newLewdity = { ...newLewdity, exhibitionism: clamp(newLewdity.exhibitionism + exposureImpact.exhibitionism, 0, 100) };
       notoriety = clamp(notoriety + exposureImpact.notoriety, 0, 100);
 
-      return {
+      const advancedState = {
         ...state,
         world: {
           ...state.world,
@@ -1963,6 +1983,17 @@ export function gameReducer(state: GameState, action: any): GameState {
             }
             return ticked;
           })(),
+          // Milestone 11: daily fame decay + allure recompute
+          fame_record: daysElapsed > 0 ? tickPlayerFame(state, daysElapsed) : state.player.fame_record,
+        },
+      };
+
+      // Recompute allure after stats/clothing/fame changes
+      return {
+        ...advancedState,
+        player: {
+          ...advancedState.player,
+          allure_state: computePlayerAllure(advancedState),
         },
       };
     }

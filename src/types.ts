@@ -372,8 +372,35 @@ export interface PlayerCompanionState {
   party_synergy: number; // 0–100
 }
 
+// ── Milestone 11: Fame & Allure types ───────────────────────────────────────
 
-/** Hour range during which a schedule slot is active (24h, inclusive start/exclusive end) */
+/** Detailed breakdown of player fame across social, criminal, and combat categories */
+export interface PlayerFameRecord {
+  /** Positive social standing — from good deeds, performance, commerce */
+  social: number;       // 0–100
+  /** Criminal notoriety — from crimes, theft, bounties */
+  crime: number;        // 0–100
+  /** Merchant/wealth reputation */
+  wealth_fame: number;  // 0–100
+  /** Combat renown — from fights, guard service, duels */
+  combat_fame: number;  // 0–100
+  /** General infamy — from scandal, betrayal, hostile acts */
+  infamy: number;       // 0–100
+}
+
+/** Computed allure and presence state for the player */
+export interface PlayerAllureState {
+  /** Base attractiveness (from character creation/traits) */
+  base_allure: number;  // 0–100
+  /** Effective allure after clothing/fame/corruption modifiers */
+  effective_allure: number; // 0–100
+  /** How noticeable the player is (draws more NPC attention) */
+  noticeability: number; // 0–100
+  /** How intimidating the player appears (reduces hostile encounter chance) */
+  intimidation: number;  // 0–100
+}
+
+
 export interface NpcTimeWindow {
   /** Start hour (0–23) */
   from: number;
@@ -911,6 +938,10 @@ export interface GameState {
     parasite_state: PlayerParasiteState,
     /** Party companion roster (Milestone 10) */
     companion_state: PlayerCompanionState,
+    /** Fame breakdown across social/crime/wealth/combat/infamy categories (Milestone 11) */
+    fame_record: PlayerFameRecord,
+    /** Computed allure and presence state (Milestone 11) */
+    allure_state: PlayerAllureState,
     age_days: number,
     avatar_url?: string | null,
     quests: Quest[],

@@ -224,3 +224,33 @@ Completed:
 - `src/utils/parasiteEngine.test.ts` — 18 tests
 - `src/utils/companionEngine.test.ts` — 25 tests
 - 720 total tests pass (82 new), 20 test files, build clean
+
+## Milestone 11 — Fame, Allure, and Prestige Systems ✅
+
+Scope:
+
+- wire FameSystem (multi-category fame tracking) into player state and daily-life loop
+- wire AllureSystem (attractiveness, noticeability, intimidation) into player state and ADVANCE_TIME
+- surface fame breakdown and allure state in StatsModal
+
+Completed:
+
+- `src/types.ts` — `PlayerFameRecord` interface (social/crime/wealth_fame/combat_fame/infamy); `PlayerAllureState` interface (base_allure/effective_allure/noticeability/intimidation); both fields added to `GameState.player`
+- `src/state/initialState.ts` — default values for `fame_record` and `allure_state`
+- `src/utils/fameEngine.ts` — game-layer bridge over `FameSystem.ts`:
+  - `resolveGainFame()` — increases named fame type, returns updated record + narrative (injectable RNG)
+  - `applyJobShiftFame()` — per-shift fame bonus for each job type
+  - `tickPlayerFame()` — daily fame decay (calls `decayFame` from FameSystem)
+  - `getJobFameBonus()` — display-only fame bonus per job
+  - `fameSummary()` — structured summary with labels for StatsModal
+- `src/utils/allureEngine.ts` — game-layer bridge over `AllureSystem.ts`:
+  - `computePlayerAllure()` — recomputes AllureState from player allure stat, clothing, fame, and corruption
+  - `getEncounterModifier()` — net encounter chance modifier (allure − intimidation defense)
+  - `getSocialAllureBonus()` — social interaction bonus from allure
+  - `allureSummary()` — structured summary with labels for StatsModal
+- `src/reducers/gameReducer.ts` — new `GAIN_FAME` case; `ADVANCE_TIME` extended with daily `tickPlayerFame` + `computePlayerAllure` recompute
+- `src/utils/saveManager.ts` — schema version bumped to v7; v7 migration hydrates `fame_record` and `allure_state` for old saves
+- `src/components/modals/StatsModal.tsx` — new "Fame & Allure" panel: per-category fame bars (social/wealth/combat/crime/infamy), fame/notoriety labels, allure breakdown card, presence/intimidation summary
+- `src/utils/fameEngine.test.ts` — 23 tests
+- `src/utils/allureEngine.test.ts` — 18 tests (included in total count below)
+- 756 total tests pass, 22 test files, build clean
