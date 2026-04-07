@@ -19,11 +19,11 @@ export function defaultParasiteState(): ParasiteState {
 // ── Species Properties ───────────────────────────────────────────────────
 
 const PARASITE_PROPERTIES: Record<ParasiteSpecies, { growth_rate: number; base_health_drain: number; base_stamina_drain: number; base_corruption: number; symbiosis_chance: number }> = {
-  brain_worm:   { growth_rate: 0.8, base_health_drain: 0.5, base_stamina_drain: 0.3, base_corruption: 0.4, symbiosis_chance: 0.15 },
-  blood_leech:  { growth_rate: 1.2, base_health_drain: 1.0, base_stamina_drain: 0.5, base_corruption: 0.2, symbiosis_chance: 0.20 },
-  void_tick:    { growth_rate: 0.5, base_health_drain: 0.3, base_stamina_drain: 0.2, base_corruption: 0.8, symbiosis_chance: 0.10 },
-  dream_moth:   { growth_rate: 0.6, base_health_drain: 0.2, base_stamina_drain: 0.8, base_corruption: 0.3, symbiosis_chance: 0.25 },
-  marrow_grub:  { growth_rate: 1.0, base_health_drain: 1.5, base_stamina_drain: 1.0, base_corruption: 0.5, symbiosis_chance: 0.05 },
+  kwama_larva:   { growth_rate: 0.8, base_health_drain: 0.5, base_stamina_drain: 0.3, base_corruption: 0.4, symbiosis_chance: 0.15 },
+  cinder_tick:   { growth_rate: 1.2, base_health_drain: 1.0, base_stamina_drain: 0.5, base_corruption: 0.2, symbiosis_chance: 0.20 },
+  chaurus_larva: { growth_rate: 0.5, base_health_drain: 0.3, base_stamina_drain: 0.2, base_corruption: 0.8, symbiosis_chance: 0.10 },
+  ancestor_moth: { growth_rate: 0.6, base_health_drain: 0.2, base_stamina_drain: 0.8, base_corruption: 0.3, symbiosis_chance: 0.25 },
+  bone_grub:     { growth_rate: 1.0, base_health_drain: 1.5, base_stamina_drain: 1.0, base_corruption: 0.5, symbiosis_chance: 0.05 },
 };
 
 // ── Attach Parasite ──────────────────────────────────────────────────────

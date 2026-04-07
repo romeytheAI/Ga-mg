@@ -59,7 +59,7 @@ describe('getAvailableJobs', () => {
     expect(jobs).toContain('farmer');
     // guard requires athletics >= 20; starter has 5
     expect(jobs).not.toContain('guard');
-    // scholar requires school_grades >= 40; starter has 50 → should qualify
+    // scholar requires lore_mastery >= 40; starter has 50 → should qualify
     expect(jobs).toContain('scholar');
   });
 
@@ -104,9 +104,9 @@ describe('resolveWorkShift', () => {
     expect((result.skill_deltas as any).athletics).toBeGreaterThan(0);
   });
 
-  it('scholar shift improves school_grades', () => {
+  it('scholar shift improves lore_mastery', () => {
     const result = resolveWorkShift(initialState, 'scholar', seeded(3));
-    expect((result.skill_deltas as any).school_grades).toBeGreaterThan(0);
+    expect((result.skill_deltas as any).lore_mastery).toBeGreaterThan(0);
   });
 
   it('laborer shift drains stamina', () => {

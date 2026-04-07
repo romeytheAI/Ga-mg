@@ -296,7 +296,7 @@ export interface PlayerAddictionState {
 }
 
 // ── Milestone 10: Transformation / Ascension types ──────────────────────────
-export type AscensionPath = 'none' | 'pure_soul' | 'void_lord' | 'broodmother' | 'beast_kin' | 'arcane_vessel';
+export type AscensionPath = 'none' | 'divine_spark' | 'daedric_champion' | 'hist_devoted' | 'hircine_chosen' | 'arcane_conduit';
 
 export interface PlayerBodyChange {
   id: string;
@@ -332,7 +332,7 @@ export interface PlayerDiseaseState {
 }
 
 // ── Milestone 10: Parasite types ─────────────────────────────────────────────
-export type ParasiteSpecies = 'brain_worm' | 'blood_leech' | 'void_tick' | 'dream_moth' | 'marrow_grub';
+export type ParasiteSpecies = 'kwama_larva' | 'cinder_tick' | 'chaurus_larva' | 'ancestor_moth' | 'bone_grub';
 
 export interface PlayerParasiteEntry {
   species: ParasiteSpecies;
@@ -861,7 +861,7 @@ export interface GameState {
     /** Core stats - all StatKeys (health, stamina, willpower, lust, trauma, etc.) + max values */
     stats: Record<StatKey, number> & { max_health: number, max_willpower: number, max_stamina: number },
     /** Player skills - all 0-100 scale, trainable through gameplay */
-    skills: { seduction: number, athletics: number, skulduggery: number, swimming: number, dancing: number, housekeeping: number, school_grades: number, tending: number, cooking: number, foraging: number },
+    skills: { seduction: number, athletics: number, skulduggery: number, swimming: number, dancing: number, housekeeping: number, lore_mastery: number, tending: number, cooking: number, foraging: number },
     /** Currency - earned through jobs, theft, rewards */
     gold: number,
     /** Positive reputation - increases from heroic acts, performance */
@@ -950,7 +950,7 @@ export interface GameState {
     arcane: any,
     justice: any,
     dreamscape: any,
-    ascension_state: 'none' | 'pure_soul' | 'void_lord' | 'broodmother' | 'asylum',
+    ascension_state: 'none' | 'divine_spark' | 'daedric_champion' | 'hist_devoted' | 'sheogorath_touched',
     director_cut: boolean,
     active_encounter: ActiveEncounter | null,
     active_story_event: ActiveStoryEvent | null

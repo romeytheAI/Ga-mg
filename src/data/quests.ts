@@ -391,7 +391,7 @@ export const QUESTS: Record<string, Quest> = {
     ],
     rewards: {
       xp: 120,
-      skills: { school_grades: 5 },
+      skills: { lore_mastery: 5 },
     },
     prerequisites: [],
   },
@@ -530,7 +530,7 @@ export const QUESTS: Record<string, Quest> = {
     rewards: {
       gold: 20,
       xp: 100,
-      skills: { school_grades: 5 },
+      skills: { lore_mastery: 5 },
     },
     prerequisites: [],
   },

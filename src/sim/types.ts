@@ -245,7 +245,7 @@ export interface HordeRequest {
 }
 
 // ── Transformation ──────────────────────────────────────────────────────────
-export type AscensionPath = 'none' | 'pure_soul' | 'void_lord' | 'broodmother' | 'beast_kin' | 'arcane_vessel';
+export type AscensionPath = 'none' | 'divine_spark' | 'daedric_champion' | 'hist_devoted' | 'hircine_chosen' | 'arcane_conduit';
 
 export interface TransformationState {
   ascension: AscensionPath;
@@ -320,7 +320,7 @@ export interface ArcaneState {
 }
 
 // ── Parasite ─────────────────────────────────────────────────────────────────
-export type ParasiteSpecies = 'brain_worm' | 'blood_leech' | 'void_tick' | 'dream_moth' | 'marrow_grub';
+export type ParasiteSpecies = 'kwama_larva' | 'cinder_tick' | 'chaurus_larva' | 'ancestor_moth' | 'bone_grub';
 
 export interface ParasiteEntry {
   species: ParasiteSpecies;

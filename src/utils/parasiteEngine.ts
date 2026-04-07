@@ -49,11 +49,11 @@ export interface AttachParasiteResult {
 }
 
 const ATTACH_NARRATIVES: Record<ParasiteSpecies, string> = {
-  brain_worm:  "Something burrowed into your mind before you could stop it.",
-  blood_leech: "Pale and silent, it latched onto your skin before you noticed.",
-  void_tick:   "The void-tick presses its mandibles in — you feel cold emptiness spreading.",
-  dream_moth:  "Delicate wing-dust settles into your lungs. Your dreams are no longer your own.",
-  marrow_grub: "You feel a deep, nauseating wrongness in your bones.",
+  kwama_larva:   "A Kwama larva wriggles beneath your skin — you feel your thoughts begin to fray at the edges.",
+  cinder_tick:   "The cinder tick latches on before you notice, hot mandibles pressing deep into your skin.",
+  chaurus_larva: "The chaurus larva burrows in with a cold precision that chills your blood and dims your will.",
+  ancestor_moth: "Ancestor moth dust settles softly into your lungs. Your dreams will no longer be entirely your own.",
+  bone_grub:     "You feel the bone grub nestle between your joints — a deep, grinding wrongness that won't leave.",
 };
 
 const FULL_NARRATIVE = "Your body is already carrying too many passengers. This one finds no purchase.";

@@ -160,11 +160,11 @@ describe('getTransformationStatEffects', () => {
 // ── evaluatePlayerAscension ───────────────────────────────────────────────────
 
 describe('evaluatePlayerAscension', () => {
-  it('returns pure_soul for default state (purity 100, corruption 0)', () => {
-    expect(evaluatePlayerAscension(initialState)).toBe('pure_soul');
+  it('returns divine_spark for default state (purity 100, corruption 0)', () => {
+    expect(evaluatePlayerAscension(initialState)).toBe('divine_spark');
   });
 
-  it('returns pure_soul for high purity, low corruption', () => {
+  it('returns divine_spark for high purity, low corruption', () => {
     const state = {
       ...initialState,
       player: {
@@ -172,10 +172,10 @@ describe('evaluatePlayerAscension', () => {
         stats: { ...initialState.player.stats, purity: 90, corruption: 5 },
       },
     };
-    expect(evaluatePlayerAscension(state)).toBe('pure_soul');
+    expect(evaluatePlayerAscension(state)).toBe('divine_spark');
   });
 
-  it('returns void_lord for high corruption, low purity, many changes', () => {
+  it('returns daedric_champion for high corruption, low purity, many changes', () => {
     const state = {
       ...initialState,
       player: {
@@ -187,14 +187,14 @@ describe('evaluatePlayerAscension', () => {
         },
       },
     };
-    expect(evaluatePlayerAscension(state)).toBe('void_lord');
+    expect(evaluatePlayerAscension(state)).toBe('daedric_champion');
   });
 });
 
 // ── tickPlayerTransformation ──────────────────────────────────────────────────
 
 describe('tickPlayerTransformation', () => {
-  it('increases ascension_progress when qualifying for pure_soul', () => {
+  it('increases ascension_progress when qualifying for divine_spark', () => {
     const state = {
       ...initialState,
       player: {
@@ -239,7 +239,7 @@ describe('transformationSummary', () => {
 
 describe('ascensionLabel', () => {
   it('labels all paths', () => {
-    const paths: AscensionPath[] = ['none', 'pure_soul', 'void_lord', 'broodmother', 'beast_kin', 'arcane_vessel'];
+    const paths: AscensionPath[] = ['none', 'divine_spark', 'daedric_champion', 'hist_devoted', 'hircine_chosen', 'arcane_conduit'];
     for (const p of paths) {
       expect(ascensionLabel(p as any).length).toBeGreaterThan(0);
     }

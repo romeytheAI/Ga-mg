@@ -44,7 +44,7 @@ export const initialState: GameState = {
       lust: 0, trauma: 10, hygiene: 40, corruption: 0, allure: 5,
       arousal: 0, pain: 5, control: 80, stress: 20, hallucination: 0, purity: 100
     },
-    skills: { seduction: 0, athletics: 5, skulduggery: 10, swimming: 0, dancing: 0, housekeeping: 15, school_grades: 50, tending: 0, cooking: 5, foraging: 0 },
+    skills: { seduction: 0, athletics: 5, skulduggery: 10, swimming: 0, dancing: 0, housekeeping: 15, lore_mastery: 50, tending: 0, cooking: 5, foraging: 0 },
     gold: 0,
     fame: 0,
     notoriety: 0,
@@ -64,7 +64,7 @@ export const initialState: GameState = {
       { id: 'feat_school_star', name: 'Star Pupil', description: 'Reach A grade in school.', unlocked: false },
       { id: 'feat_skulduggery_master', name: 'Master Thief', description: 'Reach 100 skulduggery skill.', unlocked: false },
       { id: 'feat_first_love', name: 'First Love', description: 'Enter a romantic relationship.', unlocked: false },
-      { id: 'feat_pure_soul', name: 'Pure Soul', description: 'Reach purity 100 while corruption remains 0.', unlocked: false },
+      { id: 'feat_divine_spark', name: 'Divine Spark', description: 'Reach purity 100 while corruption remains 0.', unlocked: false },
       { id: 'feat_fallen', name: 'The Fallen', description: 'Reach corruption 100.', unlocked: false },
       { id: 'feat_wealthy', name: 'Wealthy', description: 'Accumulate 1000 gold.', unlocked: false },
       { id: 'feat_swimmer', name: 'Like a Fish', description: 'Reach 100 swimming skill.', unlocked: false },
@@ -202,7 +202,7 @@ export const initialState: GameState = {
     currentImage: null,
     choices: (() => {
       const initialStats = { health: 80, willpower: 90, stamina: 70, lust: 0, trauma: 10, hygiene: 40, corruption: 0, allure: 5, arousal: 0, pain: 5, control: 80, stress: 20, hallucination: 0, purity: 100 };
-      const initialSkills = { seduction: 0, athletics: 5, skulduggery: 10, swimming: 0, dancing: 0, housekeeping: 15, school_grades: 50, tending: 0, cooking: 5, foraging: 0 };
+      const initialSkills = { seduction: 0, athletics: 5, skulduggery: 10, swimming: 0, dancing: 0, housekeeping: 15, lore_mastery: 50, tending: 0, cooking: 5, foraging: 0 };
       return annotateActionsWithChance(LOCATIONS.orphanage.actions, {
         player: { stats: initialStats, skills: initialSkills },
       } as any);

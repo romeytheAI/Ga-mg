@@ -44,25 +44,25 @@ describe('defaultPlayerParasiteState', () => {
 // ── resolveAttachParasite ─────────────────────────────────────────────────────
 
 describe('resolveAttachParasite', () => {
-  it('attaches a blood_leech', () => {
-    const result = resolveAttachParasite(initialState, 'blood_leech', 1);
+  it('attaches a cinder_tick', () => {
+    const result = resolveAttachParasite(initialState, 'cinder_tick', 1);
     expect(result.attached).toBe(true);
     expect(result.parasite_state.parasites).toHaveLength(1);
-    expect(result.parasite_state.parasites[0].species).toBe('blood_leech');
+    expect(result.parasite_state.parasites[0].species).toBe('cinder_tick');
   });
 
   it('returns non-empty narrative', () => {
-    const result = resolveAttachParasite(initialState, 'dream_moth', 1);
+    const result = resolveAttachParasite(initialState, 'ancestor_moth', 1);
     expect(result.narrative.length).toBeGreaterThan(10);
   });
 
   it('caps at 5 parasites', () => {
     let state = initialState;
-    for (const species of ['brain_worm', 'blood_leech', 'void_tick', 'dream_moth', 'marrow_grub'] as ParasiteSpecies[]) {
+    for (const species of ['kwama_larva', 'cinder_tick', 'chaurus_larva', 'ancestor_moth', 'bone_grub'] as ParasiteSpecies[]) {
       const r = resolveAttachParasite(state, species, 1);
       state = { ...state, player: { ...state.player, parasite_state: r.parasite_state } };
     }
-    const overflow = resolveAttachParasite(state, 'brain_worm', 2);
+    const overflow = resolveAttachParasite(state, 'kwama_larva', 2);
     expect(overflow.attached).toBe(false);
     expect(overflow.narrative.length).toBeGreaterThan(5);
   });
@@ -74,7 +74,7 @@ describe('resolveRemoveParasite', () => {
   it('removes by index', () => {
     const stateWithParasite = {
       ...initialState,
-      player: { ...initialState.player, parasite_state: withParasite('brain_worm', 50) },
+      player: { ...initialState.player, parasite_state: withParasite('kwama_larva', 50) },
     };
     const removed = resolveRemoveParasite(stateWithParasite, 0);
     expect(removed.parasites).toHaveLength(0);
@@ -95,13 +95,13 @@ describe('resolvePurgeAllParasites', () => {
 
 describe('tickPlayerParasites', () => {
   it('grows parasite maturity over time', () => {
-    const state = withParasite('blood_leech', 0);
+    const state = withParasite('cinder_tick', 0);
     const after = tickPlayerParasites(state, 24);
     expect(after.parasites[0].maturity).toBeGreaterThan(0);
   });
 
   it('develops symbiosis at high maturity', () => {
-    const state = withParasite('dream_moth', 80); // dream_moth has highest symbiosis_chance
+    const state = withParasite('ancestor_moth', 80); // ancestor_moth has highest symbiosis_chance
     const after = tickPlayerParasites(state, 100);
     expect(after.parasites[0].symbiosis).toBeGreaterThan(0);
   });
@@ -122,14 +122,14 @@ describe('getParasiteEffects', () => {
   });
 
   it('returns positive drain when infested', () => {
-    const state = withParasite('marrow_grub', 80);
+    const state = withParasite('bone_grub', 80);
     const effects = getParasiteEffects(state);
     expect(effects.health_per_hour).toBeGreaterThan(0);
     expect(effects.is_infested).toBe(true);
   });
 
   it('returns symbiotic regen when symbiosis > 60', () => {
-    const state = withParasite('dream_moth', 80, 80);
+    const state = withParasite('ancestor_moth', 80, 80);
     const effects = getParasiteEffects(state);
     expect(effects.symbiotic_regen_per_hour).toBeGreaterThan(0);
   });
@@ -146,11 +146,11 @@ describe('parasiteSummary', () => {
   });
 
   it('infested summary lists parasite', () => {
-    const state = withParasite('void_tick', 60);
+    const state = withParasite('chaurus_larva', 60);
     const summary = parasiteSummary(state);
     expect(summary.is_infested).toBe(true);
     expect(summary.parasite_count).toBe(1);
-    expect(summary.entries[0].species).toBe('void_tick');
+    expect(summary.entries[0].species).toBe('chaurus_larva');
     expect(summary.entries[0].symbiosis_label).toBe('Hostile');
   });
 });
