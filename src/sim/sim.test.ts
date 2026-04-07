@@ -876,10 +876,10 @@ describe('TransformationSystem', () => {
     expect(effects['corruption']).toBe(10);
   });
 
-  it('evaluateAscension returns pure_soul for high purity low corruption', () => {
+  it('evaluateAscension returns divine_spark for high purity low corruption', () => {
     const state = defaultTransformationState();
     const corruption = { ...defaultCorruptionState(), corruption: 5, purity: 90 };
-    expect(evaluateAscension(state, corruption)).toBe('pure_soul');
+    expect(evaluateAscension(state, corruption)).toBe('divine_spark');
   });
 
   it('evaluateAscension returns none when no path qualifies', () => {
@@ -893,12 +893,12 @@ describe('TransformationSystem', () => {
     const corruption = { ...defaultCorruptionState(), corruption: 5, purity: 90 };
     const ticked = tickAscension(state, corruption, 1);
     expect(ticked.ascension_progress).toBeGreaterThan(0);
-    expect(ticked.ascension).toBe('pure_soul');
+    expect(ticked.ascension).toBe('divine_spark');
   });
 
   it('ascensionLabel returns readable labels', () => {
     expect(ascensionLabel('none')).toBe('Unascended');
-    expect(ascensionLabel('void_lord')).toBe('Void Lord');
+    expect(ascensionLabel('daedric_champion')).toBe('Daedric Champion');
   });
 
   it('mutationResistanceLabel returns labels based on resistance', () => {
@@ -983,36 +983,36 @@ describe('DiseaseSystem', () => {
 
   it('contractDisease adds disease entry', () => {
     const state = defaultDiseaseState();
-    const infected = contractDisease(state, 'plague', 1);
+    const infected = contractDisease(state, 'ataxia', 1);
     expect(infected.active_diseases).toHaveLength(1);
-    expect(infected.active_diseases[0].disease).toBe('plague');
+    expect(infected.active_diseases[0].disease).toBe('ataxia');
     expect(infected.active_diseases[0].severity).toBe(5);
   });
 
   it('contractDisease does not duplicate existing disease', () => {
     let state = defaultDiseaseState();
-    state = contractDisease(state, 'plague', 1);
-    state = contractDisease(state, 'plague', 2);
+    state = contractDisease(state, 'ataxia', 1);
+    state = contractDisease(state, 'ataxia', 2);
     expect(state.active_diseases).toHaveLength(1);
   });
 
   it('treatDisease marks disease as treated', () => {
     let state = defaultDiseaseState();
-    state = contractDisease(state, 'rot', 1);
-    state = treatDisease(state, 'rot');
+    state = contractDisease(state, 'rattles', 1);
+    state = treatDisease(state, 'rattles');
     expect(state.active_diseases[0].treated).toBe(true);
   });
 
   it('tickDisease progresses untreated diseases', () => {
     let state = defaultDiseaseState();
-    state = contractDisease(state, 'mind_fever', 1);
+    state = contractDisease(state, 'brain_rot', 1);
     const ticked = tickDisease(state, 5);
     expect(ticked.active_diseases[0].severity).toBeGreaterThan(5);
   });
 
   it('tickDisease reduces severity of treated diseases', () => {
     let state = defaultDiseaseState();
-    state = contractDisease(state, 'chill_pox', 1);
+    state = contractDisease(state, 'bone_break_fever', 1);
     state = { ...state, active_diseases: state.active_diseases.map(d => ({ ...d, severity: 40, treated: true })) };
     const ticked = tickDisease(state, 5);
     expect(ticked.active_diseases[0].severity).toBeLessThan(40);
@@ -1020,16 +1020,16 @@ describe('DiseaseSystem', () => {
 
   it('tickDisease grants immunity after recovery', () => {
     let state = defaultDiseaseState();
-    state = contractDisease(state, 'chill_pox', 1);
+    state = contractDisease(state, 'bone_break_fever', 1);
     state = { ...state, active_diseases: state.active_diseases.map(d => ({ ...d, severity: 1, treated: true })) };
     const ticked = tickDisease(state, 5);
     expect(ticked.active_diseases).toHaveLength(0);
-    expect(ticked.immunities['chill_pox']).toBeGreaterThan(0);
+    expect(ticked.immunities['bone_break_fever']).toBeGreaterThan(0);
   });
 
   it('diseaseHealthDrain returns drain proportional to severity', () => {
     let state = defaultDiseaseState();
-    state = contractDisease(state, 'blood_curse', 1);
+    state = contractDisease(state, 'sanguinare_vampiris', 1);
     state = { ...state, active_diseases: state.active_diseases.map(d => ({ ...d, severity: 80 })) };
     expect(diseaseHealthDrain(state)).toBeGreaterThan(0);
   });
@@ -1158,32 +1158,32 @@ describe('ParasiteSystem', () => {
 
   it('attachParasite adds a parasite', () => {
     const state = defaultParasiteState();
-    const updated = attachParasite(state, 'blood_leech', 1);
+    const updated = attachParasite(state, 'cinder_tick', 1);
     expect(updated.parasites).toHaveLength(1);
-    expect(updated.parasites[0].species).toBe('blood_leech');
+    expect(updated.parasites[0].species).toBe('cinder_tick');
   });
 
   it('attachParasite caps at 5 parasites', () => {
     let state = defaultParasiteState();
     for (let i = 0; i < 7; i++) {
-      state = attachParasite(state, 'brain_worm', i);
+      state = attachParasite(state, 'kwama_larva', i);
     }
     expect(state.parasites).toHaveLength(5);
   });
 
   it('removeParasite removes by index', () => {
     let state = defaultParasiteState();
-    state = attachParasite(state, 'void_tick', 1);
-    state = attachParasite(state, 'dream_moth', 2);
+    state = attachParasite(state, 'chaurus_larva', 1);
+    state = attachParasite(state, 'ancestor_moth', 2);
     state = removeParasite(state, 0);
     expect(state.parasites).toHaveLength(1);
-    expect(state.parasites[0].species).toBe('dream_moth');
+    expect(state.parasites[0].species).toBe('ancestor_moth');
   });
 
   it('purgeAllParasites clears everything', () => {
     let state = defaultParasiteState();
-    state = attachParasite(state, 'marrow_grub', 1);
-    state = attachParasite(state, 'blood_leech', 2);
+    state = attachParasite(state, 'bone_grub', 1);
+    state = attachParasite(state, 'cinder_tick', 2);
     const purged = purgeAllParasites(state);
     expect(purged.parasites).toHaveLength(0);
     expect(purged.infestation_level).toBe(0);
@@ -1191,28 +1191,28 @@ describe('ParasiteSystem', () => {
 
   it('tickParasite increases maturity over time', () => {
     let state = defaultParasiteState();
-    state = attachParasite(state, 'blood_leech', 1);
+    state = attachParasite(state, 'cinder_tick', 1);
     const ticked = tickParasite(state, 10);
     expect(ticked.parasites[0].maturity).toBeGreaterThan(0);
   });
 
   it('totalHealthDrain returns drain from parasites', () => {
     let state = defaultParasiteState();
-    state = attachParasite(state, 'marrow_grub', 1);
+    state = attachParasite(state, 'bone_grub', 1);
     state = { ...state, parasites: state.parasites.map(p => ({ ...p, maturity: 80, health_drain: 2 })) };
     expect(totalHealthDrain(state)).toBeGreaterThan(0);
   });
 
   it('totalCorruptionBuff returns corruption from parasites', () => {
     let state = defaultParasiteState();
-    state = attachParasite(state, 'void_tick', 1);
+    state = attachParasite(state, 'chaurus_larva', 1);
     state = { ...state, parasites: state.parasites.map(p => ({ ...p, maturity: 80, corruption_buff: 0.5 })) };
     expect(totalCorruptionBuff(state)).toBeGreaterThan(0);
   });
 
   it('symbioticHealthRegen returns regen from symbiotic parasites', () => {
     let state = defaultParasiteState();
-    state = attachParasite(state, 'dream_moth', 1);
+    state = attachParasite(state, 'ancestor_moth', 1);
     state = { ...state, parasites: state.parasites.map(p => ({ ...p, symbiosis: 80 })) };
     expect(symbioticHealthRegen(state)).toBeGreaterThan(0);
   });

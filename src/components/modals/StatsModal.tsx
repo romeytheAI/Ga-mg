@@ -1,8 +1,13 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { X } from 'lucide-react';
+import { X, Briefcase, Zap, Star } from 'lucide-react';
 import { GameState, StatKey } from '../../types';
 import { CharacterModel } from '../CharacterModel';
+import { JOB_LABELS, jobRiskLevel } from '../../utils/jobEngine';
+import { addictionSummary, substanceLabel } from '../../utils/addictionEngine';
+import { transformationSummary, ascensionLabel, mutationResistanceLabel } from '../../utils/transformationEngine';
+import { fameSummary } from '../../utils/fameEngine';
+import { allureSummary } from '../../utils/allureEngine';
 
 interface StatsModalProps {
   state: GameState;
@@ -231,6 +236,160 @@ export const StatsModal: React.FC<StatsModalProps> = ({ state, dispatch }) => {
               </div>
             </div>
           )}
+
+          {/* ── Milestone 9: Employment & Addiction ─────────────────────── */}
+          <div className="col-span-2 space-y-4 mt-4 pt-6 border-t border-white/10">
+            <h3 className="text-xs tracking-widest uppercase text-white/40 mb-2 flex items-center gap-2">
+              <Briefcase className="w-3 h-3" /> Employment &amp; Substances
+            </h3>
+            <div className="grid grid-cols-2 gap-3">
+              {/* Current job */}
+              <div className="p-3 bg-white/[0.02] border border-white/5 rounded-sm">
+                <span className="text-[9px] uppercase text-white/30 block mb-1">Current Job</span>
+                <span className="text-sm text-white/80 font-serif capitalize">
+                  {JOB_LABELS[state.player.player_job]}
+                </span>
+                <span className={`text-[9px] mt-1 block ${
+                  jobRiskLevel(state.player.player_job) === 'dangerous' ? 'text-red-400/70' :
+                  jobRiskLevel(state.player.player_job) === 'moderate'  ? 'text-amber-400/70' :
+                  'text-green-400/70'
+                }`}>
+                  {jobRiskLevel(state.player.player_job) !== 'safe' ? `⚠ ${jobRiskLevel(state.player.player_job)}` : '✓ safe'}
+                </span>
+              </div>
+              {/* Overall addiction */}
+              <div className="p-3 bg-white/[0.02] border border-white/5 rounded-sm">
+                <span className="text-[9px] uppercase text-white/30 block mb-1">Dependency</span>
+                {(() => {
+                  const summary = addictionSummary(state.player.addiction_state);
+                  return summary.substance_count === 0 ? (
+                    <span className="text-sm text-green-400/70 font-serif">Clean</span>
+                  ) : (
+                    <>
+                      <span className={`text-sm font-serif ${summary.overall_label === 'Crippling' ? 'text-red-400' : summary.overall_label === 'Severe' ? 'text-orange-400' : 'text-amber-400'}`}>
+                        {summary.overall_label}
+                      </span>
+                      <span className="text-[9px] text-white/40 block">{summary.substance_count} substance{summary.substance_count > 1 ? 's' : ''}</span>
+                    </>
+                  );
+                })()}
+              </div>
+            </div>
+
+            {/* Addiction detail rows */}
+            {(() => {
+              const summary = addictionSummary(state.player.addiction_state);
+              if (summary.substance_count === 0) return null;
+              return (
+                <div className="space-y-2">
+                  {summary.entries.map(entry => (
+                    <div key={entry.substance} className="p-2 bg-white/[0.02] border border-white/5 rounded-sm">
+                      <div className="flex justify-between text-[10px] mb-1">
+                        <span className="text-white/60">{substanceLabel(entry.substance)}</span>
+                        <span className={entry.withdrawal > 20 ? 'text-red-400/80' : 'text-white/40'}>{entry.withdrawal_label !== 'None' ? `Withdrawing: ${entry.withdrawal_label}` : entry.label}</span>
+                      </div>
+                      <div className="h-1 bg-white/5 rounded-full overflow-hidden">
+                        <div className="h-full bg-amber-600/60" style={{ width: `${entry.dependency}%` }} />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              );
+            })()}
+          </div>
+
+          {/* ── Milestone 10: Transformation / Ascension ────────────────── */}
+          {(() => {
+            const tSummary = transformationSummary(state.player.transformation);
+            return (
+              <div className="col-span-2 space-y-4 mt-4 pt-6 border-t border-white/10">
+                <h3 className="text-xs tracking-widest uppercase text-white/40 mb-2 flex items-center gap-2">
+                  <Zap className="w-3 h-3" /> Transformation
+                </h3>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="p-3 bg-white/[0.02] border border-white/5 rounded-sm">
+                    <span className="text-[9px] uppercase text-white/30 block mb-1">Ascension Path</span>
+                    <span className={`text-sm font-serif ${tSummary.ascension_path !== 'none' ? 'text-violet-300' : 'text-white/50'}`}>
+                      {tSummary.ascension_label}
+                    </span>
+                    {tSummary.ascension_path !== 'none' && (
+                      <div className="w-full h-1 bg-white/5 rounded-full mt-2 overflow-hidden">
+                        <div className="h-full bg-violet-500/60" style={{ width: `${tSummary.ascension_progress}%` }} />
+                      </div>
+                    )}
+                  </div>
+                  <div className="p-3 bg-white/[0.02] border border-white/5 rounded-sm">
+                    <span className="text-[9px] uppercase text-white/30 block mb-1">Mutation Resistance</span>
+                    <span className="text-sm text-white/70 font-serif">{tSummary.mutation_resistance_label}</span>
+                    <span className="text-[9px] text-white/30 block mt-1">{tSummary.body_change_count} change{tSummary.body_change_count !== 1 ? 's' : ''} ({tSummary.permanent_change_count} permanent)</span>
+                  </div>
+                </div>
+                {state.player.transformation.body_changes.length > 0 && (
+                  <div className="space-y-1">
+                    {state.player.transformation.body_changes.map(change => (
+                      <div key={change.id} className="flex items-center justify-between text-[10px] px-2 py-1 bg-white/[0.02] border border-white/5 rounded-sm">
+                        <span className="text-white/60">{change.description}</span>
+                        <span className={`text-[9px] ${change.permanent ? 'text-violet-400/60' : 'text-white/30'}`}>
+                          {change.type}{change.permanent ? ' · permanent' : ''}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            );
+          })()}
+
+          {/* ── Milestone 11: Fame & Allure ──────────────────────────────── */}
+          {(() => {
+            const fs = fameSummary(state.player.fame_record);
+            const as_ = allureSummary(state);
+            const fameCategories = [
+              { key: 'social',      label: 'Social',      value: fs.social,      color: 'bg-sky-500' },
+              { key: 'wealth_fame', label: 'Wealth',      value: fs.wealth_fame, color: 'bg-amber-500' },
+              { key: 'combat_fame', label: 'Combat',      value: fs.combat_fame, color: 'bg-red-500' },
+              { key: 'crime',       label: 'Crime',       value: fs.crime,       color: 'bg-orange-500' },
+              { key: 'infamy',      label: 'Infamy',      value: fs.infamy,      color: 'bg-rose-700' },
+            ] as const;
+            return (
+              <div className="bg-white/[0.03] border border-white/10 rounded p-3 space-y-3">
+                <div className="flex items-center gap-2 text-amber-300/80 text-[10px] uppercase tracking-widest font-semibold">
+                  <Star className="w-3 h-3" /> Fame &amp; Allure
+                </div>
+
+                {/* Fame breakdown */}
+                <div className="space-y-1">
+                  {fameCategories.map(({ key, label, value, color }) => (
+                    <div key={key} className="flex items-center gap-2">
+                      <span className="text-[9px] text-white/40 w-14">{label}</span>
+                      <div className="flex-1 h-1.5 bg-white/10 rounded-full overflow-hidden">
+                        <div className={`h-full ${color} rounded-full`} style={{ width: `${value}%` }} />
+                      </div>
+                      <span className="text-[9px] text-white/40 w-6 text-right">{Math.round(value)}</span>
+                    </div>
+                  ))}
+                </div>
+                <div className="flex gap-2 text-[9px]">
+                  <span className="px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300/80">{fs.fame_label}</span>
+                  <span className="px-1.5 py-0.5 rounded bg-rose-700/20 text-rose-400/80">{fs.notoriety_label}</span>
+                </div>
+
+                {/* Allure panel */}
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="p-2 bg-white/[0.02] border border-white/5 rounded-sm">
+                    <span className="text-[9px] uppercase text-white/30 block mb-1">Allure</span>
+                    <span className="text-sm text-white/70 font-serif">{as_.allure_label}</span>
+                    <span className="text-[9px] text-white/30 block mt-0.5">{Math.round(as_.effective_allure)}/100</span>
+                  </div>
+                  <div className="p-2 bg-white/[0.02] border border-white/5 rounded-sm">
+                    <span className="text-[9px] uppercase text-white/30 block mb-1">Presence</span>
+                    <span className="text-sm text-white/70 font-serif">{as_.noticeability_label}</span>
+                    <span className="text-[9px] text-white/30 block mt-0.5">{as_.intimidation_label}</span>
+                  </div>
+                </div>
+              </div>
+            );
+          })()}
         </div>
       </motion.div>
     </motion.div>

@@ -245,7 +245,7 @@ export interface HordeRequest {
 }
 
 // ── Transformation ──────────────────────────────────────────────────────────
-export type AscensionPath = 'none' | 'pure_soul' | 'void_lord' | 'broodmother' | 'beast_kin' | 'arcane_vessel';
+export type AscensionPath = 'none' | 'divine_spark' | 'daedric_champion' | 'hist_devoted' | 'hircine_chosen' | 'arcane_conduit';
 
 export interface TransformationState {
   ascension: AscensionPath;
@@ -264,7 +264,7 @@ export interface BodyChange {
 }
 
 // ── Addiction ────────────────────────────────────────────────────────────────
-export type SubstanceType = 'alcohol' | 'moonsugar' | 'skooma' | 'bloodwine' | 'dreamdust' | 'void_essence';
+export type SubstanceType = 'alcohol' | 'moonsugar' | 'skooma' | 'bloodwine' | 'sleeping_tree_sap' | 'void_salts';
 
 export interface AddictionEntry {
   substance: SubstanceType;
@@ -281,7 +281,7 @@ export interface AddictionState {
 }
 
 // ── Disease ──────────────────────────────────────────────────────────────────
-export type DiseaseType = 'plague' | 'rot' | 'mind_fever' | 'blood_curse' | 'swamp_blight' | 'chill_pox';
+export type DiseaseType = 'ataxia' | 'rattles' | 'brain_rot' | 'sanguinare_vampiris' | 'blight' | 'bone_break_fever';
 
 export interface DiseaseEntry {
   disease: DiseaseType;
@@ -320,7 +320,7 @@ export interface ArcaneState {
 }
 
 // ── Parasite ─────────────────────────────────────────────────────────────────
-export type ParasiteSpecies = 'brain_worm' | 'blood_leech' | 'void_tick' | 'dream_moth' | 'marrow_grub';
+export type ParasiteSpecies = 'kwama_larva' | 'cinder_tick' | 'chaurus_larva' | 'ancestor_moth' | 'bone_grub';
 
 export interface ParasiteEntry {
   species: ParasiteSpecies;

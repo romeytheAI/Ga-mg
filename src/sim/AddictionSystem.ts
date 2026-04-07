@@ -29,12 +29,12 @@ function defaultAddictionEntry(substance: SubstanceType, turn: number): Addictio
 // ── Substance Effects ────────────────────────────────────────────────────
 
 const SUBSTANCE_EFFECTS: Record<SubstanceType, { stress_relief: number; energy_boost: number; corruption_risk: number; dependency_rate: number }> = {
-  alcohol:     { stress_relief: 15, energy_boost: -5, corruption_risk: 2,  dependency_rate: 3 },
-  moonsugar:   { stress_relief: 25, energy_boost: 10, corruption_risk: 5,  dependency_rate: 6 },
-  skooma:      { stress_relief: 35, energy_boost: 20, corruption_risk: 10, dependency_rate: 10 },
-  bloodwine:   { stress_relief: 20, energy_boost: 5,  corruption_risk: 8,  dependency_rate: 5 },
-  dreamdust:   { stress_relief: 30, energy_boost: -10, corruption_risk: 3, dependency_rate: 4 },
-  void_essence:{ stress_relief: 40, energy_boost: 15, corruption_risk: 20, dependency_rate: 15 },
+  alcohol:           { stress_relief: 15, energy_boost: -5,  corruption_risk: 2,  dependency_rate: 3  },
+  moonsugar:         { stress_relief: 25, energy_boost: 10,  corruption_risk: 5,  dependency_rate: 6  },
+  skooma:            { stress_relief: 35, energy_boost: 20,  corruption_risk: 10, dependency_rate: 10 },
+  bloodwine:         { stress_relief: 20, energy_boost: 5,   corruption_risk: 8,  dependency_rate: 5  },
+  sleeping_tree_sap: { stress_relief: 30, energy_boost: -10, corruption_risk: 3,  dependency_rate: 4  },
+  void_salts:        { stress_relief: 40, energy_boost: 15,  corruption_risk: 20, dependency_rate: 15 },
 };
 
 // ── Use Substance ────────────────────────────────────────────────────────

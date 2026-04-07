@@ -4,7 +4,7 @@ export function getSynergies(skills: any) {
   if (skills.skulduggery > 50 && skills.athletics > 50) synergies.push({ name: "Shadow Walker", description: "Enhanced stealth and evasion in hostile encounters." });
   if (skills.swimming > 50 && skills.athletics > 50) synergies.push({ name: "Aquatic Predator", description: "Superior mobility and combat effectiveness in water." });
   if (skills.housekeeping > 50 && skills.seduction > 50) synergies.push({ name: "Domestic Bliss", description: "NPCs are more easily charmed in domestic settings." });
-  if (skills.school_grades > 50 && skills.skulduggery > 50) synergies.push({ name: "Criminal Mastermind", description: "Unlocks advanced dialogue options for manipulation and planning." });
+  if (skills.lore_mastery > 50 && skills.skulduggery > 50) synergies.push({ name: "Criminal Mastermind", description: "Unlocks advanced dialogue options for manipulation and planning." });
   return synergies;
 }
 

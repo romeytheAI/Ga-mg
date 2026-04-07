@@ -264,15 +264,143 @@ export interface LifeSim {
     social: number;
   };
   schedule: {
-    work: string | null;
+    /** Active job type — null means unemployed */
+    work: JobType | null;
     leisure: string | null;
     sleep: string | null;
   };
 }
 
-// ── Phase 4: NPC Schedule Types ───────────────────────────────────────────
+// ── Milestone 9: Job / Economy types ─────────────────────────────────────
+/**
+ * Player job types — mirrors EconomySystem's JobType from sim/types.ts but
+ * re-exported at the game-layer so reducers don't need to import from sim/.
+ */
+export type JobType = 'laborer' | 'merchant' | 'guard' | 'healer' | 'scholar' | 'thief' | 'farmer' | 'innkeeper' | 'none';
 
-/** Hour range during which a schedule slot is active (24h, inclusive start/exclusive end) */
+// ── Milestone 9: Addiction / Substance types ──────────────────────────────
+export type SubstanceType = 'alcohol' | 'moonsugar' | 'skooma' | 'bloodwine' | 'sleeping_tree_sap' | 'void_salts';
+
+export interface AddictionEntry {
+  substance: SubstanceType;
+  dependency: number;    // 0–100
+  tolerance: number;     // 0–100
+  withdrawal: number;    // 0–100
+  last_use_turn: number;
+  total_uses: number;
+}
+
+export interface PlayerAddictionState {
+  addictions: AddictionEntry[];
+  overall_dependency: number; // 0–100 mean of all active substances
+}
+
+// ── Milestone 10: Transformation / Ascension types ──────────────────────────
+export type AscensionPath = 'none' | 'divine_spark' | 'daedric_champion' | 'hist_devoted' | 'hircine_chosen' | 'arcane_conduit';
+
+export interface PlayerBodyChange {
+  id: string;
+  type: 'cosmetic' | 'structural' | 'supernatural';
+  description: string;
+  turn_acquired: number;
+  permanent: boolean;
+  stat_effects: Partial<Record<'health' | 'stamina' | 'willpower' | 'allure' | 'corruption', number>>;
+}
+
+export interface PlayerTransformation {
+  ascension: AscensionPath;
+  ascension_progress: number;   // 0–100
+  body_changes: PlayerBodyChange[];
+  mutation_resistance: number;  // 0–100
+}
+
+// ── Milestone 10: Disease types ──────────────────────────────────────────────
+export type DiseaseType = 'ataxia' | 'rattles' | 'brain_rot' | 'sanguinare_vampiris' | 'blight' | 'bone_break_fever';
+
+export interface PlayerDiseaseEntry {
+  disease: DiseaseType;
+  severity: number;        // 0–100
+  duration_turns: number;
+  treated: boolean;
+  immunity: number;        // 0–100
+}
+
+export interface PlayerDiseaseState {
+  active_diseases: PlayerDiseaseEntry[];
+  immunities: Partial<Record<DiseaseType, number>>;
+  overall_health_penalty: number;
+}
+
+// ── Milestone 10: Parasite types ─────────────────────────────────────────────
+export type ParasiteSpecies = 'kwama_larva' | 'cinder_tick' | 'chaurus_larva' | 'ancestor_moth' | 'bone_grub';
+
+export interface PlayerParasiteEntry {
+  species: ParasiteSpecies;
+  maturity: number;        // 0–100
+  symbiosis: number;       // 0–100
+  health_drain: number;
+  stamina_drain: number;
+  corruption_buff: number;
+  turn_acquired: number;
+}
+
+export interface PlayerParasiteState {
+  parasites: PlayerParasiteEntry[];
+  infestation_level: number;   // 0–100
+  symbiotic_benefits: number;  // 0–100
+}
+
+// ── Milestone 10: Companion types ────────────────────────────────────────────
+export type CompanionRole = 'fighter' | 'healer' | 'scout' | 'pack_mule' | 'familiar';
+
+export interface PlayerCompanionEntry {
+  id: string;
+  name: string;
+  role: CompanionRole;
+  loyalty: number;       // 0–100
+  morale: number;        // 0–100
+  health: number;        // 0–100
+  stamina: number;       // 0–100
+  combat_skill: number;  // 0–100
+  bond: number;          // 0–100
+  turns_together: number;
+}
+
+export interface PlayerCompanionState {
+  companions: PlayerCompanionEntry[];
+  max_party_size: number;
+  party_synergy: number; // 0–100
+}
+
+// ── Milestone 11: Fame & Allure types ───────────────────────────────────────
+
+/** Detailed breakdown of player fame across social, criminal, and combat categories */
+export interface PlayerFameRecord {
+  /** Positive social standing — from good deeds, performance, commerce */
+  social: number;       // 0–100
+  /** Criminal notoriety — from crimes, theft, bounties */
+  crime: number;        // 0–100
+  /** Merchant/wealth reputation */
+  wealth_fame: number;  // 0–100
+  /** Combat renown — from fights, guard service, duels */
+  combat_fame: number;  // 0–100
+  /** General infamy — from scandal, betrayal, hostile acts */
+  infamy: number;       // 0–100
+}
+
+/** Computed allure and presence state for the player */
+export interface PlayerAllureState {
+  /** Base attractiveness (from character creation/traits) */
+  base_allure: number;  // 0–100
+  /** Effective allure after clothing/fame/corruption modifiers */
+  effective_allure: number; // 0–100
+  /** How noticeable the player is (draws more NPC attention) */
+  noticeability: number; // 0–100
+  /** How intimidating the player appears (reduces hostile encounter chance) */
+  intimidation: number;  // 0–100
+}
+
+
 export interface NpcTimeWindow {
   /** Start hour (0–23) */
   from: number;
@@ -521,6 +649,24 @@ export interface ClothingState {
   summary: ClothingSummary;
 }
 
+// ── Restraint System ──────────────────────────────────────────────────────
+export type RestraintSlot = 'wrists' | 'ankles' | 'neck' | 'waist' | 'mouth';
+
+export interface RestraintEntry {
+  slot: RestraintSlot;
+  name: string;
+  strength: number;    // 0-100, difficulty to escape
+  comfort: number;     // 0-100, 0 = painful
+  turn_applied: number;
+}
+
+export interface PlayerRestraints {
+  entries: RestraintEntry[];
+  escape_progress: number;  // 0-100
+  movement_penalty: number; // 0-1, fraction of movement lost
+  action_penalty: number;   // 0-1, fraction of action effectiveness lost
+}
+
 // ── Quest System ─────────────────────────────────────────────────────────
 export interface QuestObjective {
   id: string;
@@ -742,7 +888,7 @@ export interface GameState {
     /** Core stats - all StatKeys (health, stamina, willpower, lust, trauma, etc.) + max values */
     stats: Record<StatKey, number> & { max_health: number, max_willpower: number, max_stamina: number },
     /** Player skills - all 0-100 scale, trainable through gameplay */
-    skills: { seduction: number, athletics: number, skulduggery: number, swimming: number, dancing: number, housekeeping: number, school_grades: number, tending: number, cooking: number, foraging: number },
+    skills: { seduction: number, athletics: number, skulduggery: number, swimming: number, dancing: number, housekeeping: number, lore_mastery: number, tending: number, cooking: number, foraging: number },
     /** Currency - earned through jobs, theft, rewards */
     gold: number,
     /** Positive reputation - increases from heroic acts, performance */
@@ -777,8 +923,25 @@ export interface GameState {
     base: PlayerBase,
     subconscious: PlayerSubconscious,
     biology: { cycle_day: number, heat_rut_active: boolean, parasites: Parasite[], incubations: Incubation[], cravings: string[], exhaustion_multiplier: number, post_partum_debuff: number, sterility: boolean, fertility_cycle: string, fertility: number, lactation_level: number },
+    restraints: PlayerRestraints | null,
     status_effects: string[],
     life_sim: LifeSim,
+    /** Active job type — 'none' when unemployed (Milestone 9) */
+    player_job: JobType,
+    /** Substance addiction state — tracks dependency, tolerance, withdrawal (Milestone 9) */
+    addiction_state: PlayerAddictionState,
+    /** Body transformation and ascension path (Milestone 10) */
+    transformation: PlayerTransformation,
+    /** Active diseases and immunities (Milestone 10) */
+    disease_state: PlayerDiseaseState,
+    /** Parasite infestation state (Milestone 10) */
+    parasite_state: PlayerParasiteState,
+    /** Party companion roster (Milestone 10) */
+    companion_state: PlayerCompanionState,
+    /** Fame breakdown across social/crime/wealth/combat/infamy categories (Milestone 11) */
+    fame_record: PlayerFameRecord,
+    /** Computed allure and presence state (Milestone 11) */
+    allure_state: PlayerAllureState,
     age_days: number,
     avatar_url?: string | null,
     quests: Quest[],
@@ -818,7 +981,7 @@ export interface GameState {
     arcane: any,
     justice: any,
     dreamscape: any,
-    ascension_state: 'none' | 'pure_soul' | 'void_lord' | 'broodmother' | 'asylum',
+    ascension_state: 'none' | 'divine_spark' | 'daedric_champion' | 'hist_devoted' | 'sheogorath_touched',
     director_cut: boolean,
     active_encounter: ActiveEncounter | null,
     active_story_event: ActiveStoryEvent | null

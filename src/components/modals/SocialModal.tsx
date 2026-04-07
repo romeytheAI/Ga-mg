@@ -1,8 +1,9 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { X, Heart, Shield, Users, Swords, Star } from 'lucide-react';
+import { X, Heart, Shield, Users, Swords, Star, GitBranch } from 'lucide-react';
 import { GameState } from '../../types';
 import { NPCS } from '../../data/npcs';
+import { computeMilestone, MILESTONE_ORDER } from '../../utils/relationshipEngine';
 
 interface SocialModalProps {
   state: GameState;
@@ -27,14 +28,37 @@ const RELATIONSHIP_BAR_COLOR = (val: number) => {
   return 'bg-red-600';
 };
 
+const MILESTONE_COLOR: Record<string, string> = {
+  stranger:     'text-white/30 border-white/10',
+  acquaintance: 'text-sky-400/70 border-sky-900/40',
+  friend:       'text-green-400/80 border-green-900/40',
+  close:        'text-emerald-400 border-emerald-800/50',
+  lover:        'text-pink-400 border-pink-900/50',
+  bonded:       'text-rose-400 border-rose-800/60',
+};
+
+const MILESTONE_LABEL: Record<string, string> = {
+  stranger:     'Stranger',
+  acquaintance: 'Acquaintance',
+  friend:       'Friend',
+  close:        'Close',
+  lover:        'Lover',
+  bonded:       'Bonded',
+};
+
+/** Visual progress through milestone tiers: 0–5 index */
+function milestoneProgress(milestone: string): number {
+  return MILESTONE_ORDER.indexOf(milestone as any);
+}
+
 export const SocialModal: React.FC<SocialModalProps> = ({ state, dispatch }) => {
   const [tab, setTab] = React.useState<'npcs' | 'companions' | 'reputation'>('npcs');
 
-  // Get NPCs at current location or known NPCs
   const knownNpcs = Object.values(NPCS);
   const companions = state.player.companions;
   const fame = state.player.fame;
   const notoriety = state.player.notoriety;
+  const npcRelationships = state.world.npc_relationships;
 
   return (
     <motion.div
@@ -107,6 +131,15 @@ export const SocialModal: React.FC<SocialModalProps> = ({ state, dispatch }) => 
               const rel = npc.relationship ?? 0;
               const label = RELATIONSHIP_LABEL(rel);
               const barPct = ((rel + 100) / 200) * 100; // -100..+100 → 0..100%
+
+              // Depth data from world.npc_relationships
+              const depth = npcRelationships[npc.id];
+              const milestone = depth
+                ? computeMilestone({ trust: depth.trust, love: depth.love })
+                : 'stranger';
+              const milestoneIdx = milestoneProgress(milestone);
+              const milClr = MILESTONE_COLOR[milestone] || MILESTONE_COLOR.stranger;
+
               return (
                 <motion.div
                   key={npc.id}
@@ -115,18 +148,26 @@ export const SocialModal: React.FC<SocialModalProps> = ({ state, dispatch }) => 
                   transition={{ delay: index * 0.06 }}
                   className="p-4 border border-white/5 bg-white/[0.02] rounded-sm"
                 >
+                  {/* Header row */}
                   <div className="flex justify-between items-start mb-2">
                     <div>
                       <h3 className="text-lg font-serif text-white/90">{npc.name}</h3>
                       <span className="text-[10px] text-white/30 uppercase tracking-widest">{npc.race}</span>
                     </div>
-                    <span className={`text-[10px] uppercase tracking-widest ${label.color}`}>{label.text}</span>
+                    <div className="flex items-center gap-2">
+                      <span className={`text-[9px] uppercase tracking-widest px-2 py-0.5 border rounded-sm ${milClr}`}>
+                        {MILESTONE_LABEL[milestone]}
+                      </span>
+                      <span className={`text-[10px] uppercase tracking-widest ${label.color}`}>{label.text}</span>
+                    </div>
                   </div>
+
                   <p className="text-[10px] text-white/40 mb-3 line-clamp-2">{npc.description}</p>
-                  <div className="flex items-center gap-2">
-                    <span className="text-[8px] text-red-400/60 uppercase">Hostile</span>
+
+                  {/* Affection bar */}
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="text-[8px] text-red-400/60 uppercase w-10 shrink-0">Hostile</span>
                     <div className="flex-1 h-1.5 bg-white/[0.05] rounded-full overflow-hidden relative">
-                      {/* Center marker */}
                       <div className="absolute top-0 bottom-0 left-1/2 w-[1px] bg-white/10" />
                       <motion.div
                         className={`h-full rounded-full ${RELATIONSHIP_BAR_COLOR(rel)}`}
@@ -135,8 +176,55 @@ export const SocialModal: React.FC<SocialModalProps> = ({ state, dispatch }) => 
                         transition={{ duration: 0.5, delay: 0.1 }}
                       />
                     </div>
-                    <span className="text-[8px] text-pink-400/60 uppercase">Beloved</span>
+                    <span className="text-[8px] text-pink-400/60 uppercase w-10 shrink-0 text-right">Beloved</span>
                   </div>
+
+                  {/* Milestone progression pip row */}
+                  <div className="flex items-center gap-1 mb-3">
+                    <GitBranch className="w-2.5 h-2.5 text-white/20 shrink-0 mr-1" />
+                    {MILESTONE_ORDER.map((m, i) => (
+                      <div
+                        key={m}
+                        title={MILESTONE_LABEL[m]}
+                        className={`h-1.5 flex-1 rounded-full transition-all ${i <= milestoneIdx ? 'bg-pink-500/60' : 'bg-white/[0.05]'}`}
+                      />
+                    ))}
+                  </div>
+
+                  {/* Depth stats — only for NPCs with tracked relationships */}
+                  {depth && (
+                    <div className="grid grid-cols-5 gap-1.5 mt-2">
+                      {[
+                        { label: 'Trust', value: depth.trust, color: 'bg-sky-500' },
+                        { label: 'Love',  value: depth.love,  color: 'bg-pink-500' },
+                        { label: 'Fear',  value: depth.fear,  color: 'bg-amber-500' },
+                        { label: 'Dom',   value: depth.dom,   color: 'bg-violet-500' },
+                        { label: 'Sub',   value: depth.sub,   color: 'bg-rose-500' },
+                      ].map(({ label, value, color }) => (
+                        <div key={label} className="flex flex-col gap-0.5">
+                          <span className="text-[7px] uppercase text-white/25 tracking-widest">{label}</span>
+                          <div className="h-1 bg-white/[0.05] rounded-full overflow-hidden">
+                            <div className={`h-full rounded-full ${color}`} style={{ width: `${value}%` }} />
+                          </div>
+                          <span className="text-[7px] font-mono text-white/30">{value}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Interaction summary */}
+                  {depth && (
+                    <div className="flex gap-3 mt-2 pt-2 border-t border-white/5">
+                      <span className="text-[8px] text-white/25 uppercase tracking-widest">
+                        {depth.interaction_count} interaction{depth.interaction_count !== 1 ? 's' : ''}
+                      </span>
+                      {depth.last_interaction_day > 0 && (
+                        <span className="text-[8px] text-white/25 uppercase tracking-widest">
+                          Last: Day {depth.last_interaction_day}
+                        </span>
+                      )}
+                    </div>
+                  )}
                 </motion.div>
               );
             })}

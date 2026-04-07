@@ -73,11 +73,11 @@ export function transformationStatEffects(
 
 const ASCENSION_THRESHOLDS: Record<AscensionPath, { corruption: [number, number]; purity: [number, number]; changes_min: number }> = {
   none: { corruption: [0, 100], purity: [0, 100], changes_min: 0 },
-  pure_soul: { corruption: [0, 15], purity: [80, 100], changes_min: 0 },
-  void_lord: { corruption: [80, 100], purity: [0, 20], changes_min: 5 },
-  broodmother: { corruption: [60, 100], purity: [0, 40], changes_min: 8 },
-  beast_kin: { corruption: [30, 70], purity: [20, 60], changes_min: 4 },
-  arcane_vessel: { corruption: [20, 60], purity: [40, 80], changes_min: 3 },
+  divine_spark:      { corruption: [0, 15], purity: [80, 100], changes_min: 0 },
+  daedric_champion:  { corruption: [80, 100], purity: [0, 20], changes_min: 5 },
+  hist_devoted:      { corruption: [60, 100], purity: [0, 40], changes_min: 8 },
+  hircine_chosen:    { corruption: [30, 70], purity: [20, 60], changes_min: 4 },
+  arcane_conduit:    { corruption: [20, 60], purity: [40, 80], changes_min: 3 },
 };
 
 /** Evaluate which ascension path an NPC qualifies for. */
@@ -130,11 +130,11 @@ export function tickAscension(
 export function ascensionLabel(path: AscensionPath): string {
   const labels: Record<AscensionPath, string> = {
     none: 'Unascended',
-    pure_soul: 'Pure Soul',
-    void_lord: 'Void Lord',
-    broodmother: 'Broodmother',
-    beast_kin: 'Beast-Kin',
-    arcane_vessel: 'Arcane Vessel',
+    divine_spark:     'Divine Spark',
+    daedric_champion: 'Daedric Champion',
+    hist_devoted:     'Hist-Devoted',
+    hircine_chosen:   'Hircine\'s Chosen',
+    arcane_conduit:   'Arcane Conduit',
   };
   return labels[path];
 }

@@ -9,6 +9,14 @@ import { advanceWeekDay, computeDailyStatDeltas } from '../utils/scheduleEngine'
 import { resolveRelationshipInteraction } from '../utils/relationshipEngine';
 import { applyRepWithRivalSpillover, processCrimeEvent, processPayBounty, processServeSentence, defaultCriminalRecord, defaultFactions } from '../utils/factionEngine';
 import { computeClothingState, exposureConsequences } from '../utils/clothingState';
+import { tickPlayerAddictions, getWithdrawalEffects } from '../utils/addictionEngine';
+import { resolveWorkShift } from '../utils/jobEngine';
+import { tickPlayerTransformation } from '../utils/transformationEngine';
+import { tickPlayerDiseases, getDiseaseEffects } from '../utils/diseaseEngine';
+import { tickPlayerParasites, getParasiteEffects } from '../utils/parasiteEngine';
+import { tickPlayerCompanions, getPartyBonuses } from '../utils/companionEngine';
+import { tickPlayerFame } from '../utils/fameEngine';
+import { computePlayerAllure } from '../utils/allureEngine';
 
 const clamp = (value: number, min = 0, max = 100) => Math.min(max, Math.max(min, value));
 
@@ -1187,6 +1195,29 @@ export function gameReducer(state: GameState, action: any): GameState {
       };
     }
 
+    // ── Milestone 11: Gain fame of a specific type ────────────────────────
+    case 'GAIN_FAME': {
+      const { fameType, amount } = action.payload as { fameType: string; amount: number };
+      const VALID_FAME_TYPES = new Set(['social', 'crime', 'wealth_fame', 'combat_fame', 'infamy']);
+      if (!VALID_FAME_TYPES.has(fameType)) {
+        console.warn(`[GAIN_FAME] Unknown fameType "${fameType}" — action ignored.`);
+        return state;
+      }
+      const { resolveGainFame } = require('../utils/fameEngine');
+      const { fame_record } = resolveGainFame(state, fameType, amount);
+      const newStateGF = {
+        ...state,
+        player: { ...state.player, fame_record },
+      };
+      return {
+        ...newStateGF,
+        player: {
+          ...newStateGF.player,
+          allure_state: computePlayerAllure(newStateGF),
+        },
+      };
+    }
+
     // ── DoL-parity: Attitude system ───────────────────────────────────────
     case 'SET_ATTITUDE': {
       const { type, value } = action.payload as { type: keyof typeof state.player.attitudes; value: 'defiant' | 'submissive' | 'neutral' };
@@ -1857,7 +1888,64 @@ export function gameReducer(state: GameState, action: any): GameState {
       newLewdity = { ...newLewdity, exhibitionism: clamp(newLewdity.exhibitionism + exposureImpact.exhibitionism, 0, 100) };
       notoriety = clamp(notoriety + exposureImpact.notoriety, 0, 100);
 
-      return {
+      // ── Pre-compute all per-system ticks + stat mutations before building state ──
+
+      // Milestone 9: tick addiction withdrawal
+      const tickedAddictions = tickPlayerAddictions(
+        state.player.addiction_state,
+        state.world.turn_count,
+        hours,
+      );
+      const wdEffects = getWithdrawalEffects(tickedAddictions);
+      if (wdEffects.in_withdrawal) {
+        newStats.stress  = clamp(newStats.stress  + wdEffects.stress_per_hour  * hours, 0, 100);
+        newStats.stamina = clamp(newStats.stamina - wdEffects.stamina_per_hour * hours, 0, state.player.stats.max_stamina);
+      }
+
+      // Milestone 10: tick diseases → health/stamina drain
+      const tickedDiseases = tickPlayerDiseases(state.player.disease_state, hours);
+      const diseaseEffects = getDiseaseEffects(tickedDiseases);
+      if (diseaseEffects.is_sick) {
+        newStats.health  = clamp(newStats.health  - diseaseEffects.health_per_hour  * hours, 0, state.player.stats.max_health);
+        newStats.stamina = clamp(newStats.stamina - diseaseEffects.stamina_per_hour * hours, 0, state.player.stats.max_stamina);
+      }
+
+      // Milestone 10: tick parasites → drain/buff
+      const tickedParasites = tickPlayerParasites(state.player.parasite_state, hours);
+      const parasiteEffects = getParasiteEffects(tickedParasites);
+      if (parasiteEffects.is_infested) {
+        newStats.health     = clamp(newStats.health     - parasiteEffects.health_per_hour     * hours, 0, state.player.stats.max_health);
+        newStats.stamina    = clamp(newStats.stamina    - parasiteEffects.stamina_per_hour    * hours, 0, state.player.stats.max_stamina);
+        newStats.corruption = clamp(newStats.corruption + parasiteEffects.corruption_per_hour * hours, 0, 100);
+        if (parasiteEffects.symbiotic_regen_per_hour > 0) {
+          newStats.health = clamp(newStats.health + parasiteEffects.symbiotic_regen_per_hour * hours, 0, state.player.stats.max_health);
+        }
+      }
+
+      // Milestone 10: tick companion bonds, morale, stamina
+      const tickedCompanions = tickPlayerCompanions(state.player.companion_state, hours);
+      const partyBonuses = getPartyBonuses(tickedCompanions);
+      if (partyBonuses.heal_rate_per_hour > 0) {
+        newStats.health = clamp(newStats.health + partyBonuses.heal_rate_per_hour * hours, 0, state.player.stats.max_health);
+      }
+
+      // Apply daily stat deltas (NPC schedules, etc.)
+      let finalStats = { ...newStats };
+      if (daysElapsed > 0) {
+        const dailyDeltas = computeDailyStatDeltas(state, daysElapsed);
+        for (const [key, delta] of Object.entries(dailyDeltas.stats)) {
+          const k = key as StatKey;
+          if (typeof finalStats[k] === 'number') {
+            (finalStats as any)[k] = Math.max(0, Math.min(100, (finalStats[k] as number) + (delta ?? 0)));
+          }
+        }
+      }
+
+      // Milestone 10: tick transformation — uses updated stats for accurate ascension evaluation
+      const stateWithUpdatedStats = { ...state, player: { ...state.player, stats: finalStats } };
+      const tickedTransformation = tickPlayerTransformation(stateWithUpdatedStats, hours);
+
+      const advancedState = {
         ...state,
         world: {
           ...state.world,
@@ -1883,18 +1971,7 @@ export function gameReducer(state: GameState, action: any): GameState {
         },
         player: {
           ...state.player,
-          stats: (() => {
-            if (daysElapsed <= 0) return newStats;
-            const dailyDeltas = computeDailyStatDeltas(state, daysElapsed);
-            const s = { ...newStats };
-            for (const [key, delta] of Object.entries(dailyDeltas.stats)) {
-              const k = key as StatKey;
-              if (typeof s[k] === 'number') {
-                (s as any)[k] = Math.max(0, Math.min(100, (s[k] as number) + (delta ?? 0)));
-              }
-            }
-            return s;
-          })(),
+          stats: finalStats,
           clothing_state,
           gold: daysElapsed > 0
             ? state.player.gold + computeDailyStatDeltas(state, daysElapsed).gold_earned
@@ -1905,6 +1982,22 @@ export function gameReducer(state: GameState, action: any): GameState {
           biology: newBiology,
           temperature: { ...state.player.temperature, clothing_warmth: clothingWarmth, body_temp },
           life_sim: { ...state.player.life_sim, needs: newNeeds },
+          addiction_state: tickedAddictions,
+          transformation: tickedTransformation,
+          disease_state: tickedDiseases,
+          parasite_state: tickedParasites,
+          companion_state: tickedCompanions,
+          // Milestone 11: daily fame decay + allure recompute
+          fame_record: daysElapsed > 0 ? tickPlayerFame(state, daysElapsed) : state.player.fame_record,
+        },
+      };
+
+      // Recompute allure after stats/clothing/fame changes
+      return {
+        ...advancedState,
+        player: {
+          ...advancedState.player,
+          allure_state: computePlayerAllure(advancedState),
         },
       };
     }
@@ -2093,6 +2186,311 @@ export function gameReducer(state: GameState, action: any): GameState {
           },
         };
       }
+    }
+
+    // ── Restraint System (Milestone 7 - visual parity) ────────────────────
+    case 'APPLY_RESTRAINT': {
+      const entry = action.payload as import('../types').RestraintEntry;
+      const current = state.player.restraints ?? {
+        entries: [],
+        escape_progress: 0,
+        movement_penalty: 0,
+        action_penalty: 0,
+      };
+      // Replace existing entry for the same slot, or append
+      const existingIdx = current.entries.findIndex(e => e.slot === entry.slot);
+      const newEntries = existingIdx >= 0
+        ? current.entries.map((e, i) => (i === existingIdx ? entry : e))
+        : [...current.entries, entry];
+
+      // Recalculate penalties based on bound slots
+      const wristsBound = newEntries.some(e => e.slot === 'wrists');
+      const anklesBound = newEntries.some(e => e.slot === 'ankles');
+      const movement_penalty = Math.min(1, (wristsBound ? 0.25 : 0) + (anklesBound ? 0.5 : 0));
+      const action_penalty   = Math.min(1, newEntries.length * 0.15);
+
+      return {
+        ...state,
+        player: {
+          ...state.player,
+          restraints: {
+            ...current,
+            entries: newEntries,
+            movement_penalty,
+            action_penalty,
+          },
+        },
+      };
+    }
+
+    case 'REMOVE_RESTRAINT': {
+      const { slot } = action.payload as { slot: import('../types').RestraintSlot };
+      if (!state.player.restraints) return state;
+      const newEntries = state.player.restraints.entries.filter(e => e.slot !== slot);
+      if (newEntries.length === 0) {
+        return { ...state, player: { ...state.player, restraints: null } };
+      }
+      const wristsBound = newEntries.some(e => e.slot === 'wrists');
+      const anklesBound = newEntries.some(e => e.slot === 'ankles');
+      const movement_penalty = Math.min(1, (wristsBound ? 0.25 : 0) + (anklesBound ? 0.5 : 0));
+      const action_penalty   = Math.min(1, newEntries.length * 0.15);
+      return {
+        ...state,
+        player: {
+          ...state.player,
+          restraints: {
+            ...state.player.restraints,
+            entries: newEntries,
+            movement_penalty,
+            action_penalty,
+            escape_progress: 0,
+          },
+        },
+      };
+    }
+
+    case 'CLEAR_RESTRAINTS': {
+      return { ...state, player: { ...state.player, restraints: null } };
+    }
+
+    case 'UPDATE_ESCAPE_PROGRESS': {
+      const { delta } = action.payload as { delta: number };
+      if (!state.player.restraints) return state;
+      const newProgress = Math.min(100, Math.max(0, state.player.restraints.escape_progress + delta));
+      if (newProgress >= 100) {
+        return { ...state, player: { ...state.player, restraints: null } };
+      }
+      return {
+        ...state,
+        player: {
+          ...state.player,
+          restraints: { ...state.player.restraints, escape_progress: newProgress },
+        },
+      };
+    }
+
+    // ── Milestone 9: Job system ───────────────────────────────────────────
+
+    case 'TAKE_JOB': {
+      const { job } = action.payload as { job: import('../types').JobType };
+      return {
+        ...state,
+        player: {
+          ...state.player,
+          player_job: job,
+          life_sim: {
+            ...state.player.life_sim,
+            schedule: { ...state.player.life_sim.schedule, work: job === 'none' ? null : job },
+          },
+          // Guild membership when taking a legitimate job
+          social: job !== 'none' && job !== 'thief'
+            ? { ...state.player.social, guild_member: true }
+            : state.player.social,
+        },
+      };
+    }
+
+    case 'QUIT_JOB': {
+      return {
+        ...state,
+        player: {
+          ...state.player,
+          player_job: 'none',
+          life_sim: {
+            ...state.player.life_sim,
+            schedule: { ...state.player.life_sim.schedule, work: null },
+          },
+        },
+      };
+    }
+
+    case 'WORK_SHIFT': {
+      const job = (action.payload as { job?: import('../types').JobType })?.job ?? state.player.player_job;
+      const result = resolveWorkShift(state, job);
+
+      // Apply skill deltas
+      const newSkills = { ...state.player.skills };
+      for (const [skill, delta] of Object.entries(result.skill_deltas)) {
+        const k = skill as keyof typeof newSkills;
+        if (typeof newSkills[k] === 'number') {
+          (newSkills as any)[k] = Math.min(100, (newSkills[k] as number) + (delta as number));
+        }
+      }
+
+      // Apply stat costs
+      const newStats = { ...state.player.stats };
+      for (const [stat, delta] of Object.entries(result.stat_deltas)) {
+        const k = stat as keyof typeof newStats;
+        if (typeof newStats[k] === 'number') {
+          (newStats as any)[k] = Math.max(0, Math.min(
+            stat === 'stamina' ? newStats.max_stamina : 100,
+            (newStats[k] as number) + (delta as number),
+          ));
+        }
+      }
+
+      // Unlock first-job feat
+      const newFeats = result.feat_id
+        ? state.player.feats.map(f => f.id === result.feat_id ? { ...f, unlocked: true } : f)
+        : state.player.feats;
+
+      // Apply passive job fame bonus for this shift
+      const { applyJobShiftFame } = require('../utils/fameEngine');
+      const shiftStateForFame = {
+        ...state,
+        player: { ...state.player, gold: state.player.gold + result.gold_earned, skills: newSkills, stats: newStats, feats: newFeats },
+      };
+      const updatedFameRecord = applyJobShiftFame(shiftStateForFame);
+
+      const workShiftState = {
+        ...state,
+        player: {
+          ...state.player,
+          gold: state.player.gold + result.gold_earned,
+          skills: newSkills,
+          stats: newStats,
+          feats: newFeats,
+          fame_record: updatedFameRecord,
+        },
+      };
+      return {
+        ...workShiftState,
+        player: {
+          ...workShiftState.player,
+          allure_state: computePlayerAllure(workShiftState),
+        },
+      };
+    }
+
+    // ── Milestone 9: Substance / Addiction ───────────────────────────────
+
+    case 'USE_SUBSTANCE': {
+      const { substance } = action.payload as { substance: import('../types').SubstanceType };
+      const { resolveSubstanceUse } = require('../utils/addictionEngine');      const result = resolveSubstanceUse(state, substance, state.world.turn_count);
+
+      const newStats = { ...state.player.stats };
+      newStats.stress  = clamp(newStats.stress  - result.stress_relief, 0, 100);
+      newStats.stamina = clamp(newStats.stamina  + result.energy_boost, 0, state.player.stats.max_stamina);
+      newStats.corruption = clamp(newStats.corruption + result.corruption_risk, 0, 100);
+
+      return {
+        ...state,
+        player: {
+          ...state.player,
+          stats: newStats,
+          addiction_state: result.addiction_state,
+        },
+      };
+    }
+
+    // ── Milestone 10: Transformation ─────────────────────────────────────
+
+    case 'ADD_BODY_CHANGE': {
+      const { resolveAddBodyChange } = require('../utils/transformationEngine');
+      const { change } = action.payload as { change: import('../types').PlayerBodyChange };
+      const result = resolveAddBodyChange(state, change);
+      return {
+        ...state,
+        player: { ...state.player, transformation: result.transformation },
+      };
+    }
+
+    case 'REMOVE_BODY_CHANGE': {
+      const { resolveRemoveBodyChange } = require('../utils/transformationEngine');
+      const { change_id } = action.payload as { change_id: string };
+      return {
+        ...state,
+        player: { ...state.player, transformation: resolveRemoveBodyChange(state, change_id) },
+      };
+    }
+
+    case 'PURGE_TEMPORARY_CHANGES': {
+      const { resolvePurgeTemporaryChanges } = require('../utils/transformationEngine');
+      return {
+        ...state,
+        player: { ...state.player, transformation: resolvePurgeTemporaryChanges(state) },
+      };
+    }
+
+    // ── Milestone 10: Disease ─────────────────────────────────────────────
+
+    case 'CONTRACT_DISEASE': {
+      const { resolveContractDisease } = require('../utils/diseaseEngine');
+      const { disease, turn } = action.payload as { disease: import('../types').DiseaseType; turn?: number };
+      const result = resolveContractDisease(state, disease, turn ?? state.world.turn_count);
+      return {
+        ...state,
+        player: { ...state.player, disease_state: result.disease_state },
+      };
+    }
+
+    case 'TREAT_DISEASE': {
+      const { resolveTreatDisease } = require('../utils/diseaseEngine');
+      const { disease } = action.payload as { disease: import('../types').DiseaseType };
+      return {
+        ...state,
+        player: { ...state.player, disease_state: resolveTreatDisease(state, disease) },
+      };
+    }
+
+    // ── Milestone 10: Parasites ───────────────────────────────────────────
+
+    case 'ATTACH_PARASITE': {
+      const { resolveAttachParasite } = require('../utils/parasiteEngine');
+      const { species, turn } = action.payload as { species: import('../types').ParasiteSpecies; turn?: number };
+      const result = resolveAttachParasite(state, species, turn ?? state.world.turn_count);
+      return {
+        ...state,
+        player: { ...state.player, parasite_state: result.parasite_state },
+      };
+    }
+
+    case 'REMOVE_PARASITE': {
+      const { resolveRemoveParasite } = require('../utils/parasiteEngine');
+      const { index } = action.payload as { index: number };
+      return {
+        ...state,
+        player: { ...state.player, parasite_state: resolveRemoveParasite(state, index) },
+      };
+    }
+
+    case 'PURGE_PARASITES': {
+      const { resolvePurgeAllParasites } = require('../utils/parasiteEngine');
+      return {
+        ...state,
+        player: { ...state.player, parasite_state: resolvePurgeAllParasites() },
+      };
+    }
+
+    // ── Milestone 10: Companions ──────────────────────────────────────────
+
+    case 'ADD_COMPANION': {
+      const { resolveAddCompanion } = require('../utils/companionEngine');
+      const { companion } = action.payload as { companion: import('../types').PlayerCompanionEntry };
+      const result = resolveAddCompanion(state, companion);
+      return {
+        ...state,
+        player: { ...state.player, companion_state: result.companion_state },
+      };
+    }
+
+    case 'REMOVE_COMPANION': {
+      const { resolveRemoveCompanion } = require('../utils/companionEngine');
+      const { companion_id } = action.payload as { companion_id: string };
+      return {
+        ...state,
+        player: { ...state.player, companion_state: resolveRemoveCompanion(state, companion_id) },
+      };
+    }
+
+    case 'DAMAGE_COMPANION': {
+      const { resolveDamageCompanion } = require('../utils/companionEngine');
+      const { companion_id, damage } = action.payload as { companion_id: string; damage: number };
+      const result = resolveDamageCompanion(state, companion_id, damage);
+      return {
+        ...state,
+        player: { ...state.player, companion_state: result.companion_state },
+      };
     }
 
     default:

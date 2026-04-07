@@ -76,7 +76,7 @@ const SKILL_COLOR: Record<string, string> = {
   swimming: 'bg-cyan-600',
   dancing: 'bg-purple-500',
   housekeeping: 'bg-amber-700',
-  school_grades: 'bg-blue-600',
+  lore_mastery: 'bg-blue-600',
   tending: 'bg-lime-600',
   cooking: 'bg-orange-600',
   foraging: 'bg-emerald-700',

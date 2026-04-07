@@ -19,12 +19,12 @@ export function defaultDiseaseState(): DiseaseState {
 // ── Disease Properties ───────────────────────────────────────────────────
 
 const DISEASE_PROPERTIES: Record<DiseaseType, { progression_rate: number; max_severity: number; health_drain: number; stamina_drain: number; contagion: number }> = {
-  plague:       { progression_rate: 1.5, max_severity: 100, health_drain: 2.0,  stamina_drain: 3.0, contagion: 0.3 },
-  rot:          { progression_rate: 0.8, max_severity: 80,  health_drain: 1.5,  stamina_drain: 1.0, contagion: 0.1 },
-  mind_fever:   { progression_rate: 1.0, max_severity: 90,  health_drain: 0.5,  stamina_drain: 2.0, contagion: 0.2 },
-  blood_curse:  { progression_rate: 0.5, max_severity: 100, health_drain: 3.0,  stamina_drain: 1.5, contagion: 0.0 },
-  swamp_blight: { progression_rate: 1.2, max_severity: 70,  health_drain: 1.0,  stamina_drain: 2.5, contagion: 0.4 },
-  chill_pox:    { progression_rate: 0.6, max_severity: 60,  health_drain: 0.8,  stamina_drain: 1.5, contagion: 0.5 },
+  ataxia:               { progression_rate: 1.5, max_severity: 100, health_drain: 2.0,  stamina_drain: 3.0, contagion: 0.3 },
+  rattles:              { progression_rate: 0.8, max_severity: 80,  health_drain: 1.5,  stamina_drain: 1.0, contagion: 0.1 },
+  brain_rot:            { progression_rate: 1.0, max_severity: 90,  health_drain: 0.5,  stamina_drain: 2.0, contagion: 0.2 },
+  sanguinare_vampiris:  { progression_rate: 0.5, max_severity: 100, health_drain: 3.0,  stamina_drain: 1.5, contagion: 0.0 },
+  blight:               { progression_rate: 1.2, max_severity: 70,  health_drain: 1.0,  stamina_drain: 2.5, contagion: 0.4 },
+  bone_break_fever:     { progression_rate: 0.6, max_severity: 60,  health_drain: 0.8,  stamina_drain: 1.5, contagion: 0.5 },
 };
 
 // ── Contract Disease ─────────────────────────────────────────────────────
