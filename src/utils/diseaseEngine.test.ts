@@ -38,11 +38,11 @@ describe('defaultPlayerDiseaseState', () => {
 // ── resolveContractDisease ────────────────────────────────────────────────────
 
 describe('resolveContractDisease', () => {
-  it('contracts plague when rng passes immunity check', () => {
-    const result = resolveContractDisease(initialState, 'plague', 1, guaranteeRng);
+  it('contracts ataxia when rng passes immunity check', () => {
+    const result = resolveContractDisease(initialState, 'ataxia', 1, guaranteeRng);
     expect(result.contracted).toBe(true);
     expect(result.disease_state.active_diseases).toHaveLength(1);
-    expect(result.disease_state.active_diseases[0].disease).toBe('plague');
+    expect(result.disease_state.active_diseases[0].disease).toBe('ataxia');
   });
 
   it('does not contract when fully immune', () => {
@@ -52,44 +52,44 @@ describe('resolveContractDisease', () => {
         ...initialState.player,
         disease_state: {
           active_diseases: [],
-          immunities: { plague: 100 },
+          immunities: { ataxia: 100 },
           overall_health_penalty: 0,
         },
       },
     };
     // rng=0.0 → Math.random()*100 = 0 < 100 → immune check fires
-    const result = resolveContractDisease(immuneState, 'plague', 1, () => 0.0);
+    const result = resolveContractDisease(immuneState, 'ataxia', 1, () => 0.0);
     expect(result.contracted).toBe(false);
   });
 
   it('does not double-infect an already active disease', () => {
     const sick = {
       ...initialState,
-      player: { ...initialState.player, disease_state: withDisease('chill_pox', 30) },
+      player: { ...initialState.player, disease_state: withDisease('bone_break_fever', 30) },
     };
-    const result = resolveContractDisease(sick, 'chill_pox', 10, guaranteeRng);
+    const result = resolveContractDisease(sick, 'bone_break_fever', 10, guaranteeRng);
     expect(result.disease_state.active_diseases).toHaveLength(1);
   });
 
   it('returns a non-empty contract narrative', () => {
-    const result = resolveContractDisease(initialState, 'rot', 1, guaranteeRng);
+    const result = resolveContractDisease(initialState, 'rattles', 1, guaranteeRng);
     expect(result.narrative.length).toBeGreaterThan(10);
   });
 
   it('returns immune narrative when not contracted', () => {
-    // Fully immune state (immunities: plague=100) + rng=0.0 → blocked
+    // Fully immune state (immunities: ataxia=100) + rng=0.0 → blocked
     const immuneState = {
       ...initialState,
       player: {
         ...initialState.player,
         disease_state: {
           active_diseases: [],
-          immunities: { plague: 100 as number },
+          immunities: { ataxia: 100 as number },
           overall_health_penalty: 0,
         },
       },
     };
-    const result = resolveContractDisease(immuneState, 'plague', 1, () => 0.0);
+    const result = resolveContractDisease(immuneState, 'ataxia', 1, () => 0.0);
     expect(result.contracted).toBe(false);
     expect(result.narrative.length).toBeGreaterThan(5);
   });
@@ -101,14 +101,14 @@ describe('resolveTreatDisease', () => {
   it('marks a disease as treated', () => {
     const sick = {
       ...initialState,
-      player: { ...initialState.player, disease_state: withDisease('rot', 40) },
+      player: { ...initialState.player, disease_state: withDisease('rattles', 40) },
     };
-    const treated = resolveTreatDisease(sick, 'rot');
+    const treated = resolveTreatDisease(sick, 'rattles');
     expect(treated.active_diseases[0].treated).toBe(true);
   });
 
   it('is a no-op for a disease the player does not have', () => {
-    const result = resolveTreatDisease(initialState, 'mind_fever');
+    const result = resolveTreatDisease(initialState, 'brain_rot');
     expect(result.active_diseases).toHaveLength(0);
   });
 });
@@ -117,20 +117,20 @@ describe('resolveTreatDisease', () => {
 
 describe('tickPlayerDiseases', () => {
   it('progresses untreated disease severity over time', () => {
-    const state = withDisease('plague', 10);
+    const state = withDisease('ataxia', 10);
     const after = tickPlayerDiseases(state, 24);
-    const plague = after.active_diseases.find(d => d.disease === 'plague');
+    const plague = after.active_diseases.find(d => d.disease === 'ataxia');
     expect(plague!.severity).toBeGreaterThan(10);
   });
 
   it('reduces treated disease severity over time', () => {
     const state: PlayerDiseaseState = {
-      active_diseases: [{ disease: 'chill_pox', severity: 50, duration_turns: 0, treated: true, immunity: 0 }],
+      active_diseases: [{ disease: 'bone_break_fever', severity: 50, duration_turns: 0, treated: true, immunity: 0 }],
       immunities: {},
       overall_health_penalty: 15,
     };
     const after = tickPlayerDiseases(state, 24);
-    const pox = after.active_diseases.find(d => d.disease === 'chill_pox');
+    const pox = after.active_diseases.find(d => d.disease === 'bone_break_fever');
     if (pox) {
       expect(pox.severity).toBeLessThan(50);
     } else {
@@ -142,13 +142,13 @@ describe('tickPlayerDiseases', () => {
   it('grants immunity after recovery', () => {
     // Start with very low severity treated disease — one tick should cure it
     const state: PlayerDiseaseState = {
-      active_diseases: [{ disease: 'chill_pox', severity: 1, duration_turns: 0, treated: true, immunity: 0 }],
+      active_diseases: [{ disease: 'bone_break_fever', severity: 1, duration_turns: 0, treated: true, immunity: 0 }],
       immunities: {},
       overall_health_penalty: 0,
     };
     const after = tickPlayerDiseases(state, 24);
     expect(after.active_diseases).toHaveLength(0);
-    expect((after.immunities.chill_pox ?? 0)).toBeGreaterThan(0);
+    expect((after.immunities.bone_break_fever ?? 0)).toBeGreaterThan(0);
   });
 
   it('no-op for clean state', () => {
@@ -168,7 +168,7 @@ describe('getDiseaseEffects', () => {
   });
 
   it('returns positive drain when sick', () => {
-    const effects = getDiseaseEffects(withDisease('plague', 80));
+    const effects = getDiseaseEffects(withDisease('ataxia', 80));
     expect(effects.health_per_hour).toBeGreaterThan(0);
     expect(effects.is_sick).toBe(true);
   });
@@ -185,10 +185,10 @@ describe('diseaseSummary', () => {
   });
 
   it('sick summary lists disease', () => {
-    const summary = diseaseSummary(withDisease('rot', 50));
+    const summary = diseaseSummary(withDisease('rattles', 50));
     expect(summary.is_sick).toBe(true);
     expect(summary.active_count).toBe(1);
-    expect(summary.entries[0].disease).toBe('rot');
+    expect(summary.entries[0].disease).toBe('rattles');
     expect(summary.entries[0].severity_label.length).toBeGreaterThan(0);
   });
 });

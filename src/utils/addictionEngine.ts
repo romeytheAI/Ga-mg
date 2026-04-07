@@ -41,21 +41,21 @@ function fromSimState(state: SimLike): PlayerAddictionState {
 // ── Display metadata ──────────────────────────────────────────────────────────
 
 export const SUBSTANCE_LABELS: Record<SubstanceType, string> = {
-  alcohol:      'Mead / Ale',
-  moonsugar:    'Moon Sugar',
-  skooma:       'Skooma',
-  bloodwine:    'Blood Wine',
-  dreamdust:    'Dream Dust',
-  void_essence: 'Void Essence',
+  alcohol:           'Mead / Ale',
+  moonsugar:         'Moon Sugar',
+  skooma:            'Skooma',
+  bloodwine:         'Blood Wine',
+  sleeping_tree_sap: 'Sleeping Tree Sap',
+  void_salts:        'Void Salts',
 };
 
 export const SUBSTANCE_RARITY: Record<SubstanceType, 'common' | 'uncommon' | 'rare' | 'legendary'> = {
-  alcohol:      'common',
-  moonsugar:    'uncommon',
-  skooma:       'uncommon',
-  bloodwine:    'rare',
-  dreamdust:    'rare',
-  void_essence: 'legendary',
+  alcohol:           'common',
+  moonsugar:         'uncommon',
+  skooma:            'uncommon',
+  bloodwine:         'rare',
+  sleeping_tree_sap: 'rare',
+  void_salts:        'legendary',
 };
 
 export function substanceLabel(substance: SubstanceType): string {
@@ -134,15 +134,15 @@ const USE_NARRATIVES: Record<SubstanceType, string[]> = {
     "Dark vitality floods your veins. You feel powerful and slightly sick.",
     "The rich red liquid takes hold — your senses sharpen to a lethal edge.",
   ],
-  dreamdust: [
-    "Dream dust settles over your mind like snow over a battlefield.",
-    "The world loses its urgency. You drift through hours as if underwater.",
-    "Soft oblivion — no pain, no fear, just the slow dissolve of thought.",
+  sleeping_tree_sap: [
+    "The Sleeping Tree's pull fades to a gnawing hollow behind your eyes.",
+    "Without the sap, time moves too fast. Every sensation is too sharp, too real.",
+    "You catch yourself staring at nothing, waiting for the soft oblivion that won't come.",
   ],
-  void_essence: [
-    "The void essence tears a scream from your throat that no one else can hear.",
-    "Reality fractures. You see through the cracks into something that shouldn't exist.",
-    "Power beyond reckoning, and a price paid somewhere in your soul.",
+  void_salts: [
+    "The void salts' absence leaves a cold void in your chest — literally.",
+    "Reality feels too solid, too dull. You saw through the cracks. Now they're sealed.",
+    "Your hands shake. The power is gone, and what remains is hollow and afraid.",
   ],
 };
 

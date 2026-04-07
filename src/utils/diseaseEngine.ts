@@ -47,12 +47,12 @@ export interface ContractDiseaseResult {
 }
 
 const CONTRACT_NARRATIVES: Record<DiseaseType, string> = {
-  plague:       "Your throat tightens. A cough rattles loose — and doesn't stop.",
-  rot:          "An unpleasant warmth spreads from the wound. Something isn't right.",
-  mind_fever:   "The world blurs at the edges. Your thoughts scatter like startled birds.",
-  blood_curse:  "Your veins burn. Someone has cursed your blood.",
-  swamp_blight: "The blight-stench clings to your skin long after you leave the swamp.",
-  chill_pox:    "Small red welts appear. Your skin itches and burns.",
+  ataxia:              "Your hands tremble. Writing, lockpicking, anything precise — suddenly difficult.",
+  rattles:             "An unpleasant warmth spreads from the wound. Your limbs feel heavy and shivering.",
+  brain_rot:           "The world blurs at the edges. Your thoughts scatter like startled birds. Magicka feels distant.",
+  sanguinare_vampiris: "Your veins burn with a cold fire. The sun suddenly feels unwelcoming. The Volkihar's curse is in your blood.",
+  blight:              "The blight-stench clings to your skin long after you leave the ash wastes. Your vision dims.",
+  bone_break_fever:    "A deep ache radiates through your bones. Every step sends a lance of pain up your legs.",
 };
 
 const IMMUNE_NARRATIVE = "Your body shrugs off the exposure. You feel a brief flush, then nothing.";

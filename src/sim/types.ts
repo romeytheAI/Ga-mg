@@ -264,7 +264,7 @@ export interface BodyChange {
 }
 
 // ── Addiction ────────────────────────────────────────────────────────────────
-export type SubstanceType = 'alcohol' | 'moonsugar' | 'skooma' | 'bloodwine' | 'dreamdust' | 'void_essence';
+export type SubstanceType = 'alcohol' | 'moonsugar' | 'skooma' | 'bloodwine' | 'sleeping_tree_sap' | 'void_salts';
 
 export interface AddictionEntry {
   substance: SubstanceType;
@@ -281,7 +281,7 @@ export interface AddictionState {
 }
 
 // ── Disease ──────────────────────────────────────────────────────────────────
-export type DiseaseType = 'plague' | 'rot' | 'mind_fever' | 'blood_curse' | 'swamp_blight' | 'chill_pox';
+export type DiseaseType = 'ataxia' | 'rattles' | 'brain_rot' | 'sanguinare_vampiris' | 'blight' | 'bone_break_fever';
 
 export interface DiseaseEntry {
   disease: DiseaseType;

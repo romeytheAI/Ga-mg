@@ -279,7 +279,7 @@ export interface LifeSim {
 export type JobType = 'laborer' | 'merchant' | 'guard' | 'healer' | 'scholar' | 'thief' | 'farmer' | 'innkeeper' | 'none';
 
 // ── Milestone 9: Addiction / Substance types ──────────────────────────────
-export type SubstanceType = 'alcohol' | 'moonsugar' | 'skooma' | 'bloodwine' | 'dreamdust' | 'void_essence';
+export type SubstanceType = 'alcohol' | 'moonsugar' | 'skooma' | 'bloodwine' | 'sleeping_tree_sap' | 'void_salts';
 
 export interface AddictionEntry {
   substance: SubstanceType;
@@ -315,7 +315,7 @@ export interface PlayerTransformation {
 }
 
 // ── Milestone 10: Disease types ──────────────────────────────────────────────
-export type DiseaseType = 'plague' | 'rot' | 'mind_fever' | 'blood_curse' | 'swamp_blight' | 'chill_pox';
+export type DiseaseType = 'ataxia' | 'rattles' | 'brain_rot' | 'sanguinare_vampiris' | 'blight' | 'bone_break_fever';
 
 export interface PlayerDiseaseEntry {
   disease: DiseaseType;

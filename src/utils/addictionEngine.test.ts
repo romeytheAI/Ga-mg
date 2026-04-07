@@ -42,7 +42,7 @@ function withAddiction(substance: SubstanceType, dependency: number, withdrawal:
 
 describe('substanceLabel', () => {
   it('returns a non-empty label for every substance type', () => {
-    const substances: SubstanceType[] = ['alcohol', 'moonsugar', 'skooma', 'bloodwine', 'dreamdust', 'void_essence'];
+    const substances: SubstanceType[] = ['alcohol', 'moonsugar', 'skooma', 'bloodwine', 'sleeping_tree_sap', 'void_salts'];
     for (const s of substances) {
       expect(substanceLabel(s).length).toBeGreaterThan(0);
     }
@@ -68,14 +68,14 @@ describe('resolveSubstanceUse', () => {
     expect(skooma!.dependency).toBeGreaterThan(0);
   });
 
-  it('void_essence carries highest corruption_risk', () => {
-    const voidResult = resolveSubstanceUse(initialState, 'void_essence', 1, seeded(3));
+  it('void_salts carries highest corruption_risk', () => {
+    const voidResult = resolveSubstanceUse(initialState, 'void_salts', 1, seeded(3));
     const alcoResult = resolveSubstanceUse(initialState, 'alcohol',     1, seeded(3));
     expect(voidResult.corruption_risk).toBeGreaterThan(alcoResult.corruption_risk);
   });
 
   it('returns non-empty narrative', () => {
-    const result = resolveSubstanceUse(initialState, 'dreamdust', 1, seeded(4));
+    const result = resolveSubstanceUse(initialState, 'sleeping_tree_sap', 1, seeded(4));
     expect(result.narrative.length).toBeGreaterThan(10);
   });
 

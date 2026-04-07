@@ -983,36 +983,36 @@ describe('DiseaseSystem', () => {
 
   it('contractDisease adds disease entry', () => {
     const state = defaultDiseaseState();
-    const infected = contractDisease(state, 'plague', 1);
+    const infected = contractDisease(state, 'ataxia', 1);
     expect(infected.active_diseases).toHaveLength(1);
-    expect(infected.active_diseases[0].disease).toBe('plague');
+    expect(infected.active_diseases[0].disease).toBe('ataxia');
     expect(infected.active_diseases[0].severity).toBe(5);
   });
 
   it('contractDisease does not duplicate existing disease', () => {
     let state = defaultDiseaseState();
-    state = contractDisease(state, 'plague', 1);
-    state = contractDisease(state, 'plague', 2);
+    state = contractDisease(state, 'ataxia', 1);
+    state = contractDisease(state, 'ataxia', 2);
     expect(state.active_diseases).toHaveLength(1);
   });
 
   it('treatDisease marks disease as treated', () => {
     let state = defaultDiseaseState();
-    state = contractDisease(state, 'rot', 1);
-    state = treatDisease(state, 'rot');
+    state = contractDisease(state, 'rattles', 1);
+    state = treatDisease(state, 'rattles');
     expect(state.active_diseases[0].treated).toBe(true);
   });
 
   it('tickDisease progresses untreated diseases', () => {
     let state = defaultDiseaseState();
-    state = contractDisease(state, 'mind_fever', 1);
+    state = contractDisease(state, 'brain_rot', 1);
     const ticked = tickDisease(state, 5);
     expect(ticked.active_diseases[0].severity).toBeGreaterThan(5);
   });
 
   it('tickDisease reduces severity of treated diseases', () => {
     let state = defaultDiseaseState();
-    state = contractDisease(state, 'chill_pox', 1);
+    state = contractDisease(state, 'bone_break_fever', 1);
     state = { ...state, active_diseases: state.active_diseases.map(d => ({ ...d, severity: 40, treated: true })) };
     const ticked = tickDisease(state, 5);
     expect(ticked.active_diseases[0].severity).toBeLessThan(40);
@@ -1020,16 +1020,16 @@ describe('DiseaseSystem', () => {
 
   it('tickDisease grants immunity after recovery', () => {
     let state = defaultDiseaseState();
-    state = contractDisease(state, 'chill_pox', 1);
+    state = contractDisease(state, 'bone_break_fever', 1);
     state = { ...state, active_diseases: state.active_diseases.map(d => ({ ...d, severity: 1, treated: true })) };
     const ticked = tickDisease(state, 5);
     expect(ticked.active_diseases).toHaveLength(0);
-    expect(ticked.immunities['chill_pox']).toBeGreaterThan(0);
+    expect(ticked.immunities['bone_break_fever']).toBeGreaterThan(0);
   });
 
   it('diseaseHealthDrain returns drain proportional to severity', () => {
     let state = defaultDiseaseState();
-    state = contractDisease(state, 'blood_curse', 1);
+    state = contractDisease(state, 'sanguinare_vampiris', 1);
     state = { ...state, active_diseases: state.active_diseases.map(d => ({ ...d, severity: 80 })) };
     expect(diseaseHealthDrain(state)).toBeGreaterThan(0);
   });
