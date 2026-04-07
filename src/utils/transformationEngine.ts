@@ -40,6 +40,7 @@ function toCorruptionState(state: GameState): CorruptionState {
     trauma: state.player.stats.trauma,
     willpower: state.player.stats.willpower,
     purity: state.player.stats.purity,
+    control: 100 - state.player.psych_profile.submission_index, // inverse of submission
     submission: state.player.psych_profile.submission_index,
   };
 }

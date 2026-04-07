@@ -986,7 +986,6 @@ export interface GameState {
     active_encounter: ActiveEncounter | null,
     active_story_event: ActiveStoryEvent | null
   },
-  memory_graph: string[],
   /** UI/presentation layer state - polling, display, settings (not persisted in saves) */
   ui: {
     /** AI Horde text generation in progress */
