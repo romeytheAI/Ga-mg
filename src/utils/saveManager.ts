@@ -29,8 +29,7 @@ const DB_VERSION = 1;
  * - v4: Player restraints system (Milestone 7 - visual parity)
  * - v5: Jobs system (player_job, life_sim.schedule.work) + addiction_state (Milestone 9)
  * - v6: transformation, disease_state, parasite_state, companion_state (Milestone 10)
- * - v7: fame_record (PlayerFameRecord) + allure_state (PlayerAllureState) (Milestone 11)
- * - v7: fame_record (PlayerFameRecord) + allure_state (PlayerAllureState) (Milestone 11)
+ * - v7: fame_record (PlayerFameRecord) + allure_state (PlayerAllureState) (Milestone 11); legacy ES enum migration
  *
  * @see docs/STATE-SCHEMA.md for complete state documentation
  * @see migrateGameState() for backward compatibility logic
@@ -39,6 +38,112 @@ export const SAVE_SCHEMA_VERSION = 7;
 const LEGACY_STORY_ID_MAP: Record<string, string> = {
   academy_bully_story: 'school_bully_story',
 };
+
+// ── v7 legacy ES enum migration maps ─────────────────────────────────────────
+
+const LEGACY_PARASITE_SPECIES_MAP: Record<string, string> = {
+  brain_worm:  'kwama_larva',
+  blood_leech: 'cinder_tick',
+  void_tick:   'chaurus_larva',
+  dream_moth:  'ancestor_moth',
+  marrow_grub: 'bone_grub',
+};
+
+const LEGACY_ASCENSION_PATH_MAP: Record<string, string> = {
+  pure_soul:      'divine_spark',
+  void_lord:      'daedric_champion',
+  broodmother:    'hist_devoted',
+  beast_kin:      'hircine_chosen',
+  arcane_vessel:  'arcane_conduit',
+  asylum:         'sheogorath_touched',
+};
+
+const LEGACY_DISEASE_TYPE_MAP: Record<string, string> = {
+  plague:          'blight',
+  minor_plague:    'rattles',
+  fever:           'bone_break_fever',
+  corruption_sickness: 'brain_rot',
+};
+
+const LEGACY_FEAT_ID_MAP: Record<string, string> = {
+  feat_pure_soul: 'feat_divine_spark',
+};
+
+/** Migrate a raw player object's ES content to current enum values. */
+function migrateESContent(player: any): any {
+  if (!player) return player;
+
+  // Migrate parasite species
+  if (player.parasite_state?.parasites) {
+    player = {
+      ...player,
+      parasite_state: {
+        ...player.parasite_state,
+        parasites: player.parasite_state.parasites.map((p: any) => ({
+          ...p,
+          species: LEGACY_PARASITE_SPECIES_MAP[p.species] ?? p.species,
+        })),
+      },
+    };
+  }
+
+  // Migrate ascension path
+  if (player.transformation?.ascension_path) {
+    player = {
+      ...player,
+      transformation: {
+        ...player.transformation,
+        ascension_path: LEGACY_ASCENSION_PATH_MAP[player.transformation.ascension_path]
+          ?? player.transformation.ascension_path,
+      },
+    };
+  }
+
+  // Migrate disease types in active_diseases
+  if (player.disease_state?.active_diseases) {
+    player = {
+      ...player,
+      disease_state: {
+        ...player.disease_state,
+        active_diseases: player.disease_state.active_diseases.map((d: any) => ({
+          ...d,
+          disease: LEGACY_DISEASE_TYPE_MAP[d.disease] ?? d.disease,
+        })),
+        immunities: player.disease_state.immunities
+          ? Object.fromEntries(
+              Object.entries(player.disease_state.immunities).map(([k, v]) => [
+                LEGACY_DISEASE_TYPE_MAP[k] ?? k,
+                v,
+              ])
+            )
+          : player.disease_state.immunities,
+      },
+    };
+  }
+
+  // Migrate skills: school_grades → lore_mastery
+  if (player.skills && 'school_grades' in player.skills) {
+    const { school_grades, ...restSkills } = player.skills;
+    player = {
+      ...player,
+      skills: { lore_mastery: school_grades ?? 0, ...restSkills },
+    };
+  }
+
+  // Migrate feat ids
+  if (Array.isArray(player.feats)) {
+    player = {
+      ...player,
+      feats: player.feats.map((f: any) => ({
+        ...f,
+        id: LEGACY_FEAT_ID_MAP[f.id] ?? f.id,
+      })),
+    };
+  }
+
+  return player;
+}
+
 
 type PartialGameState = Partial<GameState> & {
   player?: Partial<GameState['player']>;
@@ -127,7 +232,8 @@ function resolveCurrentLocation(world: Partial<GameState['world']> | undefined):
  */
 export function migrateGameState(rawState: unknown): GameState {
   const candidate = (rawState && typeof rawState === 'object' ? rawState : {}) as PartialGameState;
-  const player = candidate.player || {};
+  // v7: migrate legacy ES enum values (parasite species, ascension paths, disease types, skill/feat names)
+  const player = migrateESContent(candidate.player || {});
   const world = candidate.world || {};
   const ui = candidate.ui || {};
   const clothing = {

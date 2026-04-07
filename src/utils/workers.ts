@@ -214,7 +214,7 @@ Output JSON Schema:
   "narrative_text": "Detailed description of the outcome",
   "memory_entry": "A concise summary of the player's choice and its immediate consequence to be logged in the memory graph.",
   "stat_deltas": { "health": 0, "stamina": 0, "willpower": 0, "lust": 0, "trauma": 0, "corruption": 0, "arousal": 0, "pain": 0, "control": 0, "stress": 0, "hallucination": 0, "purity": 0 },
-  "skill_deltas": { "seduction": 0, "athletics": 0, "skulduggery": 0, "swimming": 0, "dancing": 0, "housekeeping": 0, "school_grades": 0 },
+  "skill_deltas": { "seduction": 0, "athletics": 0, "skulduggery": 0, "swimming": 0, "dancing": 0, "housekeeping": 0, "lore_mastery": 0 },
   "equipment_integrity_delta": -5,
   "new_affliction": "string or null",
   "hours_passed": 1,

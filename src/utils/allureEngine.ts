@@ -42,24 +42,27 @@ function toSimCorruptionState(state: GameState): CorruptionState {
 
 function toSimClothing(state: GameState): ClothingLoadout {
   const c = state.player.clothing;
-  // Map game ClothingLayer to sim ClothingLoadout (best-effort)
-  const mapSlot = (slot: any) => slot
-    ? {
-        name: slot.name ?? '',
-        slot: slot.slot ?? '',
-        integrity: slot.integrity ?? 100,
-        allure: slot.allure ?? 0,
-        concealment: slot.coverage ?? 0.5,
-        warmth: slot.warmth ?? 0,
-      }
-    : undefined;
+  const clothingSlots = state.player.clothing_state?.slots as Record<string, any> | undefined;
+  // Map game ClothingLayer to sim ClothingLoadout using clothing_state coverage
+  const mapSlot = (item: any, stateSlotKey: string) => {
+    if (!item) return undefined;
+    const slotState = clothingSlots?.[stateSlotKey];
+    return {
+      name: item.name ?? '',
+      slot: item.slot ?? '',
+      integrity: item.integrity ?? 100,
+      allure: item.allure ?? 0,
+      concealment: slotState?.coverage ?? 0.5,
+      warmth: item.warmth ?? 0,
+    };
+  };
   return {
-    head:       mapSlot(c.head),
-    chest:      mapSlot(c.chest ?? c.top),
-    legs:       mapSlot(c.legs ?? c.bottoms),
-    feet:       mapSlot(c.feet ?? c.shoes),
-    hands:      mapSlot(c.hands ?? c.gloves),
-    underwear:  mapSlot(c.underwear),
+    head:      mapSlot(c.head, 'head'),
+    chest:     mapSlot(c.chest ?? (c as any).top, 'chest'),
+    legs:      mapSlot(c.legs ?? (c as any).bottoms, 'legs'),
+    feet:      mapSlot(c.feet ?? (c as any).shoes, 'feet'),
+    hands:     mapSlot(c.hands ?? (c as any).gloves, 'hands'),
+    underwear: mapSlot(c.underwear, 'underwear'),
   } as ClothingLoadout;
 }
 

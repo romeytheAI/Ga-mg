@@ -73,10 +73,15 @@ export function resolveContractDisease(
 ): ContractDiseaseResult {
   const simBefore = toSim(state.player.disease_state);
 
+  // Inject rng by temporarily substituting Math.random (restored in finally)
   const origRandom = Math.random;
-  (Math as any).random = rng;
-  const simAfter = simContract(simBefore, disease as any, turn);
-  (Math as any).random = origRandom;
+  let simAfter: ReturnType<typeof simContract>;
+  try {
+    (Math as any).random = rng;
+    simAfter = simContract(simBefore, disease as any, turn);
+  } finally {
+    (Math as any).random = origRandom;
+  }
 
   const contracted = simAfter.active_diseases.length > simBefore.active_diseases.length;
   return {

@@ -92,11 +92,15 @@ export function resolveAddBodyChange(
   const simBefore = toSim(state.player.transformation);
   const simChange = change as unknown as BodyChange;
 
-  // Inject rng by temporarily substituting Math.random
+  // Inject rng by temporarily substituting Math.random (restored in finally)
   const origRandom = Math.random;
-  (Math as any).random = rng;
-  const simAfter = addBodyChange(simBefore, simChange);
-  (Math as any).random = origRandom;
+  let simAfter: ReturnType<typeof addBodyChange>;
+  try {
+    (Math as any).random = rng;
+    simAfter = addBodyChange(simBefore, simChange);
+  } finally {
+    (Math as any).random = origRandom;
+  }
 
   const resisted = simAfter.body_changes.length === simBefore.body_changes.length;
   const lines = CHANGE_NARRATIVES[change.type];
