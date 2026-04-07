@@ -295,6 +295,83 @@ export interface PlayerAddictionState {
   overall_dependency: number; // 0–100 mean of all active substances
 }
 
+// ── Milestone 10: Transformation / Ascension types ──────────────────────────
+export type AscensionPath = 'none' | 'pure_soul' | 'void_lord' | 'broodmother' | 'beast_kin' | 'arcane_vessel';
+
+export interface PlayerBodyChange {
+  id: string;
+  type: 'cosmetic' | 'structural' | 'supernatural';
+  description: string;
+  turn_acquired: number;
+  permanent: boolean;
+  stat_effects: Partial<Record<'health' | 'stamina' | 'willpower' | 'allure' | 'corruption', number>>;
+}
+
+export interface PlayerTransformation {
+  ascension: AscensionPath;
+  ascension_progress: number;   // 0–100
+  body_changes: PlayerBodyChange[];
+  mutation_resistance: number;  // 0–100
+}
+
+// ── Milestone 10: Disease types ──────────────────────────────────────────────
+export type DiseaseType = 'plague' | 'rot' | 'mind_fever' | 'blood_curse' | 'swamp_blight' | 'chill_pox';
+
+export interface PlayerDiseaseEntry {
+  disease: DiseaseType;
+  severity: number;        // 0–100
+  duration_turns: number;
+  treated: boolean;
+  immunity: number;        // 0–100
+}
+
+export interface PlayerDiseaseState {
+  active_diseases: PlayerDiseaseEntry[];
+  immunities: Partial<Record<DiseaseType, number>>;
+  overall_health_penalty: number;
+}
+
+// ── Milestone 10: Parasite types ─────────────────────────────────────────────
+export type ParasiteSpecies = 'brain_worm' | 'blood_leech' | 'void_tick' | 'dream_moth' | 'marrow_grub';
+
+export interface PlayerParasiteEntry {
+  species: ParasiteSpecies;
+  maturity: number;        // 0–100
+  symbiosis: number;       // 0–100
+  health_drain: number;
+  stamina_drain: number;
+  corruption_buff: number;
+  turn_acquired: number;
+}
+
+export interface PlayerParasiteState {
+  parasites: PlayerParasiteEntry[];
+  infestation_level: number;   // 0–100
+  symbiotic_benefits: number;  // 0–100
+}
+
+// ── Milestone 10: Companion types ────────────────────────────────────────────
+export type CompanionRole = 'fighter' | 'healer' | 'scout' | 'pack_mule' | 'familiar';
+
+export interface PlayerCompanionEntry {
+  id: string;
+  name: string;
+  role: CompanionRole;
+  loyalty: number;       // 0–100
+  morale: number;        // 0–100
+  health: number;        // 0–100
+  stamina: number;       // 0–100
+  combat_skill: number;  // 0–100
+  bond: number;          // 0–100
+  turns_together: number;
+}
+
+export interface PlayerCompanionState {
+  companions: PlayerCompanionEntry[];
+  max_party_size: number;
+  party_synergy: number; // 0–100
+}
+
 
 /** Hour range during which a schedule slot is active (24h, inclusive start/exclusive end) */
 export interface NpcTimeWindow {
@@ -826,6 +903,14 @@ export interface GameState {
     player_job: JobType,
     /** Substance addiction state — tracks dependency, tolerance, withdrawal (Milestone 9) */
     addiction_state: PlayerAddictionState,
+    /** Body transformation and ascension path (Milestone 10) */
+    transformation: PlayerTransformation,
+    /** Active diseases and immunities (Milestone 10) */
+    disease_state: PlayerDiseaseState,
+    /** Parasite infestation state (Milestone 10) */
+    parasite_state: PlayerParasiteState,
+    /** Party companion roster (Milestone 10) */
+    companion_state: PlayerCompanionState,
     age_days: number,
     avatar_url?: string | null,
     quests: Quest[],

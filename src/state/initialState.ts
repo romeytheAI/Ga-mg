@@ -127,6 +127,27 @@ export const initialState: GameState = {
     },
     player_job: 'none' as const,
     addiction_state: { addictions: [], overall_dependency: 0 },
+    transformation: {
+      ascension: 'none' as const,
+      ascension_progress: 0,
+      body_changes: [],
+      mutation_resistance: 50,
+    },
+    disease_state: {
+      active_diseases: [],
+      immunities: {},
+      overall_health_penalty: 0,
+    },
+    parasite_state: {
+      parasites: [],
+      infestation_level: 0,
+      symbiotic_benefits: 0,
+    },
+    companion_state: {
+      companions: [],
+      max_party_size: 3,
+      party_synergy: 0,
+    },
     age_days: 6570, // 18 years
     avatar_url: null,
     quests: [

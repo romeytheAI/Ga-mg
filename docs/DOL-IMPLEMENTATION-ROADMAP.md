@@ -174,3 +174,53 @@ Completed:
 - `src/utils/addictionEngine.test.ts` — 18 tests: substance labels, stress relief, addiction growth, tolerance reduction, withdrawal effects, tick pruning, summary labels
 - 638 total tests pass (43 new), 16 test files, build clean
 
+
+## Milestone 10 — Transformation, Disease, Parasite and Companion Systems ✅
+
+Scope:
+
+- wire TransformationSystem (ascension paths, body changes) into player state and game loop
+- wire DiseaseSystem (infections, treatment, immunity) into player state and ADVANCE_TIME
+- wire ParasiteSystem (infestation, symbiosis, drain/buff) into player state and ADVANCE_TIME
+- wire CompanionSystem (party management, bond mechanics, combat bonuses) into player state and ADVANCE_TIME
+- surface M9 job/addiction state and M10 transformation in StatsModal
+- surface M10 disease/parasite/companion state in StatusModal
+
+Completed:
+
+- `src/types.ts` — `AscensionPath`, `PlayerBodyChange`, `PlayerTransformation`, `DiseaseType`, `PlayerDiseaseEntry`, `PlayerDiseaseState`, `ParasiteSpecies`, `PlayerParasiteEntry`, `PlayerParasiteState`, `CompanionRole`, `PlayerCompanionEntry`, `PlayerCompanionState`; all 4 new fields added to `GameState.player`
+- `src/state/initialState.ts` — default values for `transformation`, `disease_state`, `parasite_state`, `companion_state`
+- `src/utils/transformationEngine.ts` — game-layer bridge over `TransformationSystem.ts`:
+  - `resolveAddBodyChange()` — injectable rng for mutation resistance; returns `{ transformation, resisted, narrative }`
+  - `resolveRemoveBodyChange()` / `resolvePurgeTemporaryChanges()` — targeted/full purge
+  - `getTransformationStatEffects()` — net stat bonuses/penalties from all body changes
+  - `evaluatePlayerAscension()` — maps player stats → qualifying AscensionPath
+  - `tickPlayerTransformation()` — advances ascension progress over elapsed hours
+  - `transformationSummary()` — structured summary for UI
+- `src/utils/diseaseEngine.ts` — game-layer bridge over `DiseaseSystem.ts`:
+  - `resolveContractDisease()` — injectable rng, returns `{ disease_state, contracted, narrative }`
+  - `resolveTreatDisease()` — marks disease as being treated
+  - `tickPlayerDiseases()` — advances severity/recovery, grants immunity on cure
+  - `getDiseaseEffects()` — per-hour health/stamina drain consumed by ADVANCE_TIME
+  - `diseaseSummary()` — structured summary for UI
+- `src/utils/parasiteEngine.ts` — game-layer bridge over `ParasiteSystem.ts`:
+  - `resolveAttachParasite()` — caps at 5, returns narrative
+  - `resolveRemoveParasite()` / `resolvePurgeAllParasites()` — removal helpers
+  - `tickPlayerParasites()` — grows maturity, evolves symbiosis
+  - `getParasiteEffects()` — per-hour drain/regen consumed by ADVANCE_TIME
+  - `parasiteSummary()` — structured summary for UI
+- `src/utils/companionEngine.ts` — game-layer bridge over `CompanionSystem.ts`:
+  - `resolveAddCompanion()` — caps at max_party_size; role-specific join narratives
+  - `resolveRemoveCompanion()` / `resolveDamageCompanion()` — removal, desertion check
+  - `tickPlayerCompanions()` — grows bond/loyalty/morale/stamina over time
+  - `getPartyBonuses()` — combat, heal rate, scout range, carry capacity
+  - `companionSummary()` — structured summary for UI
+- `src/reducers/gameReducer.ts` — 11 new reducer cases: `ADD_BODY_CHANGE`, `REMOVE_BODY_CHANGE`, `PURGE_TEMPORARY_CHANGES`, `CONTRACT_DISEASE`, `TREAT_DISEASE`, `ATTACH_PARASITE`, `REMOVE_PARASITE`, `PURGE_PARASITES`, `ADD_COMPANION`, `REMOVE_COMPANION`, `DAMAGE_COMPANION`; `ADVANCE_TIME` extended with ticks for all 4 systems, applying health/stamina/corruption drain and healer regen each tick
+- `src/utils/saveManager.ts` — schema version v6; migration hydrates all 4 new player fields for old saves
+- `src/components/modals/StatsModal.tsx` — two new panels: (1) Employment & Substances (M9): job label + risk badge, overall dependency label, per-substance dependency/withdrawal bars; (2) Transformation (M10): ascension path + progress bar, mutation resistance label, body change list
+- `src/components/modals/StatusModal.tsx` — three new panels: Health Status (disease severity bars, treated flag), Infestation (parasite maturity/symbiosis bars), Party (companion loyalty/bond/morale/health rows + combat bonus)
+- `src/utils/transformationEngine.test.ts` — 19 tests
+- `src/utils/diseaseEngine.test.ts` — 20 tests
+- `src/utils/parasiteEngine.test.ts` — 18 tests
+- `src/utils/companionEngine.test.ts` — 25 tests
+- 720 total tests pass (82 new), 20 test files, build clean

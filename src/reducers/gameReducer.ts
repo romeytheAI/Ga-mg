@@ -11,6 +11,10 @@ import { applyRepWithRivalSpillover, processCrimeEvent, processPayBounty, proces
 import { computeClothingState, exposureConsequences } from '../utils/clothingState';
 import { tickPlayerAddictions, getWithdrawalEffects } from '../utils/addictionEngine';
 import { resolveWorkShift } from '../utils/jobEngine';
+import { tickPlayerTransformation } from '../utils/transformationEngine';
+import { tickPlayerDiseases, getDiseaseEffects } from '../utils/diseaseEngine';
+import { tickPlayerParasites, getParasiteEffects } from '../utils/parasiteEngine';
+import { tickPlayerCompanions, getPartyBonuses } from '../utils/companionEngine';
 
 const clamp = (value: number, min = 0, max = 100) => Math.min(max, Math.max(min, value));
 
@@ -1922,6 +1926,43 @@ export function gameReducer(state: GameState, action: any): GameState {
             }
             return ticked;
           })(),
+          // ── Milestone 10: tick transformation ascension progress ─────────
+          transformation: tickPlayerTransformation(state, hours),
+          // ── Milestone 10: tick diseases → health/stamina drain ───────────
+          disease_state: (() => {
+            const ticked = tickPlayerDiseases(state.player.disease_state, hours);
+            const effects = getDiseaseEffects(ticked);
+            if (effects.is_sick) {
+              newStats.health  = clamp(newStats.health  - effects.health_per_hour  * hours, 0, state.player.stats.max_health);
+              newStats.stamina = clamp(newStats.stamina - effects.stamina_per_hour * hours, 0, state.player.stats.max_stamina);
+            }
+            return ticked;
+          })(),
+          // ── Milestone 10: tick parasites → drain/buff ────────────────────
+          parasite_state: (() => {
+            const ticked = tickPlayerParasites(state.player.parasite_state, hours);
+            const effects = getParasiteEffects(ticked);
+            if (effects.is_infested) {
+              newStats.health     = clamp(newStats.health     - effects.health_per_hour     * hours, 0, state.player.stats.max_health);
+              newStats.stamina    = clamp(newStats.stamina    - effects.stamina_per_hour    * hours, 0, state.player.stats.max_stamina);
+              newStats.corruption = clamp(newStats.corruption + effects.corruption_per_hour * hours, 0, 100);
+              // Symbiotic regen
+              if (effects.symbiotic_regen_per_hour > 0) {
+                newStats.health = clamp(newStats.health + effects.symbiotic_regen_per_hour * hours, 0, state.player.stats.max_health);
+              }
+            }
+            return ticked;
+          })(),
+          // ── Milestone 10: tick companion bonds, morale, stamina ──────────
+          companion_state: (() => {
+            const ticked = tickPlayerCompanions(state.player.companion_state, hours);
+            // Healer companions regenerate player health
+            const bonuses = getPartyBonuses(ticked);
+            if (bonuses.heal_rate_per_hour > 0) {
+              newStats.health = clamp(newStats.health + bonuses.heal_rate_per_hour * hours, 0, state.player.stats.max_health);
+            }
+            return ticked;
+          })(),
         },
       };
     }
@@ -2288,6 +2329,116 @@ export function gameReducer(state: GameState, action: any): GameState {
           stats: newStats,
           addiction_state: result.addiction_state,
         },
+      };
+    }
+
+    // ── Milestone 10: Transformation ─────────────────────────────────────
+
+    case 'ADD_BODY_CHANGE': {
+      const { resolveAddBodyChange } = require('../utils/transformationEngine');
+      const { change } = action.payload as { change: import('../types').PlayerBodyChange };
+      const result = resolveAddBodyChange(state, change);
+      return {
+        ...state,
+        player: { ...state.player, transformation: result.transformation },
+      };
+    }
+
+    case 'REMOVE_BODY_CHANGE': {
+      const { resolveRemoveBodyChange } = require('../utils/transformationEngine');
+      const { change_id } = action.payload as { change_id: string };
+      return {
+        ...state,
+        player: { ...state.player, transformation: resolveRemoveBodyChange(state, change_id) },
+      };
+    }
+
+    case 'PURGE_TEMPORARY_CHANGES': {
+      const { resolvePurgeTemporaryChanges } = require('../utils/transformationEngine');
+      return {
+        ...state,
+        player: { ...state.player, transformation: resolvePurgeTemporaryChanges(state) },
+      };
+    }
+
+    // ── Milestone 10: Disease ─────────────────────────────────────────────
+
+    case 'CONTRACT_DISEASE': {
+      const { resolveContractDisease } = require('../utils/diseaseEngine');
+      const { disease, turn } = action.payload as { disease: import('../types').DiseaseType; turn?: number };
+      const result = resolveContractDisease(state, disease, turn ?? state.world.turn_count);
+      return {
+        ...state,
+        player: { ...state.player, disease_state: result.disease_state },
+      };
+    }
+
+    case 'TREAT_DISEASE': {
+      const { resolveTreatDisease } = require('../utils/diseaseEngine');
+      const { disease } = action.payload as { disease: import('../types').DiseaseType };
+      return {
+        ...state,
+        player: { ...state.player, disease_state: resolveTreatDisease(state, disease) },
+      };
+    }
+
+    // ── Milestone 10: Parasites ───────────────────────────────────────────
+
+    case 'ATTACH_PARASITE': {
+      const { resolveAttachParasite } = require('../utils/parasiteEngine');
+      const { species, turn } = action.payload as { species: import('../types').ParasiteSpecies; turn?: number };
+      const result = resolveAttachParasite(state, species, turn ?? state.world.turn_count);
+      return {
+        ...state,
+        player: { ...state.player, parasite_state: result.parasite_state },
+      };
+    }
+
+    case 'REMOVE_PARASITE': {
+      const { resolveRemoveParasite } = require('../utils/parasiteEngine');
+      const { index } = action.payload as { index: number };
+      return {
+        ...state,
+        player: { ...state.player, parasite_state: resolveRemoveParasite(state, index) },
+      };
+    }
+
+    case 'PURGE_PARASITES': {
+      const { resolvePurgeAllParasites } = require('../utils/parasiteEngine');
+      return {
+        ...state,
+        player: { ...state.player, parasite_state: resolvePurgeAllParasites() },
+      };
+    }
+
+    // ── Milestone 10: Companions ──────────────────────────────────────────
+
+    case 'ADD_COMPANION': {
+      const { resolveAddCompanion } = require('../utils/companionEngine');
+      const { companion } = action.payload as { companion: import('../types').PlayerCompanionEntry };
+      const result = resolveAddCompanion(state, companion);
+      return {
+        ...state,
+        player: { ...state.player, companion_state: result.companion_state },
+      };
+    }
+
+    case 'REMOVE_COMPANION': {
+      const { resolveRemoveCompanion } = require('../utils/companionEngine');
+      const { companion_id } = action.payload as { companion_id: string };
+      return {
+        ...state,
+        player: { ...state.player, companion_state: resolveRemoveCompanion(state, companion_id) },
+      };
+    }
+
+    case 'DAMAGE_COMPANION': {
+      const { resolveDamageCompanion } = require('../utils/companionEngine');
+      const { companion_id, damage } = action.payload as { companion_id: string; damage: number };
+      const result = resolveDamageCompanion(state, companion_id, damage);
+      return {
+        ...state,
+        player: { ...state.player, companion_state: result.companion_state },
       };
     }
 
