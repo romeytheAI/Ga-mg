@@ -17,7 +17,6 @@ export default defineConfig(({mode}) => {
         output: {
           manualChunks: {
             'vendor-three': ['three'],
-            'vendor-genai': ['@google/genai'],
             'vendor-motion': ['motion', 'motion/react'],
             'vendor-lucide': ['lucide-react'],
             'sim-engine': [

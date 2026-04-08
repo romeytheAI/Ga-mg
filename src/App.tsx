@@ -95,27 +95,10 @@ function App({ state, dispatch }: { state: GameState, dispatch: React.Dispatch<a
   const generatePlayerAvatar = async () => {
     setIsGeneratingAvatar(true);
     try {
-      const { GoogleGenAI } = await import("@google/genai");
-      const ai = new GoogleGenAI({ apiKey: state.ui.apiKey });
       const prompt = `A highly detailed, dark fantasy portrait of a ${getAgeTag(state.player.age_days, state.player.identity.race)} ${state.player.identity.race} ${state.player.identity.gender}. ${AGE_APPEARANCE[Math.floor(state.player.age_days / 365)] || ''} ${state.player.cosmetics.hair_length} ${state.player.cosmetics.eye_color} eyes. Dark, gritty, atmospheric lighting.`;
-      
-      const response = await ai.models.generateContent({
-        model: 'gemini-2.5-flash-image',
-        contents: {
-          parts: [
-            {
-              text: prompt,
-            },
-          ],
-        },
-      });
-      
-      for (const part of response.candidates[0].content.parts) {
-        if (part.inlineData) {
-          const base64EncodeString: string = part.inlineData.data;
-          const imageUrl = `data:image/png;base64,${base64EncodeString}`;
-          dispatch({ type: 'SET_PLAYER_AVATAR', payload: imageUrl });
-        }
+      const imageUrl = await generateImage(prompt, '', state.ui.hordeApiKey, state.ui.imageModel, dispatch);
+      if (imageUrl) {
+        dispatch({ type: 'SET_PLAYER_AVATAR', payload: imageUrl });
       }
     } catch (error) {
       console.error('Error generating avatar:', error);
@@ -296,29 +279,8 @@ function App({ state, dispatch }: { state: GameState, dispatch: React.Dispatch<a
     if (state.ui.isGeneratingAvatar) return;
     dispatch({ type: 'START_AVATAR_GENERATION' });
     try {
-      const { GoogleGenAI } = await import("@google/genai");
-      const ai = new GoogleGenAI({ apiKey: state.ui.apiKey });
       const prompt = `A highly detailed, dark fantasy portrait of a ${getAgeTag(state.player.age_days, state.player.identity.race)} ${state.player.identity.race} ${state.player.identity.gender}. ${AGE_APPEARANCE[Math.floor(state.player.age_days / 365)] || ''} ${state.player.cosmetics.hair_length} ${state.player.cosmetics.eye_color} eyes. Dark, gritty, atmospheric lighting.`;
-      
-      const response = await ai.models.generateContent({
-        model: 'gemini-2.5-flash-image',
-        contents: {
-          parts: [
-            {
-              text: prompt,
-            },
-          ],
-        },
-      });
-      
-      let imageUrl = null;
-      for (const part of response.candidates[0].content.parts) {
-        if (part.inlineData) {
-          const base64EncodeString: string = part.inlineData.data;
-          imageUrl = `data:image/png;base64,${base64EncodeString}`;
-          break;
-        }
-      }
+      const imageUrl = await generateImage(prompt, '', state.ui.hordeApiKey, state.ui.imageModel, dispatch);
       if (imageUrl) {
         dispatch({ type: 'RESOLVE_AVATAR', payload: imageUrl });
       } else {

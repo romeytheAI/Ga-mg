@@ -288,41 +288,7 @@ export async function generateImage(prompt: string, apiKey: string, hordeApiKey:
     });
   }
 
-  // Fallback to Gemini Image (if available)
-  if (!apiKey || apiKey.startsWith('sk-or-')) throw new Error("No API key available for fallback generation");
-
-  try {
-    const { GoogleGenAI } = await import("@google/genai");
-    const ai = new GoogleGenAI({ apiKey });
-    const response = await ai.models.generateContent({
-      model: "gemini-2.5-flash-image",
-      contents: { parts: [{ text: optimizedPrompt }] }
-    });
-
-    for (const part of response.candidates[0].content.parts) {
-      if (part.inlineData) {
-        // Track successful Gemini image generation (paid API)
-        costTracker.trackAPICall({
-          provider: 'gemini',
-          type: 'image',
-          successful: true,
-          metadata: { duration: Date.now() - startTime }
-        });
-
-        return `data:image/png;base64,${part.inlineData.data}`;
-      }
-    }
-  } catch (e) {
-    // Track failed Gemini call
-    costTracker.trackAPICall({
-      provider: 'gemini',
-      type: 'image',
-      successful: false,
-      metadata: { error: String(e) }
-    });
-  }
-
-  throw new Error("Failed to generate image with fallback");
+  throw new Error("Failed to generate image: Horde and Pollinations both failed");
 }
 
 export async function generateLegendaryStats(name: string, description: string, apiKey: string, hordeApiKey: string, model: string, dispatch?: any) {

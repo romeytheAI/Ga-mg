@@ -5,7 +5,7 @@
 
 export interface APICallCost {
   timestamp: number;
-  provider: 'horde' | 'pollinations' | 'gemini' | 'openai' | 'azure';
+  provider: 'horde' | 'pollinations';
   type: 'text' | 'image' | 'audio' | 'video';
   tokens?: number;
   estimatedCost: number;
@@ -50,9 +50,6 @@ class CostTracker {
   private readonly COST_RATES = {
     horde: { text: 0, image: 0 }, // Free, but track for fallback planning
     pollinations: { text: 0, image: 0 }, // Free
-    gemini: { text: 0.000075, image: 0.00025 }, // per 1K tokens / per image
-    openai: { text: 0.0015, image: 0.02 }, // GPT-3.5 / DALL-E 3
-    azure: { text: 0.002, image: 0.04 },
     compute: { perSecond: 0.00001 } // Estimated cloud compute cost
   };
 
@@ -185,9 +182,6 @@ class CostTracker {
 
     // Check for expensive provider usage
     Object.entries(breakdown).forEach(([provider, stats]) => {
-      if (provider === 'gemini' && stats.cost > 1.0) {
-        recommendations.push(`Consider reducing Gemini API usage (${stats.calls} calls, $${stats.cost.toFixed(2)}). Use Horde/Pollinations first.`);
-      }
       if (provider === 'openai' || provider === 'azure') {
         recommendations.push(`Detected paid API usage (${provider}). Consider free alternatives for non-critical operations.`);
       }

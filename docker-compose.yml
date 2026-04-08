@@ -10,7 +10,6 @@ services:
       - "3000:3000"
     environment:
       - VITE_SIDECAR_URL=http://sidecar:8001
-      - GEMINI_API_KEY=${GEMINI_API_KEY}
     volumes:
       - ./src:/app/src
       - ./public:/app/public
