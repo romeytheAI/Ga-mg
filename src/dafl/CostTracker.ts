@@ -1,6 +1,6 @@
 /**
- * DAFL (Distributed Autonomous Funding Layer) - Cost Tracking System
- * Tracks API costs, compute usage, and revenue to enable autonomous funding
+ * API Usage Tracker - Cost Tracking System
+ * Tracks API costs and compute usage to enable optimization
  */
 
 export interface APICallCost {
@@ -21,29 +21,17 @@ export interface ComputeCost {
   estimatedCost: number;
 }
 
-export interface Revenue {
-  timestamp: number;
-  source: 'ads' | 'affiliate' | 'sponsor' | 'donation' | 'content';
-  amount: number;
-  currency: string;
-  metadata?: Record<string, any>;
-}
-
 export interface CostSummary {
   totalCosts: number;
-  totalRevenue: number;
-  netBalance: number;
   apiCosts: number;
   computeCosts: number;
   projectedMonthlyBurn: number;
-  survivalMode: boolean;
 }
 
 class CostTracker {
   private apiCalls: APICallCost[] = [];
   private computeCosts: ComputeCost[] = [];
-  private revenues: Revenue[] = [];
-  private readonly STORAGE_KEY = 'dafl_cost_tracker';
+  private readonly STORAGE_KEY = 'api_usage_tracker';
   private readonly MAX_HISTORY_DAYS = 30;
 
   // Cost estimation rates (in USD)
@@ -95,19 +83,6 @@ class CostTracker {
   }
 
   /**
-   * Track revenue from various sources
-   */
-  trackRevenue(revenue: Omit<Revenue, 'timestamp'>): void {
-    this.revenues.push({
-      ...revenue,
-      timestamp: Date.now()
-    });
-
-    this.pruneOldData();
-    this.saveToStorage();
-  }
-
-  /**
    * Get comprehensive cost summary
    */
   getSummary(): CostSummary {
@@ -126,28 +101,17 @@ class CostTracker {
 
     const totalCosts = apiCosts + computeCosts;
 
-    // Calculate total revenue
-    const totalRevenue = this.revenues
-      .filter(rev => rev.timestamp >= thirtyDaysAgo)
-      .reduce((sum, rev) => sum + rev.amount, 0);
-
     // Calculate projected monthly burn
     const recentCosts = this.apiCalls
       .filter(call => call.timestamp >= oneDayAgo)
       .reduce((sum, call) => sum + call.estimatedCost, 0);
     const projectedMonthlyBurn = recentCosts * 30;
 
-    const netBalance = totalRevenue - totalCosts;
-    const survivalMode = netBalance < 0 || (totalRevenue < totalCosts * 0.5);
-
     return {
       totalCosts,
-      totalRevenue,
-      netBalance,
       apiCosts,
       computeCosts,
       projectedMonthlyBurn,
-      survivalMode
     };
   }
 
@@ -166,14 +130,6 @@ class CostTracker {
     });
 
     return breakdown;
-  }
-
-  /**
-   * Check if we should enter survival mode
-   */
-  shouldEnterSurvivalMode(): boolean {
-    const summary = this.getSummary();
-    return summary.survivalMode;
   }
 
   /**
@@ -200,11 +156,6 @@ class CostTracker {
 
     if (highComputeOps.length > 0) {
       recommendations.push(`High compute operations detected: ${[...new Set(highComputeOps)].join(', ')}. Consider optimization.`);
-    }
-
-    const summary = this.getSummary();
-    if (summary.survivalMode) {
-      recommendations.push('🚨 SURVIVAL MODE: Revenue < Costs. Implement revenue sidecar immediately.');
     }
 
     return recommendations;
@@ -235,7 +186,6 @@ class CostTracker {
 
     this.apiCalls = this.apiCalls.filter(call => call.timestamp >= cutoff);
     this.computeCosts = this.computeCosts.filter(cost => cost.timestamp >= cutoff);
-    this.revenues = this.revenues.filter(rev => rev.timestamp >= cutoff);
   }
 
   /**
@@ -246,7 +196,6 @@ class CostTracker {
       const data = {
         apiCalls: this.apiCalls,
         computeCosts: this.computeCosts,
-        revenues: this.revenues
       };
       localStorage.setItem(this.STORAGE_KEY, JSON.stringify(data));
     } catch (e) {
@@ -264,7 +213,6 @@ class CostTracker {
         const parsed = JSON.parse(data);
         this.apiCalls = parsed.apiCalls || [];
         this.computeCosts = parsed.computeCosts || [];
-        this.revenues = parsed.revenues || [];
         this.pruneOldData();
       }
     } catch (e) {
@@ -278,18 +226,16 @@ class CostTracker {
   clear(): void {
     this.apiCalls = [];
     this.computeCosts = [];
-    this.revenues = [];
     localStorage.removeItem(this.STORAGE_KEY);
   }
 
   /**
    * Export data for analysis
    */
-  exportData(): { apiCalls: APICallCost[]; computeCosts: ComputeCost[]; revenues: Revenue[] } {
+  exportData(): { apiCalls: APICallCost[]; computeCosts: ComputeCost[] } {
     return {
       apiCalls: [...this.apiCalls],
       computeCosts: [...this.computeCosts],
-      revenues: [...this.revenues]
     };
   }
 }

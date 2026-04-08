@@ -13,7 +13,7 @@ export async function generateText(prompt: string, apiKey: string, hordeApiKey: 
   enhancedPrompt = optimized;
 
   if (audit.tokensSaved > 0 && dispatch) {
-    console.log(`[DAFL] Semantic audit saved ${audit.tokensSaved} tokens:`, audit.optimizations);
+    console.log(`[API] Semantic audit saved ${audit.tokensSaved} tokens:`, audit.optimizations);
   }
 
   const startTime = Date.now();
