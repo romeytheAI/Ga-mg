@@ -11,6 +11,12 @@ export { darkSanctuaryData } from './dark_sanctuary';
 export { sleepingGiantData } from './sleeping_giant';
 export { khajiitCaravanData } from './khajiit_caravan';
 export { jorrvaskrData } from './jorrvaskr';
+export { blue_palaceData } from './blue_palace';
+export { winking_skeeverData } from './winking_skeever';
+export { bards_collegeData } from './bards_college';
+export { castle_dourData } from './castle_dour';
+export { solitude_marketData } from './solitude_market';
+export { dragontideData } from './dragontide';
 
 export type { LocationData, LocationEvent } from './temple_of_mara';
 
@@ -23,6 +29,12 @@ export const elderscrollsLocations = [
   { id: 'sleeping_giant', name: 'Sleeping Giant Inn', region: 'Riverwood' },
   { id: 'khajiit_caravan', name: 'Khajiit Caravan', region: 'Travelling' },
   { id: 'jorrvaskr', name: 'Jorrvaskr', region: 'Whiterun' },
+  { id: 'blue_palace', name: 'Blue Palace', region: 'Solitude' },
+  { id: 'winking_skeever', name: 'The Winking Skeever', region: 'Solitude' },
+  { id: 'bards_college', name: "Bard's College", region: 'Solitude' },
+  { id: 'castle_dour', name: 'Castle Dour', region: 'Solitude' },
+  { id: 'solitude_market', name: 'Solitude Market', region: 'Solitude' },
+  { id: 'dragontide', name: 'Dragontide', region: 'Solitude' },
 ];
 
 export default elderscrollsLocations;
