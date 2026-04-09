@@ -1494,6 +1494,140 @@ export const ES_LOCATIONS_EXPANDED: Record<string, any> = {
       { id: 'deep_secret', label: 'Discover deep secrets', intent: 'stealth', outcome: 'The Hist know things older than Tamriel. They share their wisdom.', stat_deltas: { corruption: 15, skills: { magic: 12 } }, hours_passed: 3 },
       { id: 'swamp_blessing', label: 'Receive swamp blessing', intent: 'willpower', outcome: 'The Hist grant you their blessing. The swamp becomes your ally.', stat_deltas: { health: 30, willpower: 20, relationship: 15 }, hours_passed: 2 }
     ]
+  },
+
+  // CYRODIIL BORDER REGION
+  fort_kinrith: {
+    id: 'fort_kinrith',
+    name: 'Fort Kinrith',
+    type: 'military',
+    region: 'cyrodiil_border',
+    description: "A weathered Imperial fort perched on the northern border, where the Colovian hills meet the wilderness. The stone walls have stood for centuries, and the soldiers stationed here are battle-hardened veterans. The fort commands the pass into the northern provinces.",
+    atmosphere: 'Military, disciplined, remote, strategic',
+    actions: [
+      { id: 'report_duty', label: 'Report for guard duty', intent: 'work', outcome: 'The centurion assigns you to the night watch. "Eyes open - bandits hit this pass often."', stat_deltas: { gold: 25, skills: { marksman: 3 } }, hours_passed: 4 },
+      { id: 'train_legion', label: 'Train with the Legion', intent: 'combat', outcome: 'Imperial discipline forges strong soldiers. You drill with sword and shield.', stat_deltas: { skills: { combat: 5, blocking: 4 }, health: -10 }, hours_passed: 3 },
+      { id: 'border_patrol', label: 'Patrol the border', intent: 'work', outcome: 'The mountain pass is treacherous. You watch for smugglers and raiders.', stat_deltas: { skills: { survival: 4, athletics: 3 }, gold: 30 }, hours_passed: 6 },
+      { id: 'talk_centurion', label: 'Talk to the Centurion', intent: 'social', outcome: '"The Empire holds this pass by blood and steel. Every soldier matters."', stat_deltas: { relationship: 5, skills: { leadership: 2 } }, hours_passed: 1 },
+      { id: 'intercept_bandits', label: 'Intercept bandit raid', intent: 'combat', outcome: 'Raiders attempt to breach the gate. You help repel the assault.', stat_deltas: { health: -15, skills: { combat: 6 }, gold: 40 }, hours_passed: 2 },
+      { id: 'inspect_supplies', label: 'Inspect supply shipments', intent: 'work', outcome: 'Wagons from the south bring provisions. You verify the manifests.', stat_deltas: { skills: { speech: 2 }, gold: 15 }, hours_passed: 2 },
+      { id: 'imperial_gossip', label: 'Share Imperial gossip', intent: 'social', outcome: 'Soldiers talk of the war in Cyrodiil and the Aldmeri Dominion\'s moves.', stat_deltas: { corruption: 2, skills: { history: 2 } }, hours_passed: 2 },
+      { id: 'desertion_plot', label: 'Discover desertion plot', intent: 'stealth', outcome: 'Some soldiers plan to flee. You must decide what to do with this knowledge.', stat_deltas: { corruption: 5, relationship: -5 }, hours_passed: 2 }
+    ]
+  },
+
+  pass_of_camoran: {
+    id: 'pass_of_camoran',
+    name: 'Pass of Camoran',
+    type: 'wilderness',
+    region: 'cyrodiil_border',
+    description: "The ancient pass connecting Cyrodiil to the northern lands has been traversed by armies and merchants for millennia. Carved stone walls frame the winding road, and watchtowers dot the cliffs. The air is thin and cold, but the view from the summit shows both empires.",
+    atmosphere: 'Ancient, windswept, strategic, historic',
+    actions: [
+      { id: 'climb_pass', label: 'Climb the mountain path', intent: 'work', outcome: 'The steep trail tests your endurance. The altitude leaves you breathless.', stat_deltas: { health: -15, skills: { athletics: 5 } }, hours_passed: 4 },
+      { id: 'trade_caravan', label: 'Trade with a caravan', intent: 'work', outcome: 'Merchants from Cyrodiil offer spices, silks, and exotic goods.', stat_deltas: { gold: -60, skills: { speech: 3 } }, hours_passed: 2 },
+      { id: 'ancient_ruins_explore', label: 'Explore ancient ruins', intent: 'work', outcome: 'Crumbling towers from the First Era dot the pass. Some still hold treasure.', stat_deltas: { gold: 45, skills: { lockpicking: 3 }, corruption: 3 }, hours_passed: 3 },
+      { id: 'watchtower_ascend', label: 'Ascend the watchtower', intent: 'work', outcome: 'From the top, you see the entire valley. The view is worth the climb.', stat_deltas: { skills: { marksman: 4 }, exhaustion: -10 }, hours_passed: 2 },
+      { id: 'bandit_ambush_survive', label: 'Survive bandit ambush', intent: 'combat', outcome: 'Highland bandits emerge from the rocks! You fight your way through.', stat_deltas: { health: -20, skills: { combat: 8 }, gold: 35 }, hours_passed: 2 },
+      { id: 'merchant_protection', label: 'Offer merchant protection', intent: 'work', outcome: 'A wealthy trader needs an escort through the dangerous pass.', stat_deltas: { gold: 75, relationship: 5 }, hours_passed: 4 },
+      { id: 'ancient_inscriptions', label: 'Read ancient inscriptions', intent: 'willpower', outcome: 'The stone bears writing from the Camoran dynasty. History speaks to you.', stat_deltas: { skills: { history: 6, magic: 2 } }, hours_passed: 2 },
+      { id: 'pass_secret_cave', label: 'Discover secret cave', intent: 'stealth', outcome: 'A hidden cavern behind a waterfall holds smuggler goods.', stat_deltas: { gold: 50, corruption: 5 }, hours_passed: 2 }
+    ]
+  },
+
+  estate_olava: {
+    id: 'estate_olava',
+    name: 'Estate Olava',
+    type: 'noble',
+    region: 'cyrodiil_border',
+    description: "A grand Colovian estate nestled in the foothills, where the wealthy aristocracy retreats from the political turmoil of the Imperial City. Vineyards stretch across the hills, and the manor house boasts gardens imported from Cyrodiil. The estate is famous for its wine and its discretely profitable smuggler connections.",
+    atmosphere: 'Elegant, refined, wealthy, slightly corrupt',
+    actions: [
+      { id: 'taste_wine', label: 'Taste the famous vintage', intent: 'neutral', outcome: 'The sommelier pours a vintage older than you. The flavor is exquisite.', stat_deltas: { stress: -15, gold: -20 }, hours_passed: 2 },
+      { id: 'meet_landlord', label: 'Meet Lord Olava', intent: 'social', outcome: 'The aged noble welcomes you personally. "Any friend of good wine is welcome."', stat_deltas: { relationship: 5 }, hours_passed: 1 },
+      { id: ' vineyard_work', label: 'Work in the vineyard', intent: 'work', outcome: 'The harvest is backbreaking but the pay is good. You learn winemaking.', stat_deltas: { health: -10, gold: 35, skills: { crafting: 3 } }, hours_passed: 6 },
+      { id: 'garden_walk', label: 'Walk the gardens', intent: 'willpower', outcome: 'The peaceful gardens calm your mind. Rare flowers bloom in perfection.', stat_deltas: { willpower: 8, exhaustion: -15 }, hours_passed: 2 },
+      { id: 'hidden_deal', label: 'Witness a hidden deal', intent: 'stealth', outcome: 'Smugglers meet in the wine cellar. They offer you a cut to stay quiet.', stat_deltas: { corruption: 10, gold: 50 }, hours_passed: 2 },
+      { id: 'servants_gossip', label: 'Gossip with servants', intent: 'social', outcome: '"The master has enemies. The Thalmor visit sometimes - late at night..."', stat_deltas: { skills: { speech: 3 }, relationship: 3 }, hours_passed: 1 },
+      { id: 'estate_auction', label: 'Attend estate auction', intent: 'work', outcome: 'Rare artifacts from across Tamriel are sold to the highest bidder.', stat_deltas: { gold: -100 }, hours_passed: 3 },
+      { id: 'escape_pursuers', label: 'Help escape pursuers', intent: 'combat', outcome: 'Assassins from a rival house attack! You defend the estate.', stat_deltas: { health: -15, skills: { combat: 6 }, relationship: 10 }, hours_passed: 2 }
+    ]
+  },
+
+  fort_auridon: {
+    id: 'fort_auridon',
+    name: 'Fort Auridon',
+    type: 'military',
+    region: 'cyrodiil_border',
+    description: "A smaller border fort that guards the western approach to Cyrodiil. The soldiers here are fewer but more specialized - scouts and skirmishers who know the terrain intimately. The fort is built into the mountainside, making it nearly impregnable from the west.",
+    atmosphere: 'Rugged, tactical, isolated, vigilant',
+    actions: [
+      { id: 'scout_patrol', label: 'Join scouting patrol', intent: 'work', outcome: 'You patrol the wilderness, mapping changes and spotting threats.', stat_deltas: { skills: { survival: 5, marksman: 4 }, gold: 30 }, hours_passed: 6 },
+      { id: 'mountain_climb', label: 'Practice mountain climbing', intent: 'work', outcome: 'The cliffs around the fort are perfect for climbing practice.', stat_deltas: { skills: { athletics: 6 }, health: -10 }, hours_passed: 3 },
+      { id: 'talk_scout', label: 'Talk to the scout commander', intent: 'social', outcome: '"I\'ve watched this border for twenty years. Nothing gets past me."', stat_deltas: { skills: { survival: 3 }, relationship: 4 }, hours_passed: 1 },
+      { id: 'trap_illegals', label: 'Trap border crossers', intent: 'work', outcome: 'Smugglers try to slip through. You help catch them in the act.', stat_deltas: { gold: 40, skills: { stealth: 4 } }, hours_passed: 4 },
+      { id: 'fort_defense', label: 'Defend against attack', intent: 'combat', outcome: 'A war band from the north attacks! You hold the wall.', stat_deltas: { health: -25, skills: { combat: 10 }, relationship: 8 }, hours_passed: 3 },
+      { id: 'read_border_maps', label: 'Study border maps', intent: 'work', outcome: 'Detailed maps show every pass, cave, and hidden path through the mountains.', stat_deltas: { skills: { survival: 4 } }, hours_passed: 2 },
+      { id: 'secret_passage', label: 'Discover secret passage', intent: 'stealth', outcome: 'An old tunnel leads into Cyrodiil. Few know it exists.', stat_deltas: { corruption: 5, skills: { lockpicking: 5 } }, hours_passed: 2 },
+      { id: 'eagle_nest_visit', label: 'Visit the eagle nest', intent: 'willpower', outcome: 'The high peak offers a view of both empires. You feel small but free.', stat_deltas: { willpower: 10 }, hours_passed: 3 }
+    ]
+  },
+
+  border_outpost_colovian: {
+    id: 'border_outpost_colovian',
+    name: 'Colovian Border Outpost',
+    type: 'military',
+    region: 'cyrodiil_border',
+    description: "A humble trading post on the Colovian side of the border, where local farmers and merchants gather to trade goods across the provincial divide. The Imperial Legion maintains a light presence, mostly for customs and keeping the peace. It\'s a place of quiet commerce rather than military might.",
+    atmosphere: 'Commercial, peaceful, rustic, multicultural',
+    actions: [
+      { id: 'trade_goods', label: 'Trade goods at the market', intent: 'work', outcome: 'Merchants from both sides of the border hawk their wares.', stat_deltas: { gold: -40, skills: { speech: 3 } }, hours_passed: 2 },
+      { id: 'pay_tariff', label: 'Pay tariff to cross', intent: 'work', outcome: 'The border guard checks your goods and collects the Imperial tax.', stat_deltas: { gold: -15 }, hours_passed: 1 },
+      { id: 'talk_farmers', label: 'Talk to local farmers', intent: 'social', outcome: '"The war hasn\'t touched us here. Yet. The grain still grows."', stat_deltas: { relationship: 3, skills: { survival: 2 } }, hours_passed: 1 },
+      { id: 'smuggle_goods', label: 'Smuggle restricted goods', intent: 'stealth', outcome: 'You slip some goods past the customs booth. The profit is good.', stat_deltas: { gold: 60, corruption: 8 }, hours_passed: 2 },
+      { id: ' hear_tales', label: 'Hear traveler tales', intent: 'social', outcome: 'Merchants from far lands share stories of distant wars and wonders.', stat_deltas: { skills: { history: 3 } }, hours_passed: 2 },
+      { id: 'work_farm', label: 'Help with the harvest', intent: 'work', outcome: 'A farmer needs extra hands. The work is honest and the food is good.', stat_deltas: { health: -5, gold: 20, strength: 2 }, hours_passed: 4 },
+      { id: 'imperial_relations', label: 'Improve Imperial relations', intent: 'work', outcome: 'You help the Legion with community relations. They appreciate the help.', stat_deltas: { relationship: 8, gold: 15 }, hours_passed: 3 },
+      { id: 'border_dispute', label: 'Settle a border dispute', intent: 'work', outcome: 'Two merchants argue over a trade. You help mediate fairly.', stat_deltas: { skills: { speech: 5 }, relationship: 5 }, hours_passed: 2 }
+    ]
+  },
+
+  fort_sedra: {
+    id: 'fort_sedra',
+    name: 'Fort Sedra',
+    type: 'military',
+    region: 'cyrodiil_border',
+    description: "A strategic fort controlling the river crossing on the eastern border approaches. The stone bridge here is the only safe way across for wagons and caravans. The fort has changed hands several times in history, and its walls bear the scars of many sieges. Currently held by the Empire, it serves as the primary customs checkpoint.",
+    atmosphere: 'Historic, fortified, busy, bureaucratic',
+    actions: [
+      { id: 'cross_bridge', label: 'Cross under guard', intent: 'work', outcome: 'The guards check your papers and allow you passage. The bridge is well-maintained.', stat_deltas: { gold: -5 }, hours_passed: 1 },
+      { id: 'inspect_cargo', label: 'Inspect cargo wagons', intent: 'work', outcome: 'You help search incoming goods for contraband. A tedious but necessary job.', stat_deltas: { gold: 20, skills: { lockpicking: 2 } }, hours_passed: 3 },
+      { id: 'bridge_repair', label: 'Help repair the bridge', intent: 'work', outcome: 'The ancient bridge needs constant maintenance. You lend your strength.', stat_deltas: { health: -10, gold: 25, strength: 3 }, hours_passed: 4 },
+      { id: 'catch_smurgglers', label: 'Catch smugglers', intent: 'work', outcome: 'You discover a hidden compartment full of illegal Cyrodiilic brandy.', stat_deltas: { gold: 45, relationship: 5 }, hours_passed: 2 },
+      { id: 'siege_defense', label: 'Defend against siege', intent: 'combat', outcome: 'Rebels attack the fort! You help hold the bridge against the assault.', stat_deltas: { health: -30, skills: { combat: 12 }, relationship: 10 }, hours_passed: 4 },
+      { id: 'river_swim', label: 'Swim the river', intent: 'work', outcome: 'The cold water is dangerous but faster than waiting for the bridge.', stat_deltas: { health: -10, skills: { athletics: 4 } }, hours_passed: 2 },
+      { id: 'ghost_stories', label: 'Hear ghost stories', intent: 'social', outcome: 'Soldiers whisper of those who died defending the bridge. Some say they still walk...', stat_deltas: { corruption: 2, skills: { history: 2 } }, hours_passed: 1 },
+      { id: 'underwater_secret', label: 'Find underwater secret', intent: 'stealth', outcome: 'Something glitters in the river. A lost noble\'s ring from an old siege.', stat_deltas: { gold: 80, corruption: 3 }, hours_passed: 2 }
+    ]
+  },
+
+  colovian_estate_hearthfire: {
+    id: 'colovian_estate_hearthfire',
+    name: 'Estate Hearthfire',
+    type: 'noble',
+    region: 'cyrodiil_border',
+    description: "A cozy Colovian manor known for its exceptional hospitality and its equally exceptional secrets. The family has maintained ties to the Empire for generations, but rumors persist of hidden vaults beneath the estate where treasures from the Great War are stored. The grounds feature hot springs that attract visitors from across the region.",
+    atmosphere: 'Warm, wealthy, mysterious, welcoming',
+    actions: [
+      { id: 'hot_springs_bath', label: 'Bathe in hot springs', intent: 'neutral', outcome: 'The mineral-rich waters relax your muscles. You feel renewed.', stat_deltas: { health: 25, exhaustion: -30 }, hours_passed: 2 },
+      { id: 'dinner_invitation', label: 'Accept dinner invitation', intent: 'social', outcome: 'The family hosts an elegant dinner. The conversation is witty and political.', stat_deltas: { skills: { speech: 4 }, gold: -30 }, hours_passed: 3 },
+      { id: 'explore_estate', label: 'Explore the estate grounds', intent: 'work', outcome: 'The gardens and orchards are beautifully maintained. Rare plants grow here.', stat_deltas: { skills: { alchemy: 3 }, gold: 20 }, hours_passed: 2 },
+      { id: 'discover_vault', label: 'Discover hidden vault', intent: 'stealth', outcome: 'A loose stone reveals a passage to a vault full of war treasures.', stat_deltas: { gold: 150, corruption: 10 }, hours_passed: 2 },
+      { id: 'meet_matriarch', label: 'Meet the matriarch', intent: 'social', outcome: 'The elderly lady knows many secrets. She shares some - for a price.', stat_deltas: { skills: { history: 5 }, gold: -20 }, hours_passed: 1 },
+      { id: 'hunting_trip', label: 'Join a hunting trip', intent: 'work', outcome: 'The estate hosts a hunt in the surrounding forest. The game is plentiful.', stat_deltas: { skills: { marksman: 5, survival: 3 }, gold: 35, health: -10 }, hours_passed: 4 },
+      { id: 'horse_trade', label: 'Trade for horses', intent: 'work', outcome: 'The estate breeds fine Cyrodiilic horses. Prices are high but quality is superb.', stat_deltas: { gold: -200 }, hours_passed: 2 },
+      { id: 'family_secret', label: 'Learn family secret', intent: 'stealth', outcome: 'The family has a dark secret - ties to the Thalmor during the Great War.', stat_deltas: { corruption: 8, skills: { speech: 3 } }, hours_passed: 2 }
+    ]
   }
 };
 };
