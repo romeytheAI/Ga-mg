@@ -767,6 +767,80 @@ export const ES_LOCATIONS_EXPANDED: Record<string, any> = {
     ]
   },
 
+  // ELSWEYR (core region - Khajiit homeland)
+  senchal: {
+    id: 'senchal',
+    name: 'Senchal',
+    type: 'city',
+    region: 'elsweyr',
+    description: "The greatest port in Elsweyr, Senchal bustles with traders from across Tamriel. Moon sugar piles high on the docks, and the smell of the sea mingles with the sweet scent of the sacred commodity. The city is ruled by the Clan Mothers, who keep careful watch over the trade.",
+    atmosphere: 'Busy, exotic, sweet-smelling, politically complex',
+    actions: [
+      { id: 'moon_sugar_trade', label: 'Trade moon sugar', intent: 'work', outcome: '"Best sugar in Tamriel, this one guarantees! Masser and Secunda bless our wares."', stat_deltas: { gold: -100, skills: { speech: 3 } }, hours_passed: 2 },
+      { id: 'dock_work', label: 'Work the docks', intent: 'work', outcome: 'The work is hard but pays well. Khajiit foremen bark orders in their native tongue.', stat_deltas: { health: -10, gold: 35, strength: 2 }, hours_passed: 4 },
+      { id: 'clan_mother', label: 'Meet a Clan Mother', intent: 'work', outcome: 'The elderly Khajiit regards you with ancient yellow eyes. "You seek trade? The Mothers decide all."', stat_deltas: { relationship: 3 }, hours_passed: 1 },
+      { id: 'senche_riders', label: 'Hire Senche riders', intent: 'combat', outcome: 'The massive tiger-warriors demand high pay but are unstoppable in battle.', stat_deltas: { gold: -80, skills: { combat: 3 }, relationship: 2 }, hours_passed: 1 },
+      { id: 'shipyard', label: 'Visit the shipyard', intent: 'work', outcome: 'Ships are built Khajiit-style, designed for the treacherous river mouths.', stat_deltas: { skills: { survival: 2 } }, hours_passed: 2 },
+      { id: 'contraband', label: 'Arrange contraband', intent: 'stealth', outcome: 'A hooded figure offers to move "special goods" past the imperial inspectors.', stat_deltas: { gold: 100, corruption: 8 }, hours_passed: 2 },
+      { id: 'cathay_merchant', label: 'Bargain with Cathay', intent: 'social', outcome: 'The tiger-like merchants are proud but fair. "You know good value, yes?"', stat_deltas: { skills: { speech: 4 }, relationship: 3 }, hours_passed: 2 },
+      { id: 'port_gossip', label: 'Hear port gossip', intent: 'social', outcome: 'Sailors whisper of dragon sightings to the north and trouble in the Mane\'s temple.', stat_deltas: { corruption: 2, relationship: 2 }, hours_passed: 1 }
+    ]
+  },
+  rimgan: {
+    id: 'rimgan',
+    name: 'Rimgan',
+    type: 'village',
+    region: 'elsweyr',
+    description: "A traditional Khajiit village known for its master crafters. The residents here are predominantly of the Ohmes and Ohmes-Raht furstocks, known for their artistic sensibilities. The village produces the finest carved bone and moonstone jewelry in Elsweyr.",
+    atmosphere: 'Artistic, traditional, peaceful, feline',
+    actions: [
+      { id: 'bone_craft', label: 'Learn bone crafting', intent: 'work', outcome: 'An aged Khajiit teaches the sacred art. "Bone holds memory, yes? We make it speak."', stat_deltas: { skills: { crafting: 5 }, gold: -20 }, hours_passed: 3 },
+      { id: 'moonstone_jewelry', label: 'Buy moonstone jewelry', intent: 'work', outcome: 'The gems glow faintly in moonlight. "Sacred to Masser, this one is."', stat_deltas: { gold: -75, willpower: 3 }, hours_passed: 1 },
+      { id: 'ohmes_tales', label: 'Hear Ohmes tales', intent: 'social', outcome: 'The villagers share stories of the Moon-Light Dance and the first Mane.', stat_deltas: { skills: { history: 3 }, relationship: 2 }, hours_passed: 2 },
+      { id: 'furstock_chat', label: 'Discuss furstocks', intent: 'social', outcome: '"Each furstock has its own way, yes? The Senche are warriors, the Alfiq are scholars."', stat_deltas: { skills: { history: 2 } }, hours_passed: 1 },
+      { id: 'ring_inquire', label: 'Ask about the Ring', intent: 'stealth', outcome: 'A whisper tells you the Ring of Namira was seen near the desert oasis...', stat_deltas: { corruption: 5 }, hours_passed: 1 },
+      { id: 'night_prowl', label: 'Prowl at night', intent: 'stealth', outcome: 'The Khajiit way allows freedom at night. You explore the village unseen.', stat_deltas: { skills: { stealth: 3 } }, hours_passed: 2 },
+      { id: 'craft_commission', label: 'Commission a piece', intent: 'work', outcome: 'The artisan promises a masterwork. "Give time, give coin, receive glory."', stat_deltas: { gold: -150 }, hours_passed: 1 },
+      { id: 'village_elder', label: 'Speak to the elder', intent: 'social', outcome: '"The moons govern all, two children of Ahnurr and Azurah. Know this, outsider."', stat_deltas: { relationship: 4, willpower: 2 }, hours_passed: 1 }
+    ]
+  },
+  orcrest: {
+    id: 'orcrest',
+    name: 'Orcrest',
+    type: 'oasis',
+    region: 'elsweyr',
+    description: "A lush oasis in the Elsweyr desert, Orcrest is a sacred place where the Khajiit first learned to harvest moon sugar. Palm trees surround a crystal-clear pool, and the air is thick with the sweet perfume of the harvest. Pilgrims come from across the land to pray at the ancient shrine.",
+    atmosphere: 'Sacred, serene, sweet-smelling, spiritual',
+    actions: [
+      { id: 'moon_sugar_harvest', label: 'Harvest moon sugar', intent: 'work', outcome: 'The delicate crystals must be gathered at night under the full moons.', stat_deltas: { skills: { alchemy: 4, survival: 2 }, gold: 50 }, hours_passed: 4 },
+      { id: 'sacred_pool', label: 'Bathe in the pool', intent: 'willpower', outcome: 'The water is cool and pure. You feel cleansed in body and spirit.', stat_deltas: { health: 20, willpower: 10 }, hours_passed: 2 },
+      { id: 'pilgrim_prayer', label: 'Join pilgrims in prayer', intent: 'willpower', outcome: 'Khajiit chant to Masser and Secunda. The moons shine brighter...', stat_deltas: { willpower: 8 }, hours_passed: 2 },
+      { id: 'oasis_guard', label: 'Guard the oasis', intent: 'combat', outcome: 'Bandits often attempt to seize this sacred place. You repel their attack.', stat_deltas: { health: -15, skills: { combat: 5 }, relationship: 5 }, hours_passed: 3 },
+      { id: 'ancient_shrine', label: 'Visit the ancient shrine', intent: 'willpower', outcome: 'The first harvest was made here. The stone bears claw-marks of ages past.', stat_deltas: { skills: { history: 4 } }, hours_passed: 2 },
+      { id: 'sugar_addiction', label: 'Sample the sugar', intent: 'neutral', outcome: 'The sweet rush is intense. You understand why the Khajiit prize it so.', stat_deltas: { corruption: 5, stress: -15 }, hours_passed: 1 },
+      { id: 'desert_survival', label: 'Learn desert magic', intent: 'work', outcome: 'A hermit teaches water-weaving, a spell to summon moisture from air.', stat_deltas: { skills: { magic: 5 } }, hours_passed: 3 },
+      { id: 'nomad_encounter', label: 'Meet desert nomads', intent: 'social', outcome: 'The itinerant Khajiit trade stories and supplies. "The sands remember all, yes?"', stat_deltas: { relationship: 3, gold: -10 }, hours_passed: 2 }
+    ]
+  },
+  dunes_elsweyr: {
+    id: 'dunes_elsweyr',
+    name: 'The Elsweyr Dunes',
+    type: 'plains',
+    region: 'elsweyr',
+    description: "The vast grasslands of southern Elsweyr stretch to the horizon, dotted with small settlements and wandering herds. The Senche-raht herds their massive tigers across these plains, and the grass grows tall enough to hide a man. Dragon sightings have become common here.",
+    atmosphere: 'Open, wild, dangerous, pastoral',
+    actions: [
+      { id: 'senche_herd', label: 'Observe Senche herd', intent: 'work', outcome: 'The massive tiger-cattle graze peacefully. Their handlers are proud warriors.', stat_deltas: { skills: { survival: 2 }, relationship: 2 }, hours_passed: 2 },
+      { id: 'dragon_attack', label: 'Fight dragon', intent: 'combat', outcome: 'The beast descends! You rally the herders to drive it off.', stat_deltas: { health: -25, skills: { combat: 10 }, gold: 100 }, hours_passed: 4 },
+      { id: 'grassland_hunt', label: 'Hunt on the plains', intent: 'work', outcome: 'Giant grass-striders make challenging prey. Their meat feeds villages.', stat_deltas: { health: -10, skills: { marksman: 4 }, gold: 40 }, hours_passed: 4 },
+      { id: 'herders_camp', label: 'Stay with herders', intent: 'neutral', outcome: 'The nomads welcome you warmly. Their tents are woven from grass.', stat_deltas: { health: 10, exhaustion: -20, relationship: 3 }, hours_passed: 8 },
+      { id: 'mane_temple', label: 'Visit Mane\'s temple', intent: 'willpower', outcome: 'The holy site is guarded by fierce bodyguards. "Only the worthy enter."', stat_deltas: { willpower: 8, relationship: 2 }, hours_passed: 2 },
+      { id: 'bodyguard_offer', label: 'Offer bodyguard services', intent: 'work', outcome: 'The temple needs protectors. The pay is modest but the honor is immense.', stat_deltas: { gold: 50, relationship: 8, skills: { combat: 3 } }, hours_passed: 4 },
+      { id: 'furstock_warrior', label: 'Train with different furstock', intent: 'combat', outcome: 'A Dagi-raht warrior teaches their unique fighting style, all claws and speed.', stat_deltas: { skills: { combat: 5, stealth: 3 } }, hours_passed: 3 },
+      { id: 'plains_story', label: 'Hear plains stories', intent: 'social', outcome: '"The dragons came from the north, yes? The sky-burners remember their ancient home."', stat_deltas: { skills: { history: 3 }, corruption: 2 }, hours_passed: 1 }
+    ]
+  },
+
   // VALENWOOD BORDER
  绿色_wood: {
     id: 'green_wood',
