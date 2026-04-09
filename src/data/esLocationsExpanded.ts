@@ -277,9 +277,87 @@ export const ES_LOCATIONS_EXPANDED: Record<string, any> = {
     ]
   },
 
-  // ADDITIONAL MORROWIND
   gnisis: {
     id: 'gnisis',
+    name: 'Gnisis',
+    type: 'village',
+    region: 'morrowind',
+    description: "An ancient village in the West Gash region, famous for its Madach temple and the Egg Mine. The Dunmer here are traditional and proud, tracing lineage to the House of Gnisis that once held power in the area.",
+    atmosphere: 'Ancient, traditional, proud, agricultural',
+    actions: [
+      { id: 'visit_madach', label: 'Visit the Madach Temple', intent: 'social', outcome: 'The temple honors the ancestor-god. Priests maintain ancient traditions.', stat_deltas: { willpower: 5 }, hours_passed: 1 },
+      { id: 'mine_eggs', label: 'Harvest kwama eggs', intent: 'work', outcome: 'The mine yields precious eggs. Careful extraction is required.', stat_deltas: { health: -10, gold: 30, strength: 2 }, hours_passed: 4 },
+      { id: 'ancient_history', label: 'Learn of ancient Gnisis', intent: 'social', outcome: '"Our ancestors served the great houses. We remember."', stat_deltas: { skills: { history: 4 } }, hours_passed: 2 },
+      { id: 'tribunal_faith', label: 'Discuss Tribunal faith', intent: 'willpower', outcome: 'The old ways still hold meaning here despite the temples\' fall.', stat_deltas: { willpower: 5 }, hours_passed: 1 },
+      { id: 'dwemer_artifacts', label: 'Seek Dwemer artifacts', intent: 'work', outcome: 'Ruins nearby hold remnants of the vanished engineers.', stat_deltas: { skills: { engineering: 3 }, gold: 40 }, hours_passed: 3 },
+      { id: 'refugee_aid', label: 'Aid refugees from Vvardenfell', intent: 'willpower', outcome: 'Displaced Dunmer need help. The village takes them in.', stat_deltas: { willpower: 10, gold: -20 }, hours_passed: 2 },
+      { id: 'farm_labor', label: 'Work the ash-lands farms', intent: 'work', outcome: 'The hardy crops grow in volcanic soil. Hard but honest work.', stat_deltas: { health: -5, gold: 25, strength: 3 }, hours_passed: 4 },
+      { id: 'legend_tablet', label: 'Find the ancient law tablet', intent: 'work', outcome: 'The old laws are carved in stone. Knowledge of the ancestors.', stat_deltas: { skills: { history: 5 }, corruption: 2 }, hours_passed: 3 }
+    ]
+  },
+
+  // TELVANNI QUARTERS
+  telvanni_quarters: {
+    id: 'telvanni_quarters',
+    name: 'Telvanni Quarters',
+    type: 'wizard_tower',
+    region: 'morrowind',
+    description: "A mushroom tower belonging to the Telvanni wizard-lords. The spongy structure rises impossibly high, its cap forming a platform for arcane experiments. Wizards here pursue knowledge with single-minded obsession, caring little for politics or ethics.",
+    atmosphere: 'Arcane, eccentric, dangerous, isolated',
+    actions: [
+      { id: 'seek_patron', label: 'Seek a Telvanni patron', intent: 'work', outcome: '"You wish to serve? Prove your usefulness first."', stat_deltas: { relationship: 2 }, hours_passed: 1 },
+      { id: 'browse_artifacts', label: 'Browse magical artifacts', intent: 'work', outcome: 'Strange items from across Tamriel gather dust here.', stat_deltas: { gold: -150 }, hours_passed: 2 },
+      { id: 'mushroom_climb', label: 'Climb the mushroom tower', intent: 'work', outcome: 'The stairs spiral endlessly upward. Each level holds wonders.', stat_deltas: { health: -10, skills: { athletics: 3 } }, hours_passed: 3 },
+      { id: 'arcane_experiment', label: 'Assist arcane experiment', intent: 'work', outcome: 'The wizard needs test subjects. The results may vary.', stat_deltas: { health: -15, skills: { magic: 8 }, corruption: 5 }, hours_passed: 4 },
+      { id: 'teach_spell', label: 'Request spell teaching', intent: 'work', outcome: '"I shall share this knowledge. For a price."', stat_deltas: { skills: { magic: 6 }, gold: -50 }, hours_passed: 2 },
+      { id: 'kwama_breeding', label: 'Study kwama breeding', intent: 'work', outcome: 'The wizards keep kwama for some unfathomable purpose.', stat_deltas: { skills: { survival: 4, alchemy: 3 }, corruption: 3 }, hours_passed: 3 },
+      { id: 'dwemer_scholar', label: 'Debate Dwemer philosophy', intent: 'social', outcome: '"The Dwemer sought to master mortality. A noble goal..."', stat_deltas: { skills: { history: 4, magic: 2 } }, hours_passed: 2 },
+      { id: 'forbidden_research', label: 'Seek forbidden research', intent: 'stealth', outcome: 'The deepest archives hold secrets Telvanni hide even from each other.', stat_deltas: { corruption: 15, skills: { magic: 10 } }, hours_passed: 3 }
+    ]
+  },
+
+  // VEYLEEN HARBOR
+  veyleen_harbor: {
+    id: 'veyleen_harbor',
+    name: 'Veyleen Harbor',
+    type: 'port',
+    region: 'morrowind',
+    description: "The trading port of Veyleen serves as the gateway for goods flowing between the Azura's Coast and the interior. Ships from across Tamriel dock here - Imperial vessels, Dunmer cargo haulers, and Khajiit caravans. The smell of salt and spices fills the air.",
+    atmosphere: 'Bustling, mercantile, multicultural, maritime',
+    actions: [
+      { id: 'cargo_work', label: 'Work the docks', intent: 'work', outcome: 'Heavy crates and fragrant crates await. The work is hard.', stat_deltas: { health: -15, gold: 35, strength: 3 }, hours_passed: 6 },
+      { id: 'negotiate_trade', label: 'Negotiate trade deals', intent: 'work', outcome: 'Merchants from across Tamriel wheel and deal.', stat_deltas: { skills: { speech: 5 }, gold: -20 }, hours_passed: 2 },
+      { id: 'ship_passage', label: 'Book ship passage', intent: 'work', outcome: 'Vessels depart for distant ports - to the mainland or Solthaus.', stat_deltas: { gold: -60 }, hours_passed: 1 },
+      { id: 'smuggler_meet', label: 'Meet smuggler contacts', intent: 'stealth', outcome: 'The harbor has dark corners for those who know where to look.', stat_deltas: { corruption: 8, gold: 50 }, hours_passed: 2 },
+      { id: 'slaver_trade', label: 'Encounter the slaver docks', intent: 'stealth', outcome: 'The institution persists despite official prohibition.', stat_deltas: { corruption: 10, willpower: -5 }, hours_passed: 2 },
+      { id: 'foreign_goods', label: 'Browse foreign goods', intent: 'work', outcome: 'Imported items from Summerset, Black Marsh, and Hammerfell.', stat_deltas: { gold: -100 }, hours_passed: 2 },
+      { id: 'tribune_help', label: 'Seek House Hlaalu contacts', intent: 'work', outcome: 'The merchant house controls much of the harbor traffic.', stat_deltas: { relationship: 3 }, hours_passed: 1 },
+      { id: 'coastal_legend', label: 'Hear coastal legends', intent: 'social', outcome: 'Sailors speak of Daedra that haunt the seas, and the ministry above.', stat_deltas: { skills: { history: 3 }, corruption: 2 }, hours_passed: 2 }
+    ]
+  },
+
+  // BALMORA SOUTH
+  balmora_south: {
+    id: 'balmora_south',
+    name: 'Balmora South Market',
+    type: 'market',
+    region: 'morrowind',
+    description: "The southern market district of Balmora bustles with merchants, craftspeople, and travelers. This is where the Hlaalu merchant house conducts much of its business, and the atmosphere is one of cosmopolitan commerce. Exotic goods from across the continent change hands here.",
+    atmosphere: 'Cosmopolitan, commercial, lively, diverse',
+    actions: [
+      { id: 'trade_goods', label: 'Trade exotic goods', intent: 'work', outcome: 'Telvanni mushrooms, Kwama eggs, Dunmer pottery - many items change hands.', stat_deltas: { gold: -80 }, hours_passed: 2 },
+      { id: 'hlaalu_contact', label: 'Contact House Hlaalu', intent: 'work', outcome: 'The merchant house welcomes ambitious traders.', stat_deltas: { relationship: 4, gold: -30 }, hours_passed: 1 },
+      { id: 'guild_recruitment', label: 'Join the Fighters Guild', intent: 'work', outcome: 'The guild has an outpost here, handling contracts.', stat_deltas: { relationship: 3 }, hours_passed: 1 },
+      { id: 'mage_merchant', label: 'Buy from mage merchants', intent: 'work', outcome: 'Scrolls, potions, and rare ingredients are sold here.', stat_deltas: { skills: { alchemy: 2 }, gold: -70 }, hours_passed: 2 },
+      { id: 'imperial_courier', label: 'Meet the Imperial courier', intent: 'work', outcome: 'The Empire maintains a presence here for official communications.', stat_deltas: { relationship: 2 }, hours_passed: 1 },
+      { id: 'kwama_food', label: 'Sample kwama cuisine', intent: 'neutral', outcome: 'The local specialty - eggs cooked various ways - fills you up.', stat_deltas: { health: 10, gold: -8 }, hours_passed: 1 },
+      { id: 'information_broker', label: 'Seek information broker', intent: 'work', outcome: 'Someone always knows something about jobs, politics, or secrets.', stat_deltas: { gold: -25, corruption: 3 }, hours_passed: 1 },
+      { id: 'caravan_leave', label: 'Join a departing caravan', intent: 'work', outcome: 'Caravans head to Vvardenfell, Sadrith Mora, and beyond.', stat_deltas: { gold: -40, relationship: 3 }, hours_passed: 2 }
+    ]
+  },
+
+  khuul: {
+    id: 'khuul',
     name: 'Gnisis',
     type: 'village',
     region: 'morrowind',
