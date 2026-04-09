@@ -1856,5 +1856,79 @@ export const ES_LOCATIONS_EXPANDED: Record<string, any> = {
       { id: 'desert_town_history', label: 'Learn town history', intent: 'social', outcome: '"We\'ve been Redguard, Breton, Imperial, and back. The desert doesn\'t care who rules."', stat_deltas: { skills: { history: 3 } }, hours_passed: 1 },
       { id: 'oasis_rest', label: 'Rest at the oasis', intent: 'neutral', outcome: 'The cool waters of the hidden oasis restore your strength.', stat_deltas: { health: 20, exhaustion: -25 }, hours_passed: 3 }
     ]
+  },
+
+  // HIGH ROCK REGION
+  wayrest: {
+    id: 'wayrest',
+    name: 'Wayrest',
+    type: 'city',
+    region: 'high_rock',
+    description: "The greatest port city in High Rock, Wayrest sprawls across the mouth of the River Karth. Breton merchants trade with sailors from across the Abecean Sea, and the city's wealth attracts knights, mages, and thieves alike. The Kingdom of Wayrest rules from the ancient castle, though merchant princes hold considerable power.",
+    atmosphere: 'Wealthy, maritime, cosmopolitan, politically complex',
+    actions: [
+      { id: 'port_trade', label: 'Trade at the harbor', intent: 'work', outcome: 'Ships from Hammerfell, Summerset, and beyond dock here. The profits are immense.', stat_deltas: { gold: -80, skills: { speech: 3 } }, hours_passed: 2 },
+      { id: 'knight_training', label: 'Train with Breton knights', intent: 'combat', outcome: 'The Order of the Dragon maintains a chapter here. Their heavy cavalry is legendary.', stat_deltas: { skills: { combat: 6, blocking: 4 }, gold: -25 }, hours_passed: 3 },
+      { id: 'direnni_tower_visit', label: 'Visit Direnni Tower', intent: 'work', outcome: 'The ancient tower still stands, home to the last Direnni mages. Their knowledge is vast.', stat_deltas: { skills: { magic: 5 }, relationship: 3 }, hours_passed: 2 },
+      { id: 'mercenary_guild', label: 'Join the Mercenary Guild', intent: 'work', outcome: '"The Thorn is hiring. Good coin, dangerous work. Sign up and prove yourself."', stat_deltas: { gold: 40, relationship: 5 }, hours_passed: 1 },
+      { id: 'merchant_prince', label: 'Meet a merchant prince', intent: 'social', outcome: 'The wealthy traders control the city\'s economy. Their favor is valuable.', stat_deltas: { relationship: 8, gold: -30 }, hours_passed: 1 },
+      { id: 'river_expedition', label: 'Organize a river expedition', intent: 'work', outcome: 'Expeditions up the Karth seek lost ruins and forgotten treasures.', stat_deltas: { gold: 50, skills: { survival: 3 } }, hours_passed: 4 },
+      { id: 'mage_guild_branch', label: 'Visit the Mages Guild', intent: 'work', outcome: 'The local guildhall trains Bretons in the arcane arts. The curriculum is rigorous.', stat_deltas: { skills: { magic: 4 }, gold: -20 }, hours_passed: 2 },
+      { id: 'pirate_negotiation', label: 'Negotiate with pirates', intent: 'stealth', outcome: 'The harbor has connections to the Pyandonean corsairs. Blood money flows.', stat_deltas: { corruption: 10, gold: 60 }, hours_passed: 1 }
+    ]
+  },
+  daggerfall: {
+    id: 'daggerfall',
+    name: 'Daggerfall',
+    type: 'city',
+    region: 'high_rock',
+    description: "The capital of the Daggerfall Covenant stands as a monument to Breton power. The massive castle dominates the city, and knights in shining armor patrol the streets. The Bretons here are proud of their ancestry and their kingdom's influence over the Iliac Bay region.",
+    atmosphere: 'Regal, martial, traditional, proud',
+    actions: [
+      { id: 'royal_audience', label: 'Seek audience with the King', intent: 'work', outcome: 'The King of Daggerfall holds court. He has work for those with skill and loyalty.', stat_deltas: { relationship: 10 }, hours_passed: 2 },
+      { id: 'covenant_council', label: 'Attend covenant council', intent: 'social', outcome: 'The leaders of the Daggerfall Covenant debate strategy against the Empire.', stat_deltas: { skills: { leadership: 4 }, relationship: 5 }, hours_passed: 2 },
+      { id: 'cavalry_training', label: 'Train in the cavalry', intent: 'combat', outcome: 'Breton heavy cavalry is the finest in Tamriel. You learn to fight from the saddle.', stat_deltas: { skills: { combat: 8, marksman: 4 }, health: -15 }, hours_passed: 4 },
+      { id: 'direnni_library', label: 'Research at the Direnni Library', intent: 'work', outcome: 'The ancient texts hold secrets of the First Era and the battles against the Ayleids.', stat_deltas: { skills: { history: 6, magic: 3 } }, hours_passed: 3 },
+      { id: 'kingdom_guard', label: 'Join the Kingdom Guard', intent: 'work', outcome: '"Serve the crown with honor. The kingdom needs swords it can trust."', stat_deltas: { gold: 50, skills: { combat: 4 }, relationship: 10 }, hours_passed: 4 },
+      { id: 'high_rock_nobles', label: 'Network with nobles', intent: 'social', outcome: 'The Breton aristocracy values lineage and influence. Navigate carefully.', stat_deltas: { skills: { speech: 5 }, relationship: 8 }, hours_passed: 2 },
+      { id: 'artifact_search', label: 'Search for ancient artifacts', intent: 'work', outcome: 'Ruins around the city hold treasures from the Direnni Hegemony.', stat_deltas: { gold: 80, skills: { history: 3 }, corruption: 3 }, hours_passed: 3 },
+      { id: 'spy_network', label: 'Join the intelligence network', intent: 'stealth', outcome: 'The kingdom spies on its neighbors. Your skills could serve the crown.', stat_deltas: { corruption: 8, skills: { stealth: 5 } }, hours_passed: 2 }
+    ]
+  },
+  orsinium: {
+    id: 'orsinium',
+    name: 'Orsinium',
+    type: 'city',
+    region: 'high_rock',
+    description: "The Orcish capital rises in the mountains of western High Rock, a fortress-city built by and for the Orcs. Despite Breton attempts to destroy it throughout history, Orsinium endures. The city trades in strong weapons, heavy armor, and the famous Orcish smiths command high prices across Tamriel.",
+    atmosphere: 'Rugged, fortress-like, proud, martial',
+    actions: [
+      { id: 'orcish_forge', label: 'Learn Orcish smithing', intent: 'work', outcome: 'The master smiths teach their secret techniques. Orcish steel is legendary.', stat_deltas: { skills: { crafting: 6 }, gold: -30 }, hours_passed: 3 },
+      { id: 'thunderhammer_training', label: 'Train with thunderhammers', intent: 'combat', outcome: 'The great two-handed hammers are the Orcish specialty. Devastating power.', stat_deltas: { skills: { combat: 8, two_handed: 5 }, health: -15 }, hours_passed: 4 },
+      { id: 'orcish_chief', label: 'Meet the Tribal Chief', intent: 'social', outcome: 'The leader of all Orcs in Tamriel rules from the great hall. Show respect.', stat_deltas: { relationship: 10 }, hours_passed: 1 },
+      { id: 'buy_armor', label: 'Buy Orcish armor', intent: 'work', outcome: 'The heavy armor is worth every gold piece. Protection that lasts.', stat_deltas: { gold: -120, skills: { crafting: 2 } }, hours_passed: 1 },
+      { id: 'prove_strength', label: 'Prove your strength', intent: 'combat', outcome: 'To earn Orcish respect, you must show your might in combat. Fight well.', stat_deltas: { health: -20, skills: { combat: 6 }, relationship: 15 }, hours_passed: 2 },
+      { id: 'mercenary_contract', label: 'Sign a mercenary contract', intent: 'work', outcome: 'Orcish warriors are prized across Tamriel. The coin is good, the work bloody.', stat_deltas: { gold: 80, skills: { combat: 5 } }, hours_passed: 4 },
+      { id: 'giant_slayer_legend', label: 'Hear the Giant-Slayer legend', intent: 'social', outcome: '"Gortwog carved his name in history. We continue his legacy."', stat_deltas: { skills: { history: 3 }, relationship: 3 }, hours_passed: 1 },
+      { id: 'stronghold_defense', label: 'Defend the stronghold', intent: 'combat', outcome: 'Breton raiders attack! You help hold the walls against the siege.', stat_deltas: { health: -25, skills: { combat: 10 }, relationship: 20 }, hours_passed: 3 }
+    ]
+  },
+  camlorn: {
+    id: 'camlorn',
+    name: 'Camlorn',
+    type: 'fortress',
+    region: 'high_rock',
+    description: "The ancient fortress of Camlorn stands as a reminder of the Direnni Hegemony's power. Breton mages once ruled from this castle, and though the Direnni have fallen, their descendants still maintain the fortress. The surrounding lands are hunted by giants, and the fortress serves as a base for those who dare venture into the wilds.",
+    atmosphere: 'Ancient, magical, fortified, mysterious',
+    actions: [
+      { id: 'explore_fortress', label: 'Explore the ancient fortress', intent: 'work', outcome: 'The stone walls date to the First Era. Secrets hide in every corner.', stat_deltas: { skills: { history: 5 } }, hours_passed: 3 },
+      { id: 'direnni_heir', label: 'Seek the Direnni heir', intent: 'work', outcome: '"The last of the Direnni bloodline lives here, hiding from the world."', stat_deltas: { relationship: 10, skills: { magic: 3 } }, hours_passed: 2 },
+      { id: 'mage_tower_study', label: 'Study in the mage tower', intent: 'work', outcome: 'The residual magic of the Direnni enhances your arcane abilities.', stat_deltas: { skills: { magic: 8 }, gold: -20 }, hours_passed: 4 },
+      { id: 'giant_hunt', label: 'Hunt the valley giants', intent: 'combat', outcome: 'The giants terrorize the countryside. Local lords pay for their heads.', stat_deltas: { health: -25, skills: { combat: 10 }, gold: 60 }, hours_passed: 4 },
+      { id: 'ancient_vault', label: 'Open the ancient vault', intent: 'work', outcome: 'The locked chamber holds treasures from the height of Direnni power.', stat_deltas: { skills: { lockpicking: 6 }, gold: 100, corruption: 5 }, hours_passed: 3 },
+      { id: 'knight_order_join', label: 'Join the Knights of the Glen', intent: 'work', outcome: 'The local order maintains the old ways. Their honor is legendary.', stat_deltas: { relationship: 8, skills: { combat: 4 } }, hours_passed: 1 },
+      { id: 'ley_line_nexus', label: 'Find the ley line nexus', intent: 'work', outcome: 'Magic converges here powerfully. The site amplifies all spells.', stat_deltas: { skills: { magic: 10 }, corruption: 5 }, hours_passed: 2 },
+      { id: 'fortress_defense', label: 'Defend against raiders', intent: 'combat', outcome: 'Bandits try to claim the abandoned sections. You drive them off.', stat_deltas: { health: -15, skills: { combat: 6 }, relationship: 5 }, hours_passed: 2 }
+    ]
   }
 };
