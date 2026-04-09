@@ -1316,6 +1316,83 @@ export const ES_LOCATIONS_EXPANDED: Record<string, any> = {
       { id: 'archmage_tomb', label: 'Find Arch-Mage tomb', intent: 'work', outcome: 'The greatest mages are buried here.', stat_deltas: { gold: 100, skills: { magic: 5 } }, hours_passed: 3 },
       { id: 'maze_master', label: 'Master the maze', intent: 'willpower', outcome: 'You find your way through all the twists.', stat_deltas: { willpower: 15, skills: { survival: 5 } }, hours_passed: 4 }
     ]
+  },
+
+  // ADULT LOCATIONS
+  riften_brothel: {
+    id: 'riften_brothel',
+    name: 'The Pink Lantern',
+    type: 'brothel',
+    region: 'the_rift',
+    description: "Hidden in Riften's shadows, this discreet establishment caters to those with coin and discretion. The madam, a weathered Breton with eyes that miss nothing, runs operations with an iron fist wrapped in velvet gloves. Behind silk curtains, rooms await those seeking temporary companionship.",
+    atmosphere: 'Secretive, opulent, dangerous, illicit',
+    actions: [
+      { id: 'visit_prostitute', label: 'Visit a prostitute', intent: 'corruption', outcome: 'The madam gestures to a curtained alcove. "Choose someone to your taste."', stat_deltas: { corruption: 15, stress: -25, gold: -50 }, hours_passed: 2 },
+      { id: 'work_as_prostitute', label: 'Work as a prostitute', intent: 'work', outcome: 'You earn coin using your body. The work is degrading but pays well.', stat_deltas: { gold: 75, corruption: 10, willpower: -5 }, hours_passed: 4 },
+      { id: 'organize_escort', label: 'Organize an escort job', intent: 'work', outcome: 'You arrange private companionship for a wealthy client. The negotiations are delicate.', stat_deltas: { gold: 100, skills: { speech: 3 }, corruption: 5 }, hours_passed: 3 },
+      { id: 'police_bribe', label: 'Bribe the city guard', intent: 'corruption', outcome: 'A few gold coins ensures the guards look elsewhere. The corruption spreads.', stat_deltas: { gold: -25, corruption: 10, relationship: 3 }, hours_passed: 1 },
+      { id: 'std_risk', label: 'Risk an encounter without protection', intent: 'corruption', outcome: 'Pleasure without caution carries its own price. You hope you\'ll be alright.', stat_deltas: { health: -15, corruption: 20 }, hours_passed: 2 },
+      { id: 'client_encounter', label: 'Meet a mysterious client', intent: 'social', outcome: 'A hooded figure offers gold for services. Their identity remains hidden.', stat_deltas: { gold: 100, corruption: 10 }, hours_passed: 2 },
+      { id: 'madam_negotiate', label: 'Negotiate with the madam', intent: 'social', outcome: '"I run a business, dear. You want a cut, you earn it. Or I have other options..."', stat_deltas: { skills: { speech: 5 }, relationship: 5 }, hours_passed: 1 },
+      { id: 'private_room', label: 'Rent a private room', intent: 'neutral', outcome: 'The room is decorated with silk and incense. Privacy is guaranteed.', stat_deltas: { stress: -30, gold: -75 }, hours_passed: 4 }
+    ]
+  },
+
+  windhelm_bathhouse: {
+    id: 'windhelm_bathhouse',
+    name: 'The Steam Hall',
+    type: 'bathhouse',
+    region: 'eastmarch',
+    description: "Against the cold winds of Windhelm, this public bathhouse offers warmth and relaxation. Steam rises from heated pools, and bathers of all walks soak away their cares. The atmosphere is surprisingly social for such an otherwise grim city.",
+    atmosphere: 'Warm, steamy, social, revealing',
+    actions: [
+      { id: 'steam_room', label: 'Use the steam room', intent: 'neutral', outcome: 'The heat opens your pores and loosens your muscles. Pure relaxation.', stat_deltas: { health: 10, exhaustion: -15 }, hours_passed: 2 },
+      { id: 'naked_swim', label: 'Swim in the buff', intent: 'neutral', answer: 'You strip and swim in the main pool. Freedom and warmth combined.', stat_deltas: { stress: -10, exhaustion: -10 }, hours_passed: 1 },
+      { id: 'massage', label: 'Get a massage', intent: 'neutral', outcome: 'A attendant works the knots from your back. Their hands are skilled.', stat_deltas: { health: 15, gold: -15 }, hours_passed: 1 },
+      { id: 'mixed_bathing', label: 'Enjoy mixed bathing', intent: 'social', outcome: 'Men and women soak together in the warm waters. Conversation flows freely.', stat_deltas: { stress: -15, relationship: 5 }, hours_passed: 2 },
+      { id: 'encounter_stranger', label: 'Encounter a stranger', intent: 'social', outcome: 'A fellow bather strikes up conversation. They have interesting stories.', stat_deltas: { relationship: 3, corruption: 2 }, hours_passed: 1 },
+      { id: 'heal_steam', label: 'Heal in the steam', intent: 'willpower', outcome: 'The heat and minerals rejuvenate you. Small wounds seem to mend faster.', stat_deltas: { health: 20, exhaustion: -20 }, hours_passed: 3 },
+      { id: 'observe_bathers', label: 'Observe the bathers', intent: 'social', outcome: 'You watch the diverse patrons. Everyone is equal in the steam.', stat_deltas: { corruption: 3, skills: { speech: 1 } }, hours_passed: 2 },
+      { id: 'join_party', label: 'Join a bathing party', intent: 'social', outcome: 'A group invites you to share their pool. The conversation turns intimate.', stat_deltas: { stress: -20, relationship: 8, corruption: 5 }, hours_passed: 3 }
+    ]
+  },
+
+  balmora_pleasure_house: {
+    id: 'balmora_pleasure_house',
+    name: 'House of Bliss',
+    type: 'pleasure_house',
+    region: 'morrowind',
+    description: "A traditional Dunmer establishment where pleasure is elevated to sacred art. The House of Bliss serves wealthy clients seeking companionship in the ancient Dunmer tradition. Servants are trained in the arts of conversation, music, and more intimate pursuits. Mystery surrounds every interaction.",
+    atmosphere: 'Exotic, refined, mysterious, sensual',
+    actions: [
+      { id: 'temple_bliss', label: 'Enter the House of Bliss', intent: 'corruption', outcome: 'The establishment smells of incense and sandalwood. You are greeted with ceremony.', stat_deltas: { corruption: 10, stress: -20 }, hours_passed: 1 },
+      { id: 'sacred_intimacy', label: 'Experience sacred intimacy', intent: 'corruption', outcome: 'The Dunmer view pleasure as sacred. You understand their philosophy intimately.', stat_deltas: { corruption: 20, stress: -30, gold: -100 }, hours_passed: 3 },
+      { id: 'house_servants', label: 'Speak with house servants', intent: 'social', outcome: 'The servants are educated in many subjects. Conversation alone is worth the coin.', stat_deltas: { skills: { speech: 3 }, relationship: 5, gold: -25 }, hours_passed: 2 },
+      { id: 'mysterious_client', label: 'Meet a mysterious client', intent: 'social', outcome: 'Another patron, hooded and silent, nods in recognition. They have deep pockets.', stat_deltas: { gold: 50, corruption: 5, relationship: 3 }, hours_passed: 2 },
+      { id: 'dunmer_art', label: 'Learn Dunmer arts of pleasure', intent: 'work', outcome: 'The house teaches ancient techniques. Your skills improve dramatically.', stat_deltas: { corruption: 15, skills: { speech: 5 } }, hours_passed: 4 },
+      { id: 'private_dance', label: 'Request a private dance', intent: 'corruption', outcome: 'A skilled dancer moves before you. The performance is mesmerizing.', stat_deltas: { corruption: 10, stress: -15, gold: -40 }, hours_passed: 2 },
+      { id: ' VIP_room', label: 'Request VIP chamber', intent: 'corruption', outcome: 'The finest the house offers awaits. Privacy and pleasure combined.', stat_deltas: { corruption: 25, stress: -35, gold: -150 }, hours_passed: 4 },
+      { id: 'house_secrets', label: 'Discover house secrets', intent: 'stealth', outcome: 'Late at night, you notice hidden passages. What else lies hidden here?', stat_deltas: { corruption: 10, skills: { stealth: 3 } }, hours_passed: 3 }
+    ]
+  },
+
+  black_marsh_spawning_pool: {
+    id: 'black_marsh_spawning_pool',
+    name: 'The Spawning Pools',
+    type: 'sacred_site',
+    region: 'black_marsh',
+    description: "Deep in the swamps of Black Marsh, far from mortal eyes, lie the sacred spawning pools of the Argonians. Here, the Hist commune with their chosen, and Argonians come to participate in ancient rituals of reproduction and renewal. The air is thick with pollen and magic.",
+    atmosphere: 'Primeval, mystical, orgiastic, ancient',
+    actions: [
+      { id: 'ritual_mating', label: 'Participate in ritual mating', intent: 'corruption', outcome: 'You join the ancient dance of life. The Hist witness and bless the union.', stat_deltas: { corruption: 25, stress: -40, willpower: 10 }, hours_passed: 4 },
+      { id: 'fertility_rite', label: 'Perform fertility rite', intent: 'willpower', outcome: 'The priests invoke the Hist\'s blessing. Life springs from the ritual.', stat_deltas: { willpower: 15, health: 10 }, hours_passed: 3 },
+      { id: 'egg_breeding', label: 'Experience egg breeding', intent: 'corruption', outcome: 'The Argonian way is strange to outsiders. You participate in their cycle.', stat_deltas: { corruption: 30, health: 5 }, hours_passed: 4 },
+      { id: 'hist_bliss', label: 'Commune with the Hist', intent: 'willpower', outcome: 'The ancient trees share their wisdom. Your mind expands beyond mortal bounds.', stat_deltas: { willpower: 20, skills: { magic: 5 }, corruption: 10 }, hours_passed: 5 },
+      { id: 'spawning_ceremony', label: 'Attend spawning ceremony', intent: 'social', outcome: 'You witness new life emerging from the pools. The sight is both holy and primal.', stat_deltas: { corruption: 15, willpower: 10 }, hours_passed: 3 },
+      { id: '加入_pool', label: 'Join the waters', intent: 'neutral', outcome: 'The warm swamp waters envelop you. You feel connected to something vast.', stat_deltas: { health: 15, exhaustion: -20 }, hours_passed: 2 },
+      { id: 'strange_intimacy', label: 'Share intimacy with an Argonian', intent: 'corruption', outcome: 'The encounter is unlike anything else. Their culture, their way, embraces you.', stat_deltas: { corruption: 35, stress: -30 }, hours_passed: 3 },
+      { id: 'hist_offering', label: 'Make offering to the Hist', intent: 'willpower', outcome: 'You leave a gift at the sacred tree. The roots seem to pulse with gratitude.', stat_deltas: { willpower: 10, gold: -20 }, hours_passed: 2 }
+    ]
   }
 };
 };
