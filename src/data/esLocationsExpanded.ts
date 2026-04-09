@@ -855,8 +855,8 @@ export const ES_LOCATIONS_EXPANDED: Record<string, any> = {
       { id: 'moon_sugar_broker', label: 'Visit sugar broker', intent: 'work', outcome: '"The trade is regulated, yes? But for the right gold, I know people..."', stat_deltas: { corruption: 5, gold: 50 }, hours_passed: 2 },
       { id: 'imperial_guard', label: 'Join Imperial watch', intent: 'work', outcome: '"Extra guards needed. The moonsugar trade attracts trouble."', stat_deltas: { gold: 40, skills: { combat: 2 }, relationship: 2 }, hours_passed: 4 },
       { id: 'redguard_trade', label: 'Trade with Redguards', intent: 'work', outcome: 'The warriors from Hammerfell have goods from the western deserts.', stat_deltas: { gold: -60, skills: { speech: 2 } }, hours_passed: 2 },
-      { id: 'warehouse_district', label: 'Explore warehouse district', intent: 'stealth', outcome: 'The back alleys hold秘密交易. Smugglers operate in shadow.', stat_deltas: { corruption: 5, skills: { stealth: 2 }, gold: 30 }, hours_passed: 2 },
-      { id: 'city_wall_walk', label: 'Walk the walls', intent: 'neutral', overview: 'The walls offer views of the desert and sea. Guards patrol ceaselessly.', stat_deltas: { skills: { survival: 1 } }, hours_passed: 2 },
+      { id: 'warehouse_district', label: 'Explore warehouse district', intent: 'stealth', outcome: 'The back alleys hold secret deals. Smugglers operate in shadow.', stat_deltas: { corruption: 5, skills: { stealth: 2 }, gold: 30 }, hours_passed: 2 },
+      { id: 'city_wall_walk', label: 'Walk the walls', intent: 'neutral', outcome: 'The walls offer views of the desert and sea. Guards patrol ceaselessly.', stat_deltas: { skills: { survival: 1 } }, hours_passed: 2 },
       { id: 'rimmen_history', label: 'Ask about city history', intent: 'social', outcome: '"Rimmen was independent once. Now? The Empire protects us, yes?"', stat_deltas: { skills: { history: 2 }, relationship: 2 }, hours_passed: 1 }
     ]
   },
