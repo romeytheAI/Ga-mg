@@ -277,87 +277,9 @@ export const ES_LOCATIONS_EXPANDED: Record<string, any> = {
     ]
   },
 
+  // ADDITIONAL MORROWIND
   gnisis: {
     id: 'gnisis',
-    name: 'Gnisis',
-    type: 'village',
-    region: 'morrowind',
-    description: "An ancient village in the West Gash region, famous for its Madach temple and the Egg Mine. The Dunmer here are traditional and proud, tracing lineage to the House of Gnisis that once held power in the area.",
-    atmosphere: 'Ancient, traditional, proud, agricultural',
-    actions: [
-      { id: 'visit_madach', label: 'Visit the Madach Temple', intent: 'social', outcome: 'The temple honors the ancestor-god. Priests maintain ancient traditions.', stat_deltas: { willpower: 5 }, hours_passed: 1 },
-      { id: 'mine_eggs', label: 'Harvest kwama eggs', intent: 'work', outcome: 'The mine yields precious eggs. Careful extraction is required.', stat_deltas: { health: -10, gold: 30, strength: 2 }, hours_passed: 4 },
-      { id: 'ancient_history', label: 'Learn of ancient Gnisis', intent: 'social', outcome: '"Our ancestors served the great houses. We remember."', stat_deltas: { skills: { history: 4 } }, hours_passed: 2 },
-      { id: 'tribunal_faith', label: 'Discuss Tribunal faith', intent: 'willpower', outcome: 'The old ways still hold meaning here despite the temples\' fall.', stat_deltas: { willpower: 5 }, hours_passed: 1 },
-      { id: 'dwemer_artifacts', label: 'Seek Dwemer artifacts', intent: 'work', outcome: 'Ruins nearby hold remnants of the vanished engineers.', stat_deltas: { skills: { engineering: 3 }, gold: 40 }, hours_passed: 3 },
-      { id: 'refugee_aid', label: 'Aid refugees from Vvardenfell', intent: 'willpower', outcome: 'Displaced Dunmer need help. The village takes them in.', stat_deltas: { willpower: 10, gold: -20 }, hours_passed: 2 },
-      { id: 'farm_labor', label: 'Work the ash-lands farms', intent: 'work', outcome: 'The hardy crops grow in volcanic soil. Hard but honest work.', stat_deltas: { health: -5, gold: 25, strength: 3 }, hours_passed: 4 },
-      { id: 'legend_tablet', label: 'Find the ancient law tablet', intent: 'work', outcome: 'The old laws are carved in stone. Knowledge of the ancestors.', stat_deltas: { skills: { history: 5 }, corruption: 2 }, hours_passed: 3 }
-    ]
-  },
-
-  // TELVANNI QUARTERS
-  telvanni_quarters: {
-    id: 'telvanni_quarters',
-    name: 'Telvanni Quarters',
-    type: 'wizard_tower',
-    region: 'morrowind',
-    description: "A mushroom tower belonging to the Telvanni wizard-lords. The spongy structure rises impossibly high, its cap forming a platform for arcane experiments. Wizards here pursue knowledge with single-minded obsession, caring little for politics or ethics.",
-    atmosphere: 'Arcane, eccentric, dangerous, isolated',
-    actions: [
-      { id: 'seek_patron', label: 'Seek a Telvanni patron', intent: 'work', outcome: '"You wish to serve? Prove your usefulness first."', stat_deltas: { relationship: 2 }, hours_passed: 1 },
-      { id: 'browse_artifacts', label: 'Browse magical artifacts', intent: 'work', outcome: 'Strange items from across Tamriel gather dust here.', stat_deltas: { gold: -150 }, hours_passed: 2 },
-      { id: 'mushroom_climb', label: 'Climb the mushroom tower', intent: 'work', outcome: 'The stairs spiral endlessly upward. Each level holds wonders.', stat_deltas: { health: -10, skills: { athletics: 3 } }, hours_passed: 3 },
-      { id: 'arcane_experiment', label: 'Assist arcane experiment', intent: 'work', outcome: 'The wizard needs test subjects. The results may vary.', stat_deltas: { health: -15, skills: { magic: 8 }, corruption: 5 }, hours_passed: 4 },
-      { id: 'teach_spell', label: 'Request spell teaching', intent: 'work', outcome: '"I shall share this knowledge. For a price."', stat_deltas: { skills: { magic: 6 }, gold: -50 }, hours_passed: 2 },
-      { id: 'kwama_breeding', label: 'Study kwama breeding', intent: 'work', outcome: 'The wizards keep kwama for some unfathomable purpose.', stat_deltas: { skills: { survival: 4, alchemy: 3 }, corruption: 3 }, hours_passed: 3 },
-      { id: 'dwemer_scholar', label: 'Debate Dwemer philosophy', intent: 'social', outcome: '"The Dwemer sought to master mortality. A noble goal..."', stat_deltas: { skills: { history: 4, magic: 2 } }, hours_passed: 2 },
-      { id: 'forbidden_research', label: 'Seek forbidden research', intent: 'stealth', outcome: 'The deepest archives hold secrets Telvanni hide even from each other.', stat_deltas: { corruption: 15, skills: { magic: 10 } }, hours_passed: 3 }
-    ]
-  },
-
-  // VEYLEEN HARBOR
-  veyleen_harbor: {
-    id: 'veyleen_harbor',
-    name: 'Veyleen Harbor',
-    type: 'port',
-    region: 'morrowind',
-    description: "The trading port of Veyleen serves as the gateway for goods flowing between the Azura's Coast and the interior. Ships from across Tamriel dock here - Imperial vessels, Dunmer cargo haulers, and Khajiit caravans. The smell of salt and spices fills the air.",
-    atmosphere: 'Bustling, mercantile, multicultural, maritime',
-    actions: [
-      { id: 'cargo_work', label: 'Work the docks', intent: 'work', outcome: 'Heavy crates and fragrant crates await. The work is hard.', stat_deltas: { health: -15, gold: 35, strength: 3 }, hours_passed: 6 },
-      { id: 'negotiate_trade', label: 'Negotiate trade deals', intent: 'work', outcome: 'Merchants from across Tamriel wheel and deal.', stat_deltas: { skills: { speech: 5 }, gold: -20 }, hours_passed: 2 },
-      { id: 'ship_passage', label: 'Book ship passage', intent: 'work', outcome: 'Vessels depart for distant ports - to the mainland or Solthaus.', stat_deltas: { gold: -60 }, hours_passed: 1 },
-      { id: 'smuggler_meet', label: 'Meet smuggler contacts', intent: 'stealth', outcome: 'The harbor has dark corners for those who know where to look.', stat_deltas: { corruption: 8, gold: 50 }, hours_passed: 2 },
-      { id: 'slaver_trade', label: 'Encounter the slaver docks', intent: 'stealth', outcome: 'The institution persists despite official prohibition.', stat_deltas: { corruption: 10, willpower: -5 }, hours_passed: 2 },
-      { id: 'foreign_goods', label: 'Browse foreign goods', intent: 'work', outcome: 'Imported items from Summerset, Black Marsh, and Hammerfell.', stat_deltas: { gold: -100 }, hours_passed: 2 },
-      { id: 'tribune_help', label: 'Seek House Hlaalu contacts', intent: 'work', outcome: 'The merchant house controls much of the harbor traffic.', stat_deltas: { relationship: 3 }, hours_passed: 1 },
-      { id: 'coastal_legend', label: 'Hear coastal legends', intent: 'social', outcome: 'Sailors speak of Daedra that haunt the seas, and the ministry above.', stat_deltas: { skills: { history: 3 }, corruption: 2 }, hours_passed: 2 }
-    ]
-  },
-
-  // BALMORA SOUTH
-  balmora_south: {
-    id: 'balmora_south',
-    name: 'Balmora South Market',
-    type: 'market',
-    region: 'morrowind',
-    description: "The southern market district of Balmora bustles with merchants, craftspeople, and travelers. This is where the Hlaalu merchant house conducts much of its business, and the atmosphere is one of cosmopolitan commerce. Exotic goods from across the continent change hands here.",
-    atmosphere: 'Cosmopolitan, commercial, lively, diverse',
-    actions: [
-      { id: 'trade_goods', label: 'Trade exotic goods', intent: 'work', outcome: 'Telvanni mushrooms, Kwama eggs, Dunmer pottery - many items change hands.', stat_deltas: { gold: -80 }, hours_passed: 2 },
-      { id: 'hlaalu_contact', label: 'Contact House Hlaalu', intent: 'work', outcome: 'The merchant house welcomes ambitious traders.', stat_deltas: { relationship: 4, gold: -30 }, hours_passed: 1 },
-      { id: 'guild_recruitment', label: 'Join the Fighters Guild', intent: 'work', outcome: 'The guild has an outpost here, handling contracts.', stat_deltas: { relationship: 3 }, hours_passed: 1 },
-      { id: 'mage_merchant', label: 'Buy from mage merchants', intent: 'work', outcome: 'Scrolls, potions, and rare ingredients are sold here.', stat_deltas: { skills: { alchemy: 2 }, gold: -70 }, hours_passed: 2 },
-      { id: 'imperial_courier', label: 'Meet the Imperial courier', intent: 'work', outcome: 'The Empire maintains a presence here for official communications.', stat_deltas: { relationship: 2 }, hours_passed: 1 },
-      { id: 'kwama_food', label: 'Sample kwama cuisine', intent: 'neutral', outcome: 'The local specialty - eggs cooked various ways - fills you up.', stat_deltas: { health: 10, gold: -8 }, hours_passed: 1 },
-      { id: 'information_broker', label: 'Seek information broker', intent: 'work', outcome: 'Someone always knows something about jobs, politics, or secrets.', stat_deltas: { gold: -25, corruption: 3 }, hours_passed: 1 },
-      { id: 'caravan_leave', label: 'Join a departing caravan', intent: 'work', outcome: 'Caravans head to Vvardenfell, Sadrith Mora, and beyond.', stat_deltas: { gold: -40, relationship: 3 }, hours_passed: 2 }
-    ]
-  },
-
-  khuul: {
-    id: 'khuul',
     name: 'Gnisis',
     type: 'village',
     region: 'morrowind',
@@ -1858,77 +1780,80 @@ export const ES_LOCATIONS_EXPANDED: Record<string, any> = {
     ]
   },
 
-  // HIGH ROCK REGION
-  wayrest: {
-    id: 'wayrest',
-    name: 'Wayrest',
-    type: 'city',
-    region: 'high_rock',
-    description: "The greatest port city in High Rock, Wayrest sprawls across the mouth of the River Karth. Breton merchants trade with sailors from across the Abecean Sea, and the city's wealth attracts knights, mages, and thieves alike. The Kingdom of Wayrest rules from the ancient castle, though merchant princes hold considerable power.",
-    atmosphere: 'Wealthy, maritime, cosmopolitan, politically complex',
+  // SUMMERSET ISLES
+  shimmerene: {
+    id: 'shimmerene',
+    name: 'Shimmerene Library',
+    type: 'library',
+    region: 'summerset',
+    description: "Among the crystal towers of the Summerset Isles, the great library of Shimmerene preserves the accumulated wisdom of the Altmer. Ancient scrolls bound in dragon bone contain secrets of the Dawn Era, while scholars in flowing robes debate the finer points of restoration magic amidst the glow of crystallized mana.",
+    atmosphere: 'Scholarly, luminous, ancient, contemplative',
     actions: [
-      { id: 'port_trade', label: 'Trade at the harbor', intent: 'work', outcome: 'Ships from Hammerfell, Summerset, and beyond dock here. The profits are immense.', stat_deltas: { gold: -80, skills: { speech: 3 } }, hours_passed: 2 },
-      { id: 'knight_training', label: 'Train with Breton knights', intent: 'combat', outcome: 'The Order of the Dragon maintains a chapter here. Their heavy cavalry is legendary.', stat_deltas: { skills: { combat: 6, blocking: 4 }, gold: -25 }, hours_passed: 3 },
-      { id: 'direnni_tower_visit', label: 'Visit Direnni Tower', intent: 'work', outcome: 'The ancient tower still stands, home to the last Direnni mages. Their knowledge is vast.', stat_deltas: { skills: { magic: 5 }, relationship: 3 }, hours_passed: 2 },
-      { id: 'mercenary_guild', label: 'Join the Mercenary Guild', intent: 'work', outcome: '"The Thorn is hiring. Good coin, dangerous work. Sign up and prove yourself."', stat_deltas: { gold: 40, relationship: 5 }, hours_passed: 1 },
-      { id: 'merchant_prince', label: 'Meet a merchant prince', intent: 'social', outcome: 'The wealthy traders control the city\'s economy. Their favor is valuable.', stat_deltas: { relationship: 8, gold: -30 }, hours_passed: 1 },
-      { id: 'river_expedition', label: 'Organize a river expedition', intent: 'work', outcome: 'Expeditions up the Karth seek lost ruins and forgotten treasures.', stat_deltas: { gold: 50, skills: { survival: 3 } }, hours_passed: 4 },
-      { id: 'mage_guild_branch', label: 'Visit the Mages Guild', intent: 'work', outcome: 'The local guildhall trains Bretons in the arcane arts. The curriculum is rigorous.', stat_deltas: { skills: { magic: 4 }, gold: -20 }, hours_passed: 2 },
-      { id: 'pirate_negotiation', label: 'Negotiate with pirates', intent: 'stealth', outcome: 'The harbor has connections to the Pyandonean corsairs. Blood money flows.', stat_deltas: { corruption: 10, gold: 60 }, hours_passed: 1 }
+      { id: 'research_towers', label: 'Research crystal towers', intent: 'work', outcome: 'The archivists share forbidden texts detailing the towers\' true purpose. The knowledge is intoxicating.', stat_deltas: { skills: { magic: 5 } }, hours_passed: 3 },
+      { id: 'consult_scholar', label: 'Consult a scholar', intent: 'social', outcome: 'A wizened archivist offers insights into the Psijic prophecies. "The stars foretell much..."', stat_deltas: { relationship: 3, skills: { history: 2 } }, hours_passed: 2 },
+      { id: 'copy_scrolls', label: 'Copy ancient scrolls', intent: 'work', outcome: 'Your hands cramp as you replicate the flowing Altmer script. The work is tedious but educational.', stat_deltas: { skills: { restoration: 3 }, gold: -10 }, hours_passed: 4 },
+      { id: 'restoration_study', label: 'Study restoration magic', intent: 'work', outcome: 'The library contains the finest restoration texts in Tamriel. Your understanding deepens.', stat_deltas: { skills: { restoration: 5 } }, hours_passed: 3 },
+      { id: 'find_prophecy', label: 'Search for prophecies', intent: 'work', outcome: 'The Psijic prophecies speak of a world reborn. The language is cryptic but compelling.', stat_deltas: { corruption: 3, skills: { magic: 3 } }, hours_passed: 2 },
+      { id: 'join_debate', label: 'Join scholarly debate', intent: 'social', outcome: 'You present your theories on the crystal towers. The scholars critique your reasoning harshly.', stat_deltas: { skills: { speech: 3 } }, hours_passed: 2 },
+      { id: 'forbidden_texts', label: 'Access forbidden texts', intent: 'stealth', outcome: 'The restricted section holds knowledge the Thalmor would rather be forgotten.', stat_deltas: { corruption: 10, skills: { magic: 5 } }, hours_passed: 2 },
+      { id: 'contemplation', label: 'Contemplate the crystal light', intent: 'neutral', outcome: 'You sit in the glow of crystallized mana. The light reveals truths words cannot express.', stat_deltas: { exhaustion: -20, skills: { magic: 2 } }, hours_passed: 3 }
     ]
   },
-  daggerfall: {
-    id: 'daggerfall',
-    name: 'Daggerfall',
-    type: 'city',
-    region: 'high_rock',
-    description: "The capital of the Daggerfall Covenant stands as a monument to Breton power. The massive castle dominates the city, and knights in shining armor patrol the streets. The Bretons here are proud of their ancestry and their kingdom's influence over the Iliac Bay region.",
-    atmosphere: 'Regal, martial, traditional, proud',
+
+  lillandril: {
+    id: 'lillandril',
+    name: 'Lillandril Artisan Quarters',
+    type: 'artisan',
+    region: 'summerset',
+    description: "The narrow streets of Lillandril wind through workshops where Altmer artisans craft masterworks worthy of the crystal towers themselves. The air smells of glassblowing and metalwork, and even the humblest shop produces works of stunning beauty. Master craftsmen here claim descent from the Dawn Era artists.",
+    atmosphere: 'Creative, refined, traditional, meticulous',
     actions: [
-      { id: 'royal_audience', label: 'Seek audience with the King', intent: 'work', outcome: 'The King of Daggerfall holds court. He has work for those with skill and loyalty.', stat_deltas: { relationship: 10 }, hours_passed: 2 },
-      { id: 'covenant_council', label: 'Attend covenant council', intent: 'social', outcome: 'The leaders of the Daggerfall Covenant debate strategy against the Empire.', stat_deltas: { skills: { leadership: 4 }, relationship: 5 }, hours_passed: 2 },
-      { id: 'cavalry_training', label: 'Train in the cavalry', intent: 'combat', outcome: 'Breton heavy cavalry is the finest in Tamriel. You learn to fight from the saddle.', stat_deltas: { skills: { combat: 8, marksman: 4 }, health: -15 }, hours_passed: 4 },
-      { id: 'direnni_library', label: 'Research at the Direnni Library', intent: 'work', outcome: 'The ancient texts hold secrets of the First Era and the battles against the Ayleids.', stat_deltas: { skills: { history: 6, magic: 3 } }, hours_passed: 3 },
-      { id: 'kingdom_guard', label: 'Join the Kingdom Guard', intent: 'work', outcome: '"Serve the crown with honor. The kingdom needs swords it can trust."', stat_deltas: { gold: 50, skills: { combat: 4 }, relationship: 10 }, hours_passed: 4 },
-      { id: 'high_rock_nobles', label: 'Network with nobles', intent: 'social', outcome: 'The Breton aristocracy values lineage and influence. Navigate carefully.', stat_deltas: { skills: { speech: 5 }, relationship: 8 }, hours_passed: 2 },
-      { id: 'artifact_search', label: 'Search for ancient artifacts', intent: 'work', outcome: 'Ruins around the city hold treasures from the Direnni Hegemony.', stat_deltas: { gold: 80, skills: { history: 3 }, corruption: 3 }, hours_passed: 3 },
-      { id: 'spy_network', label: 'Join the intelligence network', intent: 'stealth', outcome: 'The kingdom spies on its neighbors. Your skills could serve the crown.', stat_deltas: { corruption: 8, skills: { stealth: 5 } }, hours_passed: 2 }
+      { id: 'commission_work', label: 'Commission a piece', intent: 'work', outcome: 'The artisan promises a masterwork. "The crystal will sing when complete."', stat_deltas: { gold: -150 }, hours_passed: 1 },
+      { id: 'learn_craft', label: 'Learn artisan craft', intent: 'work', outcome: 'The master shows you the subtle art of crystalWorking. Years of practice cannot be rushed.', stat_deltas: { skills: { smithing: 3 }, gold: -25 }, hours_passed: 4 },
+      { id: 'purchase_supplies', label: 'Purchase artisan supplies', intent: 'work', outcome: 'Rare pigments and crystal fragments await those with gold to spend.', stat_deltas: { gold: -50 }, hours_passed: 1 },
+      { id: 'watch_creation', label: 'Watch master at work', intent: 'social', outcome: 'The artisan\'s hands move with supernatural grace. The piece takes shape like living poetry.', stat_deltas: { skills: { smithing: 2 }, hours_passed: 2 },
+      { id: 'compete_submission', label: 'Enter art competition', intent: 'work', outcome: 'You submit your own work for critique. The judges are merciless but fair.', stat_deltas: { skills: { smithing: 5 }, relationship: 3 }, hours_passed: 3 },
+      { id: 'thalmor_commission', label: 'Create for Thalmor', intent: 'work', outcome: 'The Thalmor commission fine works for their crystal towers. The pay is excellent but the scrutiny is intense.', stat_deltas: { gold: 100, corruption: 5 }, hours_passed: 4 },
+      { id: 'family_secrets', label: 'Learn family techniques', intent: 'social', outcome: 'An old artisan shares secrets passed down through generations. "This is how we exceeded the Psijic..."', stat_deltas: { skills: { smithing: 4 }, hours_passed: 2 },
+      { id: 'exhibit_piece', label: 'Exhibit your work', intent: 'social', outcome: 'Your piece joins the exhibition. Critics offer praise and criticism in equal measure.', stat_deltas: { relationship: 5, skills: { speech: 2 } }, hours_passed: 2 }
     ]
   },
-  orsinium: {
-    id: 'orsinium',
-    name: 'Orsinium',
-    type: 'city',
-    region: 'high_rock',
-    description: "The Orcish capital rises in the mountains of western High Rock, a fortress-city built by and for the Orcs. Despite Breton attempts to destroy it throughout history, Orsinium endures. The city trades in strong weapons, heavy armor, and the famous Orcish smiths command high prices across Tamriel.",
-    atmosphere: 'Rugged, fortress-like, proud, martial',
+
+  aurimar: {
+    id: 'aurimar',
+    name: 'Aurimar Crystal Tower',
+    type: 'thalmor',
+    region: 'summerset',
+    description: "The crystal tower of Aurimar rises impossibly tall, its peak piercing the clouds above the Summerset coast. The Thalmor have claimed this tower as their headquarters, and their golden armor gleams in the crystalline light. Here, the ruling council of the Altmer plots the restoration of the Empire to its former glory.",
+    atmosphere: 'Authoritative, golden, imposing, calculating',
     actions: [
-      { id: 'orcish_forge', label: 'Learn Orcish smithing', intent: 'work', outcome: 'The master smiths teach their secret techniques. Orcish steel is legendary.', stat_deltas: { skills: { crafting: 6 }, gold: -30 }, hours_passed: 3 },
-      { id: 'thunderhammer_training', label: 'Train with thunderhammers', intent: 'combat', outcome: 'The great two-handed hammers are the Orcish specialty. Devastating power.', stat_deltas: { skills: { combat: 8, two_handed: 5 }, health: -15 }, hours_passed: 4 },
-      { id: 'orcish_chief', label: 'Meet the Tribal Chief', intent: 'social', outcome: 'The leader of all Orcs in Tamriel rules from the great hall. Show respect.', stat_deltas: { relationship: 10 }, hours_passed: 1 },
-      { id: 'buy_armor', label: 'Buy Orcish armor', intent: 'work', outcome: 'The heavy armor is worth every gold piece. Protection that lasts.', stat_deltas: { gold: -120, skills: { crafting: 2 } }, hours_passed: 1 },
-      { id: 'prove_strength', label: 'Prove your strength', intent: 'combat', outcome: 'To earn Orcish respect, you must show your might in combat. Fight well.', stat_deltas: { health: -20, skills: { combat: 6 }, relationship: 15 }, hours_passed: 2 },
-      { id: 'mercenary_contract', label: 'Sign a mercenary contract', intent: 'work', outcome: 'Orcish warriors are prized across Tamriel. The coin is good, the work bloody.', stat_deltas: { gold: 80, skills: { combat: 5 } }, hours_passed: 4 },
-      { id: 'giant_slayer_legend', label: 'Hear the Giant-Slayer legend', intent: 'social', outcome: '"Gortwog carved his name in history. We continue his legacy."', stat_deltas: { skills: { history: 3 }, relationship: 3 }, hours_passed: 1 },
-      { id: 'stronghold_defense', label: 'Defend the stronghold', intent: 'combat', outcome: 'Breton raiders attack! You help hold the walls against the siege.', stat_deltas: { health: -25, skills: { combat: 10 }, relationship: 20 }, hours_passed: 3 }
+      { id: 'report_to_command', label: 'Report to Thalmor command', intent: 'work', outcome: 'The Justiciar accepts your report. "The Tower watches. Do not disappoint us again."', stat_deltas: { relationship: 5, corruption: 5 }, hours_passed: 2 },
+      { id: 'tower_ceremony', label: 'Attend tower ceremony', intent: 'social', outcome: 'The Thalmor conduct their ancient rites. The golden light illuminates their faces like gods.', stat_deltas: { corruption: 5, skills: { restoration: 2 } }, hours_passed: 2 },
+      { id: 'political_briefing', label: 'Receive political briefing', intent: 'work', outcome: '"The Empire weakens. The Stormcloaks rise. We must position ourselves accordingly."', stat_deltas: { skills: { speech: 3 }, corruption: 3 }, hours_passed: 2 },
+      { id: 'surveillance_duty', label: 'Perform surveillance duty', intent: 'work', outcome: 'You watch suspectAltmer for signs of disloyalty. The work is necessary and morally ambiguous.', stat_deltas: { gold: 40, corruption: 10 }, hours_passed: 4 },
+      { id: 'psijic_interrogation', label: 'Interrogate Psijic sympathizer', intent: 'combat', outcome: 'The prisoner refuses to speak. Their eyes hold only contempt.', stat_deltas: { corruption: 15, relationship: -5 }, hours_passed: 2 },
+      { id: 'tower_control', label: 'Access tower control', intent: 'stealth', outcome: 'The central crystal responds to your touch. The power is intoxicating.', stat_deltas: { corruption: 8, skills: { magic: 3 } }, hours_passed: 2 },
+      { id: 'purge_heretics', label: 'Join purge operations', intent: 'combat', outcome: 'Heretics are rounded up and processed. The process is efficient and merciless.', stat_deltas: { corruption: 20, health: -10 }, hours_passed: 4 },
+      { id: 'council_audience', label: 'Request audience with Council', intent: 'work', outcome: 'The Inner Council grants you audience. Your suggestions are weighed and measured.', stat_deltas: { relationship: 10, corruption: 5 }, hours_passed: 3 }
     ]
   },
-  camlorn: {
-    id: 'camlorn',
-    name: 'Camlorn',
-    type: 'fortress',
-    region: 'high_rock',
-    description: "The ancient fortress of Camlorn stands as a reminder of the Direnni Hegemony's power. Breton mages once ruled from this castle, and though the Direnni have fallen, their descendants still maintain the fortress. The surrounding lands are hunted by giants, and the fortress serves as a base for those who dare venture into the wilds.",
-    atmosphere: 'Ancient, magical, fortified, mysterious',
+
+  darthaar: {
+    id: 'darthaar',
+    name: 'Darthaar Fishery',
+    type: 'fishery',
+    region: 'summerset',
+    description: "The coastal village of Darthaar clings to the cliffs where the Summerset waves crash against ancient stone. For generations, the fisherfolk here have pulled silver-scaled bounty from the sea. Even the Thalmor respect their independence—the ocean answers to no empire.",
+    atmosphere: 'Salt-spray, weathered, independent, sea-worn',
     actions: [
-      { id: 'explore_fortress', label: 'Explore the ancient fortress', intent: 'work', outcome: 'The stone walls date to the First Era. Secrets hide in every corner.', stat_deltas: { skills: { history: 5 } }, hours_passed: 3 },
-      { id: 'direnni_heir', label: 'Seek the Direnni heir', intent: 'work', outcome: '"The last of the Direnni bloodline lives here, hiding from the world."', stat_deltas: { relationship: 10, skills: { magic: 3 } }, hours_passed: 2 },
-      { id: 'mage_tower_study', label: 'Study in the mage tower', intent: 'work', outcome: 'The residual magic of the Direnni enhances your arcane abilities.', stat_deltas: { skills: { magic: 8 }, gold: -20 }, hours_passed: 4 },
-      { id: 'giant_hunt', label: 'Hunt the valley giants', intent: 'combat', outcome: 'The giants terrorize the countryside. Local lords pay for their heads.', stat_deltas: { health: -25, skills: { combat: 10 }, gold: 60 }, hours_passed: 4 },
-      { id: 'ancient_vault', label: 'Open the ancient vault', intent: 'work', outcome: 'The locked chamber holds treasures from the height of Direnni power.', stat_deltas: { skills: { lockpicking: 6 }, gold: 100, corruption: 5 }, hours_passed: 3 },
-      { id: 'knight_order_join', label: 'Join the Knights of the Glen', intent: 'work', outcome: 'The local order maintains the old ways. Their honor is legendary.', stat_deltas: { relationship: 8, skills: { combat: 4 } }, hours_passed: 1 },
-      { id: 'ley_line_nexus', label: 'Find the ley line nexus', intent: 'work', outcome: 'Magic converges here powerfully. The site amplifies all spells.', stat_deltas: { skills: { magic: 10 }, corruption: 5 }, hours_passed: 2 },
-      { id: 'fortress_defense', label: 'Defend against raiders', intent: 'combat', outcome: 'Bandits try to claim the abandoned sections. You drive them off.', stat_deltas: { health: -15, skills: { combat: 6 }, relationship: 5 }, hours_passed: 2 }
+      { id: 'join_fishing', label: 'Join fishing expedition', intent: 'work', outcome: 'The boat rocks wildly as you pull in the nets. The catch is bountiful.', stat_deltas: { gold: 30, health: -10 }, hours_passed: 4 },
+      { id: 'psijic_contact', label: 'Contact Psijic refugee', intent: 'stealth', outcome: 'A hooded figure emerges from the mist. "The Order remembers those who help."', stat_deltas: { corruption: -5, relationship: 5 }, hours_passed: 2 },
+      { id: 'learn_secrets', label: 'Learn ocean secrets', intent: 'social', outcome: 'An old fisherman speaks of sea-daedra and sunken treasures. "The ocean keeps its secrets well."', stat_deltas: { skills: { survival: 3 } }, hours_passed: 2 },
+      { id: 'sell_catch', label: 'Sell your catch', intent: 'work', outcome: 'The seafood fetches premium prices in Alinor. The fisherfolk know their worth.', stat_deltas: { gold: 25 }, hours_passed: 1 },
+      { id: 'storm_wait', label: 'Wait out a storm', intent: 'neutral', outcome: 'The storm rages for hours. The village endures as it always has.', stat_deltas: { health: 10, exhaustion: -15 }, hours_passed: 6 },
+      { id: 'smuggle_goods', label: 'Smuggle coastal goods', intent: 'stealth', outcome: 'Contraband from Pyandonea changes hands in the dark. The profit is worth the risk.', stat_deltas: { gold: 60, corruption: 10 }, hours_passed: 2 },
+      { id: 'teach_traditions', label: 'Learn fishing traditions', intent: 'work', outcome: 'The elder teaches ancient songs sung while hauling nets. The rhythm is timeless.', stat_deltas: { skills: { speech: 2 }, hours_passed: 2 },
+      { id: 'rescue_drowning', label: 'Rescue drowning sailor', intent: 'combat', outcome: 'You dive into the churning waves. The sailor is saved through sheer will.', stat_deltas: { health: -20, relationship: 10 }, hours_passed: 2 }
     ]
   }
 };
