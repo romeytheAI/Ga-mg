@@ -843,6 +843,7 @@ export const ES_LOCATIONS_EXPANDED: Record<string, any> = {
     id: 'elgrims_elixirs',
     name: "Elgrim's Elixirs",
     type: 'shop',
+    region: 'the_reach',
     description: "The alchemy shop smells of strange herbs and stranger chemicals. Vials of every color line the shelves. Elgrim himself is a portly Breton who seems more interested in the effect of his potions than the coin they earn.",
     atmosphere: 'Mysterious, herb-scented, slightly chaotic, intriguing',
     actions: [
@@ -1392,6 +1393,106 @@ export const ES_LOCATIONS_EXPANDED: Record<string, any> = {
       { id: '加入_pool', label: 'Join the waters', intent: 'neutral', outcome: 'The warm swamp waters envelop you. You feel connected to something vast.', stat_deltas: { health: 15, exhaustion: -20 }, hours_passed: 2 },
       { id: 'strange_intimacy', label: 'Share intimacy with an Argonian', intent: 'corruption', outcome: 'The encounter is unlike anything else. Their culture, their way, embraces you.', stat_deltas: { corruption: 35, stress: -30 }, hours_passed: 3 },
       { id: 'hist_offering', label: 'Make offering to the Hist', intent: 'willpower', outcome: 'You leave a gift at the sacred tree. The roots seem to pulse with gratitude.', stat_deltas: { willpower: 10, gold: -20 }, hours_passed: 2 }
+    ]
+  },
+
+  // MARKARTH - CIDNA MINE
+  cidna_mine: {
+    id: 'cidna_mine',
+    name: 'CIDNA Mine',
+    type: 'dungeon',
+    region: 'the_reach',
+    description: "The infamous silver mine beneath Markarth is a prison labor camp where criminals are sent to mine until they die. The guards are brutal, the work is grueling, and the mine runs deeper than anyone knows. Strange things lurk in the darkness below.",
+    atmosphere: 'Oppressive, dangerous, dark, brutal',
+    actions: [
+      { id: 'prison_labor', label: 'Work the mines', intent: 'work', outcome: 'You swing the pickaxe until your hands bleed. The silver must flow.', stat_deltas: { health: -20, strength: 5, gold: 5 }, hours_passed: 6 },
+      { id: 'escape_attempt', label: 'Attempt escape', intent: 'stealth', outcome: 'You dig at the walls when the guards look away. One day you will break free.', stat_deltas: { skills: { lockpicking: 4 }, corruption: 3 }, hours_passed: 4 },
+      { id: 'mine_beast', label: 'Face the mine beast', intent: 'combat', outcome: 'Something lurks in the deep tunnels. You fight for your life.', stat_deltas: { health: -25, skills: { combat: 8 }, corruption: 5 }, hours_passed: 2 },
+      { id: 'guard_bribe', label: 'Bribe a guard', intent: 'corruption', outcome: 'Some guards can be bought. The price is high but the relief is worth it.', stat_deltas: { gold: -50, health: 10, corruption: 5 }, hours_passed: 1 },
+      { id: 'work_crew', label: 'Join work crew', intent: 'work', outcome: 'You labor alongside murderers and thieves. Survival requires solidarity.', stat_deltas: { relationship: 5, strength: 3 }, hours_passed: 6 },
+      { id: 'deep_tunnel', label: 'Explore deep tunnels', intent: 'stealth', outcome: 'You venture where no prisoner should go. The darkness hides ancient secrets.', stat_deltas: { corruption: 8, skills: { alchemy: 3 }, gold: 30 }, hours_passed: 3 },
+      { id: 'prison_riot', label: 'Join prison riot', intent: 'combat', outcome: 'The prisoners rise up! The guards scramble as chaos erupts.', stat_deltas: { health: -15, corruption: 10, skills: { combat: 5 }, relationship: 5 }, hours_passed: 2 },
+      { id: 'secret_passage', label: 'Discover secret passage', intent: 'stealth', outcome: 'Behind a loose stone, you find a way out. Freedom is close.', stat_deltas: { skills: { lockpicking: 8 }, corruption: 5 }, hours_passed: 2 }
+    ]
+  },
+
+  // RIFTEN - THIEVES GUILD
+  ragged_flagon: {
+    id: 'ragged_flagon',
+    name: 'The Ragged Flagon',
+    type: 'guild',
+    region: 'the_rift',
+    description: "The hidden headquarters of the Thieves Guild lies beneath Riften's canals. Through a hidden grate in the cistern, you enter a network of tunnels and chambers where thieves train, fence goods, and plot heists. The Cistern serves as the hub of operations.",
+    atmosphere: 'Hidden, mysterious, lucrative, dangerous',
+    actions: [
+      { id: 'lockpicking_train', label: 'Train lockpicking', intent: 'work', outcome: 'The guild masters teach you the art of picking locks. Practice makes perfect.', stat_deltas: { skills: { lockpicking: 8 }, gold: -20 }, hours_passed: 3 },
+      { id: 'pickpocket_train', label: 'Practice pickpocketing', intent: 'work', outcome: 'You practice lifting wallets in the market. The guild watches your progress.', stat_deltas: { skills: { stealth: 6, speech: 3 }, gold: 30 }, hours_passed: 3 },
+      { id: 'fence_goods', label: 'Sell to the fence', intent: 'work', outcome: 'You fence stolen goods. Maven pays well for quality merchandise.', stat_deltas: { gold: 100, relationship: 5 }, hours_passed: 1 },
+      { id: 'guild_mission', label: 'Take a guild mission', intent: 'work', outcome: '"We have work. A noble's house, a caravan, a mark with deep pockets."', stat_deltas: { relationship: 8, gold: 80 }, hours_passed: 4 },
+      { id: 'brynjolf_deal', label: 'Speak with Brynjolf', intent: 'social', outcome: '"You want to rise in the guild? Prove you're worth the risk."', stat_deltas: { relationship: 10 }, hours_passed: 1 },
+      { id: 'nightingales', label: 'Learn about Nightingales', intent: 'stealth', outcome: 'The Nightingales are the guild's elite. Their power comes from Nocturnal.', stat_deltas: { corruption: 8, skills: { stealth: 5 } }, hours_passed: 2 },
+      { id: 'heist_planning', label: 'Plan a heist', intent: 'work', outcome: 'You study blueprints and plan the perfect crime. Timing is everything.', stat_deltas: { skills: { lockpicking: 5, speech: 3 } }, hours_passed: 3 },
+      { id: 'guild_trial', label: 'Complete guild trial', intent: 'combat', outcome: 'The guild tests your skills. Pass and earn your place among the thieves.', stat_deltas: { skills: { combat: 6, stealth: 6 }, relationship: 15 }, hours_passed: 4 }
+    ]
+  },
+
+  // SOLITUDE - THE EMPIRE'S SECRET
+  empires_secret: {
+    id: 'empires_secret',
+    name: "The Empire's Secret",
+    type: 'military',
+    region: 'haafingar',
+    description: "Beneath Solitude's streets lies a hidden network of Imperial spies and informants. The breastplate of the Imperial Emperor is displayed in a secure vault here, but the real secret is the intelligence operation running from these halls. The Empire's eyes and ears are everywhere.",
+    atmosphere: 'Secretive, political, dangerous, powerful',
+    actions: [
+      { id: 'imperial_breastplate', label: 'View the Emperor\'s breastplate', intent: 'work', outcome: 'The legendary armor glows with ancient power. A symbol of Imperial might.', stat_deltas: { skills: { history: 5 }, relationship: 3 }, hours_passed: 1 },
+      { id: 'spy_training', label: 'Join spy network', intent: 'work', outcome: 'The Empire needs agents. You learn to gather intelligence and stay hidden.', stat_deltas: { skills: { stealth: 8, speech: 4 }, corruption: 5 }, hours_passed: 4 },
+      { id: 'informant_network', label: 'Build informant network', intent: 'work', outcome: 'You cultivate sources across Skyrim. Information is power.', stat_deltas: { relationship: 10, gold: -30 }, hours_passed: 3 },
+      { id: 'assassination', label: 'Accept assassination contract', intent: 'combat', outcome: 'The Empire eliminates threats. You become the weapon.', stat_deltas: { health: -10, corruption: 15, gold: 100 }, hours_passed: 2 },
+      { id: 'diplomatic_espionage', label: 'Engage diplomatic espionage', intent: 'stealth', outcome: 'You infiltrate foreign delegations. The Thalmor watch their words around you.', stat_deltas: { skills: { speech: 6, stealth: 5 }, corruption: 8 }, hours_passed: 4 },
+      { id: 'cipher_training', label: 'Learn Imperial ciphers', intent: 'work', outcome: 'Secret codes protect Imperial communications. You master the system.', stat_deltas: { skills: { speech: 4 } }, hours_passed: 3 },
+      { id: 'underground_chambers', label: 'Explore underground chambers', intent: 'stealth', outcome: 'The tunnels run beneath all of Solitude. Many secrets hide in the dark.', stat_deltas: { corruption: 5, skills: { lockpicking: 4 } }, hours_passed: 2 },
+      { id: 'imperial_command', label: 'Receive Imperial command', intent: 'work', outcome: '"You have proven loyal. The Empire has a mission for you."', stat_deltas: { relationship: 15, gold: 150 }, hours_passed: 1 }
+    ]
+  },
+
+  // WINTERHOLD - COLLEGE
+  college_of_winterhold: {
+    id: 'college_of_winterhold',
+    name: 'The College of Winterhold',
+    type: 'guild',
+    region: 'winterhold',
+    description: "The greatCollege of Winterhold stands as a beacon of arcane learning, its towers rising from the frozen cliffs. Students study destruction, restoration, conjuration, and the forbidden arts. The Arch-Mage commands respect, and secrets lurk in the frozen library.",
+    atmosphere: 'Arcane, cold, scholarly, mysterious',
+    actions: [
+      { id: 'arcane_training', label: 'Study arcane arts', intent: 'work', outcome: 'Masters teach you the intricacies of magic. Power flows through you.', stat_deltas: { skills: { magic: 10 }, gold: -50 }, hours_passed: 4 },
+      { id: 'forbidden_knowledge', label: 'Seek forbidden knowledge', intent: 'stealth', outcome: 'In the restricted section, you find texts that should not exist.', stat_deltas: { corruption: 15, skills: { magic: 8 } }, hours_passed: 3 },
+      { id: 'teleportation', label: 'Learn teleportation', intent: 'work', outcome: 'The Masters teach you to walk between places. Reality bends.', stat_deltas: { skills: { magic: 12 }, gold: -30 }, hours_passed: 4 },
+      { id: 'archmage_duel', label: 'Challenge the Arch-Mage', intent: 'combat', outcome: 'You demonstrate your power. The Arch-Mage watches with interest.', stat_deltas: { skills: { magic: 8, combat: 4 }, health: -15 }, hours_passed: 2 },
+      { id: 'restoration_study', label: 'Study restoration magic', intent: 'work', outcome: 'Healing arts require focus and compassion. You learn to mend.', stat_deltas: { skills: { magic: 6, willpower: 4 } }, hours_passed: 3 },
+      { id: 'dweomer_research', label: 'Research Dweomer', intent: 'work', outcome: 'Ancient Dwemer magic interests scholars. You dig through texts.', stat_deltas: { skills: { magic: 8, history: 3 }, corruption: 5 }, hours_passed: 4 },
+      { id: 'summoning_ritual', label: 'Perform summoning ritual', intent: 'work', outcome: 'Daedra answer your call. Some bargains end poorly.', stat_deltas: { health: -20, corruption: 10, skills: { magic: 10 } }, hours_passed: 4 },
+      { id: 'frozen_library', label: 'Explore the frozen library', intent: 'stealth', outcome: 'The library holds secrets in frozen shelves. Some books still read.', stat_deltas: { corruption: 8, skills: { magic: 6 } }, hours_passed: 3 }
+    ]
+  },
+
+  // BLACK MARSH - DEEP SWAMP
+  black_marsh_deep: {
+    id: 'black_marsh_deep',
+    name: 'Deep Black Marsh',
+    type: 'wilderness',
+    region: 'black_marsh',
+    description: "Far from civilization, the deep swamp is a primordial wilderness where the Hist reign supreme. The water turns black with ancient magic, and the trees grow so thick they block out the sun. Argonians perform sacred rituals here, and outsiders are rarely welcome.",
+    atmosphere: 'Primeval, mystical, sacred, dangerous',
+    actions: [
+      { id: 'hist_ritual', label: 'Participate in Hist ritual', intent: 'willpower', outcome: 'The ancient trees demand sacrifice. You join the sacred rite.', stat_deltas: { willpower: 20, corruption: 10 }, hours_passed: 4 },
+      { id: 'argonian_mating', label: 'Join Argonian mating ritual', intent: 'corruption', outcome: 'The Argonians welcome you into their sacred dance of life.', stat_deltas: { corruption: 30, stress: -40 }, hours_passed: 4 },
+      { id: 'swamp_spirit', label: ' Commune with swamp spirits', intent: 'willpower', outcome: 'The spirits of the deep swamp speak through the Hist. You listen.', stat_deltas: { willpower: 15, skills: { magic: 8 } }, hours_passed: 3 },
+      { id: 'deep_swamp_hunt', label: 'Hunt in deep swamp', intent: 'work', outcome: 'The creatures here are ancient and dangerous. The hunt tests your skills.', stat_deltas: { health: -20, skills: { marksman: 8, survival: 5 }, gold: 60 }, hours_passed: 6 },
+      { id: 'hist_grove', label: 'Enter the Hist grove', intent: 'willpower', outcome: 'The central grove connects all Argonian minds. You feel the collective.', stat_deltas: { willpower: 25, skills: { magic: 10 }, corruption: 10 }, hours_passed: 3 },
+      { id: 'tribal_worship', label: 'Join tribal worship', intent: 'willpower', outcome: 'The tribe celebrates their gods. You are accepted as one of them.', stat_deltas: { relationship: 20, willpower: 10 }, hours_passed: 4 },
+      { id: 'deep_secret', label: 'Discover deep secrets', intent: 'stealth', outcome: 'The Hist know things older than Tamriel. They share their wisdom.', stat_deltas: { corruption: 15, skills: { magic: 12 } }, hours_passed: 3 },
+      { id: 'swamp_blessing', label: 'Receive swamp blessing', intent: 'willpower', outcome: 'The Hist grant you their blessing. The swamp becomes your ally.', stat_deltas: { health: 30, willpower: 20, relationship: 15 }, hours_passed: 2 }
     ]
   }
 };

@@ -139,7 +139,7 @@ export const ES_ENCOUNTERS_EXPANDED: ESEncounterExpanded[] = [
       { id: 'thalmor_pass', outcome: 'You bow and show your papers. They wave you through with disdain.', stat_deltas: { stress: 5 } },
       { id: 'thalmor_interrogate', outcome: 'They question you for hours. About Talos, about your beliefs, your family.', stat_deltas: { stress: 20, relationship: -5 } },
       { id: 'thalmor_bribe', outcome: 'You slip gold into their palm. They pretend to not see you.', stat_deltas: { gold: -30, corruption: 10 } },
-      { id: 'thalmor_fight', outcome: 'You attack! Their magic is strong but you fight with fury.', stat_deltas: { health: -25, corruption: 15, skills: { combat: 5 } }
+      { id: 'thalmor_fight', outcome: 'You attack! Their magic is strong but you fight with fury.', stat_deltas: { health: -25, corruption: 15, skills: { combat: 5 } } }
     ]
   },
   {
@@ -359,6 +359,287 @@ export const ES_ENCOUNTERS_EXPANDED: ESEncounterExpanded[] = [
       { id: 'priest_negotiate', outcome: 'You speak respectfully. The priest considers you... "You may pass."', stat_deltas: { relationship: 10 } },
       { id: 'priest_flee', outcome: 'You run from the ancient power. It doesn\'t follow. Pride is spared.', stat_deltas: { stress: 15 } },
       { id: 'priest_pray', outcome: 'You pray to the Divines. The priest recoils, granting you escape.', stat_deltas: { willpower: 10, corruption: -5 } }
+    ]
+  },
+  {
+    id: 'es_enc_bandit_ambush',
+    title: 'Bandit Ambush',
+    description: 'The road ahead is blocked by bandits. They grin with predatory hunger. "Your coin or your life... or maybe both."',
+    condition: (state) => state.location === 'riften_outskirts' && Math.random() < 0.15,
+    anatomy: 'thug',
+    image_url: 'https://images.unsplash.com/photo-1615803421322-1e7333d4b1b0?w=800',
+    outcomes: [
+      { id: 'bandit_fight', outcome: 'You fight! Steel rings against steel. They fall one by one.', stat_deltas: { health: -20, gold: 50, corruption: 5, skills: { combat: 10 } } },
+      { id: 'bandit_surrender', outcome: 'You surrender. They take your coin but... spare more than coin.', stat_deltas: { gold: -30, corruption: 25, romance: 10 } },
+      { id: 'bandit_bribe', outcome: 'You offer gold to leave. They take it and laugh. "Come back anytime."', stat_deltas: { gold: -40, corruption: 10 } },
+      { id: 'bandit_charm', outcome: 'Your words cut deeper than steel. They let you pass, impressed.', stat_deltas: { relationship: 15, willpower: 10 } },
+      { id: 'bandit_flee', outcome: 'You run through the woods. Arrows fly but you escape.', stat_deltas: { stress: 15 } }
+    ]
+  },
+  {
+    id: 'es_enc_vampire_feeding',
+    title: 'Vampire Feeding',
+    description: 'A vampire cornered you in the darkness. Its pale face leans close. "Don\'t struggle. It\'ll feel so much better."',
+    condition: (state) => state.location === 'riften_outskirts' && state.time === 'night' && Math.random() < 0.08,
+    anatomy: 'average',
+    image_url: 'https://images.unsplash.com/photo-1509248961158-e54f6934749c?w=800',
+    outcomes: [
+      { id: 'vampfeed_resist', outcome: 'You fight! The vampire bites but you break free, leaving it hungry.', stat_deltas: { health: -25, corruption: 15, willpower: 10 } },
+      { id: 'vampfeed_accept', outcome: 'You yield. The bite is... electric. You feel it spreading through you.', stat_deltas: { corruption: 40, health: -20, romance: 15 } },
+      { id: 'vampfeed_trance', outcome: 'The vampire\'s gaze hypnotizes. You can\'t move. Everything fades to red.', stat_deltas: { corruption: 30, health: -35, stress: 10 } },
+      { id: 'vampfeed_offer', outcome: '"Take what you need." It hesitates, then feeds gently. You share a moment.', stat_deltas: { corruption: 20, romance: 20, health: -15 } }
+    ]
+  },
+  {
+    id: 'es_enc_werewolf_intimate',
+    title: 'Werewolf Transformation',
+    description: 'You\'re with someone special when the change takes you. Fur erupts, bones crack, and something primal surges.',
+    condition: (state) => state.location === 'riften_outskirts' && state.time === 'night' && Math.random() < 0.05,
+    anatomy: 'feral_dog',
+    image_url: 'https://images.unsplash.com/photo-1615803421322-1e7333d4b1b0?w=800',
+    outcomes: [
+      { id: 'were_intimate_fight', outcome: 'You fight the beast within! You hurt your companion but control returns.', stat_deltas: { health: -30, relationship: -20, willpower: 15 } },
+      { id: 'were_intimate_embrace', outcome: 'You surrender to the beast. The night becomes a blur of hunting and passion.', stat_deltas: { corruption: 35, romance: 25, transformation: 1 } },
+      { id: 'were_intimate_flee', outcome: 'You run into the night, leaving them behind. The beast howls in triumph.', stat_deltas: { stress: 25, corruption: 20 } },
+      { id: 'were_intimate_calm', outcome: 'You focus on your loved one. The beast recedes. Love conquers the beast.', stat_deltas: { romance: 15, willpower: 20, transformation: -1 } }
+    ]
+  },
+  {
+    id: 'es_enc_daedric_prince',
+    title: 'Daedric Prince Temptation',
+    description: 'Reality tears asunder. A presence beyond mortal comprehension manifests. "Mort... You interest me. Kneel and receive my gift."',
+    condition: (state) => state.location === 'riften_outskirts' && Math.random() < 0.03,
+    anatomy: 'tentacle_creature',
+    image_url: 'https://images.unsplash.com/photo-1605806616949-1e87b487bc2a?w=800',
+    outcomes: [
+      { id: 'prince_kneel', outcome: 'You kneel. The Prince\'s blessing burns into your soul. Power floods you.', stat_deltas: { corruption: 40, skills: { magic: 20 }, arcane: 15 } },
+      { id: 'prince_refuse', outcome: '"No!" You stand tall. The Prince laughs but respects your defiance.', stat_deltas: { willpower: 25, corruption: -5 } },
+      { id: 'prince_negotiate', outcome: 'You bargain. The Prince finds your audacity entertaining. A small gift.', stat_deltas: { corruption: 15, gold: 100 } },
+      { id: 'prince_flee', outcome: 'You run from the manifestation. It doesn\'t follow. The world feels smaller.', stat_deltas: { stress: 30, willpower: 5 } }
+    ]
+  },
+  {
+    id: 'es_enc_draugr',
+    title: 'Draugr Awakening',
+    description: 'You explore an ancient crypt. The dead are supposed to stay dead. Then skeletal hands reach from their tombs.',
+    condition: (state) => state.location === 'riften_outskirts' && Math.random() < 0.08,
+    anatomy: 'thug',
+    image_url: 'https://images.unsplash.com/photo-1519074069444-1ba4fff66d16?w=800',
+    outcomes: [
+      { id: 'draugr_fight', outcome: 'The dead rise! You fight through the awakened warriors, blade ringing.', stat_deltas: { health: -25, corruption: 10, skills: { combat: 10 } } },
+      { id: 'draugr_run', outcome: 'You flee the tomb! The draugr don\'t follow... but their screams echo.', stat_deltas: { stress: 20 } },
+      { id: 'draugr_sneak', outcome: 'You move silently. The dead don\'t notice. You find ancient treasure.', stat_deltas: { gold: 75, skills: { stealth: 5 } } },
+      { id: 'draugr_command', outcome: 'You find the word of power. The draugr bow to your will!', stat_deltas: { corruption: 20, skills: { magic: 15 }, companion: 'draugr' } }
+    ]
+  },
+  {
+    id: 'es_enc_giant_attack',
+    title: 'Giant Attack',
+    description: 'A giant storms toward you, club raised high. Its war cry shakes the earth. There\'s no time to think.',
+    condition: (state) => state.location === 'riften_outskirts' && Math.random() < 0.07,
+    anatomy: 'thug',
+    image_url: 'https://images.unsplash.com/photo-1589656966895-2f33e7653819?w=800',
+    outcomes: [
+      { id: 'giantattack_fight', outcome: 'You dodge and strike! The giant falls, but not after nearly crushing you.', stat_deltas: { health: -35, skills: { combat: 15 }, gold: 25 } },
+      { id: 'giantattack_flee', outcome: 'You run for your life! The giant\'s club crashes behind you, missing by inches.', stat_deltas: { stress: 20 } },
+      { id: 'giantattack_climb', outcome: 'You scramble up a tree! The giant kicks the trunk but can\'t reach you.', stat_deltas: { stress: 10, willpower: 5 } },
+      { id: 'giantattack_offer', outcome: 'You throw food! The giant stops, confused, then eats. Safe passage.', stat_deltas: { gold: -15, relationship: 10 } }
+    ]
+  },
+  {
+    id: 'es_enc_vampire_clan',
+    title: 'Vampire Clan Initiation',
+    description: 'You\'ve been brought before the clan. Their leader circles you. "To join us, you must prove your devotion. Feed."',
+    condition: (state) => state.location === 'riften_outskirts' && state.time === 'night' && Math.random() < 0.04,
+    anatomy: 'average',
+    image_url: 'https://images.unsplash.com/photo-1509248961158-e54f6934749c?w=800',
+    outcomes: [
+      { id: 'vampclan_feed', outcome: 'You feed on the offering. Power rushes through you. You\'re one of them now.', stat_deltas: { corruption: 50, disease: 'vampirism', skills: { magic: 10 } } },
+      { id: 'vampclan_refuse', outcome: 'You refuse. The clan\'s gaze turns hostile. You fight your way out.', stat_deltas: { health: -30, corruption: 15, skills: { combat: 10 } } },
+      { id: 'vampclan_bargain', outcome: 'You negotiate. They allow a lesser tribute. You keep your soul... for now.', stat_deltas: { corruption: 25, gold: -50 } },
+      { id: 'vampclan_flee', outcome: 'You run! The vampires laugh but don\'t pursue. They\'ll find you later.', stat_deltas: { stress: 25, corruption: 5 } }
+    ]
+  },
+  {
+    id: 'es_enc_thrall',
+    title: 'Becoming a Thrall',
+    description: 'A vampire\'s gaze locks onto yours. Your mind goes fuzzy. "Sleep now. Wake when I command."',
+    condition: (state) => state.location === 'riften_outskirts' && state.time === 'night' && Math.random() < 0.05,
+    anatomy: 'average',
+    image_url: 'https://images.unsplash.com/photo-1509248961158-e54f6934749c?w=800',
+    outcomes: [
+      { id: 'thrall_accept', outcome: 'You surrender your will. The vampire smiles. You are its faithful servant.', stat_deltas: { corruption: 60, willpower: -30, companion: 'vampire_master' } },
+      { id: 'thrall_resist', outcome: 'You fight the mental compulsion! It hurts, but you break free.', stat_deltas: { health: -15, willpower: 25, corruption: 5 } },
+      { id: 'thrall_trick', outcome: 'You pretend compliance. The vampire releases you. Time to escape.', stat_deltas: { corruption: 10, skills: { stealth: 10 } } },
+      { id: 'thrall_attack', outcome: 'You attack through the haze! The vampire is surprised but recovers.', stat_deltas: { health: -25, corruption: 20, skills: { combat: 5 } } }
+    ]
+  },
+  {
+    id: 'es_enc_rift_hunt',
+    title: 'Hunting in the Rift',
+    description: 'The Rift\'s forests are rich with prey. You track a deer when something tracks you back.',
+    condition: (state) => state.location === 'riften_outskirts' && Math.random() < 0.1,
+    anatomy: 'feral_dog',
+    image_url: 'https://images.unsplash.com/photo-1615803421322-1e7333d4b1b0?w=800',
+    outcomes: [
+      { id: 'rifthunt_success', outcome: 'You bring down game! A fine kill to feed yourself or sell.', stat_deltas: { gold: 35, skills: { survival: 10 } } },
+      { id: 'rifthunt_ambush', outcome: 'You\'re ambushed by predators! A brutal fight for survival.', stat_deltas: { health: -20, skills: { combat: 8 }, corruption: 5 } },
+      { id: 'rifthunt_spirit', outcome: 'A spriggan guides you to better hunting grounds. The forest provides.', stat_deltas: { gold: 50, relationship: 10, skills: { survival: 5 } } },
+      { id: 'rifthunt_lost', outcome: 'You lose yourself in the woods. Night falls. You survive but shaken.', stat_deltas: { stress: 15 } }
+    ]
+  },
+  {
+    id: 'es_enc_labyrinthian',
+    title: 'Lost in Labyrinthian',
+    description: 'The ancient ruins maze endlessly. Fog obscures the path. Something moves in the mist. Labyrinthian claims the unwary.',
+    condition: (state) => state.location === 'riften_outskirts' && Math.random() < 0.04,
+    anatomy: 'thug',
+    image_url: 'https://images.unsplash.com/photo-1518709766631-a6a7f45921c3?w=800',
+    outcomes: [
+      { id: 'labyrinthian_fight', outcome: 'Wisps attack! You battle through the spectral maze, finding the exit.', stat_deltas: { health: -30, corruption: 15, skills: { magic: 10 } } },
+      { id: 'labyrinthian_find', outcome: 'You find the hidden path! Ancient knowledge awaits in the depths.', stat_deltas: { skills: { magic: 15 }, gold: 100 } },
+      { id: 'labyrinthian_flee', outcome: 'You run blindly! Miraculously, you burst out of the fog. Lucky.', stat_deltas: { stress: 20, willpower: 5 } },
+      { id: 'labyrinthian_wait', outcome: 'You wait for dawn. The mist fades. You walk out, untouched but wiser.', stat_deltas: { willpower: 10 } }
+    ]
+  },
+  {
+    id: 'es_enc_dibella_shrine',
+    title: 'Shrine of Dibella',
+    description: 'A beautiful shrine hidden in the woods. The air is thick with perfume. A priestess emerges. "Welcome to Dibella\'s embrace."',
+    condition: (state) => state.location === 'riften_outskirts' && Math.random() < 0.06,
+    anatomy: 'average',
+    image_url: 'https://images.unsplash.com/photo-1509248961158-e54f6934749c?w=800',
+    outcomes: [
+      { id: 'dibella_pray', outcome: 'You pray to the Goddess of Beauty. Blessings wash over you.', stat_deltas: { romance: 20, willpower: 10 } },
+      { id: 'dibella_serve', outcome: 'You offer service to the shrine. The priestess teaches you sacred arts.', stat_deltas: { romance: 15, skills: { magic: 10 }, corruption: -5 } },
+      { id: 'dibella_tempt', outcome: 'You give in to the goddess\'s pleasures. It\'s everything and more.', stat_deltas: { corruption: 25, romance: 30, stress: -20 } },
+      { id: 'dibella_ignore', outcome: 'You ignore the shrine. Beauty is wasted on the unworthy.', stat_deltas: { relationship: -5 } }
+    ]
+  },
+  {
+    id: 'es_enc_hircine_hunt',
+    title: 'Hircine\'s Hunt',
+    description: 'The hunt begins! Hircine\'s horn echoes. Beasts run before you. But who hunts who?',
+    condition: (state) => state.location === 'riften_outskirts' && state.time === 'night' && Math.random() < 0.04,
+    anatomy: 'feral_dog',
+    image_url: 'https://images.unsplash.com/photo-1615803421322-1e7333d4b1b0?w=800',
+    outcomes: [
+      { id: 'hircine_hunt_lead', outcome: 'You lead the hunt! Great beasts fall before you. Hircine smiles.', stat_deltas: { corruption: 20, skills: { combat: 15 }, gold: 75 } },
+      { id: 'hircine_hunt_prey', outcome: 'You become the prey! The hunt is terrifying and exhilarating.', stat_deltas: { stress: 30, corruption: 15, romance: 10 } },
+      { id: 'hircine_hunt_join', outcome: 'You join the werewolves. The hunt becomes part of you.', stat_deltas: { corruption: 35, transformation: 1, companion: 'werewolf_pack' } },
+      { id: 'hircine_hunt_flee', outcome: 'You escape the hunt. Hircine\'s laugh follows. You survived... this time.', stat_deltas: { stress: 25, willpower: 10 } }
+    ]
+  },
+  {
+    id: 'es_enc_witches_coven',
+    title: 'Witches Coven',
+    description: 'You stumble upon a moonlit gathering. Witches dance around a cauldron. They notice you.',
+    condition: (state) => state.location === 'riften_outskirts' && state.time === 'night' && Math.random() < 0.05,
+    anatomy: 'tentacle_creature',
+    image_url: 'https://images.unsplash.com/photo-1518709766631-a6a7f45921c3?w=800',
+    outcomes: [
+      { id: 'coven_join', outcome: 'You join the dance! The magic is intoxicating. A new coven sister.', stat_deltas: { corruption: 30, skills: { magic: 15 }, companion: 'witch_coven' } },
+      { id: 'coven_bargain', outcome: 'You bargain for knowledge. They share dark secrets for a price.', stat_deltas: { corruption: 15, skills: { magic: 20 }, gold: -50 } },
+      { id: 'coven_fight', outcome: 'You attack! Magic crashes against magic. The coven disperses.', stat_deltas: { health: -25, skills: { magic: 10 }, corruption: 10 } },
+      { id: 'coven_flee', outcome: 'You run from the hexes! Behind you, laughter echoes through the night.', stat_deltas: { stress: 20 } }
+    ]
+  },
+  {
+    id: 'es_enc_falmer_hive',
+    title: 'Falmer Hive',
+    description: 'Deep underground, you find a Falmer hive. They cultivate something in the darkness. They haven\'t noticed you yet.',
+    condition: (state) => state.location === 'riften_outskirts' && Math.random() < 0.05,
+    anatomy: 'average',
+    image_url: 'https://images.unsplash.com/photo-1518709766631-a6a7f45921c3?w=800',
+    outcomes: [
+      { id: 'falmerhive_raid', outcome: 'You raid the hive! Treasure and chaurus eggs. But they swarm!', stat_deltas: { gold: 100, corruption: 10, skills: { combat: 10 } } },
+      { id: 'falmerhive_stealth', outcome: 'You sneak past, taking nothing. Survival over greed.', stat_deltas: { skills: { stealth: 10 } } },
+      { id: 'falmerhive_negotiate', outcome: 'You try to communicate. Some listen. A rare truce forms.', stat_deltas: { relationship: 15, corruption: 5 } },
+      { id: 'falmerhive_escape', outcome: 'They spot you! You run for your life through the tunnels.', stat_deltas: { health: -15, stress: 20 } }
+    ]
+  },
+  {
+    id: 'es_enc_chaurus_breeding',
+    title: 'Chaurus Breeding Chamber',
+    description: 'A massive chamber filled with chaurus in various stages of breeding. The smell is overwhelming. Something watches from above.',
+    condition: (state) => state.location === 'riften_outskirts' && Math.random() < 0.04,
+    anatomy: 'tentacle_creature',
+    image_url: 'https://images.unsplash.com/photo-1589656966895-2f33e7653819?w=800',
+    outcomes: [
+      { id: 'chaurusbreed_fight', outcome: 'The chaurus swarm! You fight through the breeding ground, disgusting but necessary.', stat_deltas: { health: -25, skills: { combat: 8 }, corruption: 10 } },
+      { id: 'chaurusbreed_collect', outcome: 'You collect rare eggs. This will sell for a fortune.', stat_deltas: { gold: 150, corruption: 15 } },
+      { id: 'chaurusbreed_study', outcome: 'You study the breeding. Dark knowledge reveals itself.', stat_deltas: { skills: { magic: 15 }, corruption: 10 } },
+      { id: 'chaurusbreed_flee', outcome: 'You flee the nightmare! The chaurus screech but don\'t follow.', stat_deltas: { stress: 25 } }
+    ]
+  },
+  {
+    id: 'es_enc_spriggan_mother',
+    title: 'Spriggan Mother',
+    description: 'A massive spriggan towers before you, surrounded by lesser spirits. It speaks in roots and vines. "You enter our sacred place."',
+    condition: (state) => state.location === 'riften_outskirts' && Math.random() < 0.04,
+    anatomy: 'tentacle_creature',
+    image_url: 'https://images.unsplash.com/photo-1518709766631-a6a7f45921c3?w=800',
+    outcomes: [
+      { id: 'sprigganmother_fight', outcome: 'The grove attacks! Vines wrap around you. A brutal escape.', stat_deltas: { health: -30, corruption: 15, skills: { combat: 5 } } },
+      { id: 'sprigganmother_worship', outcome: 'You bow to the forest. The mother accepts you as its champion.', stat_deltas: { corruption: 20, companion: 'spriggan', skills: { magic: 10 } } },
+      { id: 'sprigganmother_bargain', outcome: 'You offer gold for safe passage. The mother considers... then accepts.', stat_deltas: { gold: -50, relationship: 10 } },
+      { id: 'sprigganmother_flee', outcome: 'You run from the ancient spirit! Trees block your path but you escape.', stat_deltas: { stress: 20 } }
+    ]
+  },
+  {
+    id: 'es_enc_automaton_malfunction',
+    title: 'Automaton Malfunction',
+    description: 'A Dwemer machine sparks and whirs, its eyes glowing red. "INTRUDER DETECTED. TERMINATING."',
+    condition: (state) => state.location === 'riften_outskirts' && Math.random() < 0.06,
+    anatomy: 'thug',
+    image_url: 'https://images.unsplash.com/photo-1589656966895-2f33e7653819?w=800',
+    outcomes: [
+      { id: 'auto_malfunction_fight', outcome: 'You fight the machine! Metal screeches against steel. It falls.', stat_deltas: { health: -20, skills: { combat: 10 }, gold: 25 } },
+      { id: 'auto_malfunction_repair', outcome: 'You repair the malfunction! It becomes your faithful machine.', stat_deltas: { skills: { crafting: 15 }, companion: 'dwemer_automaton' } },
+      { id: 'auto_malfunction_hack', outcome: 'You hack the controls! The machine now serves you.', stat_deltas: { skills: { magic: 10 }, corruption: 10, companion: 'dwemer_automaton' } },
+      { id: 'auto_malfunction_flee', outcome: 'You run from the killing machine! It doesn\'t follow. Lucky.', stat_deltas: { stress: 15 } }
+    ]
+  },
+  {
+    id: 'es_enc_dwemer_sphere',
+    title: 'Dwemer Sphere Attack',
+    description: 'A Dwemer sphere rolls toward you, weapons deploying. The ancient metal glows with fury. It doesn\'t speak, only kills.',
+    condition: (state) => state.location === 'riften_outskirts' && Math.random() < 0.07,
+    anatomy: 'thug',
+    image_url: 'https://images.unsplash.com/photo-1589656966895-2f33e7653819?w=800',
+    outcomes: [
+      { id: 'sphere_fight', outcome: 'You battle the sphere! Its weapons are deadly but you\'re faster.', stat_deltas: { health: -25, skills: { combat: 12 }, corruption: 5 } },
+      { id: 'sphere_destroy', outcome: 'You destroy it completely! Scrap metal everywhere. Treasure!', stat_deltas: { gold: 75, skills: { combat: 5 }, corruption: 3 } },
+      { id: 'sphere_stealth', outcome: 'You sneak past. It rolls on, not noticing you. Ancient tech passes by.', stat_deltas: { skills: { stealth: 8 } } },
+      { id: 'sphere_override', outcome: 'You find the control mechanism! The sphere stands down, awaiting orders.', stat_deltas: { skills: { magic: 10 }, companion: 'dwemer_sphere' } }
+    ]
+  },
+  {
+    id: 'es_enc_nightcaller',
+    title: 'Nightcaller Temple',
+    description: 'The temple of Nightcaller looms in the darkness. The veil between worlds grows thin. Something awakens within.',
+    condition: (state) => state.location === 'riften_outskirts' && state.time === 'night' && Math.random() < 0.03,
+    anatomy: 'thug',
+    image_url: 'https://images.unsplash.com/photo-1519074069444-1ba4fff66d16?w=800',
+    outcomes: [
+      { id: 'nightcaller_explore', outcome: 'You explore the temple! Dark secrets and darker powers await.', stat_deltas: { skills: { magic: 20 }, corruption: 15 } },
+      { id: 'nightcaller_wake', outcome: 'Something wakes! You fight the risen darkness and barely survive.', stat_deltas: { health: -35, corruption: 20, skills: { combat: 10 } } },
+      { id: 'nightcaller_seal', outcome: 'You seal the awakening. The darkness retreats. Another day saved.', stat_deltas: { willpower: 20, corruption: -10, relationship: 10 } },
+      { id: 'nightcaller_flee', outcome: 'You flee the temple! Behind you, something screams in rage.', stat_deltas: { stress: 25, corruption: 5 } }
+    ]
+  },
+  {
+    id: 'es_enc_end_of_days',
+    title: 'End of Days',
+    description: 'The sky turns red. Dragons circle above. The prophecy unfolds. This is the apocalypse... or opportunity.',
+    condition: (state) => state.location === 'riften_outskirts' && Math.random() < 0.02,
+    anatomy: 'feral_dog',
+    image_url: 'https://images.unsplash.com/photo-1589656966895-2f33e7653819?w=800',
+    outcomes: [
+      { id: 'end_fight', outcome: 'You fight the darkness! Dragons fall, daedra scatter. A legend is born.', stat_deltas: { corruption: 20, skills: { combat: 25 }, gold: 200 } },
+      { id: 'end_join', outcome: 'You join the apocalypse! Power flows to those who embrace the end.', stat_deltas: { corruption: 50, skills: { magic: 20 }, arcane: 20 } },
+      { id: 'end_survive', outcome: 'You hide and survive. The world burns but you endure.', stat_deltas: { willpower: 30, stress: 15 } },
+      { id: 'end_profit', outcome: 'While worlds end, you loot. Crazier things have happened.', stat_deltas: { gold: 500, corruption: 25 } }
     ]
   }
 ];
