@@ -1778,5 +1778,82 @@ export const ES_LOCATIONS_EXPANDED: Record<string, any> = {
       { id: 'desert_town_history', label: 'Learn town history', intent: 'social', outcome: '"We\'ve been Redguard, Breton, Imperial, and back. The desert doesn\'t care who rules."', stat_deltas: { skills: { history: 3 } }, hours_passed: 1 },
       { id: 'oasis_rest', label: 'Rest at the oasis', intent: 'neutral', outcome: 'The cool waters of the hidden oasis restore your strength.', stat_deltas: { health: 20, exhaustion: -25 }, hours_passed: 3 }
     ]
+  },
+
+  // SUMMERSET ISLES
+  shimmerene: {
+    id: 'shimmerene',
+    name: 'Shimmerene Library',
+    type: 'library',
+    region: 'summerset',
+    description: "Among the crystal towers of the Summerset Isles, the great library of Shimmerene preserves the accumulated wisdom of the Altmer. Ancient scrolls bound in dragon bone contain secrets of the Dawn Era, while scholars in flowing robes debate the finer points of restoration magic amidst the glow of crystallized mana.",
+    atmosphere: 'Scholarly, luminous, ancient, contemplative',
+    actions: [
+      { id: 'research_towers', label: 'Research crystal towers', intent: 'work', outcome: 'The archivists share forbidden texts detailing the towers\' true purpose. The knowledge is intoxicating.', stat_deltas: { skills: { magic: 5 } }, hours_passed: 3 },
+      { id: 'consult_scholar', label: 'Consult a scholar', intent: 'social', outcome: 'A wizened archivist offers insights into the Psijic prophecies. "The stars foretell much..."', stat_deltas: { relationship: 3, skills: { history: 2 } }, hours_passed: 2 },
+      { id: 'copy_scrolls', label: 'Copy ancient scrolls', intent: 'work', outcome: 'Your hands cramp as you replicate the flowing Altmer script. The work is tedious but educational.', stat_deltas: { skills: { restoration: 3 }, gold: -10 }, hours_passed: 4 },
+      { id: 'restoration_study', label: 'Study restoration magic', intent: 'work', outcome: 'The library contains the finest restoration texts in Tamriel. Your understanding deepens.', stat_deltas: { skills: { restoration: 5 } }, hours_passed: 3 },
+      { id: 'find_prophecy', label: 'Search for prophecies', intent: 'work', outcome: 'The Psijic prophecies speak of a world reborn. The language is cryptic but compelling.', stat_deltas: { corruption: 3, skills: { magic: 3 } }, hours_passed: 2 },
+      { id: 'join_debate', label: 'Join scholarly debate', intent: 'social', outcome: 'You present your theories on the crystal towers. The scholars critique your reasoning harshly.', stat_deltas: { skills: { speech: 3 } }, hours_passed: 2 },
+      { id: 'forbidden_texts', label: 'Access forbidden texts', intent: 'stealth', outcome: 'The restricted section holds knowledge the Thalmor would rather be forgotten.', stat_deltas: { corruption: 10, skills: { magic: 5 } }, hours_passed: 2 },
+      { id: 'contemplation', label: 'Contemplate the crystal light', intent: 'neutral', outcome: 'You sit in the glow of crystallized mana. The light reveals truths words cannot express.', stat_deltas: { exhaustion: -20, skills: { magic: 2 } }, hours_passed: 3 }
+    ]
+  },
+
+  lillandril: {
+    id: 'lillandril',
+    name: 'Lillandril Artisan Quarters',
+    type: 'artisan',
+    region: 'summerset',
+    description: "The narrow streets of Lillandril wind through workshops where Altmer artisans craft masterworks worthy of the crystal towers themselves. The air smells of glassblowing and metalwork, and even the humblest shop produces works of stunning beauty. Master craftsmen here claim descent from the Dawn Era artists.",
+    atmosphere: 'Creative, refined, traditional, meticulous',
+    actions: [
+      { id: 'commission_work', label: 'Commission a piece', intent: 'work', outcome: 'The artisan promises a masterwork. "The crystal will sing when complete."', stat_deltas: { gold: -150 }, hours_passed: 1 },
+      { id: 'learn_craft', label: 'Learn artisan craft', intent: 'work', outcome: 'The master shows you the subtle art of crystalWorking. Years of practice cannot be rushed.', stat_deltas: { skills: { smithing: 3 }, gold: -25 }, hours_passed: 4 },
+      { id: 'purchase_supplies', label: 'Purchase artisan supplies', intent: 'work', outcome: 'Rare pigments and crystal fragments await those with gold to spend.', stat_deltas: { gold: -50 }, hours_passed: 1 },
+      { id: 'watch_creation', label: 'Watch master at work', intent: 'social', outcome: 'The artisan\'s hands move with supernatural grace. The piece takes shape like living poetry.', stat_deltas: { skills: { smithing: 2 }, hours_passed: 2 },
+      { id: 'compete_submission', label: 'Enter art competition', intent: 'work', outcome: 'You submit your own work for critique. The judges are merciless but fair.', stat_deltas: { skills: { smithing: 5 }, relationship: 3 }, hours_passed: 3 },
+      { id: 'thalmor_commission', label: 'Create for Thalmor', intent: 'work', outcome: 'The Thalmor commission fine works for their crystal towers. The pay is excellent but the scrutiny is intense.', stat_deltas: { gold: 100, corruption: 5 }, hours_passed: 4 },
+      { id: 'family_secrets', label: 'Learn family techniques', intent: 'social', outcome: 'An old artisan shares secrets passed down through generations. "This is how we exceeded the Psijic..."', stat_deltas: { skills: { smithing: 4 }, hours_passed: 2 },
+      { id: 'exhibit_piece', label: 'Exhibit your work', intent: 'social', outcome: 'Your piece joins the exhibition. Critics offer praise and criticism in equal measure.', stat_deltas: { relationship: 5, skills: { speech: 2 } }, hours_passed: 2 }
+    ]
+  },
+
+  aurimar: {
+    id: 'aurimar',
+    name: 'Aurimar Crystal Tower',
+    type: 'thalmor',
+    region: 'summerset',
+    description: "The crystal tower of Aurimar rises impossibly tall, its peak piercing the clouds above the Summerset coast. The Thalmor have claimed this tower as their headquarters, and their golden armor gleams in the crystalline light. Here, the ruling council of the Altmer plots the restoration of the Empire to its former glory.",
+    atmosphere: 'Authoritative, golden, imposing, calculating',
+    actions: [
+      { id: 'report_to_command', label: 'Report to Thalmor command', intent: 'work', outcome: 'The Justiciar accepts your report. "The Tower watches. Do not disappoint us again."', stat_deltas: { relationship: 5, corruption: 5 }, hours_passed: 2 },
+      { id: 'tower_ceremony', label: 'Attend tower ceremony', intent: 'social', outcome: 'The Thalmor conduct their ancient rites. The golden light illuminates their faces like gods.', stat_deltas: { corruption: 5, skills: { restoration: 2 } }, hours_passed: 2 },
+      { id: 'political_briefing', label: 'Receive political briefing', intent: 'work', outcome: '"The Empire weakens. The Stormcloaks rise. We must position ourselves accordingly."', stat_deltas: { skills: { speech: 3 }, corruption: 3 }, hours_passed: 2 },
+      { id: 'surveillance_duty', label: 'Perform surveillance duty', intent: 'work', outcome: 'You watch suspectAltmer for signs of disloyalty. The work is necessary and morally ambiguous.', stat_deltas: { gold: 40, corruption: 10 }, hours_passed: 4 },
+      { id: 'psijic_interrogation', label: 'Interrogate Psijic sympathizer', intent: 'combat', outcome: 'The prisoner refuses to speak. Their eyes hold only contempt.', stat_deltas: { corruption: 15, relationship: -5 }, hours_passed: 2 },
+      { id: 'tower_control', label: 'Access tower control', intent: 'stealth', outcome: 'The central crystal responds to your touch. The power is intoxicating.', stat_deltas: { corruption: 8, skills: { magic: 3 } }, hours_passed: 2 },
+      { id: 'purge_heretics', label: 'Join purge operations', intent: 'combat', outcome: 'Heretics are rounded up and processed. The process is efficient and merciless.', stat_deltas: { corruption: 20, health: -10 }, hours_passed: 4 },
+      { id: 'council_audience', label: 'Request audience with Council', intent: 'work', outcome: 'The Inner Council grants you audience. Your suggestions are weighed and measured.', stat_deltas: { relationship: 10, corruption: 5 }, hours_passed: 3 }
+    ]
+  },
+
+  darthaar: {
+    id: 'darthaar',
+    name: 'Darthaar Fishery',
+    type: 'fishery',
+    region: 'summerset',
+    description: "The coastal village of Darthaar clings to the cliffs where the Summerset waves crash against ancient stone. For generations, the fisherfolk here have pulled silver-scaled bounty from the sea. Even the Thalmor respect their independence—the ocean answers to no empire.",
+    atmosphere: 'Salt-spray, weathered, independent, sea-worn',
+    actions: [
+      { id: 'join_fishing', label: 'Join fishing expedition', intent: 'work', outcome: 'The boat rocks wildly as you pull in the nets. The catch is bountiful.', stat_deltas: { gold: 30, health: -10 }, hours_passed: 4 },
+      { id: 'psijic_contact', label: 'Contact Psijic refugee', intent: 'stealth', outcome: 'A hooded figure emerges from the mist. "The Order remembers those who help."', stat_deltas: { corruption: -5, relationship: 5 }, hours_passed: 2 },
+      { id: 'learn_secrets', label: 'Learn ocean secrets', intent: 'social', outcome: 'An old fisherman speaks of sea-daedra and sunken treasures. "The ocean keeps its secrets well."', stat_deltas: { skills: { survival: 3 } }, hours_passed: 2 },
+      { id: 'sell_catch', label: 'Sell your catch', intent: 'work', outcome: 'The seafood fetches premium prices in Alinor. The fisherfolk know their worth.', stat_deltas: { gold: 25 }, hours_passed: 1 },
+      { id: 'storm_wait', label: 'Wait out a storm', intent: 'neutral', outcome: 'The storm rages for hours. The village endures as it always has.', stat_deltas: { health: 10, exhaustion: -15 }, hours_passed: 6 },
+      { id: 'smuggle_goods', label: 'Smuggle coastal goods', intent: 'stealth', outcome: 'Contraband from Pyandonea changes hands in the dark. The profit is worth the risk.', stat_deltas: { gold: 60, corruption: 10 }, hours_passed: 2 },
+      { id: 'teach_traditions', label: 'Learn fishing traditions', intent: 'work', outcome: 'The elder teaches ancient songs sung while hauling nets. The rhythm is timeless.', stat_deltas: { skills: { speech: 2 }, hours_passed: 2 },
+      { id: 'rescue_drowning', label: 'Rescue drowning sailor', intent: 'combat', outcome: 'You dive into the churning waves. The sailor is saved through sheer will.', stat_deltas: { health: -20, relationship: 10 }, hours_passed: 2 }
+    ]
   }
 };
