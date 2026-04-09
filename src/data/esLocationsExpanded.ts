@@ -14,7 +14,7 @@ export const ES_LOCATIONS_EXPANDED: Record<string, any> = {
       { id: 'listen', label: 'Listen to conversations', intent: 'social', outcome: 'You overhear two Nords discussing a vampire sighting in the hills. A Khajiit whispers about a job...', stat_deltas: { corruption: 1 }, hours_passed: 2 },
       { id: 'sleep', label: 'Rent a room', intent: 'neutral', outcome: 'The room is small but clean. The bed is soft after days on the road.', stat_deltas: { health: 20, exhaustion: -30, gold: -15 }, hours_passed: 8 },
       { id: 'brawl', label: 'Start a fight', intent: 'combat', outcome: 'Your fist connects with a drunk merchant\'s face. The tavern erupts into chaos.', stat_deltas: { health: -10, relationship: -5, corruption: 5 }, hours_passed: 1 },
-      { id: 'approach_npc', label: 'Approach a patron', intent: 'social', outcome: 'You spot a figure in the corner — an adventurer? A thief? They notice your gaze.', stat_deltas: {}, hours_passed: 1 },
+      { id: 'approach_npc', label: 'Approach a patron', intent: 'social', outcome: 'You spot a figure in the corner - an adventurer? A thief? They notice your gaze.', stat_deltas: {}, hours_passed: 1 },
       { id: 'drink_special', label: 'Try Talen-Jei\'s special', intent: 'flirt', outcome: 'The Khajiit blend burns going down, then brings warmth to your chest. The world seems brighter...', stat_deltas: { corruption: 5, stress: -10, gold: -8 }, hours_passed: 1 }
     ]
   },
@@ -34,7 +34,7 @@ export const ES_LOCATIONS_EXPANDED: Record<string, any> = {
       { id: 'explore_hall', label: 'Explore the great hall', intent: 'social', outcome: 'Banners of ancient kings hang from the walls. The fire crackles ceaselessly.', stat_deltas: { skills: { history: 1 } }, hours_passed: 2 },
       { id: 'guard_duty', label: 'Offer guard services', intent: 'work', outcome: '"The Jarl could use more able-bodied guards. Day and night, the watch continues."', stat_deltas: { gold: 25, relationship: 2 }, hours_passed: 4 },
       { id: 'diplomacy', label: 'Practice diplomacy', intent: 'social', outcome: 'You speak with the Jarl\'s advisors about the civil war. They weigh your words carefully.', stat_deltas: { skills: { speech: 3 } }, hours_passed: 2 },
-      { id: 'request_quest', label: 'Ask for a quest', intent: 'work', outcome: '"We have many concerns — dragons, bandits, the war. Perhaps you could help."', stat_deltas: { relationship: 5 }, hours_passed: 1 },
+      { id: 'request_quest', label: 'Ask for a quest', intent: 'work', outcome: '"We have many concerns - dragons, bandits, the war. Perhaps you could help."', stat_deltas: { relationship: 5 }, hours_passed: 1 },
       { id: 'listen_council', label: 'Listen to the council', intent: 'social', outcome: 'The advisors debate strategy. Stormcloaks and Imperials both press their causes.', stat_deltas: { corruption: 2 }, hours_passed: 2 }
     ]
   },
@@ -101,7 +101,7 @@ export const ES_LOCATIONS_EXPANDED: Record<string, any> = {
     atmosphere: 'Bustling, earthy, commercial, lively',
     actions: [
       { id: 'visit_temple', label: 'Visit the Temple of Kynareth', intent: 'social', outcome: 'The priestess greets you warmly. "Kynareth blesses all who walk in her name."', stat_deltas: { willpower: 3 }, hours_passed: 1 },
-      { id: 'shop_market', label: 'Browse the market', intent: 'work', outcome: 'Merchants hawk their wares — vegetables, cloth, tools, and more.', stat_deltas: { gold: -50 }, hours_passed: 2 },
+      { id: 'shop_market', label: 'Browse the market', intent: 'work', outcome: 'Merchants hawk their wares - vegetables, cloth, tools, and more.', stat_deltas: { gold: -50 }, hours_passed: 2 },
       { id: 'gildergreen', label: 'Pray at the Gildergreen', intent: 'willpower', outcome: 'The sacred tree\'s leaves shimmer. You feel a profound peace settle over you.', stat_deltas: { willpower: 5, exhaustion: -10 }, hours_passed: 1 },
       { id: 'belethor_shop', label: 'Visit Belethor\'s shop', intent: 'work', outcome: '"What are you selling? Everything has a price." The Bosmer greets you with a grin.', stat_deltas: { gold: 30 }, hours_passed: 1 },
       { id: 'guard_wall', label: 'Walk the walls', intent: 'work', outcome: 'From the wall, you see the whole city. Guards patrol ceaselessly.', stat_deltas: { skills: { archery: 2 } }, hours_passed: 2 },
@@ -123,7 +123,7 @@ export const ES_LOCATIONS_EXPANDED: Record<string, any> = {
       { id: 'ask_supplies', label: 'Ask about special supplies', intent: 'social', outcome: '"Special? Maybe. What are you looking for? I hear things..."', stat_deltas: { corruption: 2 }, hours_passed: 1 },
       { id: 'trade_info', label: 'Trade information', intent: 'work', outcome: '"That\'s worth something. Let\'s say... thirty gold?"', stat_deltas: { gold: 30, relationship: 2 }, hours_passed: 1 },
       { id: 'mysterious_package', label: 'Ask about mysterious packages', intent: 'stealth', outcome: 'Belethor lowers his voice. "I have things. Things from places you don\'t want to know about."', stat_deltas: { corruption: 5 }, hours_passed: 1 },
-      { id: 'negotiate', label: 'Negotiate price', intent: 'work', outcome: '"You drive a hard bargain. Fine — this once."', stat_deltas: { skills: { speech: 3 }, gold: -10 }, hours_passed: 1 },
+      { id: 'negotiate', label: 'Negotiate price', intent: 'work', outcome: '"You drive a hard bargain. Fine - this once."', stat_deltas: { skills: { speech: 3 }, gold: -10 }, hours_passed: 1 },
       { id: 'dark_deal', label: 'Make a dark deal', intent: 'stealth', outcome: 'The transaction is shadowed. You receive goods that should not exist.', stat_deltas: { corruption: 10, gold: -100 }, hours_passed: 1 },
       { id: 'report_thief', label: 'Report a thief', intent: 'willpower', outcome: '"A thief? I don\'t know anything about that." But his eyes dart away.', stat_deltas: { willpower: 3, relationship: -2 }, hours_passed: 1 }
     ]
@@ -140,7 +140,7 @@ export const ES_LOCATIONS_EXPANDED: Record<string, any> = {
     actions: [
       { id: 'visit_temple', label: 'Visit the Temple', intent: 'social', outcome: 'The priests of the Tribunal welcome pilgrims. "May the ancestors guide your path."', stat_deltas: { willpower: 5 }, hours_passed: 2 },
       { id: 'explore_palace', label: 'Explore the Royal Palace', intent: 'work', outcome: 'The throne room is grand but shadows linger from the old king\'s death.', stat_deltas: { relationship: 2 }, hours_passed: 2 },
-      { id: 'trade_guild', label: 'Visit the Tradehouse', intent: 'work', outcome: 'Dunmer merchants offer exotic goods — Telvanni artifacts, kwama cuttle, scrib jelly.', stat_deltas: { gold: -100 }, hours_passed: 2 },
+      { id: 'trade_guild', label: 'Visit the Tradehouse', intent: 'work', outcome: 'Dunmer merchants offer exotic goods - Telvanni artifacts, kwama cuttle, scrib jelly.', stat_deltas: { gold: -100 }, hours_passed: 2 },
       { id: 'ask_dunmer', label: 'Talk to Dunmer locals', intent: 'social', outcome: '"You are from Skyrim? The empire grows weak. We remember our greatness."', stat_deltas: { corruption: 1 }, hours_passed: 1 },
       { id: 'visit_bazaar', label: 'Browse the Great Bazaar', intent: 'work', outcome: 'Stalls sell strange goods: curated mushrooms, ash salts, ancestor moths.', stat_deltas: { gold: -50 }, hours_passed: 2 },
       { id: 'slave_trade', label: 'Encounter the Slave Market', intent: 'stealth', outcome: 'Chained Dunmer wait for buyers. The institution is legal here... for now.', stat_deltas: { corruption: 5, willpower: -3 }, hours_passed: 2 },
@@ -797,12 +797,12 @@ export const ES_LOCATIONS_EXPANDED: Record<string, any> = {
     actions: [
       { id: 'order_drink', label: 'Order a drink', intent: 'neutral', outcome: 'Brynda slides a tankard across the bar. "Fresh from the cellars. Drink up."', stat_deltas: { stress: -5, gold: -5 }, hours_passed: 1 },
       { id: 'order_meal', label: 'Order food', intent: 'neutral', outcome: 'A hearty stew and bread appear before you. "Made it myself," Brynda says with pride.', stat_deltas: { health: 10, gold: -10 }, hours_passed: 1 },
-      { id: 'ask_gossip', label: 'Ask about rumors', intent: 'social', outcome: 'Brynda leans in. "Word is, Maven's boy was seen at the Ragged Flagon again. And the Thieves Guild is getting bold..."', stat_deltas: { relationship: 3 }, hours_passed: 1 },
+      { id: 'ask_gossip', label: 'Ask about rumors', intent: 'social', outcome: "Brynda leans in. \"Word is, Maven's boy was seen at the Ragged Flagon again. And the Thieves Guild is getting bold...\"", stat_deltas: { relationship: 3 }, hours_passed: 1 },
       { id: 'listen', label: 'Listen to conversations', intent: 'social', outcome: 'You overhear two Nords discussing a vampire sighting in the hills. A Khajiit whispers about a job...', stat_deltas: { corruption: 1 }, hours_passed: 2 },
       { id: 'sleep', label: 'Rent a room', intent: 'neutral', outcome: 'The room is small but clean. The bed is soft after days on the road.', stat_deltas: { health: 20, exhaustion: -30, gold: -15 }, hours_passed: 8 },
-      { id: 'brawl', label: 'Start a fight', intent: 'combat', outcome: 'Your fist connects with a drunk merchant\\'s face. The tavern erupts into chaos.', stat_deltas: { health: -10, relationship: -5, corruption: 5 }, hours_passed: 1 },
-      { id: 'approach_npc', label: 'Approach a patron', intent: 'social', outcome: 'You spot a figure in the corner — an adventurer? A thief? They notice your gaze.', stat_deltas: {}, hours_passed: 1 },
-      { id: 'drink_special', label: 'Try Talen-Jei\\'s special', intent: 'flirt', outcome: 'The Khajiit blend burns going down, then brings warmth to your chest. The world seems brighter...', stat_deltas: { corruption: 5, stress: -10, gold: -8 }, hours_passed: 1 }
+      { id: 'brawl', label: 'Start a fight', intent: 'combat', outcome: "Your fist connects with a drunk merchant's face. The tavern erupts into chaos.", stat_deltas: { health: -10, relationship: -5, corruption: 5 }, hours_passed: 1 },
+      { id: 'approach_npc', label: 'Approach a patron', intent: 'social', outcome: 'You spot a figure in the corner - an adventurer? A thief? They notice your gaze.', stat_deltas: {}, hours_passed: 1 },
+      { id: 'drink_special', label: 'Try Talen-Jei\'s special', intent: 'flirt', outcome: "The Khajiit blend burns going down, then brings warmth to your chest. The world seems brighter...", stat_deltas: { corruption: 5, stress: -10, gold: -8 }, hours_passed: 1 }
     ]
   },
   riften_docks: {
@@ -812,13 +812,13 @@ export const ES_LOCATIONS_EXPANDED: Record<string, any> = {
     description: 'The canal district where Argonians unload catch and traders bring goods by boat. The smell of fish and water is overwhelming. Hushed deals happen in the shadows of the warehouses.',
     atmosphere: 'Fishy, damp, shady, busy with hidden commerce',
     actions: [
-      { id: 'fish', label: 'Fish in the canal', intent: 'work', outcome: 'You cast a line and wait. A few small fish bite — enough for a meal, not for sale.', stat_deltas: { health: -5, skills: { survival: 1 } }, hours_passed: 2 },
+      { id: 'fish', label: 'Fish in the canal', intent: 'work', outcome: 'You cast a line and wait. A few small fish bite - enough for a meal, not for sale.', stat_deltas: { health: -5, skills: { survival: 1 } }, hours_passed: 2 },
       { id: 'unload', label: 'Help unload goods', intent: 'work', outcome: 'Sweat-soaked hours earn you a few silver. The foreman nods at your work.', stat_deltas: { health: -10, gold: 15, strength: 2 }, hours_passed: 4 },
-      { id: 'sketchy_deal', label: 'Ask about \"special\" cargo', intent: 'stealth', outcome: 'An Argonian eyes you. "Skooma? Moon sugar? We have... connections."', stat_deltas: { corruption: 5 }, hours_passed: 2 },
-      { id: 'talk_argonian', label: 'Talk to workers', intent: 'social', outcome: 'One of the dock workers tells you about the Thieves Guild\\'s presence. "They watch everything from below."', stat_deltas: { relationship: 2 }, hours_passed: 1 },
+      { id: 'sketchy_deal', label: 'Ask about "special" cargo', intent: 'stealth', outcome: 'An Argonian eyes you. "Skooma? Moon sugar? We have... connections."', stat_deltas: { corruption: 5 }, hours_passed: 2 },
+      { id: 'talk_argonian', label: 'Talk to workers', intent: 'social', outcome: "One of the dock workers tells you about the Thieves Guild's presence. 'They watch everything from below.'", stat_deltas: { relationship: 2 }, hours_passed: 1 },
       { id: 'swim', label: 'Search the water', intent: 'stealth', outcome: 'Diving into the canal, you find old coins and a rusted dagger. Not much, but something.', stat_deltas: { health: -5, gold: 5 }, hours_passed: 2 },
       { id: 'guard', label: 'Watch for trouble', intent: 'work', outcome: 'You spot a pickpocket trying to relieve a merchant. Do you intervene?', stat_deltas: { willpower: 3 }, hours_passed: 2 },
-      { id: 'wujeeta', label: 'Find Wujeeta', intent: 'social', outcome: 'You locate the Argonian dock worker. Her eyes are glazed — she clearly has a skooma problem.', stat_deltas: { relationship: 2 }, hours_passed: 1 },
+      { id: 'wujeeta', label: 'Find Wujeeta', intent: 'social', outcome: 'You locate the Argonian dock worker. Her eyes are glazed - she clearly has a skooma problem.', stat_deltas: { relationship: 2 }, hours_passed: 1 },
       { id: 'hide', label: 'Hide and observe', intent: 'stealth', outcome: 'You slip into the shadows. A group of hooded figures exchange coin and packages...', stat_deltas: { corruption: 3 }, hours_passed: 2 }
     ]
   },
@@ -829,8 +829,8 @@ export const ES_LOCATIONS_EXPANDED: Record<string, any> = {
     description: "Ghorza's forge roars with heat even on the coldest days. Weapons and armor line the walls, most still warm from the forge. The clang of hammer on anvil provides a constant rhythm.",
     atmosphere: 'Hot, smoky, loud, filled with the smell of hot metal',
     actions: [
-      { id: 'buy_weapon', label: 'Browse weapons', intent: 'work', outcome: 'Ghorza gestures to her wares. "Steel, iron, Orcish — take your pick. Good steel, fair price."', stat_deltas: { gold: -50 }, hours_passed: 1 },
-      { id: 'buy_armor', label: 'Browse armor', intent: 'work', outcome: '"This leather\\'s the best around. Plate if you can afford it. Protection is what you need."', stat_deltas: { gold: -100 }, hours_passed: 1 },
+      { id: 'buy_weapon', label: 'Browse weapons', intent: 'work', outcome: 'Ghorza gestures to her wares. "Steel, iron, Orcish - take your pick. Good steel, fair price."', stat_deltas: { gold: -50 }, hours_passed: 1 },
+      { id: 'buy_armor', label: 'Browse armor', intent: 'work', outcome: "This leather's the best around. Plate if you can afford it. Protection is what you need.", stat_deltas: { gold: -100 }, hours_passed: 1 },
       { id: 'learn_smithing', label: 'Learn smithing', intent: 'work', outcome: 'Ghorza grunts. "You want to learn? Heat the metal, hit it right. Then maybe you make something."', stat_deltas: { skills: { crafting: 5 }, gold: -20 }, hours_passed: 4 },
       { id: 'repair', label: 'Have items repaired', intent: 'work', outcome: '"That\\'ll take time and coin. Gold first, then I work."', stat_deltas: { gold: -25 }, hours_passed: 2 },
       { id: 'talk_ghorza', label: 'Talk to Ghorza', intent: 'social', outcome: '"You\\'re not bad. For a beginner. Keep that up and you might make a real smith someday."', stat_deltas: { relationship: 5 }, hours_passed: 1 },
@@ -846,8 +846,8 @@ export const ES_LOCATIONS_EXPANDED: Record<string, any> = {
     description: "The alchemy shop smells of strange herbs and stranger chemicals. Vials of every color line the shelves. Elgrim himself is a portly Breton who seems more interested in the effect of his potions than the coin they earn.",
     atmosphere: 'Mysterious, herb-scented, slightly chaotic, intriguing',
     actions: [
-      { id: 'buy_potions', label: 'Buy potions', intent: 'work', outcome: 'Elgrim shuffles through bottles. "Healing, strength, stamina — what do you need?"', stat_deltas: { gold: -30 }, hours_passed: 1 },
-      { id: 'buy_ingredients', label: 'Buy ingredients', intent: 'work', outcome: '"Chanterelles, Glow Dust, Wisp Wrappings — take your pick."', stat_deltas: { gold: -20, skills: { alchemy: 1 } }, hours_passed: 1 },
+      { id: 'buy_potions', label: 'Buy potions', intent: 'work', outcome: 'Elgrim shuffles through bottles. "Healing, strength, stamina - what do you need?"', stat_deltas: { gold: -30 }, hours_passed: 1 },
+      { id: 'buy_ingredients', label: 'Buy ingredients', intent: 'work', outcome: '"Chanterelles, Glow Dust, Wisp Wrappings - take your pick."', stat_deltas: { gold: -20, skills: { alchemy: 1 } }, hours_passed: 1 },
       { id: 'learn_alchemy', label: 'Learn alchemy', intent: 'work', outcome: '"Ah, an aspiring alchemist! Let me show you the basics of mixing..."', stat_deltas: { skills: { alchemy: 5 }, gold: -15 }, hours_passed: 3 },
       { id: 'sell_ingredients', label: 'Sell ingredients', intent: 'work', outcome: 'Elgrim examines your finds. "Hmm. I\\'ll give you fair coin for these."', stat_deltas: { gold: 25 }, hours_passed: 1 },
       { id: 'ask_secret', label: 'Ask about special potions', intent: 'social', outcome: 'Elgrim lowers his voice. "I have... things that aren\\'t for public display. Interested?"', stat_deltas: { corruption: 3 }, hours_passed: 1 },
@@ -903,7 +903,7 @@ export const ES_LOCATIONS_EXPANDED: Record<string, any> = {
       { id: 'escape', label: 'Help a prisoner escape', intent: 'social', outcome: '"You\\'re saving my life. I won\\'t forget this."', stat_deltas: { relationship: 10, corruption: -3, willpower: 5 }, hours_passed: 3 },
       { id: 'arrest', label: 'Get arrested', intent: 'combat', outcome: '"You\\'re coming with us." The cell door slams shut.', stat_deltas: { health: -10, corruption: -2 }, hours_passed: 1 },
       { id: 'wait', label: 'Wait out your sentence', intent: 'neutral', outcome: 'Days blur in the dark. The food is terrible but you survive.', stat_deltas: { health: -20, willpower: 5 }, hours_passed: 48 },
-      { id: 'interrogate', label: 'Interrogate a prisoner', intent: 'work', outcome: '"I didn\\'t do it! Please — I know things. I can tell you about Maven..."', stat_deltas: { corruption: 3 }, hours_passed: 2 },
+      { id: 'interrogate', label: 'Interrogate a prisoner', intent: 'work', outcome: '"I didn\\'t do it! Please - I know things. I can tell you about Maven..."', stat_deltas: { corruption: 3 }, hours_passed: 2 },
       { id: 'pay_fine', label: 'Pay your fine', intent: 'work', outcome: 'The guard counts your gold. "You\\'re free to go. Don\\'t come back."', stat_deltas: { gold: -100, corruption: -2 }, hours_passed: 1 }
     ]
   },
@@ -920,7 +920,7 @@ export const ES_LOCATIONS_EXPANDED: Record<string, any> = {
       { id: 'meditate', label: 'Meditate', intent: 'willpower', outcome: 'The cold strengthens your resolve. You feel... clearer.', stat_deltas: { willpower: 5, exhaustion: -10 }, hours_passed: 2 },
       { id: 'search', label: 'Search for artifacts', intent: 'stealth', outcome: 'You look for anything valuable left by pilgrims. You find some coins.', stat_deltas: { gold: 15, corruption: 3 }, hours_passed: 2 },
       { id: 'talk_pilgrim', label: 'Talk to pilgrims', intent: 'social', outcome: '"I came seeking answers. Azura showed me truth."', stat_deltas: { relationship: 2 }, hours_passed: 1 },
-      { id: 'research', label: 'Research Azura', intent: 'work', outcome: 'Old texts speak of the Daedric Prince — keeper of dusk and dawn, truth and prophecy.', stat_deltas: { skills: { magic: 3 } }, hours_passed: 3 },
+      { id: 'research', label: 'Research Azura', intent: 'work', outcome: 'Old texts speak of the Daedric Prince - keeper of dusk and dawn, truth and prophecy.', stat_deltas: { skills: { magic: 3 } }, hours_passed: 3 },
       { id: 'dedicate', label: 'Dedicate yourself', intent: 'willpower', outcome: '"You would serve Azura? Then take this star and carry her light into the world."', stat_deltas: { willpower: 10, relationship: 10 }, hours_passed: 1 }
     ]
   },
@@ -936,9 +936,386 @@ export const ES_LOCATIONS_EXPANDED: Record<string, any> = {
       { id: 'search_house', label: 'Search the house', intent: 'stealth', outcome: 'Locked doors and heavy chests... you find gold and documents.', stat_deltas: { gold: 100, corruption: 10 }, hours_passed: 4 },
       { id: 'fight_guards', label: 'Fight the guards', intent: 'combat', outcome: 'Steel meets steel. They don\\'t expect a fight... but they recover.', stat_deltas: { health: -20, corruption: 5, skills: { combat: 5 } }, hours_passed: 3 },
       { id: 'find_secret', label: 'Find the secret entrance', intent: 'work', outcome: 'A hidden passage leads into the wine cellar. Unguarded.', stat_deltas: { skills: { lockpicking: 3 } }, hours_passed: 2 },
-      { id: 'talk_beekeeper', label: 'Talk to the beekeeper', intent: 'social', outcome: '"Please — I just work here. Don\\'t hurt me. I have a family..."', stat_deltas: { relationship: -2, willpower: 3 }, hours_passed: 1 },
+      { id: 'talk_beekeeper', label: 'Talk to the beekeeper', intent: 'social', outcome: '"Please - I just work here. Don\\'t hurt me. I have a family..."', stat_deltas: { relationship: -2, willpower: 3 }, hours_passed: 1 },
       { id: 'escape', label: 'Escape with loot', intent: 'stealth', outcome: 'You run through the woods, guards shouting behind. The gold is heavy but worth it.', stat_deltas: { health: -10, corruption: 5 }, hours_passed: 2 },
       { id: 'return_stolen', label: 'Return stolen goods', intent: 'willpower', outcome: 'You climb the wall and return everything. The guards are confused.', stat_deltas: { willpower: 15, corruption: -10 }, hours_passed: 3 }
     ]
+  },
+
+  // FALKREATH HOLD
+  falkreath_city: {
+    id: 'falkreath_city',
+    name: 'Falkreath',
+    type: 'city',
+    region: 'falkreath_hold',
+    description: "The small logging town of Falkreath sits in a valley surrounded by dense forests. The Jarl rules from a modest longhouse, and the local inn serves as the heart of community life. Lumber is the primary trade.",
+    atmosphere: 'Woody, peaceful, humble, forest',
+    actions: [
+      { id: 'visit_jarl', label: 'Visit the Jarl', intent: 'work', outcome: 'The Jarl welcomes visitors in his longhouse. "Welcome to Falkreath."', stat_deltas: { relationship: 2 }, hours_passed: 1 },
+      { id: 'lumber_trade', label: 'Trade lumber', intent: 'work', outcome: "The town's wealth comes from timber. You can buy or sell wood.", stat_deltas: { gold: 40 }, hours_passed: 2 },
+      { id: 'inn_rest', label: 'Rest at the inn', intent: 'neutral', outcome: 'The inn is warm and welcoming after days in the forest.', stat_deltas: { health: 15, exhaustion: -25, gold: -10 }, hours_passed: 8 },
+      { id: 'forest_hunt', label: 'Hunt in the forest', intent: 'work', outcome: 'Deer and elk are plentiful in the surrounding woods.', stat_deltas: { health: -10, gold: 30, skills: { marksman: 3 } }, hours_passed: 4 },
+      { id: 'ask_deaths', label: 'Ask about Deaths', intent: 'social', outcome: '"The cemetery is ancient. Many have found their rest here."', stat_deltas: { skills: { history: 2 } }, hours_passed: 1 },
+      { id: 'lumberjack_work', label: 'Work as lumberjack', intent: 'work', outcome: 'The forests need clearing. Hard work but honest pay.', stat_deltas: { health: -15, gold: 35, strength: 3 }, hours_passed: 6 },
+      { id: 'dark_wood', label: 'Explore the Dark Wood', intent: 'stealth', outcome: 'The deep forest holds secrets and shadows.', stat_deltas: { corruption: 5 }, hours_passed: 2 },
+      { id: 'graveyard_secret', label: 'Investigate the cemetery', intent: 'stealth', outcome: 'Old graves hold old secrets... and older restless spirits.', stat_deltas: { corruption: 5, skills: { magic: 2 } }, hours_passed: 2 }
+    ]
+  },
+  haemars_shame: {
+    id: 'haemars_shame',
+    name: "Haemar's Shame",
+    type: 'dungeon',
+    region: 'falkreath_hold',
+    description: "A cavern complex hidden in the mountains, Haemar's Shame is where a vampire clan has made their lair. The cave is filled with the remnants of victims and the heavy scent of death.",
+    atmosphere: 'Dark, bloody, ancient, horrifying',
+    actions: [
+      { id: 'vampire_fight', label: 'Fight the vampires', intent: 'combat', outcome: 'The bloodsuckers attack! You battle through the cavern.', stat_deltas: { health: -25, skills: { combat: 8, one_handed: 3 }, corruption: 3 }, hours_passed: 3 },
+      { id: 'explore_cavern', label: 'Explore the cavern', intent: 'work', outcome: 'Skeletons and remnants of victims line the walls.', stat_deltas: { gold: 60, corruption: 5 }, hours_passed: 2 },
+      { id: 'find_clan_leader', label: 'Find the clan leader', intent: 'combat', outcome: 'The master vampire awaits in the deepest chamber.', stat_deltas: { health: -30, skills: { combat: 10 } }, hours_passed: 2 },
+      { id: 'negotiate_vampire', label: 'Negotiate with vampires', intent: 'social', outcome: '"You dare speak to us? Perhaps we can make a deal..."', stat_deltas: { corruption: 10, relationship: 5 }, hours_passed: 1 },
+      { id: 'blood_potion', label: 'Take a blood potion', intent: 'stealth', outcome: 'The vampires offer their dark brews. Power awaits.', stat_deltas: { corruption: 15, skills: { magic: 5 } }, hours_passed: 1 },
+      { id: 'sanctuary_request', label: 'Ask for sanctuary', intent: 'willpower', outcome: 'You could join them... but at what cost?', stat_deltas: { corruption: 20 }, hours_passed: 1 },
+      { id: 'escape_attempt', label: 'Attempt escape', intent: 'stealth', outcome: 'You fight your way out, the vampires close behind.', stat_deltas: { health: -15, skills: { stealth: 5 } }, hours_passed: 2 },
+      { id: 'holy_water', label: 'Bring holy water', intent: 'work', outcome: 'The water burns them! They recoil from your attack.', stat_deltas: { health: -10, skills: { combat: 5 }, gold: -20 }, hours_passed: 2 }
+    ]
+  },
+  lakeview: {
+    id: 'lakeview',
+    name: 'Lakeview Manor',
+    type: 'player_house',
+    region: 'falkreath_hold',
+    description: "A piece of land by the lake perfect for building a home. The peaceful setting offers fishing, hunting, and a quiet life away from the troubles of Skyrim.",
+    atmosphere: 'Peaceful, scenic, private, homey',
+    actions: [
+      { id: 'build_house', label: 'Build a house', intent: 'work', outcome: 'You begin construction on your new home.', stat_deltas: { gold: -500, strength: 5 }, hours_passed: 8 },
+      { id: 'fish_lake', label: 'Fish in the lake', intent: 'work', outcome: 'The waters are rich with salmon and trout.', stat_deltas: { health: 5, gold: 25, skills: { survival: 2 } }, hours_passed: 3 },
+      { id: 'hunt_deer', label: 'Hunt deer', intent: 'work', outcome: 'The forests around the manor are full of game.', stat_deltas: { health: -5, gold: 35, skills: { marksman: 3 } }, hours_passed: 4 },
+      { id: 'garden_plot', label: 'Tend the garden', intent: 'work', outcome: 'You grow vegetables and herbs for sustenance.', stat_deltas: { health: 10, gold: 15, skills: { survival: 2 } }, hours_passed: 3 },
+      { id: 'peaceful_meditation', label: 'Meditate peacefully', intent: 'willpower', outcome: 'The quiet helps you find inner peace.', stat_deltas: { willpower: 10, exhaustion: -15 }, hours_passed: 2 },
+      { id: 'defend_home', label: 'Defend the property', intent: 'combat', outcome: 'Bandits sometimes attack! You drive them off.', stat_deltas: { health: -15, skills: { combat: 5 }, relationship: 3 }, hours_passed: 2 },
+      { id: 'invite_guests', label: 'Invite guests', intent: 'social', outcome: 'You host friends at your home. A true gathering.', stat_deltas: { relationship: 10, gold: -30 }, hours_passed: 4 },
+      { id: 'watch_sunset', label: 'Watch the sunset', intent: 'willpower', outcome: 'The view over the lake is breathtaking. You feel alive.', stat_deltas: { willpower: 5, stress: -10 }, hours_passed: 1 }
+    ]
+  },
+
+  // THE REACH
+  trolhetta: {
+    id: 'trolhetta',
+    name: 'Trolhetta',
+    type: 'dungeon',
+    region: 'the_reach',
+    description: "The ancient Nordic crypt of Trolhetta holds the remains of King Olaf and his warriors. The burial ground is guarded by ghosts and frost atronachs, and the deep tombs hold terrible secrets.",
+    atmosphere: 'Ancient, cold, royal, haunted',
+    actions: [
+      { id: 'explore_tomb', label: 'Explore the tomb', intent: 'work', outcome: 'The ancient burial chamber is frozen in time.', stat_deltas: { skills: { history: 4 }, gold: 50 }, hours_passed: 3 },
+      { id: 'fight_ghost', label: 'Fight the ghosts', intent: 'combat', outcome: "Olaf's spirit guards his rest. You battle the undead.", stat_deltas: { health: -20, skills: { combat: 6, one_handed: 3 } }, hours_passed: 2 },
+      { id: 'read_stone', label: 'Read the stone tablets', intent: 'work', outcome: "The dragon language tells of Olaf's rule.", stat_deltas: { skills: { history: 5 } }, hours_passed: 2 },
+      { id: 'frost_trap', label: 'Disarm frost traps', intent: 'work', outcome: 'The ancient wards still function. Careful navigation required.', stat_deltas: { skills: { lockpicking: 4 } }, hours_passed: 2 },
+      { id: 'king_olf_deal', label: 'Make deal with Olaf', intent: 'willpower', outcome: 'The ghost will share knowledge for proper respect.', stat_deltas: { skills: { magic: 5, history: 3 }, corruption: 3 }, hours_passed: 1 },
+      { id: 'deep_tomb', label: 'Find the deep tomb', intent: 'stealth', outcome: 'Deeper down, even darker secrets wait.', stat_deltas: { corruption: 8, skills: { lockpicking: 3 } }, hours_passed: 3 },
+      { id: 'ancient_sword', label: 'Find the ancient sword', intent: 'work', outcome: "Olaf's blade still hangs above his grave. Powerful.", stat_deltas: { gold: 150 }, hours_passed: 2 },
+      { id: 'escape_tomb', label: 'Escape the collapsing tomb', intent: 'stealth', outcome: 'The tomb begins to crumble! You race for the exit.', stat_deltas: { health: -15, skills: { athletics: 5 } }, hours_passed: 2 }
+    ]
+  },
+  shroud_hearth_barrow: {
+    id: 'shroud_hearth_barrow',
+    name: 'Shroud Hearth Barrow',
+    type: 'dungeon',
+    region: 'falkreath_hold',
+    description: "An ancient Nordic burial mound near Falkreath, Shroud Hearth Barrow is home to a powerful draugr and the resting place of an ancient king. The whispers of the dead fill the darkness.",
+    atmosphere: 'Ancient, spiritual, dangerous, mysterious',
+    actions: [
+      { id: 'explore_barrow', label: 'Explore the barrow', intent: 'work', outcome: 'The ancient tomb is filled with puzzles and dangers.', stat_deltas: { skills: { lockpicking: 4 }, gold: 40 }, hours_passed: 3 },
+      { id: 'draugr_battle', label: 'Battle the draugr', intent: 'combat', outcome: 'The dead rise to guard their king! You fight through.', stat_deltas: { health: -20, skills: { combat: 6, one_handed: 3 } }, hours_passed: 2 },
+      { id: 'king_discovered', label: 'Discover the king', intent: 'work', outcome: 'An ancient ruler waits in slumber. Do you wake him?', stat_deltas: { skills: { history: 4 } }, hours_passed: 2 },
+      { id: 'solve_puzzle', label: 'Solve the puzzle', intent: 'work', outcome: 'Ancient locks protect the deepest chambers.', stat_deltas: { skills: { lockpicking: 6 } }, hours_passed: 2 },
+      { id: 'speak_dead', label: 'Speak with the dead', intent: 'willpower', outcome: 'The spirits have messages for the living.', stat_deltas: { skills: { magic: 4 }, corruption: 3 }, hours_passed: 1 },
+      { id: 'take_treasure', label: 'Take the treasure', intent: 'stealth', outcome: 'Gold and artifacts line the burial chamber.', stat_deltas: { gold: 100, corruption: 5 }, hours_passed: 2 },
+      { id: 'escape_draugr', label: 'Escape the awakened', intent: 'stealth', outcome: 'The entire barrow wakes! You run for the exit.', stat_deltas: { health: -15, skills: { stealth: 5 } }, hours_passed: 2 },
+      { id: 'satisfy_spirit', label: 'Satisfy the spirit', intent: 'willpower', outcome: 'You give proper respect. The king accepts your tribute.', stat_deltas: { willpower: 10, relationship: 5 }, hours_passed: 1 }
+    ]
+  },
+  soul_cairn_entrance: {
+    id: 'soul_cairn_entrance',
+    name: 'Soul Cairn Entrance',
+    type: 'portal',
+    region: 'soul_cairn',
+    description: "A mysterious portal to the Soul Cairn, the realm of the Ideal Masters. The air around the entrance crackles with necromantic energy, and those who enter may not return unchanged.",
+    atmosphere: 'Otherworldly, necromantic, unsettling, powerful',
+    actions: [
+      { id: 'enter_cairn', label: 'Enter the Soul Cairn', intent: 'work', outcome: 'You step through the portal into the void between worlds.', stat_deltas: { corruption: 10, skills: { magic: 5 } }, hours_passed: 2 },
+      { id: 'summon_master', label: 'Summon an Ideal Master', intent: 'work', outcome: 'The ancient beings answer your call... for a price.', stat_deltas: { corruption: 15, skills: { magic: 8 } }, hours_passed: 2 },
+      { id: 'soul_gem_hunt', label: 'Hunt for soul gems', intent: 'work', outcome: 'The Cairn is filled with trapped souls.', stat_deltas: { gold: 80, skills: { alchemy: 3 }, corruption: 5 }, hours_passed: 3 },
+      { id: 'negotiate_giants', label: 'Negotiate with the giants', intent: 'social', outcome: 'The Soul Cairn giants guard the perimeter. They listen...', stat_deltas: { relationship: 5, corruption: 5 }, hours_passed: 1 },
+      { id: 'dark_bargain', label: 'Make a dark bargain', intent: 'stealth', outcome: 'Power awaits those willing to trade their soul.', stat_deltas: { corruption: 25, skills: { magic: 10 } }, hours_passed: 2 },
+      { id: 'escape_cairn', label: 'Escape the Cairn', intent: 'stealth', outcome: 'Finding the exit is difficult. The void shifts around you.', stat_deltas: { health: -20, skills: { magic: 4 } }, hours_passed: 3 },
+      { id: 'perfect_soul', label: 'Capture a perfect soul', intent: 'work', outcome: 'You find a soul gem filled with pure essence.', stat_deltas: { gold: 200, corruption: 8 }, hours_passed: 2 },
+      { id: 'resist_temptation', label: 'Resist temptation', intent: 'willpower', outcome: 'The Cairn offers power. You refuse its whispers.', stat_deltas: { willpower: 15, corruption: -10 }, hours_passed: 1 }
+    ]
+  },
+  forelhost: {
+    id: 'forelhost',
+    name: 'Forelhost',
+    type: 'dungeon',
+    region: 'the_reach',
+    description: "The ancient fortress of the Reachmen holds dark secrets. The last survivors of a defeated clan committed mass suicide here rather than surrender. Their spirits still guard the walls.",
+    atmosphere: 'Haunted, tragic, fortified, dark',
+    actions: [
+      { id: 'explore_fortress', label: 'Explore the fortress', intent: 'work', outcome: 'The old walls still stand, though the defenders are long dead.', stat_deltas: { skills: { history: 3 }, gold: 40 }, hours_passed: 2 },
+      { id: 'fight_spectral', label: 'Fight spectral defenders', intent: 'combat', outcome: 'The ghosts of the Reachmen attack! They defend their home.', stat_deltas: { health: -20, skills: { combat: 6 } }, hours_passed: 2 },
+      { id: 'read_kingdom', label: 'Read kingdom records', intent: 'work', outcome: "The scroll speaks of the last king's desperate choice.", stat_deltas: { skills: { history: 5 } }, hours_passed: 2 },
+      { id: 'find_refuge', label: 'Find the secret refuge', intent: 'stealth', outcome: 'A hidden area holds the clan\'s remaining treasure.', stat_deltas: { gold: 80, skills: { lockpicking: 3 } }, hours_passed: 2 },
+      { id: 'respect_dead', label: 'Show respect to the dead', intent: 'willpower', outcome: 'You honor their memory. The ghosts calm.', stat_deltas: { willpower: 8, relationship: 3 }, hours_passed: 1 },
+      { id: 'death_altar', label: 'Investigate the death altar', intent: 'stealth', outcome: 'They chose death over surrender. Their resolve is still here.', stat_deltas: { corruption: 8, skills: { magic: 4 } }, hours_passed: 2 },
+      { id: 'reachmen_peace', label: 'Seek peace with Reachmen', intent: 'social', outcome: 'The spirits may be reasoned with, after a fashion.', stat_deltas: { relationship: 5, corruption: 3 }, hours_passed: 1 },
+      { id: 'escape_curse', label: 'Escape the curse', intent: 'willpower', outcome: 'The fortress tries to claim you. You break free.', stat_deltas: { willpower: 10, health: -10 }, hours_passed: 2 }
+    ]
+  },
+
+  // WHITERUN HOLD / NORDIC WILDERNESS
+  yngvild: {
+    id: 'yngvild',
+    name: 'Yngvild',
+    type: 'dungeon',
+    region: 'whiterun_hold',
+    description: "An ancient Nord burial ship that crashed in the mountains. The frozen warrior within still guards her treasures, and the ice has preserved her for ages. A unique frozen grave.",
+    atmosphere: 'Frozen, ancient, royal, isolated',
+    actions: [
+      { id: 'explore_ship', label: 'Explore the ship', intent: 'work', outcome: 'The dragon claw unlocks the ancient vessel.', stat_deltas: { skills: { lockpicking: 4 }, gold: 50 }, hours_passed: 2 },
+      { id: 'fight_ice', label: 'Fight the frozen warrior', intent: 'combat', outcome: 'Yngvild wakes! She fights with frozen fury.', stat_deltas: { health: -25, skills: { combat: 8, one_handed: 4 } }, hours_passed: 2 },
+      { id: 'ice_crypt', label: 'Explore the ice crypt', intent: 'work', outcome: 'The cold preserves all within. It is eerie and beautiful.', stat_deltas: { skills: { history: 4 } }, hours_passed: 2 },
+      { id: 'take_crown', label: 'Take the crown', intent: 'stealth', outcome: "The queen's crown lies waiting. Worth a fortune.", stat_deltas: { gold: 150 }, hours_passed: 1 },
+      { id: 'speak_ice', label: 'Speak with the ice spirit', intent: 'willpower', outcome: 'Yngvild speaks of her ancient queen. The words are cold.', stat_deltas: { skills: { magic: 3 } }, hours_passed: 1 },
+      { id: 'ice_throne', label: 'Sit on the ice throne', intent: 'willpower', outcome: 'The cold does not bite. It welcomes you.', stat_deltas: { willpower: 8, corruption: 3 }, hours_passed: 1 },
+      { id: 'frozen_treasure', label: 'Find frozen treasure', intent: 'work', outcome: 'Weapons and gold lie in the ice, preserved.', stat_deltas: { gold: 100 }, hours_passed: 2 },
+      { id: 'escape_cold', label: 'Escape the cold', intent: 'stealth', outcome: 'The mountain is treacherous. You navigate carefully.', stat_deltas: { health: -10, skills: { survival: 4 } }, hours_passed: 3 }
+    ]
+  },
+  labyrinthian: {
+    id: 'labyrinthian',
+    name: 'Labyrinthian',
+    type: 'dungeon',
+    region: 'hjaalmarch',
+    description: "The ancient ruined city was once the seat of the Arch-Mage of Skyrim. Now it holds frost trolls, draugr, and the powerful staff of Magnus. The magic here is still strong.",
+    atmosphere: 'Arcane, ruined, dangerous, powerful',
+    actions: [
+      { id: 'explore_ruins', label: 'Explore the ruins', intent: 'work', outcome: 'The ancient college is a maze of collapsed halls.', stat_deltas: { skills: { magic: 4, history: 3 }, gold: 50 }, hours_passed: 3 },
+      { id: 'frost_troll', label: 'Fight the frost troll', intent: 'combat', outcome: 'A massive troll guards the inner chambers!', stat_deltas: { health: -30, skills: { combat: 10, two_handed: 4 } }, hours_passed: 2 },
+      { id: 'staff_magnus', label: 'Find the Staff of Magnus', intent: 'work', outcome: 'The legendary staff is here. Its power is immense.', stat_deltas: { skills: { magic: 10 }, gold: 200 }, hours_passed: 2 },
+      { id: 'maze_wrong', label: 'Navigate the maze', intent: 'work', outcome: 'The ruins are disorienting. You find your way.', stat_deltas: { skills: { survival: 4 } }, hours_passed: 3 },
+      { id: 'ghost_archmage', label: 'Meet the ghost Arch-Mage', intent: 'willpower', outcome: 'The spectral mage has much to teach.', stat_deltas: { skills: { magic: 8 }, corruption: 5 }, hours_passed: 2 },
+      { id: 'forbidden_library', label: 'Visit the forbidden library', intent: 'stealth', outcome: 'Books of forbidden magic line the shelves.', stat_deltas: { corruption: 10, skills: { magic: 6 } }, hours_passed: 2 },
+      { id: 'dragon_claw_puzzle', label: 'Solve the dragon claw puzzle', intent: 'work', outcome: 'The ancient puzzle protects the deepest secrets.', stat_deltas: { skills: { lockpicking: 6 } }, hours_passed: 2 },
+      { id: 'escape_labyrinth', label: 'Escape the labyrinth', intent: 'stealth', outcome: 'The ruins try to trap you. You find the exit.', stat_deltas: { health: -15, skills: { stealth: 5 } }, hours_passed: 3 }
+    ]
+  },
+
+  // HJAALMARCH & SOLITUDE AREA
+  katla_farm: {
+    id: 'katla_farm',
+    name: 'Katla Farm',
+    type: 'village',
+    region: 'hjaalmarch',
+    description: "A large farm near Solitude, Katla Farm grows grain and raises horses. The farmers are tough, and the area has seen battles during the civil war. The nearby standing stones add mystery.",
+    atmosphere: 'Rural, hard-working, strategic, ancient',
+    actions: [
+      { id: 'harvest_grain', label: 'Help harvest grain', intent: 'work', outcome: 'The harvest is hard work but rewarding.', stat_deltas: { health: -10, gold: 30, strength: 3 }, hours_passed: 6 },
+      { id: 'horse_trade', label: 'Trade horses', intent: 'work', outcome: 'The farm breeds fine horses for war and travel.', stat_deltas: { gold: -100 }, hours_passed: 1 },
+      { id: 'standing_stone', label: 'Visit the standing stones', intent: 'willpower', outcome: 'The ancient markers hold power over destiny.', stat_deltas: { willpower: 8, skills: { magic: 2 } }, hours_passed: 1 },
+      { id: 'farm_defense', label: 'Defend the farm', intent: 'combat', outcome: 'Stormcloaks or bandits may attack. You hold the line.', stat_deltas: { health: -15, skills: { combat: 5 }, relationship: 5 }, hours_passed: 2 },
+      { id: 'local_gossip', label: 'Hear local gossip', intent: 'social', outcome: '"The war touches everything. Even here."', stat_deltas: { relationship: 2 }, hours_passed: 1 },
+      { id: 'cook_meal', label: 'Help cook a meal', intent: 'neutral', outcome: 'Fresh bread and stew after a hard day.', stat_deltas: { health: 10, stress: -5 }, hours_passed: 2 },
+      { id: 'war_talk', label: 'Discuss the war', intent: 'social', outcome: 'The farmers have opinions on Stormcloaks and Imperials.', stat_deltas: { skills: { speech: 2 }, relationship: 2 }, hours_passed: 2 },
+      { id: 'secret_passage', label: 'Find the secret passage', intent: 'stealth', outcome: 'Old tunnels lead from the farm to hidden places.', stat_deltas: { corruption: 3, skills: { stealth: 3 } }, hours_passed: 2 }
+    ]
+  },
+  solitude_sawmill: {
+    id: 'solitude_sawmill',
+    name: 'Solitude Sawmill',
+    type: 'village',
+    region: 'haafingar',
+    description: "The sawmill provides lumber for the capital city. The workers are busy, the blades are loud, and the logs float down the river. The Blue Palace looms above.",
+    atmosphere: 'Industrial, loud, useful, supervised',
+    actions: [
+      { id: 'saw_logs', label: 'Work the sawmill', intent: 'work', outcome: 'The work is loud but pays well.', stat_deltas: { health: -15, gold: 40, strength: 4 }, hours_passed: 6 },
+      { id: 'timber_trade', label: 'Trade timber', intent: 'work', outcome: 'The lumber is sold directly to Solitude.', stat_deltas: { gold: 60 }, hours_passed: 2 },
+      { id: 'river_work', label: 'Work the river', intent: 'work', outcome: 'Floats logs downstream. Dangerous but essential.', stat_deltas: { health: -10, skills: { survival: 3 }, gold: 35 }, hours_passed: 4 },
+      { id: 'capital_view', label: 'View the capital', intent: 'willpower', outcome: 'Solitude is beautiful from here. The palace gleams.', stat_deltas: { willpower: 3 }, hours_passed: 1 },
+      { id: 'soldier_chat', label: 'Chat with soldiers', intent: 'social', outcome: 'Imperial soldiers pass through on their way to duty.', stat_deltas: { relationship: 3 }, hours_passed: 1 },
+      { id: 'log_camp', label: 'Rest at logging camp', intent: 'neutral', outcome: 'The camp is rough but the workers are friendly.', stat_deltas: { health: 10, exhaustion: -20, gold: -5 }, hours_passed: 8 },
+      { id: 'log_barge', label: 'Load the barge', intent: 'work', outcome: 'Heavy work loading timber onto barges for transport.', stat_deltas: { health: -10, strength: 3, gold: 25 }, hours_passed: 4 },
+      { id: 'imperial_delivery', label: 'Make imperial delivery', intent: 'work', outcome: 'The Legion needs lumber. You help with the order.', stat_deltas: { gold: 50, relationship: 5 }, hours_passed: 3 }
+    ]
+  },
+
+  // FALKREATH HOLD
+  falkreath_city: {
+    id: 'falkreath_city',
+    name: 'Falkreath',
+    type: 'city',
+    region: 'falkreath_hold',
+    description: 'The gateway to the west, Falkreath is a small but strategic city. The Jarl rules from Dead Man's Drink, and the forest surrounds the settlement on all sides. The dead are buried in the great cemetery.',
+    atmosphere: 'Forested, peaceful, haunted, strategic',
+    actions: [
+      { id: 'jarl_meeting', label: 'Meet the Jarl', intent: 'work', outcome: 'The Jarl of Falkreath has problems with bandits.', stat_deltas: { relationship: 3 }, hours_passed: 1 },
+      { id: 'dead_drink', label: 'Visit Dead Man\'s Drink', intent: 'social', outcome: 'The tavern serves the living and remembers the dead.', stat_deltas: { stress: -5, gold: -5 }, hours_passed: 1 },
+      { id: 'cemetery_walk', label: 'Walk the cemetery', intent: 'willpower', outcome: 'The old stones remember many Nordic warriors.', stat_deltas: { willpower: 3, skills: { history: 2 } }, hours_passed: 2 },
+      { id: 'forest_hunt', label: 'Hunt in the forest', intent: 'work', outcome: 'The woods are full of game and danger.', stat_deltas: { skills: { marksman: 4 }, gold: 30, health: -5 }, hours_passed: 4 },
+      { id: 'lumber_mill', label: 'Work at the lumber mill', intent: 'work', outcome: 'The mill provides timber for the region.', stat_deltas: { health: -10, gold: 30, strength: 2 }, hours_passed: 4 },
+      { id: 'bandit_problem', label: 'Address bandit problem', intent: 'combat', outcome: 'Bandits plague the roads. You help clear them.', stat_deltas: { skills: { combat: 5 }, relationship: 5 }, hours_passed: 3 },
+      { id: 'local_story', label: 'Hear local stories', intent: 'social', outcome: 'The old-timers know tales of the forest.', stat_deltas: { skills: { history: 2 } }, hours_passed: 1 },
+      { id: 'jail_visit', label: 'Visit the jail', intent: 'social', outcome: 'The small prison holds local troublemakers.', stat_deltas: { relationship: 1 }, hours_passed: 1 }
+    ]
+  },
+  haemar_shame: {
+    id: 'haemar_shame',
+    name: 'Haemar\'s Shame',
+    type: 'dungeon',
+    region: 'falkreath_hold',
+    description: 'A hidden cave behind a waterfall, home to a vampire clan. The cave is dark, damp, and filled with the smell of old blood. The vampires have lived here for centuries.',
+    atmosphere: 'Dark, bloody, ancient, dangerous',
+    actions: [
+      { id: 'vampire_cave', label: 'Enter the cave', intent: 'stealth', outcome: 'The darkness hides many dangers.', stat_deltas: { corruption: 3, skills: { stealth: 2 } }, hours_passed: 1 },
+      { id: 'vampire_encounter', label: 'Meet the vampires', intent: 'combat', outcome: 'The bloodsuckers do not take kindly to intruders!', stat_deltas: { health: -20, skills: { combat: 5 }, corruption: 8 }, hours_passed: 2 },
+      { id: 'blood_offering', label: 'Offer blood', intent: 'willpower', outcome: 'The vampires offer power in exchange for blood.', stat_deltas: { health: -15, corruption: 10, skills: { magic: 3 } }, hours_passed: 1 },
+      { id: 'hidden_treasure', label: 'Find hidden treasure', intent: 'work', outcome: 'Ancient treasures lie in the deep caves.', stat_deltas: { gold: 80, corruption: 5 }, hours_passed: 3 },
+      { id: 'vampire_lore', label: 'Learn vampire lore', intent: 'work', outcome: 'The clan has knowledge of the old blood.', stat_deltas: { skills: { history: 3 }, corruption: 5 }, hours_passed: 2 },
+      { id: 'waterfall_meditate', label: 'Meditate at waterfall', intent: 'willpower', outcome: 'The sound of water clears the mind.', stat_deltas: { willpower: 5, exhaustion: -10 }, hours_passed: 2 },
+      { id: 'escape_pursuit', label: 'Escape vampire pursuit', intent: 'stealth', outcome: 'You flee as the clan awakens to chase you.', stat_deltas: { health: -10, skills: { stealth: 6 } }, hours_passed: 2 },
+      { id: 'join_clan', label: 'Request to join', intent: 'willpower', outcome: 'The vampires consider your offer...', stat_deltas: { corruption: 15, relationship: 10 }, hours_passed: 1 }
+    ]
+  },
+  lakeview_manor: {
+    id: 'lakeview_manor',
+    name: 'Lakeview Manor',
+    type: 'player_home',
+    region: 'falkreath_hold',
+    description: 'A plot of land near Lake Ilinalta, available for purchase and development. The foundation is laid, and a home can be built. The view of the lake is spectacular.',
+    atmosphere: 'Peaceful, developable, scenic, yours',
+    actions: [
+      { id: 'build_house', label: 'Begin construction', intent: 'work', outcome: 'You lay the foundation of your home.', stat_deltas: { gold: -200, relationship: 5 }, hours_passed: 8 },
+      { id: 'farm_land', label: 'Start a farm', intent: 'work', outcome: 'The land is fertile. Crops grow well.', stat_deltas: { gold: 30, skills: { survival: 2 } }, hours_passed: 4 },
+      { id: 'lake_view', label: 'Enjoy the view', intent: 'willpower', outcome: 'The lake reflects the mountains beautifully.', stat_deltas: { willpower: 5, stress: -10 }, hours_passed: 1 },
+      { id: 'fishing', label: 'Fish the lake', intent: 'work', outcome: 'The lake is full of fish.', stat_deltas: { gold: 20, skills: { survival: 2 } }, hours_passed: 2 },
+      { id: 'defense_work', label: 'Build defenses', intent: 'work', outcome: 'Walls and towers keep bandits away.', stat_deltas: { gold: -100, skills: { crafting: 3 } }, hours_passed: 6 },
+      { id: 'garden_plant', label: 'Plant a garden', intent: 'work', outcome: 'Herbs and vegetables grow in the plot.', stat_deltas: { skills: { alchemy: 2 }, gold: 15 }, hours_passed: 3 },
+      { id: 'stables_build', label: 'Build stables', intent: 'work', outcome: 'A place for horses and other mounts.', stat_deltas: { gold: -80, relationship: 3 }, hours_passed: 4 },
+      { id: 'home_safe', label: 'Feel at home', intent: 'willpower', outcome: 'This is yours. A true place to belong.', stat_deltas: { willpower: 15 }, hours_passed: 1 }
+    ]
+  },
+
+  // THE RIFT ADDITIONS
+  trolhetta: {
+    id: 'trolhetta',
+    name: 'Riften Ratway',
+    type: 'dungeon',
+    region: 'the_rift',
+    description: 'The tunnels beneath Riften are a maze of passages and danger. The ratway connects to the Ragged Flagon and serves as a hiding place for the desperate and criminal.',
+    atmosphere: 'Dark, cramped, dangerous, connecting',
+    actions: [
+      { id: 'navigate_tunnels', label: 'Navigate the tunnels', intent: 'stealth', outcome: 'The passages twist and turn. Getting lost is easy.', stat_deltas: { skills: { stealth: 4 } }, hours_passed: 2 },
+      { id: 'rat_fight', label: 'Fight the rats', intent: 'combat', outcome: 'The tunnels are full of aggressive vermin.', stat_deltas: { health: -10, skills: { combat: 3 } }, hours_passed: 1 },
+      { id: 'hidden_passage', label: 'Find hidden passages', intent: 'stealth', outcome: 'Secret ways connect to hidden places.', stat_deltas: { corruption: 3, skills: { lockpicking: 2 } }, hours_passed: 2 },
+      { id: 'thieves_meet', label: 'Meet thieves', intent: 'social', outcome: 'The underground has its own society.', stat_deltas: { corruption: 5, relationship: 3 }, hours_passed: 1 },
+      { id: 'ancient_cache', label: 'Find ancient cache', intent: 'work', outcome: 'Old smugglers left goods in the deep tunnels.', stat_deltas: { gold: 50, corruption: 3 }, hours_passed: 3 },
+      { id: 'escape_pursuer', label: 'Escape a pursuer', intent: 'stealth', outcome: 'Someone is hunting you in the dark.', stat_deltas: { skills: { stealth: 5 }, health: -5 }, hours_passed: 1 },
+      { id: 'ratway_trade', label: 'Trade in darkness', intent: 'work', outcome: 'Illegal goods change hands in the dark.', stat_deltas: { gold: 60, corruption: 8 }, hours_passed: 2 },
+      { id: 'secret_exit', label: 'Find secret exit', intent: 'stealth', outcome: 'An exit leads to unexpected places.', stat_deltas: { skills: { stealth: 3 } }, hours_passed: 1 }
+    ]
+  },
+  shroud_hearth_barrow: {
+    id: 'shroud_hearth_barrow',
+    name: 'Shroud Hearth Barrow',
+    type: 'dungeon',
+    region: 'the_rift',
+    description: 'An ancient Nordic barrow where the dead are said to rise. The locals avoid it, but treasure hunters and adventurers cannot resist its call. Something stirs in the darkness.',
+    atmosphere: 'Ancient, undead, treasure-filled, dangerous',
+    actions: [
+      { id: 'enter_barrow', label: 'Enter the barrow', intent: 'work', outcome: 'The ancient door creaks open...', stat_deltas: { corruption: 2 }, hours_passed: 1 },
+      { id: 'skeleton_fight', label: 'Fight skeletons', intent: 'combat', outcome: 'The ancient dead do not rest easily.', stat_deltas: { health: -15, skills: { combat: 4 } }, hours_passed: 2 },
+      { id: 'ancient_treasure', label: 'Find ancient treasure', intent: 'work', outcome: 'Weapons and gold from the Dragon War.', stat_deltas: { gold: 80, corruption: 3 }, hours_passed: 3 },
+      { id: 'word_of_power', label: 'Find Word of Power', intent: 'work', outcome: 'A dragon shout is etched on the walls.', stat_deltas: { skills: { shouts: 5 }, corruption: 2 }, hours_passed: 2 },
+      { id: 'corpse_examine', label: 'Examine the dead', intent: 'work', outcome: 'The dead have stories to tell.', stat_deltas: { skills: { history: 3 } }, hours_passed: 1 },
+      { id: 'draugr_escape', label: 'Escape a Draugr', intent: 'combat', outcome: 'The ancient guardian is formidable!', stat_deltas: { health: -20, skills: { combat: 6 } }, hours_passed: 2 },
+      { id: 'crypt_explore', label: 'Explore the crypt', intent: 'work', outcome: 'Deeper areas hold greater dangers.', stat_deltas: { corruption: 5, gold: 40 }, hours_passed: 3 },
+      { id: 'death_peace', label: 'Find death\'s peace', intent: 'willpower', outcome: 'The barrow has a strange calm about it.', stat_deltas: { willpower: 5 }, hours_passed: 1 }
+    ]
+  },
+
+  // THE PALE ADDITIONS
+  soul_cairn_entrance: {
+    id: 'soul_cairn_entrance',
+    name: 'Soul Cairn Portal',
+    type: 'dungeon',
+    region: 'the_pale',
+    description: 'A portal to the Soul Cairn, a plane of existence where the souls of the dead are trapped. The portal is guarded by ancient magic and those who seek the power of death itself.',
+    atmosphere: 'Ethereal, deathly, magical, forbidden',
+    actions: [
+      { id: 'enter_portal', label: 'Enter the portal', intent: 'work', outcome: 'You step into the realm of death.', stat_deltas: { corruption: 10, skills: { magic: 3 } }, hours_passed: 1 },
+      { id: 'soul_hunt', label: 'Hunt for souls', intent: 'work', outcome: 'The trapped souls can be harvested.', stat_deltas: { corruption: 15, skills: { conjuration: 5 }, gold: 50 }, hours_passed: 4 },
+      { id: 'bone_collector', label: 'Collect bones', intent: 'work', outcome: 'The dead leave their remains behind.', stat_deltas: { gold: 40, corruption: 5 }, hours_passed: 2 },
+      { id: 'spirit_talk', label: 'Talk to a spirit', intent: 'social', outcome: 'The souls remember their lives...', stat_deltas: { skills: { history: 3 }, corruption: 3 }, hours_passed: 2 },
+      { id: 'dremora_bargain', label: 'Make a Dremora bargain', intent: 'stealth', outcome: 'The Daedra offer power for souls.', stat_deltas: { corruption: 20, skills: { magic: 8 } }, hours_passed: 2 },
+      { id: 'guardian_battle', label: 'Battle the guardian', intent: 'combat', outcome: 'A powerful entity guards this place.', stat_deltas: { health: -25, skills: { combat: 8 } }, hours_passed: 3 },
+      { id: 'escape_cairn', label: 'Escape the Cairn', intent: 'stealth', outcome: 'Getting out is harder than getting in.', stat_deltas: { skills: { stealth: 6 }, corruption: -5 }, hours_passed: 2 },
+      { id: 'become_lord', label: 'Become a Soul Lord', intent: 'willpower', outcome: 'Power over death itself is possible...', stat_deltas: { corruption: 25, willpower: 10 }, hours_passed: 1 }
+    ]
+  },
+  forelhost: {
+    id: 'forelhost',
+    name: 'Forelhost',
+    type: 'dungeon',
+    region: 'the_pale',
+    description: 'A forgotten fort where the last Stormcloak soldiers made their last stand. The dead still guard the walls, and the treasure of King Logrolf awaits those brave enough to claim it.',
+    atmosphere: 'Historic, tragic, defended, rewarding',
+    actions: [
+      { id: 'explore_fort', label: 'Explore the fort', intent: 'work', outcome: 'The old walls still stand strong.', stat_deltas: { skills: { history: 2 } }, hours_passed: 2 },
+      { id: 'stormcloak_dead', label: 'Face the dead', intent: 'combat', outcome: 'The ghostly soldiers fight still!', stat_deltas: { health: -15, skills: { combat: 5 } }, hours_passed: 2 },
+      { id: 'king_tomb', label: 'Find the King\'s tomb', intent: 'work', outcome: 'The legendary treasure is here.', stat_deltas: { gold: 100, corruption: 5 }, hours_passed: 3 },
+      { id: 'sword_claim', label: 'Claim the sword', intent: 'work', outcome: 'A blade of ancient make awaits.', stat_deltas: { gold: 80, corruption: 3 }, hours_passed: 1 },
+      { id: 'read_inscription', label: 'Read the inscription', intent: 'work', outcome: 'The old words speak of loyalty unto death.', stat_deltas: { skills: { history: 4 } }, hours_passed: 1 },
+      { id: 'refuge_tragedy', label: 'Hear the tragedy', intent: 'social', outcome: 'The tale of the last stand moves you.', stat_deltas: { willpower: 5 }, hours_passed: 1 },
+      { id: 'crypt_key', label: 'Find the crypt key', intent: 'work', outcome: 'The key is hidden in the guard room.', stat_deltas: { skills: { lockpicking: 3 } }, hours_passed: 2 },
+      { id: 'swear_oath', label: 'Swear an oath', intent: 'willpower', outcome: 'You honor the fallen with your word.', stat_deltas: { willpower: 10, relationship: 5 }, hours_passed: 1 }
+    ]
+  },
+
+  // WINTERHOLD ADDITIONS
+  yngvild: {
+    id: 'yngvild',
+    name: 'Yngvild',
+    type: 'dungeon',
+    region: 'winterhold',
+    description: 'An ancient crypt of a Nordic queen, now overrun by ice wraiths. The queen\'s spirit still guards her treasure, and the cold preserves everything in eternal winter.',
+    atmosphere: 'Frozen, royal, haunted, dangerous',
+    actions: [
+      { id: 'enter_crypt', label: 'Enter the crypt', intent: 'work', outcome: 'The frozen door refuses most intruders.', stat_deltas: { corruption: 2 }, hours_passed: 1 },
+      { id: 'ice_wraith_fight', label: 'Fight ice wraiths', intent: 'combat', outcome: 'The spirits are deadly cold and sharp.', stat_deltas: { health: -20, skills: { destruction: 4 } }, hours_passed: 2 },
+      { id: 'queen_spirit', label: 'Meet the Queen', intent: 'social', outcome: 'The spirit still demands respect.', stat_deltas: { skills: { history: 3 }, corruption: 3 }, hours_passed: 1 },
+      { id: 'frozen_treasure', label: 'Find frozen treasure', intent: 'work', outcome: 'Gold and gems are preserved in ice.', stat_deltas: { gold: 70, corruption: 3 }, hours_passed: 3 },
+      { id: 'queen_offering', label: 'Make an offering', intent: 'willpower', outcome: 'The Queen accepts tribute...', stat_deltas: { corruption: 8, relationship: 5 }, hours_passed: 1 },
+      { id: 'ice_palace_explore', label: 'Explore ice palace', intent: 'work', outcome: 'The structure is made of pure ice.', stat_deltas: { skills: { survival: 3 }, corruption: 2 }, hours_passed: 3 },
+      { id: 'escape_wraith', label: 'Escape the wraith', intent: 'stealth', outcome: 'The Queen does not like thieves.', stat_deltas: { health: -10, skills: { stealth: 5 } }, hours_passed: 2 },
+      { id: 'become_thane', label: 'Become Thane', intent: 'willpower', outcome: 'The Queen grants you a noble title.', stat_deltas: { willpower: 15, relationship: 10 }, hours_passed: 1 }
+    ]
+  },
+  labyrinthian: {
+    id: 'labyrinthian',
+    name: 'Labyrinthian',
+    type: 'dungeon',
+    region: 'winterhold',
+    description: 'A vast maze of ancient ruins, once a city and university. Dragons once taught magic here. Now it is a labyrinth of traps, undead, and lost knowledge.',
+    atmosphere: 'Arcane, maze-like, dangerous, rewarding',
+    actions: [
+      { id: 'enter_maze', label: 'Enter the maze', intent: 'work', outcome: 'The entrance leads to confusion.', stat_deltas: { skills: { survival: 2 } }, hours_passed: 1 },
+      { id: 'solve_puzzle', label: 'Solve the puzzle', intent: 'work', outcome: 'Ancient mechanisms block the way.', stat_deltas: { skills: { lockpicking: 4 } }, hours_passed: 2 },
+      { id: 'dragon_priests', label: 'Face Dragon Priests', intent: 'combat', outcome: 'The undead mages are powerful!', stat_deltas: { health: -25, skills: { combat: 6 }, corruption: 5 }, hours_passed: 3 },
+      { id: 'lost_knowledge', label: 'Find lost knowledge', intent: 'work', outcome: 'Spells and secrets from the Dragon War.', stat_deltas: { skills: { magic: 8 }, corruption: 3 }, hours_passed: 4 },
+      { id: 'shout_learn', label: 'Learn a shout', intent: 'work', outcome: 'The walls teach the Way of the Voice.', stat_deltas: { skills: { shouts: 6 } }, hours_passed: 3 },
+      { id: 'maze_beast', label: 'Fight the beast', intent: 'combat', outcome: 'Something lurks in the center...', stat_deltas: { health: -30, skills: { combat: 10 } }, hours_passed: 3 },
+      { id: 'archmage_tomb', label: 'Find Arch-Mage tomb', intent: 'work', outcome: 'The greatest mages are buried here.', stat_deltas: { gold: 100, skills: { magic: 5 } }, hours_passed: 3 },
+      { id: 'maze_master', label: 'Master the maze', intent: 'willpower', outcome: 'You find your way through all the twists.', stat_deltas: { willpower: 15, skills: { survival: 5 } }, hours_passed: 4 }
+    ]
   }
+};
 };
