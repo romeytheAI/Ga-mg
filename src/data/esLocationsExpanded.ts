@@ -1628,6 +1628,61 @@ export const ES_LOCATIONS_EXPANDED: Record<string, any> = {
       { id: 'horse_trade', label: 'Trade for horses', intent: 'work', outcome: 'The estate breeds fine Cyrodiilic horses. Prices are high but quality is superb.', stat_deltas: { gold: -200 }, hours_passed: 2 },
       { id: 'family_secret', label: 'Learn family secret', intent: 'stealth', outcome: 'The family has a dark secret - ties to the Thalmor during the Great War.', stat_deltas: { corruption: 8, skills: { speech: 3 } }, hours_passed: 2 }
     ]
+  },
+
+  // HAMMERFELL REGION
+  sentinel: {
+    id: 'sentinel',
+    name: 'Sentinel',
+    type: 'city',
+    region: 'hammerfell',
+    description: "The capital of the Crowned Kingdom of Hammerfell stands as a jewel of the western deserts. Its white stone towers gleam in the sun, and the harbor bustles with ships from across the Abecean Sea. The Redguard monarchy rules from the castle, maintaining ancient traditions of honor and warfare.",
+    atmosphere: 'Regal, maritime, traditional, sun-scorched',
+    actions: [
+      { id: 'visit_palace', label: 'Visit the Royal Palace', intent: 'work', outcome: 'The King holds court in the great hall. Advisors whisper in ears, and merchants seek audience.', stat_deltas: { relationship: 5 }, hours_passed: 2 },
+      { id: 'harbor_walk', label: 'Walk the harbor', intent: 'social', outcome: 'Ships from Wayrest, Anvil, and even far Summerset unload their cargo. The salt air is thick with commerce.', stat_deltas: { gold: -10, relationship: 2 }, hours_passed: 2 },
+      { id: 'market_trade', label: 'Trade in the bazaar', intent: 'work', outcome: 'Merchants offer spices, silks, and exotic goods from across the sea.', stat_deltas: { gold: -60 }, hours_passed: 2 },
+      { id: 'guard_training', label: 'Join the city guard', intent: 'work', outcome: '"The King needs able swords. Patrol the walls and earn your keep."', stat_deltas: { gold: 35, skills: { combat: 4 }, relationship: 3 }, hours_passed: 4 },
+      { id: 'redguard_honor', label: 'Discuss Redguard honor', intent: 'social', outcome: '"Our ancestors drove the Ra Gada here. We do not forget the sword."', stat_deltas: { skills: { history: 3 }, relationship: 3 }, hours_passed: 1 },
+      { id: 'temple_district', label: 'Visit the Temple of Satakala', intent: 'willpower', outcome: 'The priests of the Many-Headed Talos offer blessings to warriors.', stat_deltas: { willpower: 6 }, hours_passed: 1 },
+      { id: 'desert_relations', label: 'Meet Crown and Forebear leaders', intent: 'social', outcome: 'The political tension between Crown traditionalists and Forebear reformers is palpable.', stat_deltas: { corruption: 3, skills: { speech: 2 } }, hours_passed: 2 },
+      { id: 'assassination_plot', label: 'Uncover assassination plot', intent: 'stealth', outcome: 'Whispers in the shadows reveal a plot against the King. Will you warn him or profit?', stat_deltas: { corruption: 10, gold: 50 }, hours_passed: 2 }
+    ]
+  },
+  sunforge: {
+    id: 'sunforge',
+    name: 'Sunforge',
+    type: 'guild',
+    region: 'hammerfell',
+    description: "High in the Ilaya Mountains, the fortress of the Order of the Sun serves as both monastery and military headquarters. The crusader knights train here, their blades blessed by the ancient order. The forge itself is said to be blessed by Stendarr, producing weapons of exceptional quality.",
+    atmosphere: 'Sacred, martial, disciplined, elevated',
+    actions: [
+      { id: 'join_order', label: 'Request to join the Order', intent: 'work', outcome: '"Prove your worth in combat and faith. The Sunforge accepts those who embody mercy and might."', stat_deltas: { relationship: 5, willpower: 3 }, hours_passed: 1 },
+      { id: 'blessed_forge', label: 'Use the blessed forge', intent: 'work', outcome: 'The holy flames of Sunforge make metal sing. Your weapons emerge stronger.', stat_deltas: { gold: -80, skills: { crafting: 5 } }, hours_passed: 3 },
+      { id: 'crusader_training', label: 'Train with the knights', intent: 'combat', outcome: 'The holy warriors drill with sword and shield. Their technique is precise and devastating.', stat_deltas: { skills: { combat: 6, blocking: 4 }, health: -15 }, hours_passed: 4 },
+      { id: 'temple_prayer', label: 'Pray at the shrine', intent: 'willpower', outcome: 'The light of Stendarr fills you with righteous purpose.', stat_deltas: { willpower: 10 }, hours_passed: 2 },
+      { id: 'holy_war', label: 'Discuss the holy war', intent: 'social', outcome: '"The Thalmor desecrated our lands. The order grows in strength, preparing for the next crusade."', stat_deltas: { corruption: 5, relationship: 3 }, hours_passed: 1 },
+      { id: 'sanctuary_defend', label: 'Defend the sanctuary', intent: 'combat', outcome: 'Raiders attack the holy site! You help repel the invaders.', stat_deltas: { health: -20, skills: { combat: 8 }, relationship: 10 }, hours_passed: 3 },
+      { id: 'forbidden_tome', label: 'Search for forbidden knowledge', intent: 'stealth', outcome: 'Ancient texts in the archives hold secrets the order keeps hidden.', stat_deltas: { corruption: 8, skills: { magic: 4 } }, hours_passed: 2 },
+      { id: 'pilgrim_heal', label: 'Heal the wounded', intent: 'work', outcome: 'You tend to the injured knights. Their gratitude is heartfelt.', stat_deltas: { relationship: 8, willpower: 4 }, hours_passed: 3 }
+    ]
+  },
+  rihad: {
+    id: 'rihad',
+    name: 'Rihad',
+    type: 'tavern',
+    region: 'hammerfell',
+    description: "A dusty trading post on the eastern edge of the desert, Rihad serves as a waystation for merchants traveling between Hammerfell and Cyrodiil. The Red Desert Inn offers cold beverages and warm gossip. The town has changed hands between kingdoms many times, and its people have learned to serve whoever holds power.",
+    atmosphere: 'Dusty, trading, transitional, weathered',
+    actions: [
+      { id: 'caravan_arrival', label: 'Greet arriving caravan', intent: 'work', outcome: 'Merchants from Cyrodiil bring news and goods from beyond the border.', stat_deltas: { gold: 30, relationship: 3 }, hours_passed: 2 },
+      { id: 'border_crossing', label: 'Discuss border crossing', intent: 'social', outcome: '"The pass is safe now, but last season raiders ambushed a whole trade convoy."', stat_deltas: { skills: { survival: 2 }, gold: -5 }, hours_passed: 1 },
+      { id: 'desert_supplies', label: 'Buy desert supplies', intent: 'work', outcome: 'The shopkeeper offers water skins, sun-resistant cloaks, and maps to the wasteland.', stat_deltas: { gold: -40 }, hours_passed: 1 },
+      { id: 'drink_local', label: 'Drink with locals', intent: 'social', outcome: 'The bitter ale is a local specialty. The stories are free.', stat_deltas: { stress: -10, relationship: 5 }, hours_passed: 2 },
+      { id: 'smuggler_contact', label: 'Contact smugglers', intent: 'stealth', outcome: 'Those who avoid the official border offer faster - and illegal - passage.', stat_deltas: { corruption: 10, gold: 50 }, hours_passed: 1 },
+      { id: 'caravan_guard', label: 'Offer guard services', intent: 'work', outcome: 'A merchant needs protection through the dangerous eastern passes.', stat_deltas: { gold: 60, skills: { combat: 4 } }, hours_passed: 4 },
+      { id: 'desert_town_history', label: 'Learn town history', intent: 'social', outcome: '"We\'ve been Redguard, Breton, Imperial, and back. The desert doesn\'t care who rules."', stat_deltas: { skills: { history: 3 } }, hours_passed: 1 },
+      { id: 'oasis_rest', label: 'Rest at the oasis', intent: 'neutral', outcome: 'The cool waters of the hidden oasis restore your strength.', stat_deltas: { health: 20, exhaustion: -25 }, hours_passed: 3 }
+    ]
   }
-};
 };
