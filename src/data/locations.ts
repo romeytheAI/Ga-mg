@@ -1,4 +1,68 @@
 export const LOCATIONS: Record<string, any> = {
+
+  'silvenar': {
+    id: 'silvenar',
+    name: "Silvenar",
+    atmosphere: "fragrant, intertwined with giant tree roots, and echoing with Bosmer chanting",
+    danger: 35,
+    x: 45, y: 75,
+    npcs: [],
+    description: "The spiritual and political capital of Valenwood, named after the Voice of the People himself. The city is woven directly into the branches and roots of a massive Graht-oak tree. Rope bridges connect resin-sealed dwellings, and the air smells strongly of exotic jungle blossoms and roasting meat. Bosmer hunters and spinners barter beneath the thick canopy, while Thalmor justiciars patrol the lower levels with ill-concealed disdain for the 'primitive' architecture.",
+    actions: [
+      { id: 'explore_canopy', label: "Climb into the upper canopy", intent: "travel", skill_check: { stat: "stamina", difficulty: 45 }, outcome: "You scale the massive vines to the upper levels of the city, taking in breathtaking views of the endless Valenwood jungle.", fail_outcome: "Your foot slips on a damp, mossy branch. You fall to a lower platform, bruising yourself badly.", stat_deltas: { stamina: -15, stress: -5 }, fail_stat_deltas: { stamina: -20, pain: 10, stress: 10 }, skill_deltas: { athletics: 3 }, hours_passed: 1 },
+      { id: 'listen_spinners', label: "Listen to the Spinners' tales", intent: "education", outcome: "You sit near a fire and listen to a Bosmer Spinner recount ancient tales of Y'ffre and the Green Pact. Their words weave magic into the air, making the stories feel real.", stat_deltas: { willpower: 5, stress: -10 }, skill_deltas: { lore_mastery: 4 }, hours_passed: 2 },
+      { id: 'buy_meat', label: "Buy fresh game meat", intent: "social", outcome: "You purchase a chunk of freshly hunted, highly seasoned meat from a Bosmer vendor. It's tough but incredibly nourishing.", stat_deltas: { stamina: 15, stress: -5 }, new_items: [{ name: "Bosmer Spiced Meat", type: "consumable", rarity: "common", description: "Rich, heavily spiced meat adhering strictly to the Green Pact." }], hours_passed: 1 },
+      { id: 'travel_elden_grove', label: "Journey to Elden Grove", intent: "travel", outcome: "You descend from the city and make your way through the dense jungle towards the sacred Elden Grove.", stat_deltas: { stamina: -15 }, new_location: 'elden_grove' },
+      { id: 'travel_cormount', label: "Head to Cormount", intent: "travel", outcome: "You take the winding forest paths leading towards the notorious town of Cormount.", stat_deltas: { stamina: -15 }, new_location: 'cormount' }
+    ]
+  },
+  'elden_grove': {
+    id: 'elden_grove',
+    name: "Elden Grove",
+    atmosphere: "ancient, deeply magical, thick with mist and the heavy silence of the deep forest",
+    danger: 60,
+    x: 50, y: 80,
+    npcs: [],
+    description: "One of the most sacred sites in Valenwood, and rumoured to be the birthplace of the First Tree. The trees here are impossibly massive, their trunks wider than some houses, and the canopy completely blocks the sun. The air is thick with ancient magic and mist. The Green Pact is absolute here — to harm a plant is to invite the immediate and lethal wrath of the forest itself and its Bosmer protectors.",
+    actions: [
+      { id: 'meditate_roots', label: "Meditate among the roots", intent: "neutral", outcome: "You sit among the colossal, moss-covered roots. The deep, pulsing life force of the forest seeps into your bones, bringing profound peace.", stat_deltas: { stress: -25, willpower: 10, trauma: -5 }, hours_passed: 2 },
+      { id: 'forage_pact_safe', label: "Search for fallen resources (Green Pact Safe)", intent: "work", skill_check: { stat: "willpower", difficulty: 50 }, outcome: "Careful not to harm any living plant, you gather naturally fallen deadwood and shed leaves that possess potent alchemical properties.", fail_outcome: "You accidentally snap a living twig. The forest around you seems to grow instantly hostile, and you flee before the wardens notice.", stat_deltas: { stamina: -10 }, fail_stat_deltas: { stress: 25, stamina: -15 }, skill_deltas: { foraging: 3 }, new_items: [{ name: "Sacred Deadwood", type: "misc", rarity: "rare", description: "Deadwood from the Elden Grove, naturally fallen. Highly magical." }], hours_passed: 2 },
+      { id: 'pray_yffre', label: "Offer prayers to Y'ffre", intent: "neutral", outcome: "You whisper prayers to the Singer, Y'ffre. You feel a strange sense of belonging in the wild.", stat_deltas: { purity: 5, stress: -10, willpower: 5 }, hours_passed: 1 },
+      { id: 'travel_silvenar', label: "Return to Silvenar", intent: "travel", outcome: "You leave the heavy silence of the grove and head back towards the city.", stat_deltas: { stamina: -15 }, new_location: 'silvenar' },
+      { id: 'travel_arenthia', label: "Trek towards Arenthia", intent: "travel", outcome: "You begin the long, difficult trek north towards the border city of Arenthia.", stat_deltas: { stamina: -25, stress: 5 }, new_location: 'arenthia' }
+    ]
+  },
+  'arenthia': {
+    id: 'arenthia',
+    name: "Arenthia",
+    atmosphere: "hot, tense, smelling of dry dust, Colovian leather, and Khajiiti spices",
+    danger: 45,
+    x: 55, y: 60,
+    npcs: [],
+    description: "A major city situated on the Strid River near the borders of Valenwood, Cyrodiil, and Elsweyr. Its architecture is a chaotic blend of Colovian stone, Bosmer woodcraft, and Khajiiti tents. It's a bustling hub of trade, mercenaries, and spies. The heat is oppressive, and the political tension between the Thalmor presence, Colovian interests, and Khajiit caravans is a powder keg waiting for a spark.",
+    actions: [
+      { id: 'work_docks_arenthia', label: "Haul cargo on the river docks", intent: "work", skill_check: { stat: "stamina", difficulty: 45 }, outcome: "You sweat under the harsh sun, loading heavy crates onto riverboats heading for the Abecean Sea. The pay is good, though.", fail_outcome: "The heat is too much. You drop a crate of spices, angering a Khajiit merchant who refuses to pay you.", stat_deltas: { stamina: -25, stress: 5 }, fail_stat_deltas: { stamina: -20, stress: 15, pain: 5 }, skill_deltas: { athletics: 2 }, new_items: [{ name: "Gold Coin", type: "misc", rarity: "common", description: "The currency of the realm." }, { name: "Gold Coin", type: "misc", rarity: "common", description: "The currency of the realm." }], hours_passed: 4 },
+      { id: 'browse_bazaar', label: "Browse the border bazaar", intent: "social", outcome: "You wander through stalls selling goods from three provinces. The smells of Elsweyr spices mingle with Cyrodiilic perfumes.", stat_deltas: { stress: -5, willpower: 2 }, hours_passed: 1 },
+      { id: 'eavesdrop_tavern', label: "Eavesdrop in a mercenary tavern", intent: "stealth", skill_check: { stat: "willpower", difficulty: 40 }, outcome: "You nurse a drink and listen. You hear valuable rumours about troop movements and smuggler routes across the Strid.", fail_outcome: "A burly Colovian notices you listening and threatens to break your jaw. You leave quickly.", stat_deltas: { willpower: 5, stress: 5 }, fail_stat_deltas: { stress: 15, trauma: 2 }, skill_deltas: { skulduggery: 2 }, hours_passed: 1 },
+      { id: 'travel_elden_grove', label: "Travel south to Elden Grove", intent: "travel", outcome: "You leave the city heat and enter the dense, cooling shade of the Valenwood jungle.", stat_deltas: { stamina: -20 }, new_location: 'elden_grove' }
+    ]
+  },
+  'cormount': {
+    id: 'cormount',
+    name: "Cormount",
+    atmosphere: "lawless, shadowed, smelling of cheap ale, damp wood, and danger",
+    danger: 55,
+    x: 48, y: 70,
+    npcs: [],
+    description: "A large town built into the trees, notorious as a haven for smugglers, thieves, and those fleeing Thalmor justice. It lacks the grandeur of Silvenar; here, the rope bridges are frayed, the platforms are crowded, and violence is common. The Blacksap Movement, a Bosmer nationalist faction, has deep roots here. The guards are easily bribed, and the shadows are deep.",
+    actions: [
+      { id: 'buy_contraband', label: "Look for illicit goods", intent: "stealth", skill_check: { stat: "willpower", difficulty: 50 }, outcome: "You find a shadowed corner where a fence sells lockpicks and stolen Cyrodiilic silver at a discount.", fail_outcome: "You ask the wrong person and end up being cornered and shaken down for coin.", stat_deltas: { stress: 10 }, fail_stat_deltas: { stress: 20, trauma: 5, pain: 5 }, skill_deltas: { skulduggery: 3 }, hours_passed: 1 },
+      { id: 'drink_local_ale', label: "Drink rotmeth at the tavern", intent: "social", skill_check: { stat: "stamina", difficulty: 35 }, outcome: "You choke down a mug of rotmeth — a highly potent, fermented meat beverage. It burns going down, but you feel oddly invigorated.", fail_outcome: "Your stomach violently rejects the rotmeth. You spend an hour being sick behind the tavern.", stat_deltas: { stamina: 10, stress: -10, willpower: -5 }, fail_stat_deltas: { stamina: -15, stress: 10, health: -5 }, hours_passed: 1 },
+      { id: 'listen_blacksap', label: "Listen to nationalist agitators", intent: "social", outcome: "You stand at the edge of a crowd listening to a fiery speech denouncing the Aldmeri Dominion and the Thalmor.", stat_deltas: { willpower: 4, stress: 5 }, hours_passed: 1 },
+      { id: 'travel_silvenar', label: "Take the path to Silvenar", intent: "travel", outcome: "You leave the rough town and head towards the capital.", stat_deltas: { stamina: -10 }, new_location: 'silvenar' }
+    ]
+  },
+
   'orphanage': {
     id: 'orphanage',
     name: "Honorhall Orphanage",
