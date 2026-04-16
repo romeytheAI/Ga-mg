@@ -1,0 +1,5 @@
+AI_HORDE_API_KEY=your_key_here
+POLLINATIONS_API_KEY=your_key_here
+DATABASE_URL=sqlite+aiosqlite:///./game.db
+SECRET_KEY=change_this
+DEBUG=True

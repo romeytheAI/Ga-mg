@@ -1,0 +1,20 @@
+from pydantic_settings import BaseSettings, SettingsConfigDict
+from functools import lru_cache
+
+class Settings(BaseSettings):
+    # AI
+    ai_horde_api_key: str = ""
+    pollinations_api_key: str = ""
+
+    # Database
+    database_url: str = "sqlite+aiosqlite:///./game.db"
+
+    # App
+    secret_key: str = "change_me"
+    debug: bool = False
+
+    model_config = SettingsConfigDict(env_file=".env")
+
+@lru_cache
+def get_settings() -> Settings:
+    return Settings()

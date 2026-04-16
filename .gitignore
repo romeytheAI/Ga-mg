@@ -10,3 +10,6 @@ coverage/
 # Environment files
 *.env
 *.env.*
+
+# Let ga-mg-python pass through
+!ga-mg-python/**
