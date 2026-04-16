@@ -23,6 +23,11 @@ export const elderscrollsLocations = [
   { id: 'sleeping_giant', name: 'Sleeping Giant Inn', region: 'Riverwood' },
   { id: 'khajiit_caravan', name: 'Khajiit Caravan', region: 'Travelling' },
   { id: 'jorrvaskr', name: 'Jorrvaskr', region: 'Whiterun' },
+
+  { id: 'silvenar', name: 'Silvenar', region: 'Valenwood' },
+  { id: 'elden_grove', name: 'Elden Grove', region: 'Valenwood' },
+  { id: 'arenthia', name: 'Arenthia', region: 'Valenwood' },
+  { id: 'cormount', name: 'Cormount', region: 'Valenwood' },
 ];
 
 export default elderscrollsLocations;
