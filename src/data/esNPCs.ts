@@ -824,24 +824,24 @@ export const ES_NPCS: Record<string, any> = {
         choices: [{ label: 'I need your help.', next: 'neloth_expertise' }],
       },
       neloth_task: {
-        text: 'I require heartstones. A lot of them. My experiments into ash spawn require a constant supply. Go out into the ash wastes, dig them up from the smoldering earth, and bring them to me. Try not to die. Or if you do, try to die near a map marker so I can send someone else to retrieve your body and the stones.',
+      text: 'I require certain... artifacts. Or perhaps you could just fetch me some fresh muck-sponge. My research into the effects of blight on fungal growth is at a critical stage. Try not to die. Or if you do, try to die near a map marker so I can send someone else to retrieve your body and the samples.',
         choices: [
-          { label: 'I\'ll get your heartstones.', next: 'greeting', effects: { relationship: 5 } },
+          { label: 'I\'ll get your samples.', next: 'greeting', effects: { relationship: 5 } },
           { label: 'Find someone else.', next: 'neloth_dismiss', effects: { relationship: -5 } },
         ],
       },
     },
     schedule: [
-      { time: 0, location: 'tel_mithryn', action: 'sleeping' },
-      { time: 6, location: 'tel_mithryn', action: 'brewing_tea' },
-      { time: 8, location: 'tel_mithryn', action: 'conducting_experiments' },
-      { time: 14, location: 'tel_mithryn', action: 'yelling_at_apprentice' },
-      { time: 16, location: 'tel_mithryn', action: 'enchanting_staffs' },
-      { time: 22, location: 'tel_mithryn', action: 'reading_black_books' },
+      { time: 0, location: 'loc_es_sadrith_mora', action: 'sleeping' },
+      { time: 6, location: 'loc_es_sadrith_mora', action: 'brewing_tea' },
+      { time: 8, location: 'loc_es_sadrith_mora', action: 'conducting_experiments' },
+      { time: 14, location: 'loc_es_sadrith_mora', action: 'yelling_at_apprentice' },
+      { time: 16, location: 'loc_es_sadrith_mora', action: 'enchanting_staffs' },
+      { time: 22, location: 'loc_es_sadrith_mora', action: 'contemplating' },
     ],
     relationship: 0,
     is_romanceable: false,
-    tags: ['telvanni', 'wizard', 'dunmer', 'solstheim'],
+    tags: ['telvanni', 'wizard', 'dunmer', 'sadrith_mora'],
   },
 
   npc_es_divayth_fyr: {
