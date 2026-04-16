@@ -1,8 +1,0 @@
-<div class="encounter">
-    <h3>Encounter: {{ encounter.enemy.name }}</h3>
-    <div class="encounter-actions">
-        {% for option in encounter.options %}
-        <button hx-post="/api/encounter/action" hx-vals='{"action": "{{ option }}"}'>{{ option }}</button>
-        {% endfor %}
-    </div>
-</div>
