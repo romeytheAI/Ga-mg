@@ -156,7 +156,7 @@ export const ES_LOCATIONS: Record<string, any> = {
     id: 'loc_es_daggerfall',
     name: 'Daggerfall',
     description: 'One of the oldest and most powerful kingdoms in High Rock. Daggerfall is a city steeped in history and magic, its stone walls bearing the scars of countless wars. The air is thick with the smell of old parchment, rain on cobblestones, and the ozone tang of spellcraft. The Mages Guild here is legendary, but the city\'s underworld is equally vast.',
-    danger: 35,
+    danger: 0.35,
     atmosphere: 'ancient, magical, rain-swept',
     exits: ['loc_es_wayrest', 'crossroads'],
     features: ['mages_guild_headquarters', 'castle_daggerfall', 'ancient_crypts', 'bustling_port'],
