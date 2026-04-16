@@ -71,7 +71,6 @@ export const ES_LOCATIONS: Record<string, any> = {
     id: 'loc_es_halls_of_colossus',
     name: 'Halls of Colossus',
     description: 'Colossal statues of forgotten gods tower over you, each one taller than any building in Skyrim. Their weathered faces stare down with expressions of impossible age. These ruins existed before recorded history—before the gods themselves walked Tamriel. The silence here is so absolute it has weight.',
-    danger: 35,
     atmosphere: 'awing, ancient, cosmic scale',
     exits: ['crossroads', 'loc_es_forgotten_vale'],
     features: ['colossal_statues', 'hidden_temple', 'ancient_altar', 'time_distortion'],
@@ -224,7 +223,6 @@ export const ES_LOCATIONS: Record<string, any> = {
     id: 'loc_es_shimmerene',
     name: 'Shimmerene',
     description: 'The City of Lights serves as the primary port for the Summerset Isles. Gleaming white towers rise from the sapphire waters of the Abecean Sea. Sapiarchs and Divine Prosecution officers maintain strict order, casting a watchful eye over the few outlanders permitted beyond the docks. The scent of jasmine and salt air is omnipresent.',
-    danger: 30,
     atmosphere: 'ordered, watchful, maritime elegance',
     exits: ['loc_es_firsthold', 'loc_es_lillandril', 'crossroads'],
     features: ['shimmerene_docks', 'monastery_of_serene_harmony', 'coral_gardens'],
@@ -267,7 +265,9 @@ export const ES_LOCATIONS: Record<string, any> = {
     actions: [
       { id: 'tame_griffon', label: 'Attempt to tame a young griffon', skill: 'willpower', difficulty: 85, reward: { xp: 80, items: ['griffon_feather'] } },
       { id: 'climb_summit', label: 'Climb to the very peak of Eton Nir', skill: 'athletics', difficulty: 70, reward: { xp: 60, skills: { athletics: 5 } } },
-      { id: 'harvest_crystal', label: 'Harvest a Cloudrest crystal', skill: 'foraging', difficulty: 55, reward: { gold: 35, items: ['cloudrest_crystal'], xp: 40 } },
+      { id: 'harvest_crystal', label: 'Harvest a Cloudrest crystal', skill: 'foraging', difficulty: 55, reward: { gold: 35, items: ['cloudrest_crystal'], xp: 40 } }
+    ]
+  },
 
   loc_es_vivec_city: {
     id: 'loc_es_vivec_city',
@@ -290,7 +290,6 @@ export const ES_LOCATIONS: Record<string, any> = {
     id: 'loc_es_balmora',
     name: 'Balmora',
     description: 'The seat of House Hlaalu, nestled in the Odai River valley. Sandstone buildings with flat roofs and wooden balconies line the riverbanks. The city is a hub of commerce and intrigue, where Imperial influence openly clashes with Dunmer tradition. The smell of flin and kwama egg stew wafts from the cornerclub.',
-    danger: 30,
     atmosphere: 'bustling, dusty, politically charged',
     exits: ['crossroads', 'loc_es_vivec_city'],
     features: ['odai_river', 'fighters_guild', 'mages_guild', 'council_club'],
@@ -333,13 +332,13 @@ export const ES_LOCATIONS: Record<string, any> = {
     actions: [
       { id: 'brave_corprusarium', label: 'Brave the Corprusarium', skill: 'athletics', difficulty: 75, reward: { xp: 60, items: ['corprus_weepings'] } },
       { id: 'speak_divayth', label: 'Seek audience with Divayth Fyr', skill: 'willpower', difficulty: 80, reward: { xp: 100, skills: { magic: 3 } } },
-      { id: 'loot_vault', label: 'Attempt to loot the Daedric vault', skill: 'skulduggery', difficulty: 95, reward: { xp: 150, items: ['daedric_crescent'] } },
+      { id: 'loot_vault', label: 'Attempt to loot the Daedric vault', skill: 'skulduggery', difficulty: 95, reward: { xp: 150, items: ['daedric_crescent'] } }
+    ]
+  },
   loc_es_wayrest: {
     id: 'loc_es_wayrest',
     name: 'Wayrest',
     description: 'The glittering jewel of the Iliac Bay. Wayrest is a city of high spires, sprawling markets, and intricate political webs. The air here smells of expensive perfumes, imported spices, and hidden daggers. Every smile in the merchant district is a transaction, and every shadow in the noble quarter hides a spy.',
-    danger: 30,
-    danger: 0.3,
     atmosphere: 'wealthy, treacherous, politically charged',
     exits: ['loc_es_daggerfall', 'loc_es_camlorn', 'crossroads'],
     features: ['grand_bazaar', 'castle_wayrest', 'fighters_guild_hall', 'dark_alleys'],
@@ -356,8 +355,6 @@ export const ES_LOCATIONS: Record<string, any> = {
     id: 'loc_es_daggerfall',
     name: 'Daggerfall',
     description: 'One of the oldest and most powerful kingdoms in High Rock. Daggerfall is a city steeped in history and magic, its stone walls bearing the scars of countless wars. The air is thick with the smell of old parchment, rain on cobblestones, and the ozone tang of spellcraft. The Mages Guild here is legendary, but the city\'s underworld is equally vast.',
-    danger: 35,
-    danger: 0.35,
     atmosphere: 'ancient, magical, rain-swept',
     exits: ['loc_es_wayrest', 'crossroads'],
     features: ['mages_guild_headquarters', 'castle_daggerfall', 'ancient_crypts', 'bustling_port'],
@@ -380,70 +377,6 @@ export const ES_LOCATIONS: Record<string, any> = {
     features: ['great_forge', 'chieftains_hall', 'training_pits', 'mountain_pass'],
     npcs: ['npc_es_orc_smith', 'npc_es_orsinium_warrior'],
     items: ['orichalcum_ingot', 'orcish_armor', 'strong_ale'],
-    actions: [
-      { id: 'work_forge', label: 'Work at the Great Forge', skill: 'athletics', difficulty: 50, reward: { gold: 35, items: ['orichalcum_ingot'], xp: 40 } },
-      { id: 'spar_warriors', label: 'Spar in the training pits', skill: 'athletics', difficulty: 65, reward: { xp: 60 } },
-      { id: 'drink_ale', label: 'Drink with the locals', skill: 'social', difficulty: 35, reward: { xp: 20, items: ['strong_ale'] } },
-    ],
-  },
-
-  loc_es_camlorn: {
-    id: 'loc_es_camlorn',
-    name: 'Camlorn',
-    description: 'A proud city in western High Rock, known for its artisans, poets, and the lingering scars of a werewolf invasion. Camlorn is rebuilding its glory, with beautiful architecture juxtaposed against barricaded alleyways. The moon seems to shine brighter here, casting long, suspicious shadows, and the scent of silver-weed hangs heavy in the night air.',
-    danger: 0.45,
-    atmosphere: 'artistic, recovering, lycanthropic tension',
-    exits: ['loc_es_wayrest', 'crossroads'],
-    features: ['artisans_plaza', 'silver_smiths', 'wolf_hunter_camp', 'moonlit_gardens'],
-    npcs: ['npc_es_camlorn_artisan', 'npc_es_wolf_hunter'],
-    items: ['silver_bolt', 'fine_poetry_book', 'wolf_pelt'],
-    actions: [
-      { id: 'buy_silver', label: 'Commission a silver weapon', skill: 'social', difficulty: 40, reward: { items: ['silver_bolt'], xp: 20 } },
-      { id: 'hunt_werewolves', label: 'Join a wolf-hunting patrol', skill: 'athletics', difficulty: 60, reward: { gold: 45, items: ['wolf_pelt'], xp: 50 } },
-      { id: 'appreciate_art', label: 'Appreciate the local artisans', skill: 'willpower', difficulty: 30, reward: { xp: 30 } },
-  loc_es_sentinel: {
-    id: 'loc_es_sentinel',
-    name: 'Sentinel',
-    description: 'The great jewel of Hammerfell, situated on the Iliac Bay. Its white limestone walls reflect the desert sun blindingly, while the harbor bustles with merchants, corsairs, and naval vessels. The smell of exotic spices, sea salt, and ancient wealth permeates the air. The Forebear nobility rule here, their palaces overlooking the bustling bazaars where everything has a price.',
-    danger: 45,
-    atmosphere: 'bustling, hot, cosmopolitan, wealthy',
-    exits: ['crossroads', 'loc_es_stros_m_kai', 'loc_es_sunforge'],
-    features: ['grand_bazaar', 'palace_district', 'iliac_harbor', 'forebear_guard'],
-    npcs: ['npc_es_redguard_merchant', 'npc_es_corsair_captain'],
-    items: ['hammerfell_spice', 'curved_sword', 'iliac_pearl'],
-    actions: [
-      { id: 'haggle_bazaar', label: 'Haggle in the Grand Bazaar', skill: 'skulduggery', difficulty: 35, reward: { gold: 30, items: ['hammerfell_spice'], xp: 20 } },
-      { id: 'listen_corsairs', label: 'Listen to corsair tales at the harbor', skill: 'social', difficulty: 25, reward: { xp: 25, skills: { willpower: 2 } } },
-      { id: 'admire_palace', label: 'Admire the limestone palaces', skill: 'willpower', difficulty: 20, reward: { xp: 15 } },
-    ],
-  },
-
-  loc_es_sunforge: {
-    id: 'loc_es_sunforge',
-    name: 'Sunforge',
-    description: 'A legendary smithy hidden deep within the Dragontail Mountains, where the heat of the earth meets the blinding light of Magnus. Here, the greatest weaponsmiths of Hammerfell craft blades that sing through the air. The intense heat is nearly unbearable, but the rhythmic ringing of hammers against anvils creates a hypnotic, almost magical atmosphere.',
-    danger: 60,
-    atmosphere: 'sweltering, rhythmic, magical, intense',
-    exits: ['loc_es_sentinel', 'loc_es_rihad'],
-    features: ['magma_forge', 'singing_anvils', 'master_smiths', 'heat_shimmer'],
-    npcs: ['npc_es_master_smith', 'npc_es_apprentice_armorer'],
-    items: ['sunforged_ingot', 'singing_steel_blade', 'dragontail_ore'],
-    actions: [
-      { id: 'watch_smiths', label: 'Watch the master smiths at work', skill: 'willpower', difficulty: 40, reward: { xp: 30, skills: { willpower: 3 } } },
-      { id: 'mine_ore', label: 'Mine ore near the magma flows', skill: 'athletics', difficulty: 50, reward: { items: ['dragontail_ore'], gold: 15, xp: 25 } },
-      { id: 'assist_forge', label: 'Assist at the singing anvils', skill: 'athletics', difficulty: 65, reward: { xp: 45, items: ['sunforged_ingot'] } },
-    ],
-  },
-
-  loc_es_rihad: {
-    id: 'loc_es_rihad',
-    name: 'Rihad',
-    description: 'A cosmopolitan port city on the southern coast of Hammerfell, bordering the Abecean Sea and the province of Cyrodiil. Rihad is a melting pot of cultures, where Redguard tradition meets Imperial influence. The city is known for its skilled mercenaries, grand arenas, and the ever-present threat of political intrigue simmering beneath its sun-baked streets.',
-    danger: 55,
-    atmosphere: 'vibrant, tense, martial, sun-baked',
-    exits: ['crossroads', 'loc_es_sunforge'],
-    features: ['grand_arena', 'mercenary_guild', 'imperial_quarter', 'abecean_docks'],
-    npcs: ['npc_es_arena_champion', 'npc_es_imperial_diplomat'],
     items: ['arena_token', 'rihad_mercenary_contract', 'abecean_coral'],
     actions: [
       { id: 'watch_arena', label: 'Watch the fights in the Grand Arena', skill: 'willpower', difficulty: 30, reward: { xp: 25 } },
