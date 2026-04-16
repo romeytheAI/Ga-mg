@@ -224,6 +224,6 @@ export function buildResultItem(itemId: string) {
   if (!base) return null;
   return {
     ...base,
-    id: `${itemId}_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
+    id: crypto.randomUUID(),
   };
 }

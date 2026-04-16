@@ -39,7 +39,7 @@ export function generateProceduralItem(level: number, type?: Item['type']): Item
   }
 
   return {
-    id: Math.random().toString(36).substr(2, 9),
+    id: crypto.randomUUID(),
     name,
     type: selectedType,
     slot,

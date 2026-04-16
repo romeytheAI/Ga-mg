@@ -125,7 +125,7 @@ export function gameReducer(state: GameState, action: any): GameState {
         for (let i = 0; i < parsedText.new_items.length; i++) {
           const item = parsedText.new_items[i];
           newInventory.push({
-            id: item.id || `item_${Date.now()}_${i}_${Math.random().toString(36).slice(2, 7)}`,
+            id: item.id || crypto.randomUUID(),
             name: item.name || 'Unknown Item',
             type: item.type || 'misc',
             slot: item.slot || undefined,
@@ -1654,7 +1654,7 @@ export function gameReducer(state: GameState, action: any): GameState {
       const forageInventory = [...state.player.inventory];
       for (const raw of rawItems) {
         forageInventory.push({
-          id: raw.id ?? `foraged_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
+          id: raw.id ?? crypto.randomUUID(),
           name: raw.name ?? 'Unknown Item',
           type: raw.type ?? 'misc',
           rarity: raw.rarity ?? 'common',
