@@ -173,7 +173,7 @@ export const ES_LOCATIONS: Record<string, any> = {
     id: 'loc_es_orsinium',
     name: 'Orsinium',
     description: 'The city of the Orcs, rebuilt once again in the rugged Wrothgarian Mountains. Orsinium is a fortress of iron and stone, echoing with the ring of hammers on anvils and the roars of warriors in the training pits. The cold mountain wind bites at your skin, but the heat of the forges keeps the city alive. It is a place of harsh survival and unbreakable honor.',
-    danger: 55,
+    danger: 0.55,
     atmosphere: 'rugged, industrious, unyielding',
     exits: ['loc_es_wayrest', 'crossroads'],
     features: ['great_forge', 'chieftains_hall', 'training_pits', 'mountain_pass'],
