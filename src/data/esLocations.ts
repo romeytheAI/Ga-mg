@@ -134,4 +134,72 @@ export const ES_LOCATIONS: Record<string, any> = {
       { id: 'harvest_fungi', label: 'Harvest luminescent fungi', skill: 'foraging', difficulty: 15, reward: { items: ['fungi_spore'], gold: 5 } },
     ],
   },
+
+  loc_es_wayrest: {
+    id: 'loc_es_wayrest',
+    name: 'Wayrest',
+    description: 'The glittering jewel of the Iliac Bay. Wayrest is a city of high spires, sprawling markets, and intricate political webs. The air here smells of expensive perfumes, imported spices, and hidden daggers. Every smile in the merchant district is a transaction, and every shadow in the noble quarter hides a spy.',
+    danger: 30,
+    atmosphere: 'wealthy, treacherous, politically charged',
+    exits: ['loc_es_daggerfall', 'loc_es_camlorn', 'crossroads'],
+    features: ['grand_bazaar', 'castle_wayrest', 'fighters_guild_hall', 'dark_alleys'],
+    npcs: ['npc_es_breton_merchant', 'npc_es_wayrest_guard'],
+    items: ['wayrest_silk', 'fine_wine', 'silver_dagger'],
+    actions: [
+      { id: 'trade_bazaar', label: 'Trade in the Grand Bazaar', skill: 'social', difficulty: 40, reward: { gold: 30, items: ['wayrest_silk'], xp: 20 } },
+      { id: 'eavesdrop_nobles', label: 'Eavesdrop on noble gossip', skill: 'skulduggery', difficulty: 55, reward: { xp: 35 } },
+      { id: 'visit_guild', label: 'Take a contract at the Fighters Guild', skill: 'athletics', difficulty: 50, reward: { gold: 50, xp: 45 } },
+    ],
+  },
+
+  loc_es_daggerfall: {
+    id: 'loc_es_daggerfall',
+    name: 'Daggerfall',
+    description: 'One of the oldest and most powerful kingdoms in High Rock. Daggerfall is a city steeped in history and magic, its stone walls bearing the scars of countless wars. The air is thick with the smell of old parchment, rain on cobblestones, and the ozone tang of spellcraft. The Mages Guild here is legendary, but the city\'s underworld is equally vast.',
+    danger: 35,
+    atmosphere: 'ancient, magical, rain-swept',
+    exits: ['loc_es_wayrest', 'crossroads'],
+    features: ['mages_guild_headquarters', 'castle_daggerfall', 'ancient_crypts', 'bustling_port'],
+    npcs: ['npc_es_mages_guild_scholar', 'npc_es_daggerfall_knight'],
+    items: ['spell_tome', 'daggerfall_steel_sword', 'mana_potion'],
+    actions: [
+      { id: 'study_magic', label: 'Study at the Mages Guild', skill: 'magic', difficulty: 45, reward: { xp: 50, items: ['spell_tome'] } },
+      { id: 'explore_crypts', label: 'Explore the ancient crypts beneath the city', skill: 'skulduggery', difficulty: 60, reward: { gold: 40, xp: 55 } },
+      { id: 'work_docks', label: 'Find work at the port', skill: 'athletics', difficulty: 30, reward: { gold: 20, xp: 25 } },
+    ],
+  },
+
+  loc_es_orsinium: {
+    id: 'loc_es_orsinium',
+    name: 'Orsinium',
+    description: 'The city of the Orcs, rebuilt once again in the rugged Wrothgarian Mountains. Orsinium is a fortress of iron and stone, echoing with the ring of hammers on anvils and the roars of warriors in the training pits. The cold mountain wind bites at your skin, but the heat of the forges keeps the city alive. It is a place of harsh survival and unbreakable honor.',
+    danger: 55,
+    atmosphere: 'rugged, industrious, unyielding',
+    exits: ['loc_es_wayrest', 'crossroads'],
+    features: ['great_forge', 'chieftains_hall', 'training_pits', 'mountain_pass'],
+    npcs: ['npc_es_orc_smith', 'npc_es_orsinium_warrior'],
+    items: ['orichalcum_ingot', 'orcish_armor', 'strong_ale'],
+    actions: [
+      { id: 'work_forge', label: 'Work at the Great Forge', skill: 'athletics', difficulty: 50, reward: { gold: 35, items: ['orichalcum_ingot'], xp: 40 } },
+      { id: 'spar_warriors', label: 'Spar in the training pits', skill: 'athletics', difficulty: 65, reward: { xp: 60 } },
+      { id: 'drink_ale', label: 'Drink with the locals', skill: 'social', difficulty: 35, reward: { xp: 20, items: ['strong_ale'] } },
+    ],
+  },
+
+  loc_es_camlorn: {
+    id: 'loc_es_camlorn',
+    name: 'Camlorn',
+    description: 'A proud city in western High Rock, known for its artisans, poets, and the lingering scars of a werewolf invasion. Camlorn is rebuilding its glory, with beautiful architecture juxtaposed against barricaded alleyways. The moon seems to shine brighter here, casting long, suspicious shadows, and the scent of silver-weed hangs heavy in the night air.',
+    danger: 45,
+    atmosphere: 'artistic, recovering, lycanthropic tension',
+    exits: ['loc_es_wayrest', 'crossroads'],
+    features: ['artisans_plaza', 'silver_smiths', 'wolf_hunter_camp', 'moonlit_gardens'],
+    npcs: ['npc_es_camlorn_artisan', 'npc_es_wolf_hunter'],
+    items: ['silver_bolt', 'fine_poetry_book', 'wolf_pelt'],
+    actions: [
+      { id: 'buy_silver', label: 'Commission a silver weapon', skill: 'social', difficulty: 40, reward: { items: ['silver_bolt'], xp: 20 } },
+      { id: 'hunt_werewolves', label: 'Join a wolf-hunting patrol', skill: 'athletics', difficulty: 60, reward: { gold: 45, items: ['wolf_pelt'], xp: 50 } },
+      { id: 'appreciate_art', label: 'Appreciate the local artisans', skill: 'willpower', difficulty: 30, reward: { xp: 30 } },
+    ],
+  },
 };
