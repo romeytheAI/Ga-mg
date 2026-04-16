@@ -1,0 +1,3 @@
+## 2024-05-20 - SemanticText Re-renders
+**Learning:** `SemanticText` splits the text and uses `part.match` in its render function, without memoization. The same goes for the regex pattern which is re-created every render. This happens inside `NarrativeLog.tsx` which maps over logs. Every re-render of `NarrativeLog` or the entire App forces this regex split over and over.
+**Action:** Extract the static regex out of the component scope into `SEMANTIC_KEYWORD_REGEX`. Memoize the `parts` parsing with `React.useMemo` to avoid executing the regex operation repeatedly on identical log text. Wrap both `SemanticText` and `NarrativeLog` in `React.memo` to skip rendering when props don't change.
