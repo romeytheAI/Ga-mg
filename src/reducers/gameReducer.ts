@@ -124,8 +124,11 @@ export function gameReducer(state: GameState, action: any): GameState {
       if (parsedText.new_items && Array.isArray(parsedText.new_items)) {
         for (let i = 0; i < parsedText.new_items.length; i++) {
           const item = parsedText.new_items[i];
+          if (!item.id) {
+            console.warn(`[gameReducer] Item ${item.name} missing ID in RESOLVE_TEXT`);
+          }
           newInventory.push({
-            id: item.id || `item_${Date.now()}_${i}_${Math.random().toString(36).slice(2, 7)}`,
+            id: item.id || 'err-missing-id',
             name: item.name || 'Unknown Item',
             type: item.type || 'misc',
             slot: item.slot || undefined,
@@ -1121,13 +1124,13 @@ export function gameReducer(state: GameState, action: any): GameState {
     case 'BUY_ITEM': {
       const { item, cost } = action.payload as { item: any; cost: number };
       if (state.player.gold < cost) return state;
-      const newItem = { ...item, id: `${item.id}-${Date.now()}` };
+
       return {
         ...state,
         player: {
           ...state.player,
           gold: state.player.gold - cost,
-          inventory: [...state.player.inventory, newItem],
+          inventory: [...state.player.inventory, item],
         },
       };
     }
@@ -1653,8 +1656,11 @@ export function gameReducer(state: GameState, action: any): GameState {
 
       const forageInventory = [...state.player.inventory];
       for (const raw of rawItems) {
+        if (!raw.id) {
+          console.warn(`[gameReducer] Foraged item ${raw.name} missing ID`);
+        }
         forageInventory.push({
-          id: raw.id ?? `foraged_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
+          id: raw.id ?? 'err-missing-id',
           name: raw.name ?? 'Unknown Item',
           type: raw.type ?? 'misc',
           rarity: raw.rarity ?? 'common',

@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, Coins, ShoppingBag, ArrowRightLeft } from 'lucide-react';
 import { GameState, Item } from '../../types';
 import { BASIC_ITEMS } from '../../data/items';
+import { generateId } from '../../utils/crypto';
 
 interface ShopModalProps {
   state: GameState;
@@ -123,7 +124,10 @@ export const ShopModal: React.FC<ShopModalProps> = ({ state, dispatch }) => {
                       </div>
                       <motion.button
                         whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
-                        onClick={() => dispatch({ type: 'BUY_ITEM', payload: { item, cost } })}
+                        onClick={() => dispatch({ type: 'BUY_ITEM', payload: {
+                          item: { ...item, id: generateId() },
+                          cost
+                        } })}
                         disabled={!canAfford}
                         className={`text-[10px] border px-4 py-1.5 uppercase tracking-widest rounded-sm transition-colors ${canAfford ? 'border-emerald-500/30 bg-emerald-950/20 text-emerald-400 hover:bg-emerald-950/40' : 'border-white/10 text-white/20 cursor-not-allowed'}`}
                       >
