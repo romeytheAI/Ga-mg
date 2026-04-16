@@ -49,6 +49,10 @@ export {
   sleepingGiantData,
   khajiitCaravanData,
   jorrvaskrData,
+  senchalData,
+  rimmenData,
+  orcrestData,
+  duneData,
   elderscrollsLocations,
 } from './locations';
 
@@ -110,6 +114,10 @@ export class DOLElderScrollsIntegration {
       sleeping_giant: sleepingGiantData,
       khajiit_caravan: khajiitCaravanData,
       jorrvaskr: jorrvaskrData,
+      senchal: senchalData,
+      rimmen: rimmenData,
+      orcrest: orcrestData,
+      dune: duneData,
     };
     return locationMap[locationId.toLowerCase()];
   }
