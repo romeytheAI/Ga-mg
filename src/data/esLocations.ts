@@ -190,7 +190,7 @@ export const ES_LOCATIONS: Record<string, any> = {
     id: 'loc_es_camlorn',
     name: 'Camlorn',
     description: 'A proud city in western High Rock, known for its artisans, poets, and the lingering scars of a werewolf invasion. Camlorn is rebuilding its glory, with beautiful architecture juxtaposed against barricaded alleyways. The moon seems to shine brighter here, casting long, suspicious shadows, and the scent of silver-weed hangs heavy in the night air.',
-    danger: 45,
+    danger: 0.45,
     atmosphere: 'artistic, recovering, lycanthropic tension',
     exits: ['loc_es_wayrest', 'crossroads'],
     features: ['artisans_plaza', 'silver_smiths', 'wolf_hunter_camp', 'moonlit_gardens'],
