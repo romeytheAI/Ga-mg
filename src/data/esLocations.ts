@@ -174,7 +174,7 @@ export const ES_LOCATIONS: Record<string, any> = {
     description: 'Perched on the northwestern coast of Summerset, Lillandril is home to the renowned College of Sapiarchs. The city is a maze of libraries, lecture halls, and quiet contemplation gardens. Knowledge is the ultimate currency here, and the atmosphere is thick with arcane experimentation and the scent of ancient parchment.',
     danger: 20,
     atmosphere: 'scholarly, quiet, intellectually oppressive',
-    exits: ['loc_es_shimmerene', 'loc_es_cloudrest'],
+    exits: ['loc_es_shimmerene', 'loc_es_cloudrest', 'crossroads'],
     features: ['college_of_sapiarchs', 'illumination_academy_ruins', 'coastal_cliffs'],
     npcs: ['npc_es_sapiarch', 'npc_es_student_mage'],
     items: ['sapiarchic_scroll', 'magicka_potion', 'enchanted_quill'],
