@@ -664,4 +664,183 @@ export const ES_NPCS: Record<string, any> = {
     is_romanceable: false,
     tags: ['cultist', 'vaermina', 'nightmares', 'priest'],
   },
+
+  npc_es_vivec: {
+    id: 'npc_es_vivec',
+    name: 'Vivec',
+    race: 'Chimer/Dunmer (Living God)',
+    description: 'A being of profound duality. His skin is split exactly down the middle—one half the golden hue of the ancient Chimer, the other the ashen grey of the cursed Dunmer. He hovers gently above the ground, eyes completely featureless and glowing faintly. A poet, a warrior, a betrayer, and a savior.',
+    personality: 'Serene, cryptic, and burdened. Vivec speaks in metaphors and riddles, viewing time and mortality from an alien perspective. He loves his people but is willing to do terrible things to preserve his divinity and his city.',
+    dialogue_tree: {
+      greeting: {
+        text: 'The fire is mine. Let it consume thee. And make a secret door at the altar of Padhome, in the House of Boethiah... Ah, you have arrived. I have foreseen this in the water face.',
+        choices: [
+          { label: 'Are you a god?', next: 'vivec_divinity' },
+          { label: 'What is the Ministry of Truth?', next: 'vivec_ministry' },
+          { label: 'I seek guidance.', next: 'vivec_guidance' },
+        ],
+      },
+      vivec_divinity: {
+        text: 'I am the Warrior-Poet of the Tribunal. I am Vivec. To be a god is to be a waking dream. It is to see the wheel of the world, and to be the spoke, the hub, and the rim all at once. Am I a god? Only as long as my people believe it. Only as long as I hold the moonlet in the sky.',
+        choices: [
+          { label: 'You sound tired.', next: 'vivec_tired', effects: { relationship: 5 } },
+          { label: 'It sounds like a lie.', next: 'vivec_truth', effects: { relationship: -5 } },
+        ],
+      },
+      vivec_ministry: {
+        text: 'Baar Dau. The rogue meteor that Sheogorath threw at my city out of spite. I stopped it with a single gesture, freezing it in time. It hangs above the city as a reminder—my love for my people holds it up, and if their love for me ever fails, it shall fall and destroy them all.',
+        choices: [
+          { label: 'That is holding them hostage.', next: 'vivec_hostage' },
+          { label: 'A display of true power.', next: 'vivec_power' },
+        ],
+      },
+      vivec_guidance: {
+        text: 'Guidance is a lantern carried by a blind man. But I will offer what light I can. The Sharmat awakens in Red Mountain. The Ghostfence weakens. You are a thread in the tapestry that might mend the tear, or unravel it entirely.',
+        choices: [
+          { label: 'Tell me of Dagoth Ur.', next: 'vivec_dagoth' },
+          { label: 'I make my own fate.', next: 'vivec_fate', effects: { willpower: 5 } },
+        ],
+      },
+      vivec_tired: {
+        text: 'The burden of godhood is the burden of constant maintenance. The Heart of Lorkhan is fading from our grasp. The ash storms grow stronger. Yes, little mortal. The Warrior-Poet is weary. But I cannot rest. Not yet.',
+        choices: [{ label: 'I will help if I can.', next: 'greeting', effects: { relationship: 10 } }],
+      },
+      vivec_truth: {
+        text: 'The truth is a fractured thing, like a broken mirror. I murdered my lord Nerevar. I loved my lord Nerevar. Both are true. The CHIM allows for contradictions to coexist. Do not judge a god by the morals of a mortal. You would break under the weight of it.',
+        choices: [{ label: 'Perhaps.', next: 'greeting' }],
+      },
+      vivec_hostage: {
+        text: 'Is a mother holding her child\'s hand near a cliff holding them hostage, or protecting them? Love is a severe discipline. The Dunmer must learn to be strong. Baar Dau is my lesson.',
+        choices: [{ label: 'A harsh lesson.', next: 'greeting' }],
+      },
+      vivec_power: {
+        text: 'Power is an illusion of control over the uncontrolled. But yes, it is a magnificent illusion. Remember, though, that every application of power requires an equal anchoring in reality. If I look away, the city burns.',
+        choices: [{ label: 'I understand.', next: 'greeting' }],
+      },
+      vivec_dagoth: {
+        text: 'Dagoth Ur is the Sharmat. The false dreamer who believes the world is an extension of himself. He cannot be reasoned with, only broken. He draws power from the Heart, just as we did. But his love is a consuming fire that leaves only ash.',
+        choices: [{ label: 'He must be stopped.', next: 'greeting' }],
+      },
+      vivec_fate: {
+        text: 'A beautiful illusion. Fate is the loom, you are the thread. You choose the color, but the pattern is already woven. Still, a bright thread can change the meaning of the entire tapestry.',
+        choices: [{ label: 'I will be that thread.', next: 'greeting' }],
+      },
+    },
+    schedule: [
+      { time: 0, location: 'palace_of_vivec', action: 'meditating' },
+      { time: 6, location: 'palace_of_vivec', action: 'maintaining_ghostfence' },
+      { time: 12, location: 'palace_of_vivec', action: 'writing_sermons' },
+      { time: 18, location: 'palace_of_vivec', action: 'holding_baar_dau' },
+    ],
+    relationship: 0,
+    is_romanceable: false,
+    tags: ['tribunal', 'god', 'dunmer', 'vivec'],
+  },
+
+  npc_es_caius_cosades: {
+    id: 'npc_es_caius_cosades',
+    name: 'Caius Cosades',
+    race: 'Imperial',
+    description: 'An older, wiry Imperial man with close-cropped grey hair. He is usually found shirtless in his small, cluttered home in Balmora. His eyes are sharp, calculating, but occasionally clouded by the haze of moon sugar. He looks like an aging addict, which is exactly what he wants you to think.',
+    personality: 'Pragmatic, cynical, but fiercely loyal to the Empire. Caius is the Grand Spymaster of the Blades in Vvardenfell. He plays the fool and the addict perfectly, but his mind is a steel trap. He respects competence over formality.',
+    dialogue_tree: {
+      greeting: {
+        text: 'Are you the one the Emperor sent? You don\'t look like much. But then again, neither do I. Close the door behind you. We have work to do.',
+        choices: [
+          { label: 'Who are you really?', next: 'caius_identity' },
+          { label: 'What are my orders?', next: 'caius_orders' },
+          { label: 'What\'s with the skooma pipe?', next: 'caius_skooma' },
+        ],
+      },
+      caius_identity: {
+        text: 'I\'m just an old man with a sugar habit. That\'s what everyone in Balmora thinks, and that\'s how I like it. Officially, I\'m Caius Cosades, Imperial operative. Unofficially, I\'m the Grand Spymaster of the Blades in this ash-heap of a province. And you report to me.',
+        choices: [
+          { label: 'Understood, sir.', next: 'caius_orders', effects: { relationship: 5 } },
+          { label: 'I don\'t take orders.', next: 'caius_rebel', effects: { relationship: -5 } },
+        ],
+      },
+      caius_orders: {
+        text: 'First order: establish a cover identity. Go join the Fighters Guild, the Mages Guild, or the Imperial Cult. Get some experience. Learn how this province works. The Dunmer don\'t like outlanders, and right now, you\'re just another outlander. When you\'re ready, come back for your real assignment.',
+        choices: [
+          { label: 'What is the real assignment?', next: 'caius_assignment' },
+          { label: 'I\'ll get to it.', next: 'greeting' },
+        ],
+      },
+      caius_skooma: {
+        text: 'A prop. mostly. Sometimes a necessity to keep up the act. Sometimes... well, Vvardenfell gets to you after a few years. It makes the locals dismiss me. A skooma addict is no threat. It\'s the perfect cover.',
+        choices: [
+          { label: 'Smart.', next: 'greeting', effects: { relationship: 5 } },
+          { label: 'It\'s a crutch.', next: 'greeting', effects: { relationship: -5 } },
+        ],
+      },
+      caius_rebel: {
+        text: 'Listen to me, rookie. You\'re here because the Emperor put you on a boat and gave you a pardon. If you don\'t play along, I\'ll have you thrown back in the Imperial City prisons so fast your head will spin. Now, are we clear?',
+        choices: [{ label: 'Crystal clear.', next: 'caius_orders' }],
+      },
+      caius_assignment: {
+        text: 'We\'re investigating an ashlander prophecy. The Nerevarine Cult. The Sixth House. Dagoth Ur. It\'s big, it\'s complicated, and it\'s dangerous. That\'s all you need to know for now. Now go make yourself useful.',
+        choices: [{ label: 'On it.', next: 'greeting' }],
+      },
+    },
+    schedule: [
+      { time: 0, location: 'caius_house', action: 'sleeping' },
+      { time: 8, location: 'caius_house', action: 'reading_reports' },
+      { time: 14, location: 'balmora_streets', action: 'gathering_intel' },
+      { time: 18, location: 'caius_house', action: 'smoking_skooma' },
+    ],
+    relationship: 0,
+    is_romanceable: false,
+    tags: ['imperial', 'blades', 'spymaster', 'balmora'],
+  },
+
+  npc_es_neloth: {
+    id: 'npc_es_neloth',
+    name: 'Master Neloth',
+    race: 'Dunmer',
+    description: 'An ancient, exquisitely dressed Telvanni wizard. He carries a staff of immense power with casual indifference. His face is lined with centuries of arcane study and extreme annoyance at almost everything around him. He regards everyone else as either a nuisance or a temporary tool.',
+    personality: 'Supremely arrogant, brilliant, and incredibly impatient. Neloth has no time for pleasantries, morality, or people who ask stupid questions. He views himself as the pinnacle of magical achievement and expects everyone to cater to his whims.',
+    dialogue_tree: {
+      greeting: {
+        text: 'What is it? Can\'t you see I am in the middle of a delicate arcane calculation? If you are here to ask for a donation to the Temple, I will have you flung off the tower.',
+        choices: [
+          { label: 'I need your magical expertise.', next: 'neloth_expertise' },
+          { label: 'Just passing through.', next: 'neloth_dismiss' },
+          { label: 'You\'re quite rude.', next: 'neloth_insult' },
+        ],
+      },
+      neloth_expertise: {
+        text: 'Of course you do. Everyone does. My expertise is unparalleled in this era or any other. But my time is valuable. Are you prepared to make yourself useful to me in exchange for a fraction of my knowledge?',
+        choices: [
+          { label: 'What do you need?', next: 'neloth_task' },
+          { label: 'Never mind.', next: 'neloth_dismiss' },
+        ],
+      },
+      neloth_dismiss: {
+        text: 'Then pass through somewhere else. My tower is not a public thoroughfare for wandering vagrants. Shoo.',
+        choices: [{ label: 'Fine.', next: 'greeting' }],
+      },
+      neloth_insult: {
+        text: 'Rude? I am Neloth of House Telvanni! I am a Master Wizard! I do not have time to be polite to every ignorant s\'wit that wanders into my study! Now state your business or prepare to experience the inside of an ash yam.',
+        choices: [{ label: 'I need your help.', next: 'neloth_expertise' }],
+      },
+      neloth_task: {
+        text: 'I require heartstones. A lot of them. My experiments into ash spawn require a constant supply. Go out into the ash wastes, dig them up from the smoldering earth, and bring them to me. Try not to die. Or if you do, try to die near a map marker so I can send someone else to retrieve your body and the stones.',
+        choices: [
+          { label: 'I\'ll get your heartstones.', next: 'greeting', effects: { relationship: 5 } },
+          { label: 'Find someone else.', next: 'neloth_dismiss', effects: { relationship: -5 } },
+        ],
+      },
+    },
+    schedule: [
+      { time: 0, location: 'tel_mithryn', action: 'sleeping' },
+      { time: 6, location: 'tel_mithryn', action: 'brewing_tea' },
+      { time: 8, location: 'tel_mithryn', action: 'conducting_experiments' },
+      { time: 14, location: 'tel_mithryn', action: 'yelling_at_apprentice' },
+      { time: 16, location: 'tel_mithryn', action: 'enchanting_staffs' },
+      { time: 22, location: 'tel_mithryn', action: 'reading_black_books' },
+    ],
+    relationship: 0,
+    is_romanceable: false,
+    tags: ['telvanni', 'wizard', 'dunmer', 'solstheim'],
+  },
 };
