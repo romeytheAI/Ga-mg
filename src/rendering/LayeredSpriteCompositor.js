@@ -1206,7 +1206,6 @@ function initializeEngine() {
 
       // Start animated render loop
       engine.startAnimation(mockGameState);
-      console.log('[LayeredSpriteEngine] Animation loop started.');
     });
   }).catch(error => {
     console.error('[LayeredSpriteEngine] Initialization failed:', error);
