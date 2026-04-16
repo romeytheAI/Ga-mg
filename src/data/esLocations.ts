@@ -135,6 +135,71 @@ export const ES_LOCATIONS: Record<string, any> = {
     ],
   },
 
+  loc_es_vivec_city: {
+    id: 'loc_es_vivec_city',
+    name: 'Vivec City',
+    description: 'A massive metropolis built on water, composed of immense multi-tiered ziggurats known as cantons. Gondolas glide through the canals below while Ordinators patrol the bridges above. At the city\'s heart lies the Palace of Vivec and the floating Ministry of Truth, an arrested moonlet held aloft by the living god\'s will.',
+    danger: 25,
+    atmosphere: 'imposing, labyrinthine, divine grandeur',
+    exits: ['crossroads', 'loc_es_balmora', 'loc_es_sadrith_mora'],
+    features: ['cantons', 'foreign_quarter', 'high_fane', 'ministry_of_truth'],
+    npcs: ['npc_es_vivec', 'npc_es_ordinator'],
+    items: ['temple_blessing', 'vivec_pamphlet', 'exquisite_clothing'],
+    actions: [
+      { id: 'navigate_cantons', label: 'Navigate the complex cantons', skill: 'athletics', difficulty: 35, reward: { xp: 20 } },
+      { id: 'attend_sermon', label: 'Attend a Temple sermon', skill: 'willpower', difficulty: 20, reward: { xp: 30, skills: { willpower: 2 } } },
+      { id: 'bribe_ordinator', label: 'Bribe an Ordinator for information', skill: 'skulduggery', difficulty: 50, reward: { gold: -20, xp: 40, items: ['secret_missive'] } },
+    ],
+  },
+
+  loc_es_balmora: {
+    id: 'loc_es_balmora',
+    name: 'Balmora',
+    description: 'The seat of House Hlaalu, nestled in the Odai River valley. Sandstone buildings with flat roofs and wooden balconies line the riverbanks. The city is a hub of commerce and intrigue, where Imperial influence openly clashes with Dunmer tradition. The smell of flin and kwama egg stew wafts from the cornerclub.',
+    danger: 30,
+    atmosphere: 'bustling, dusty, politically charged',
+    exits: ['crossroads', 'loc_es_vivec_city'],
+    features: ['odai_river', 'fighters_guild', 'mages_guild', 'council_club'],
+    npcs: ['npc_es_caius_cosades', 'npc_es_hlaalu_guard'],
+    items: ['skooma', 'moon_sugar', 'hlaalu_writ'],
+    actions: [
+      { id: 'visit_guilds', label: 'Check the local Guild boards', skill: 'willpower', difficulty: 25, reward: { xp: 20, gold: 10 } },
+      { id: 'buy_skooma', label: 'Purchase illicit goods', skill: 'skulduggery', difficulty: 40, reward: { gold: -30, items: ['skooma', 'moon_sugar'] } },
+      { id: 'spy_council', label: 'Eavesdrop at the Council Club', skill: 'skulduggery', difficulty: 55, reward: { xp: 50, items: ['hlaalu_writ'] } },
+    ],
+  },
+
+  loc_es_sadrith_mora: {
+    id: 'loc_es_sadrith_mora',
+    name: 'Sadrith Mora',
+    description: 'The capital of House Telvanni, built almost entirely of massive, twisting fungal structures. Giant mushrooms serve as homes, shops, and council towers. The air is thick with spores and powerful magic. Non-Telvanni are confined to the Gateway Inn, unless they wish to test the patience of ancient, xenophobic wizards.',
+    danger: 60,
+    atmosphere: 'alien, magical, deeply xenophobic',
+    exits: ['crossroads', 'loc_es_vivec_city', 'loc_es_tel_fyr'],
+    features: ['mushroom_towers', 'telvanni_council', 'wolverine_hall', 'gateway_inn'],
+    npcs: ['npc_es_neloth', 'npc_es_telvanni_guard'],
+    items: ['levitation_potion', 'telvanni_bug_musk', 'soul_gem'],
+    actions: [
+      { id: 'navigate_mushroom', label: 'Levitate up a mushroom tower', skill: 'magic', difficulty: 50, reward: { xp: 45 } },
+      { id: 'trade_spices', label: 'Trade for rare Telvanni goods', skill: 'willpower', difficulty: 45, reward: { gold: -50, items: ['telvanni_bug_musk'] } },
+      { id: 'steal_soul_gem', label: 'Steal from an enchanter\'s stall', skill: 'skulduggery', difficulty: 70, reward: { xp: 60, items: ['soul_gem'] } },
+    ],
+  },
+
+  loc_es_tel_fyr: {
+    id: 'loc_es_tel_fyr',
+    name: 'Tel Fyr',
+    description: 'An isolated, towering mushroom structure far off the eastern coast. It is the domain of the ancient Telvanni lord Divayth Fyr. Below the tower lies the Corprusarium, a terrifying labyrinth where victims of the Divine Disease roam free, protected by their eccentric caretaker. Daedric artifacts and cloned "daughters" complete the bizarre household.',
+    danger: 85,
+    atmosphere: 'eccentric, morbid, unfathomably ancient',
+    exits: ['loc_es_sadrith_mora'],
+    features: ['corprusarium', 'fyr_study', 'daedric_vault', 'cloning_chamber'],
+    npcs: ['npc_es_divayth_fyr', 'npc_es_corprus_inmate'],
+    items: ['dwemer_puzzle_box', 'daedric_crescent', 'corprus_weepings'],
+    actions: [
+      { id: 'brave_corprusarium', label: 'Brave the Corprusarium', skill: 'athletics', difficulty: 75, reward: { xp: 60, items: ['corprus_weepings'] } },
+      { id: 'speak_divayth', label: 'Seek audience with Divayth Fyr', skill: 'willpower', difficulty: 80, reward: { xp: 100, skills: { magic: 3 } } },
+      { id: 'loot_vault', label: 'Attempt to loot the Daedric vault', skill: 'skulduggery', difficulty: 95, reward: { xp: 150, items: ['daedric_crescent'] } },
   loc_es_wayrest: {
     id: 'loc_es_wayrest',
     name: 'Wayrest',
