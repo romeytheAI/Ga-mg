@@ -997,10 +997,10 @@ export const LOCATIONS: Record<string, any> = {
       { id: 'travel_forest', label: "Head into the Wilderness", intent: "travel", outcome: "You leave the road into the dense forest.", stat_deltas: { stamina: -10 }, new_location: 'forest' },
       { id: 'travel_farm', label: "Walk to the Farmstead", intent: "travel", outcome: "You follow a dirt track towards the farmstead.", stat_deltas: { stamina: -10 }, new_location: 'farm' },
       { id: 'travel_ruins', label: "Climb to the Barrow", intent: "travel", outcome: "You take the steep mountain path towards the barrow.", stat_deltas: { stamina: -15, stress: 5 }, new_location: 'ruins' },
-      { id: 'travel_firsthold', label: 'Travel to Firsthold', intent: 'travel', outcome: 'You book passage on a ship bound for the Summerset Isles, arriving at the grand city of Firsthold.', stat_deltas: { stamina: -20 }, new_location: 'loc_es_firsthold' },
-      { id: 'travel_shimmerene', label: 'Travel to Shimmerene', intent: 'travel', outcome: 'You catch a merchant vessel sailing for Shimmerene, the City of Lights.', stat_deltas: { stamina: -20 }, new_location: 'loc_es_shimmerene' },
-      { id: 'travel_lillandril', label: 'Travel to Lillandril', intent: 'travel', outcome: 'A transport takes you to the learned city of Lillandril.', stat_deltas: { stamina: -20 }, new_location: 'loc_es_lillandril' },
-      { id: 'travel_cloudrest', label: 'Travel to Cloudrest', intent: 'travel', outcome: 'You endure a grueling journey culminating in a steep climb to the aerie of Cloudrest.', stat_deltas: { stamina: -30 }, new_location: 'loc_es_cloudrest' }
+      { id: "travel_firsthold", label: "Travel to Firsthold", intent: "travel", outcome: "You book passage on a ship bound for the Summerset Isles, arriving at the grand city of Firsthold.", stat_deltas: { stamina: -20 }, new_location: "loc_es_firsthold" },
+      { id: "travel_shimmerene", label: "Travel to Shimmerene", intent: "travel", outcome: "You catch a merchant vessel sailing for Shimmerene, the City of Lights.", stat_deltas: { stamina: -20 }, new_location: "loc_es_shimmerene" },
+      { id: "travel_lillandril", label: "Travel to Lillandril", intent: "travel", outcome: "A transport takes you to the learned city of Lillandril.", stat_deltas: { stamina: -20 }, new_location: "loc_es_lillandril" },
+      { id: "travel_cloudrest", label: "Travel to Cloudrest", intent: "travel", outcome: "You endure a grueling journey culminating in a steep climb to the aerie of Cloudrest.", stat_deltas: { stamina: -30 }, new_location: "loc_es_cloudrest" }
     ]
   }
 };
