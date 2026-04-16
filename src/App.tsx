@@ -253,8 +253,7 @@ function App({ state, dispatch }: { state: GameState, dispatch: React.Dispatch<a
 
   useEffect(() => {
     if (state.ui.ambient_audio) {
-      // Placeholder for Web Audio API ambient loops based on weather
-      console.log(`Playing ambient audio for weather: ${state.world.weather}`);
+      // TODO: Implement Web Audio API ambient loops based on weather
     }
   }, [state.world.weather, state.ui.ambient_audio]);
 
