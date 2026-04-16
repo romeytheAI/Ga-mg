@@ -11,7 +11,6 @@ import { ErrorBoundary } from './components/ErrorBoundary';
 import { SemanticText } from './components/TextComponents';
 import { GameState, Item, StatKey, ActiveEncounter } from './types';
 import { LOCATIONS } from './data/locations';
-import { NPCS } from './data/npcs';
 import { BASIC_ITEMS } from './data/items';
 import { ENCOUNTERS } from './data/encounters';
 import { DIALOGUE_TREES } from './data/dialogueTrees';
