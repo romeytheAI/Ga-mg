@@ -1,4 +1,5 @@
 import { Item } from '../types';
+import { generateId } from './crypto';
 
 const ITEM_PREFIXES = ["Torn", "Soiled", "Fine", "Silken", "Blessed", "Cursed", "Gilded", "Sturdy", "Fragile", "Mystic", "Seductive", "Revealing"];
 const ITEM_SUFFIXES = ["of the Maiden", "of the Harlot", "of Agony", "of Grace", "of the Wastes", "of the Goddess", "of the Demon", "of the Thief"];
@@ -39,7 +40,7 @@ export function generateProceduralItem(level: number, type?: Item['type']): Item
   }
 
   return {
-    id: crypto.randomUUID(),
+    id: generateId(),
     name,
     type: selectedType,
     slot,

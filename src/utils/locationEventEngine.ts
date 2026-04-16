@@ -3,6 +3,7 @@ import { DIALOGUE_TREES, DialogueTree } from '../data/dialogueTrees';
 import { NPCS } from '../data/npcs';
 import { LOCATIONS } from '../data/locations';
 import { startStoryEvent } from './storyEventEngine';
+import { generateId } from './crypto';
 
 export interface ParsedActionResult {
   narrative_text: string;
@@ -130,7 +131,10 @@ export function resolveLocationAction(
         narrative_text: outcomeText,
         stat_deltas: statDeltas,
         skill_deltas: skillDeltas,
-        new_items: newItems,
+        new_items: newItems?.map((item: any) => ({
+          ...item,
+          id: item.id || generateId(),
+        })),
         follow_up_choices: followUpChoices,
         new_location: action.new_location,
       },

@@ -1,5 +1,6 @@
 import { Recipe } from '../types';
 import { BASIC_ITEMS } from './items';
+import { generateId } from '../utils/crypto';
 
 export const RECIPES: Record<string, Recipe> = {
   'recipe_mushroom_stew': {
@@ -224,6 +225,6 @@ export function buildResultItem(itemId: string) {
   if (!base) return null;
   return {
     ...base,
-    id: crypto.randomUUID(),
+    id: generateId(),
   };
 }

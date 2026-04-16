@@ -28,6 +28,7 @@ import { resolveStoryEventStep, startStoryEvent } from './utils/storyEventEngine
 import { resolveEncounterAction } from './utils/encounterEngine';
 import { resolveLocationAction, annotateActionsWithChance } from './utils/locationEventEngine';
 import { FloatingDeltas } from './components/TextComponents';
+import { generateId } from './utils/crypto';
 
 // ── Lazy-loaded modals (only fetched when opened) ───────────────────────
 const SaveLoadModal = React.lazy(() => import('./components/SaveLoadModal').then(m => ({ default: m.SaveLoadModal })));
@@ -496,7 +497,13 @@ function App({ state, dispatch }: { state: GameState, dispatch: React.Dispatch<a
 
     if (actionText === "Scavenge the area for supplies") {
       const foundItem = Math.random() > 0.5;
-      const item = foundItem ? { name: "Lost Coin", type: "misc", rarity: "common", description: "A tarnished septim dropped in the mud." } : null;
+      const item = foundItem ? {
+        id: generateId(),
+        name: "Lost Coin",
+        type: "misc",
+        rarity: "common",
+        description: "A tarnished septim dropped in the mud."
+      } : null;
       dispatch({ type: 'RESOLVE_TEXT', payload: { 
         parsedText: {
           narrative_text: foundItem ? "You spend an hour digging through the grime and find something." : "You search the area but find nothing but filth.",
@@ -543,9 +550,10 @@ function App({ state, dispatch }: { state: GameState, dispatch: React.Dispatch<a
         if (jsonMatch) {
           parsedText = JSON.parse(jsonMatch[0]);
           
-          // Legendary Item Logic
+          // ID Generation and Legendary Item Logic
           if (parsedText.new_items) {
             for (let item of parsedText.new_items) {
+              item.id = item.id || generateId();
               if (item.rarity === 'legendary' || item.rarity === 'mythic') {
                 const stats = await generateLegendaryStats(item.name, item.description, state.ui.apiKey, state.ui.hordeApiKey, state.ui.selectedTextModel, dispatch);
                 item.stats = { ...item.stats, ...stats };
