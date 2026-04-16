@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block content %}
+    <div class="game-container">
+        <div class="stats-panel">
+            {% include "components/stats_panel.html" %}
+        </div>
+        <div class="main-panel">
+            <div class="narrative-log">
+                {% include "components/narrative_log.html" %}
+            </div>
+            <div class="actions">
+                {% include "components/actions.html" %}
+            </div>
+        </div>
+    </div>
+{% endblock %}
