@@ -11,8 +11,8 @@ export const ES_LOCATIONS: Record<string, any> = {
     items: ['dwemer_bronze_sword', 'dwemer_gyro_core', 'aetherium_shard'],
     actions: [
       { id: 'explore_corridors', intent: 'work', label: 'Explore the bronze corridors', skill: 'athletics', difficulty: 40, reward: { gold: 15, xp: 30 } },
-      { id: 'salvage_tech', intent: 'crime', label: 'Salvage Dwemer technology', skill: 'skulduggery', difficulty: 50, reward: { gold: 25, items: ['dwemer_gyro_core'], xp: 40 } },
-      { id: 'activate_machine', intent: 'study', label: 'Activate dormant machinery', skill: 'magic', difficulty: 60, reward: { xp: 60, items: ['aetherium_shard'] } },
+      { id: 'salvage_tech', intent: 'stealth', label: 'Salvage Dwemer technology', skill: 'skulduggery', difficulty: 50, reward: { gold: 25, items: ['dwemer_gyro_core'], xp: 40 } },
+      { id: 'activate_machine', intent: 'education', label: 'Activate dormant machinery', skill: 'magic', difficulty: 60, reward: { xp: 60, items: ['aetherium_shard'] } },
     ],
   },
 
