@@ -11,6 +11,10 @@ export { darkSanctuaryData } from './dark_sanctuary';
 export { sleepingGiantData } from './sleeping_giant';
 export { khajiitCaravanData } from './khajiit_caravan';
 export { jorrvaskrData } from './jorrvaskr';
+export { senchalData } from './senchal';
+export { rimmenData } from './rimmen';
+export { orcrestData } from './orcrest';
+export { duneData } from './dune';
 
 export type { LocationData, LocationEvent } from './temple_of_mara';
 
@@ -23,6 +27,14 @@ export const elderscrollsLocations = [
   { id: 'sleeping_giant', name: 'Sleeping Giant Inn', region: 'Riverwood' },
   { id: 'khajiit_caravan', name: 'Khajiit Caravan', region: 'Travelling' },
   { id: 'jorrvaskr', name: 'Jorrvaskr', region: 'Whiterun' },
+  { id: 'silvenar', name: 'Silvenar', region: 'Valenwood' },
+  { id: 'elden_grove', name: 'Elden Grove', region: 'Valenwood' },
+  { id: 'arenthia', name: 'Arenthia', region: 'Valenwood' },
+  { id: 'cormount', name: 'Cormount', region: 'Valenwood' },
+  { id: 'senchal', name: 'Senchal', region: 'Elsweyr (Pellitine)' },
+  { id: 'rimmen', name: 'Rimmen', region: 'Elsweyr (Anequina)' },
+  { id: 'orcrest', name: 'Orcrest', region: 'Elsweyr (Anequina)' },
+  { id: 'dune', name: 'Dune', region: 'Elsweyr' },
 ];
 
 export default elderscrollsLocations;
