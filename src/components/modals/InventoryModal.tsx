@@ -190,7 +190,7 @@ export const InventoryModal: React.FC<InventoryModalProps> = ({ state, dispatch,
               onClick={(e) => e.stopPropagation()}
               className="bg-[#0a0a0a] border border-amber-900/30 p-8 rounded-sm max-w-2xl w-full relative shadow-2xl overflow-y-auto max-h-[90vh] z-10"
             >
-              <button aria-label="Close" onClick={() => setSelectedItem(null)} className="absolute top-6 right-6 text-white/40 hover:text-white"><X className="w-6 h-6" /></button>
+              <button aria-label={`Close ${selectedItem.name}`} onClick={() => setSelectedItem(null)} className="absolute top-6 right-6 text-white/40 hover:text-white"><X className="w-6 h-6" /></button>
               
               <div className="flex items-center gap-3 mb-6 border-b border-white/10 pb-4">
                 <h2 className="text-2xl font-serif text-amber-500/90 tracking-widest uppercase">{selectedItem.name}</h2>
