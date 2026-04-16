@@ -8,6 +8,7 @@ def resolve_encounter(encounter: Encounter, action: str) -> Tuple[Encounter, str
     Process player's chosen action in combat.
     Returns updated encounter and narrative.
     """
+    narrative = ""
     # Example: "flee"
     if action == "flee":
         success = random.random() < 0.5  # based on speed skill
