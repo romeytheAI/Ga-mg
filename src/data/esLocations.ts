@@ -139,7 +139,7 @@ export const ES_LOCATIONS: Record<string, any> = {
     id: 'loc_es_wayrest',
     name: 'Wayrest',
     description: 'The glittering jewel of the Iliac Bay. Wayrest is a city of high spires, sprawling markets, and intricate political webs. The air here smells of expensive perfumes, imported spices, and hidden daggers. Every smile in the merchant district is a transaction, and every shadow in the noble quarter hides a spy.',
-    danger: 30,
+    danger: 0.3,
     atmosphere: 'wealthy, treacherous, politically charged',
     exits: ['loc_es_daggerfall', 'loc_es_camlorn', 'crossroads'],
     features: ['grand_bazaar', 'castle_wayrest', 'fighters_guild_hall', 'dark_alleys'],
