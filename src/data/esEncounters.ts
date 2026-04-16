@@ -120,4 +120,25 @@ export const ES_ENCOUNTERS: EncounterDefinition[] = [
     anatomy: PREDEFINED_ANATOMIES.noble,
     image_url: 'https://images.unsplash.com/photo-1532372320572-cda25653a26d?auto=format&fit=crop&q=80&w=1200&h=800',
   },
+  {
+    id: 'ordinator_patrol',
+    condition: (state: GameState) => state.world.current_location.id === 'loc_es_vivec_city',
+    outcome: 'An Ordinator in golden Indoril armor blocks your path. His mask is frozen in a stern expression. "We\'re watching you, scum," he growls, hand resting on his ebony mace. "Let\'s keep it official." His gaze follows you until you are out of sight.',
+    anatomy: PREDEFINED_ANATOMIES.thug,
+    image_url: 'https://images.unsplash.com/photo-1585366119957-e9730b6d0f60?auto=format&fit=crop&q=80&w=1200&h=800',
+  },
+  {
+    id: 'cliff_racer_attack',
+    condition: (state: GameState) => ['loc_es_balmora', 'loc_es_sadrith_mora'].includes(state.world.current_location.id || '') && state.world.turn_count % 30 === 0,
+    outcome: 'A piercing shriek echoes from above. You look up to see a leathery shape diving out of the sky. A Cliff Racer! Its terrifying screech announces its intent to peck your eyes out. The local guards don\'t even look up; they are used to this nuisance.',
+    anatomy: PREDEFINED_ANATOMIES.feral_dog,
+    image_url: 'https://images.unsplash.com/photo-1534361960057-19889db9621e?auto=format&fit=crop&q=80&w=1200&h=800',
+  },
+  {
+    id: 'ashlander_scout',
+    condition: (state: GameState) => state.world.current_location.id === 'loc_es_kogoruhn',
+    outcome: 'An Ashlander scout emerges from the blowing ash, face wrapped in chitin and cloth. He points a spear at your chest. "Outlander. You walk where the tribes do not. The blight is strong here. Turn back, or become part of the ash." He vanishes back into the storm before you can reply.',
+    anatomy: PREDEFINED_ANATOMIES.average,
+    image_url: 'https://images.unsplash.com/photo-1532372320572-cda25653a26d?auto=format&fit=crop&q=80&w=1200&h=800',
+  },
 ];
