@@ -605,7 +605,11 @@ export function gameReducer(state: GameState, action: any): GameState {
       // 16. Tick simulation engine if available
       let nextSimWorld = state.sim_world;
       if (nextSimWorld) {
+        console.time('SimTick:RESOLVE_TEXT');
+        const prevTickTurn = nextSimWorld.turn;
         nextSimWorld = tickSimulation(nextSimWorld);
+        console.timeEnd('SimTick:RESOLVE_TEXT');
+        console.debug(`[SimTick] Turn advanced: ${prevTickTurn} -> ${nextSimWorld.turn}`);
       }
 
       const basePlayer = {
@@ -962,10 +966,49 @@ export function gameReducer(state: GameState, action: any): GameState {
         }
       };
 
+    case 'PASS_TIME': {
+      const hoursPassed = action.payload?.hours || 1;
+
+      const newWorld = { ...state.world };
+      const previousDay = newWorld.day;
+      newWorld.hour += hoursPassed;
+      while (newWorld.hour >= 24) {
+        newWorld.hour -= 24;
+        newWorld.day += 1;
+        newWorld.week_day = advanceWeekDay(newWorld.week_day, 1);
+      }
+
+      let nextSimWorld = state.sim_world;
+      if (nextSimWorld) {
+        console.time('SimTick:PASS_TIME');
+        for (let i = 0; i < hoursPassed; i++) {
+            nextSimWorld = tickSimulation(nextSimWorld);
+        }
+        console.timeEnd('SimTick:PASS_TIME');
+        console.debug(`[SimTick:PASS_TIME] Advanced ${hoursPassed} hours to turn ${nextSimWorld.turn}`);
+      }
+
+      return {
+        ...state,
+        world: newWorld,
+        sim_world: nextSimWorld,
+        ui: {
+            ...state.ui,
+            currentLog: [
+                ...state.ui.currentLog,
+                { text: `You wait for ${hoursPassed} hour${hoursPassed > 1 ? 's' : ''}.`, type: 'narrative' }
+            ]
+        }
+      };
+    }
+
     // ── Simulation engine ────────────────────────────────────────────────
     case 'SIM_TICK': {
       if (!state.sim_world) return state;
+      console.time('SimTick:MANUAL');
       const nextSimWorld: SimWorld = tickSimulation(state.sim_world);
+      console.timeEnd('SimTick:MANUAL');
+      console.debug(`[SimTick:MANUAL] Turn advanced to ${nextSimWorld.turn}`);
       return { ...state, sim_world: nextSimWorld };
     }
 

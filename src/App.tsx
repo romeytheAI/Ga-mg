@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useReducer, createContext, useCallback, Component, Suspense } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { 
+import { CalendarDays, Hourglass,
   Heart, Wind, Moon, Settings, X, BookOpen, User, Map as MapIcon, 
   Shield, Sword, Zap, Droplets, AlertTriangle, Ghost, Sparkles, 
   Layers, ShoppingBag, Eye, EyeOff, Thermometer, Clock, Calendar, RefreshCw, Book,
@@ -700,6 +700,23 @@ Example: { "health": 50, "allure": 20 }`;
             >
               <Book className="w-4 h-4 text-white/40 group-hover:text-white/80" />
               <span className="text-[10px] tracking-widest uppercase text-white/50 group-hover:text-white/90">Journal</span>
+            </motion.button>
+            <motion.button
+              whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
+              onClick={() => dispatch({ type: 'PASS_TIME', payload: { hours: 24 } })}
+              title="Debug: Pass 24 Hours (Sanity Test)"
+              className="group flex items-center gap-2 px-3 py-1.5 border border-red-500/20 hover:border-red-500/50 bg-red-900/10 transition-all rounded-sm ml-2"
+            >
+              <CalendarDays className="w-4 h-4 text-red-400/50 group-hover:text-red-400/90" />
+              <span className="text-[10px] tracking-widest uppercase text-red-400/60 group-hover:text-red-400">Pass Day</span>
+            </motion.button>
+            <motion.button
+              whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
+              onClick={() => dispatch({ type: 'PASS_TIME', payload: { hours: 1 } })}
+              className="group flex items-center gap-2 px-3 py-1.5 border border-white/10 hover:border-white/30 transition-all rounded-sm"
+            >
+              <Hourglass className="w-4 h-4 text-emerald-400/40 group-hover:text-emerald-400/80" />
+              <span className="text-[10px] tracking-widest uppercase text-white/50 group-hover:text-white/90">Pass Time</span>
             </motion.button>
             <motion.button 
               whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
