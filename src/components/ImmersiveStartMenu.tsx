@@ -455,6 +455,7 @@ export const ImmersiveStartMenu: React.FC<ImmersiveStartMenuProps> = ({ onStartG
                               <Upload className="w-4 h-4" />
                             </button>
                             <button 
+                              aria-label={`Delete save ${save.name} (Hold to confirm)`}
                               className="p-2 hover:bg-red-900/50 text-white/40 hover:text-red-400 transition-colors" 
                               title="Delete Save (Hold)"
                               onMouseDown={(e) => {

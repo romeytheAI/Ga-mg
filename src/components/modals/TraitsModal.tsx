@@ -58,6 +58,7 @@ export const TraitsModal: React.FC<TraitsModalProps> = ({ state, dispatch }) => 
         className="bg-[#0a0a0a] border border-white/10 p-8 rounded-sm max-w-2xl w-full relative shadow-2xl overflow-y-auto max-h-[90vh] z-10"
       >
         <button
+          aria-label="Close Traits"
           onClick={() => dispatch({ type: 'TOGGLE_UI_SETTING', payload: { key: 'show_traits', value: false } })}
           className="absolute top-6 right-6 text-white/40 hover:text-white"
         >
@@ -226,6 +227,7 @@ export const TraitsModal: React.FC<TraitsModalProps> = ({ state, dispatch }) => 
                     )}
                   </div>
                   <button
+                    aria-label={`Remove trait ${trait.name}`}
                     onClick={() => dispatch({ type: 'REMOVE_TRAIT', payload: trait.id })}
                     className="text-white/20 hover:text-red-400 transition-colors shrink-0 ml-2"
                     title="Remove trait"
