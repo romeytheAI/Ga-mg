@@ -278,6 +278,8 @@ export const initialState: GameState = {
       global_events: [],
       locations,
       active_combats: [],
+      factions: [],
+      criminal_records: {},
     };
   })(),
   horde_queue: [],

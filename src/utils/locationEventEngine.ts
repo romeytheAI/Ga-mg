@@ -24,18 +24,18 @@ export type LocationActionResolution =
 export function annotateActionsWithChance(
   actions: unknown[],
   state: GameState,
-): unknown[] {
+): { id: string; label: string; intent: string; successChance?: number }[] {
   if (!Array.isArray(actions)) return [];
   return actions.map((item: unknown) => {
-    const action = item as Record<string, unknown>;
-    if (!action.skill_check) return action;
-    const check = action.skill_check as { stat: string; difficulty: number };
+    const action = item as { id: string; label: string; intent: string; successChance?: number; skill_check?: { stat: string; difficulty: number }; [key: string]: unknown };
+    if (!action.skill_check) return action as { id: string; label: string; intent: string; successChance?: number };
+    const check = action.skill_check;
     const statVal =
       (state.player.stats as any)[check.stat] ??
       (state.player.skills as any)[check.stat] ??
       0;
     const chance = Math.min(100, Math.max(5, (statVal / check.difficulty) * 50 + 25));
-    return { ...action, successChance: Math.round(chance) };
+    return { ...action, successChance: Math.round(chance) } as { id: string; label: string; intent: string; successChance?: number };
   });
 }
 

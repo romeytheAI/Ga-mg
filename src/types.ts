@@ -981,12 +981,11 @@ export interface GameState {
     arcane: any,
     justice: any,
     dreamscape: any,
-    ascension_state: 'none' | 'divine_spark' | 'daedric_champion' | 'hist_devoted' | 'sheogorath_touched',
+    ascension_state: 'none' | 'divine_spark' | 'daedric_champion' | 'hist_devoted' | 'sheogorath_touched' | 'pure_soul' | 'void_lord' | 'broodmother' | 'asylum',
     director_cut: boolean,
     active_encounter: ActiveEncounter | null,
     active_story_event: ActiveStoryEvent | null
   },
-  memory_graph: string[],
   /** UI/presentation layer state - polling, display, settings (not persisted in saves) */
   ui: {
     /** AI Horde text generation in progress */

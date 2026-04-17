@@ -187,12 +187,12 @@ function normalizeInventory(inventory: Item[] | undefined, clothing: GameState['
   });
 }
 
-function normalizeActiveStoryEvent(activeStoryEvent: Partial<GameState['world']['active_story_event']> | null | undefined) {
+function normalizeActiveStoryEvent(activeStoryEvent: Partial<GameState['world']['active_story_event']> | null | undefined): import('../types').ActiveStoryEvent | null {
   if (!activeStoryEvent?.id) return null;
 
   return {
-    ...activeStoryEvent,
     id: LEGACY_STORY_ID_MAP[activeStoryEvent.id] || activeStoryEvent.id,
+    current_node: activeStoryEvent.current_node ?? 'start',
   };
 }
 
@@ -234,8 +234,8 @@ export function migrateGameState(rawState: unknown): GameState {
   const candidate = (rawState && typeof rawState === 'object' ? rawState : {}) as PartialGameState;
   // v7: migrate legacy ES enum values (parasite species, ascension paths, disease types, skill/feat names)
   const player = migrateESContent(candidate.player || {});
-  const world = candidate.world || {};
-  const ui = candidate.ui || {};
+  const world = (candidate.world || {}) as Partial<GameState['world']>;
+  const ui = (candidate.ui || {}) as Partial<GameState['ui']>;
   const clothing = {
     ...initialState.player.clothing,
     ...(player.clothing || {}),
@@ -376,7 +376,7 @@ export async function saveGame(id: string, state: GameState): Promise<void> {
     const saveObj: SaveSlot = {
       id,
       name: state.player?.identity?.name || 'Unknown',
-      level: state.player?.stats?.level || 1,
+      level: (state.player?.stats as any)?.level || 1,
       location: state.world?.current_location?.name || 'Unknown',
       day: state.world?.day || 1,
       trauma: state.player?.stats?.trauma || 0,

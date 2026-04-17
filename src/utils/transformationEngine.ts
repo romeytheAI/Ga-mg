@@ -41,6 +41,7 @@ function toCorruptionState(state: GameState): CorruptionState {
     willpower: state.player.stats.willpower,
     purity: state.player.stats.purity,
     submission: state.player.psych_profile.submission_index,
+    control: state.player.stats.control,
   };
 }
 

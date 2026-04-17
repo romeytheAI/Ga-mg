@@ -70,7 +70,7 @@ export const ES_WORLD_EVENTS: WorldEvent[] = [
     effects: [
       { type: 'shrine_activation', shrines: ['sanguine', 'vaermina', 'molag_bal'] },
       { type: 'temptation_encounters', frequency: 3 },
-      { type: 'player_choice', type: 'daedric_pact', princes: ['sanguine', 'vaermina', 'molag_bal'] },
+      { type: 'player_choice', choice_type: 'daedric_pact', princes: ['sanguine', 'vaermina', 'molag_bal'] },
     ],
     duration_days: 7,
     world_state_changes: {
@@ -87,8 +87,8 @@ export const ES_WORLD_EVENTS: WorldEvent[] = [
     triggers: ['q_es4_dwemer_echoes.active'],
     effects: [
       { type: 'danger_increase', scope: 'dwemer_locations', multiplier: 1.4 },
-      { type: 'spawn_automata', type: ['sphere', 'spider', 'centurion'], frequency: 'dwemer_dungeons' },
-      { type: 'salvage_opportunity', type: 'dwemer_tech', value: 'high' },
+      { type: 'spawn_automata', unit_types: ['sphere', 'spider', 'centurion'], frequency: 'dwemer_dungeons' },
+      { type: 'salvage_opportunity', salvage_type: 'dwemer_tech', value: 'high' },
     ],
     duration_days: 5,
     world_state_changes: {
@@ -123,7 +123,7 @@ export const ES_WORLD_EVENTS: WorldEvent[] = [
     triggers: ['world.day % 60 === 0'],
     effects: [
       { type: 'stat_boost', all_stats: 5, duration: 3 },
-      { type: 'unlock_magic', type: 'spirit_magic', duration: 3 },
+      { type: 'unlock_magic', magic_type: 'spirit_magic', duration: 3 },
       { type: 'npc_blessing', npc: 'Skaal Shaman', effect: 'healing' },
     ],
     duration_days: 3,
@@ -179,7 +179,7 @@ export const ES_WORLD_EVENTS: WorldEvent[] = [
     triggers: ['q_es8_miraaks_whispers.active'],
     effects: [
       { type: 'black_books_spawn', locations: 'ruins', quantity: 3 },
-      { type: 'unlock_shouts', type: 'dragon_shout', count: 1 },
+      { type: 'unlock_shouts', shout_type: 'dragon_shout', count: 1 },
       { type: 'willpower_drain', rate: 0.5, reason: 'miraak_influence' },
       { type: 'unlock_location', location_id: 'loc_es_apocrypha' },
     ],
