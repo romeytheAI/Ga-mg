@@ -800,7 +800,10 @@ const ENCOUNTERS = [
   },
   {
     id: 'thalmor_patrol',
-    condition: (state: GameState) => state.world.current_location.lore?.factions?.includes('Thalmor') || state.world.current_location.lore?.province === 'Skyrim',
+    condition: (state: GameState) =>
+      state.world.current_location.lore?.factions?.some(
+        f => f.toLowerCase().includes('thalmor')
+      ) || state.world.current_location.lore?.province === 'Skyrim',
     outcome: "A trio of Thalmor Justiciars in gleaming elven mail halt you, demanding proof of loyalty to the Dominion and searching for Talos worshippers."
   },
   {
