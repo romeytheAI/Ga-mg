@@ -11,6 +11,10 @@ export { darkSanctuaryData } from './dark_sanctuary';
 export { sleepingGiantData } from './sleeping_giant';
 export { khajiitCaravanData } from './khajiit_caravan';
 export { jorrvaskrData } from './jorrvaskr';
+export { senchalData } from './senchal';
+export { rimmenData } from './rimmen';
+export { orcrestData } from './orcrest';
+export { duneData } from './dune';
 
 export type { LocationData, LocationEvent } from './temple_of_mara';
 

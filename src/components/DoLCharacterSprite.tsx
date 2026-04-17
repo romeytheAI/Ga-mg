@@ -27,7 +27,7 @@ interface DoLCharacterSpriteProps {
   showXRay?: boolean;
 }
 
-export const DoLCharacterSprite: React.FC<DoLCharacterSpriteProps> = ({ state, compact = false, showXRay = false }) => {
+export const DoLCharacterSprite: React.FC<DoLCharacterSpriteProps> = React.memo(({ state, compact = false, showXRay = false }) => {
   const { clothing, clothing_state, identity, cosmetics, stats, biology } = state.player;
   const graphicsQuality = state.ui.graphics_quality;
   const raceDef   = resolveRace(identity.race);
@@ -378,4 +378,4 @@ export const DoLCharacterSprite: React.FC<DoLCharacterSpriteProps> = ({ state, c
       )}
     </div>
   );
-};
+});
