@@ -640,7 +640,7 @@ const NPCS: Record<string, any> = {
     description: "Riften's power broker. Her voice is honey over daggers, and every guard in town answers to her coin. She smells faintly of juniper mead and danger.",
     responses: {
       'social': { narrative_text: "She eyes you like a resource. 'If you want coin, earn it. Loyalty is bought, not begged.'", stat_deltas: { stress: 10, willpower: 3 } },
-      'work': { narrative_text: "She assigns you a menial task with a thin smile. 'Don't fail me. People who do tend to disappear.'", stat_deltas: { stamina: -15, trauma: 2, money: 5 } }
+      'work': { narrative_text: "She assigns you a menial task with a thin smile. 'Don't fail me. People who do tend to disappear.'", stat_deltas: { stamina: -15, trauma: 2 } }
     }
   },
   'aela_the_huntress': {
