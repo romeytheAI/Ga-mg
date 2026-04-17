@@ -13,7 +13,7 @@ interface NarrativeLogProps {
   accessibilityMode: boolean;
 }
 
-export const NarrativeLog = ({ logs, trauma, accessibilityMode }: NarrativeLogProps) => {
+export const NarrativeLog = React.memo(({ logs, trauma, accessibilityMode }: NarrativeLogProps) => {
   return (
     <div className="flex-1 overflow-y-auto p-8 flex flex-col gap-6 scrollbar-hide">
       {logs.slice(-20).map((log, i) => {
@@ -41,4 +41,4 @@ export const NarrativeLog = ({ logs, trauma, accessibilityMode }: NarrativeLogPr
       })}
     </div>
   );
-};
+});
