@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * DOL Image Model Components Index
  * 

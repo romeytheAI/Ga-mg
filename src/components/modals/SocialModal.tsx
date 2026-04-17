@@ -95,7 +95,8 @@ export const SocialModal: React.FC<SocialModalProps> = ({ state, dispatch }) => 
         initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }}
         className="bg-[#0a0a0a] border border-white/10 p-8 rounded-sm max-w-4xl w-full relative shadow-2xl overflow-y-auto max-h-[90vh] z-10"
       >
-        <button onClick={() => dispatch({ type: 'TOGGLE_UI_SETTING', payload: { key: 'show_social', value: false } })} className="absolute top-6 right-6 text-white/40 hover:text-white"><X className="w-6 h-6" /></button>
+        <button onClick={() => dispatch({ type: 'TOGGLE_UI_SETTING', payload: { key: 'show_social', value: false } })} className="absolute top-6 right-6 text-white/40 hover:text-white" aria-label="Close modal">
+              <X className="w-6 h-6" /></button>
 
         <div className="flex items-center gap-3 mb-6 border-b border-white/10 pb-4">
           <Users className="w-5 h-5 text-pink-400" />

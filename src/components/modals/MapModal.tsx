@@ -74,7 +74,8 @@ export const MapModal: React.FC<MapModalProps> = ({ state, dispatch, handleActio
         initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }}
         className="bg-[#0a0a0a] border border-white/10 p-8 rounded-sm max-w-4xl w-full relative shadow-2xl overflow-y-auto max-h-[90vh] z-10"
       >
-        <button onClick={handleClose} className="absolute top-6 right-6 text-white/40 hover:text-white"><X className="w-6 h-6" /></button>
+        <button onClick={handleClose} className="absolute top-6 right-6 text-white/40 hover:text-white" aria-label="Close modal">
+              <X className="w-6 h-6" /></button>
         <h2 className="text-2xl font-serif text-white/90 mb-8 border-b border-white/10 pb-4 tracking-widest uppercase">Cartography of Tamriel</h2>
         
         <div className="grid grid-cols-3 gap-8">

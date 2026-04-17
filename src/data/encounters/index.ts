@@ -5,18 +5,18 @@
  */
 
 // Combat Encounters
-export { banditAmbushEncounter } from './bandit_ambush';
-export { wolfPackEncounter } from './wolf_pack';
-export { sprigganAttackEncounter } from './spriggan_attack';
-export { draugrTombEncounter } from './draugr_tomb';
-export { forswornRaidEncounter } from './forsworn_raid';
+export { bandit_ambushEncounter } from './bandit_ambush';
+export { wolf_packEncounter } from './wolf_pack';
+export { spriggan_attackEncounter } from './spriggan_attack';
+export { draugr_tombEncounter } from './draugr_tomb';
+export { forsworn_raidEncounter } from './forsworn_raid';
 
 // Social Encounters
-export { thievesGuildShakedownEncounter } from './thieves_guild_shakedown';
-export { imperialPatrolEncounter } from './imperial_patrol';
-export { vampireHunterEncounter } from './vampire_hunter';
-export { seductionAttemptEncounter } from './seduction_attempt';
-export { corruptGuardEncounter } from './corrupt_guard';
+export { thieves_guild_shakedownEncounter } from './thieves_guild_shakedown';
+export { imperial_patrolEncounter } from './imperial_patrol';
+export { vampire_hunterEncounter } from './vampire_hunter';
+export { seduction_attemptEncounter } from './seduction_attempt';
+export { corrupt_guardEncounter } from './corrupt_guard';
 
 export type { EncounterData, EncounterOutcome } from './bandit_ambush';
 

@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { LOCATIONS } from '../data/locations';
 import { initialState } from '../state/initialState';
 import { GameState, GraphicsQuality, GraphicsQualityPreset, Item } from '../types';

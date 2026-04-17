@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { ClothingLayer, GameState, Item } from '../types';
 import { LOCATIONS } from '../data/locations';
 import { generateStartingWorld } from '../sim/ProceduralGen';

@@ -26,7 +26,7 @@ const friendRel: NpcRelationship = {
   sub: 0,
   milestone: 'friend',
   met_on_day: 1,
-  scene_flags: {},
+  scene_flags: {}, last_interaction_day: 0, interaction_count: 0,
 };
 
 const acquaintanceRel: NpcRelationship = {
@@ -273,7 +273,7 @@ describe('computeDailyStatDeltas', () => {
       world: {
         ...initialState.world,
         npc_relationships: {
-          constance_michel: { npc_id: 'constance_michel', trust: 50, love: 0, fear: 0, dom: 0, sub: 0, milestone: 'friend', met_on_day: 1, scene_flags: {} },
+          constance_michel: { npc_id: 'constance_michel', trust: 50, love: 0, fear: 0, dom: 0, sub: 0, milestone: 'friend', met_on_day: 1, scene_flags: {}, last_interaction_day: 0, interaction_count: 0 },
         },
       },
     };
@@ -287,7 +287,7 @@ describe('computeDailyStatDeltas', () => {
       world: {
         ...initialState.world,
         npc_relationships: {
-          constance_michel: { npc_id: 'constance_michel', trust: 10, love: 0, fear: 0, dom: 0, sub: 0, milestone: 'acquaintance', met_on_day: 1, scene_flags: {} },
+          constance_michel: { npc_id: 'constance_michel', trust: 10, love: 0, fear: 0, dom: 0, sub: 0, milestone: 'acquaintance', met_on_day: 1, scene_flags: {}, last_interaction_day: 0, interaction_count: 0 },
         },
       },
     };
