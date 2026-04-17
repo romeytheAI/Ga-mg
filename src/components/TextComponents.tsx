@@ -32,15 +32,19 @@ const SEMANTIC_KEYWORD_REGEX = /(\bBlood\b|\bSeptims\b|\bGold\b|\bPain\b|\bDeath
 
 export const SemanticText = React.memo(({ text, className }: { text: string, className?: string }) => {
   // Regex auto-colors keywords
-  const parts = React.useMemo(() => text.split(SEMANTIC_KEYWORD_REGEX), [text]);
+  const content = React.useMemo(() => {
+    const parts = text.split(SEMANTIC_KEYWORD_REGEX);
+    return parts.map((part, i) => {
+      if (part.match(SEMANTIC_KEYWORD_REGEX)) {
+        return <span key={i} className="text-rose-400 font-bold">{part}</span>;
+      }
+      return part;
+    });
+  }, [text]);
+
   return (
     <span className={className}>
-      {parts.map((part, i) => {
-        if (part.match(SEMANTIC_KEYWORD_REGEX)) {
-          return <span key={i} className="text-rose-400 font-bold">{part}</span>;
-        }
-        return part;
-      })}
+      {content}
     </span>
   );
 });
