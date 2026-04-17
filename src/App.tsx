@@ -908,14 +908,25 @@ Example: { "health": 50, "allure": 20 }`;
           {/* Hero Image Container */}
           <div className={`relative w-full max-w-2xl aspect-[4/3] rounded-sm overflow-hidden border border-white/10 shadow-2xl shadow-black/80 z-10 bg-[#0a0a0a] ${visualEffectClasses}`}>
             {state.ui.currentImage ? (
-              <motion.img 
-                key={state.ui.currentImage}
-                src={state.ui.currentImage} 
-                className="w-[110%] h-[110%] -left-[5%] -top-[5%] absolute object-cover will-change-transform"
-                style={{ transform: 'translateZ(0)' }}
-                animate={{ x: mousePos.x, y: mousePos.y }}
-                transition={{ type: 'spring', stiffness: 40, damping: 30 }}
-              />
+              <>
+                <motion.img
+                  key={state.ui.currentImage}
+                  src={state.ui.currentImage}
+                  className={`w-[110%] h-[110%] -left-[5%] -top-[5%] absolute object-cover will-change-transform ${shouldCensorImage(state) ? 'blur-3xl' : ''}`}
+                  style={{ transform: 'translateZ(0)' }}
+                  animate={{ x: mousePos.x, y: mousePos.y }}
+                  transition={{ type: 'spring', stiffness: 40, damping: 30 }}
+                />
+                {shouldCensorImage(state) && (
+                  <div className="absolute inset-0 bg-black/70 flex items-center justify-center">
+                    <div className="text-center">
+                      <EyeOff className="w-16 h-16 text-white/40 mx-auto mb-4" />
+                      <p className="text-xs tracking-widest uppercase text-white/60">Streamer Mode Active</p>
+                      <p className="text-[10px] text-white/40 mt-1">Content Obscured</p>
+                    </div>
+                  </div>
+                )}
+              </>
             ) : (
               <div className="absolute inset-0 flex items-center justify-center">
                 <div className="w-32 h-[1px] bg-gradient-to-r from-transparent via-white/20 to-transparent" />
