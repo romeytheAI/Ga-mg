@@ -14,6 +14,8 @@ interface NarrativeLogProps {
 }
 
 export const NarrativeLog = React.memo(({ logs, trauma, accessibilityMode }: NarrativeLogProps) => {
+  const startIndex = Math.max(0, logs.length - 20);
+
   return (
     <div className="flex-1 overflow-y-auto p-8 flex flex-col gap-6 scrollbar-hide">
       {logs.slice(-20).map((log, i) => {
@@ -25,7 +27,7 @@ export const NarrativeLog = React.memo(({ logs, trauma, accessibilityMode }: Nar
         
         return (
           <motion.div 
-            key={i}
+            key={startIndex + i}
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             className={`relative ${isNarrative ? `text-white/80 ${accessibilityMode ? 'font-sans' : 'font-serif'} text-lg leading-relaxed` : isAction ? 'text-emerald-400/80 text-sm tracking-wide italic border-l-2 border-emerald-500/30 pl-4 py-1 bg-emerald-950/10' : 'text-blue-400/80 text-xs tracking-widest uppercase border border-blue-900/30 px-3 py-2 bg-blue-950/10 rounded-sm inline-block self-start'}`}
