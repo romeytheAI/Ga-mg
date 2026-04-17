@@ -50,8 +50,8 @@ export const FeatsModal: React.FC<FeatsModalProps> = ({ state, dispatch }) => {
           aria-label="Close Feats"
           onClick={() => dispatch({ type: 'TOGGLE_UI_SETTING', payload: { key: 'show_feats', value: false } })}
           className="absolute top-6 right-6 text-white/40 hover:text-white"
-        >
-          <X className="w-6 h-6" />
+         aria-label="Close modal">
+              <X className="w-6 h-6" />
         </button>
 
         <div className="flex items-center gap-3 mb-6 border-b border-white/10 pb-4">

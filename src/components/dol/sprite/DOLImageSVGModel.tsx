@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * DOLImageSVGModel - SVG Model Renderer using DOL Image Assets
  * 

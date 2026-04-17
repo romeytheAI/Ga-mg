@@ -1879,8 +1879,8 @@ Example: { "health": 50, "allure": 20 }`;
                 aria-label="Close Companion Roster"
                 onClick={() => setShowCompanions(false)}
                 className="absolute top-6 right-6 text-white/40 hover:text-white transition-colors"
-              >
-                <X className="w-5 h-5" />
+               aria-label="Close modal">
+              <X className="w-5 h-5" />
               </button>
               
               <h2 className="text-xl font-serif text-white/90 mb-6 flex items-center gap-3">

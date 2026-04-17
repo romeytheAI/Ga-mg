@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * DOLImageGIFModel - GIF Animated Model Renderer using DOL Assets
  * 

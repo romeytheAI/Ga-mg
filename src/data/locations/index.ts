@@ -4,12 +4,12 @@
  * All locations reskinned from Degrees of Lewdity to fit Elder Scrolls lore
  */
 
-export { templeOfMaraData } from './temple_of_mara';
+export { temple_of_maraData } from './temple_of_mara';
 export { ratwayData } from './ratway';
 export { skyforgeData } from './skyforge';
-export { darkSanctuaryData } from './dark_sanctuary';
-export { sleepingGiantData } from './sleeping_giant';
-export { khajiitCaravanData } from './khajiit_caravan';
+export { dark_sanctuaryData } from './dark_sanctuary';
+export { sleeping_giantData } from './sleeping_giant';
+export { khajiit_caravanData } from './khajiit_caravan';
 export { jorrvaskrData } from './jorrvaskr';
 export { senchalData } from './senchal';
 export { rimmenData } from './rimmen';

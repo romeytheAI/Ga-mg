@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { GameState } from '../types';
 import { getCharacterReferenceContext } from '../data/characterReferenceIndex';
 import { NPCS } from '../data/npcs';

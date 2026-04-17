@@ -360,7 +360,6 @@ export const ES_LOCATIONS: Record<string, any> = {
     danger: 0.35,
     atmosphere: 'ancient, magical, rain-swept',
     exits: ['loc_es_wayrest', 'crossroads'],
-    features: ['mages_guild_headquarters', 'castle_daggerfall', 'ancient_crypts', 'bustling_port'],
     npcs: ['npc_es_mages_guild_scholar', 'npc_es_daggerfall_knight'],
     items: ['spell_tome', 'daggerfall_steel_sword', 'mana_potion'],
     actions: [

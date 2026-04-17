@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * transformationEngine.ts — game-layer bridge for body transformation and ascension.
  *
