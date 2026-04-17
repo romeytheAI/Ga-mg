@@ -3,6 +3,7 @@ import { getRelevantLore } from '../lore';
 import { imageWorker } from '../utils/workers';
 import { costTracker } from '../dafl/CostTracker';
 import { SemanticAudit } from '../dafl/SemanticAudit';
+import { predictiveCache, computeHeuristics, type CacheCategory, type PredictiveHeuristics } from './predictiveCache';
 
 export async function generateText(prompt: string, apiKey: string, hordeApiKey: string, model: string, dispatch?: any, skipLore: boolean = false) {
   const relevantLore = skipLore ? null : getRelevantLore(prompt, 10);
@@ -343,4 +344,71 @@ Example: { "health": 50, "allure": 20 }`;
     return { health: 25, willpower: 25 };
   }
   return {};
+}
+
+// ── AOT / JIT Wrappers ────────────────────────────────────────────────────
+
+/**
+ * JIT text generation: attempts cache lookup first, falls back to
+ * synchronous blocking generation for forced player interrupts.
+ *
+ * This is the ONLY path that should be called from the main game loop
+ * during player actions. It checks the AOT cache first and only blocks
+ * if no pre-generated asset is available.
+ */
+export async function generateTextJIT(
+  state: import('../types').GameState,
+  prompt: string,
+  apiKey: string,
+  hordeApiKey: string,
+  model: string,
+  dispatch?: any,
+  skipLore: boolean = false,
+  category: CacheCategory = 'narrative',
+): Promise<string> {
+  const heuristics = computeHeuristics(state);
+
+  // Attempt AOT cache hit first
+  const cached = predictiveCache.get<string>(category, heuristics);
+  if (cached && typeof cached.payload === 'string') {
+    return cached.payload;
+  }
+
+  // No cache hit — this is a JIT forced interrupt
+  const result = await generateText(prompt, apiKey, hordeApiKey, model, dispatch, skipLore);
+
+  // Cache the result for future AOT lookups
+  predictiveCache.set(category, heuristics, result);
+
+  return result;
+}
+
+/**
+ * JIT image generation: attempts cache lookup first, falls back to
+ * synchronous blocking generation for forced player interrupts.
+ */
+export async function generateImageJIT(
+  state: import('../types').GameState,
+  prompt: string,
+  apiKey: string,
+  hordeApiKey: string,
+  model: string,
+  dispatch?: any,
+  category: CacheCategory = 'image',
+): Promise<string> {
+  const heuristics = computeHeuristics(state);
+
+  // Attempt AOT cache hit first
+  const cached = predictiveCache.get<string>(category, heuristics);
+  if (cached && typeof cached.payload === 'string') {
+    return cached.payload;
+  }
+
+  // No cache hit — this is a JIT forced interrupt
+  const result = await generateImage(prompt, apiKey, hordeApiKey, model, dispatch);
+
+  // Cache the result for future AOT lookups
+  predictiveCache.set(category, heuristics, result);
+
+  return result;
 }

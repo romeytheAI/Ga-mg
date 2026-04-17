@@ -1044,7 +1044,9 @@ export interface GameState {
       enable_pregnancy: boolean,
       enable_extreme_content: boolean
     },
-    graphics_quality: GraphicsQuality
+    graphics_quality: GraphicsQuality,
+    /** AOT predictive cache statistics */
+    aot_cache_stats?: import('./services/predictiveCache').CacheStats
   },
   /** Low-level simulation engine state (NPCs, economy, factions, crime) - see src/sim/types.ts */
   sim_world: import('./sim/types').SimWorld | null,

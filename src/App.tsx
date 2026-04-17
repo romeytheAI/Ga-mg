@@ -18,7 +18,8 @@ import { initialState } from './state/initialState';
 import { gameReducer } from './reducers/gameReducer';
 import { PREDEFINED_ANATOMIES, STABLE_API, DEFAULT_API_KEY, AGE_APPEARANCE } from './constants';
 import { ELDER_SCROLLS_LORE, getRelevantLore } from './lore';
-import { generateText, generateImage, generateLegendaryStats } from './services/api';
+import { generateText, generateImage, generateLegendaryStats, generateTextJIT, generateImageJIT } from './services/api';
+import { predictiveCache, computeHeuristics, startAOTDaemon, stopAOTDaemon } from './services/predictiveCache';
 import { buildTextPromptAsync, buildImagePrompt, getVisualEffectClasses, imageWorker } from './utils/workers';
 import { getSynergies, getAgeTag, getFallbackResponse, getHealthSemantic, getStaminaSemantic, getTraumaSemantic } from './utils/gameLogic';
 import { useEncounterBuffer } from './hooks/useEncounterBuffer';
@@ -185,6 +186,20 @@ function App({ state, dispatch }: { state: GameState, dispatch: React.Dispatch<a
     }
   }, [state.ui.currentLog]);
 
+  // ── AOT Daemon lifecycle ──────────────────────────────────────────────────
+  useEffect(() => {
+    if (!hasStarted) return;
+    startAOTDaemon(
+      () => state,
+      buildTextPromptAsync,
+      buildImagePrompt,
+      generateText,
+      generateImage,
+    );
+    return () => stopAOTDaemon();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hasStarted]);
+
   useEffect(() => {
     if (!hasStarted) return;
     const timeoutId = setTimeout(() => {
@@ -198,7 +213,7 @@ function App({ state, dispatch }: { state: GameState, dispatch: React.Dispatch<a
     if (isInitialMount.current) {
       isInitialMount.current = false;
       dispatch({ type: 'INITIAL_IMAGE_START' });
-      generateImage(buildImagePrompt(state), state.ui.apiKey, state.ui.hordeApiKey, state.ui.selectedImageModel, dispatch)
+      generateImageJIT(state, buildImagePrompt(state), state.ui.apiKey, state.ui.hordeApiKey, state.ui.selectedImageModel, dispatch)
         .then(img => dispatch({ type: 'RESOLVE_IMAGE', payload: img }))
         .catch(() => dispatch({ type: 'RESOLVE_IMAGE_FAILED' }));
     }
@@ -272,7 +287,7 @@ function App({ state, dispatch }: { state: GameState, dispatch: React.Dispatch<a
         const oldestTurns = state.memory_graph.slice(0, 10).join("\\n");
         const prompt = `Summarize the following events into a single concise paragraph representing a distant memory:\n\n${oldestTurns}\n\nOutput ONLY the summary text, no JSON.`;
         try {
-          const summaryText = await generateText(prompt, state.ui.apiKey, state.ui.hordeApiKey, state.ui.selectedTextModel, dispatch, true);
+          const summaryText = await generateTextJIT(state, prompt, state.ui.apiKey, state.ui.hordeApiKey, state.ui.selectedTextModel, dispatch, true, 'memory_summary');
           let summary = summaryText.trim();
           try {
             const jsonMatch = summaryText.match(/\{[\s\S]*\}/);
@@ -376,18 +391,18 @@ function App({ state, dispatch }: { state: GameState, dispatch: React.Dispatch<a
       if (resolution.endEncounter) {
         dispatch({ type: 'SET_ACTIVE_ENCOUNTER', payload: null });
         dispatch({ type: 'INITIAL_IMAGE_START' });
-        generateImage(buildImagePrompt(state), state.ui.apiKey, state.ui.hordeApiKey, state.ui.selectedImageModel, dispatch)
+        generateImageJIT(state, buildImagePrompt(state), state.ui.apiKey, state.ui.hordeApiKey, state.ui.selectedImageModel, dispatch)
           .then(img => dispatch({ type: 'RESOLVE_IMAGE', payload: img }))
           .catch(() => dispatch({ type: 'RESOLVE_IMAGE_FAILED' }));
       } else {
         dispatch({ type: 'UPDATE_ACTIVE_ENCOUNTER', payload: resolution.encounterUpdates });
       }
 
-      // Optional AI narrative enhancement
+      // Optional AI narrative enhancement — JIT for forced player interrupt
       const encPrompt = `The player is in a dark fantasy encounter with ${encounter.enemy_name}. The player chooses to ${actionText} (${intent}). The enemy's health is ${resolution.encounterUpdates.enemy_health}, lust is ${resolution.encounterUpdates.enemy_lust}, anger is ${resolution.encounterUpdates.enemy_anger}. Describe what happens next in 2-3 sentences. Return ONLY valid JSON with a 'narrative_text' field. Example: {"narrative_text": "You struggle fiercely, but the enemy retaliates."}`;
       let aiNarrative = resolution.narrative;
       try {
-        const textResult = await generateText(encPrompt, state.ui.apiKey, state.ui.hordeApiKey, state.ui.selectedTextModel, dispatch);
+        const textResult = await generateTextJIT(state, encPrompt, state.ui.apiKey, state.ui.hordeApiKey, state.ui.selectedTextModel, dispatch, false, 'encounter_narrative');
         const jsonMatch = textResult.match(/\{[\s\S]*\}/);
         if (jsonMatch) {
           const parsed = JSON.parse(jsonMatch[0]);
@@ -459,7 +474,7 @@ function App({ state, dispatch }: { state: GameState, dispatch: React.Dispatch<a
 
         dispatch({ type: 'INITIAL_IMAGE_START' });
         const encounterImagePrompt = `A dark fantasy RPG encounter with ${activeEncounter.enemy_name}. ${encounter.outcome}. Atmospheric, gritty, detailed, cinematic lighting.`;
-        generateImage(encounterImagePrompt, state.ui.apiKey, state.ui.hordeApiKey, state.ui.selectedImageModel, dispatch)
+        generateImageJIT(state, encounterImagePrompt, state.ui.apiKey, state.ui.hordeApiKey, state.ui.selectedImageModel, dispatch, 'encounter_image')
           .then(img => dispatch({ type: 'RESOLVE_IMAGE', payload: img }))
           .catch(() => dispatch({ type: 'RESOLVE_IMAGE_FAILED' }));
 
@@ -538,9 +553,9 @@ function App({ state, dispatch }: { state: GameState, dispatch: React.Dispatch<a
       const prompt = await buildTextPromptAsync(state, actionText);
       let textResult = "";
       try {
-        textResult = await generateText(prompt, state.ui.apiKey, state.ui.hordeApiKey, state.ui.selectedTextModel, dispatch);
+        textResult = await generateTextJIT(state, prompt, state.ui.apiKey, state.ui.hordeApiKey, state.ui.selectedTextModel, dispatch);
       } catch (e) {
-        console.warn("generateText threw an error, using fallback", e);
+        console.warn("generateTextJIT threw an error, using fallback", e);
       }
       
       let parsedText;
@@ -577,7 +592,7 @@ function App({ state, dispatch }: { state: GameState, dispatch: React.Dispatch<a
       const shouldRegenImage = parsedText.new_items?.length > 0 || state.world.turn_count % 10 === 0;
       if (shouldRegenImage) {
         dispatch({ type: 'INITIAL_IMAGE_START' });
-        generateImage(buildImagePrompt(state), state.ui.apiKey, state.ui.hordeApiKey, state.ui.selectedImageModel, dispatch)
+        generateImageJIT(state, buildImagePrompt(state), state.ui.apiKey, state.ui.hordeApiKey, state.ui.selectedImageModel, dispatch)
           .then(img => dispatch({ type: 'RESOLVE_IMAGE', payload: img }))
           .catch(() => dispatch({ type: 'RESOLVE_IMAGE_FAILED' }));
       }

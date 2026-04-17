@@ -2499,6 +2499,16 @@ export function gameReducer(state: GameState, action: any): GameState {
       };
     }
 
+    case 'AOT_CACHE_STATS': {
+      return {
+        ...state,
+        ui: {
+          ...state.ui,
+          aot_cache_stats: action.payload,
+        },
+      };
+    }
+
     default:
       return state;
   }
