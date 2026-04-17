@@ -91,6 +91,9 @@ function App({ state, dispatch }: { state: GameState, dispatch: React.Dispatch<a
   const [isGeneratingAvatar, setIsGeneratingAvatar] = useState(false);
   const [selectedItem, setSelectedItem] = useState<Item | null>(null);
   const visualEffectClasses = getVisualEffectClasses(state);
+  const shouldCensorImage = (s: GameState) => {
+    return s.ui.settings?.enable_extreme_content === false && s.world.active_encounter !== null;
+  };
 
   const generatePlayerAvatar = async () => {
     setIsGeneratingAvatar(true);

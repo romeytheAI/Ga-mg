@@ -28,7 +28,52 @@
  * - flavour-text-generators -> Social encounters
  */
 
-// Import all ported NPCs
+import {
+  sigridDialogue,
+  wulfgarDialogue,
+  ralofDialogue,
+  kharjoDialogue,
+  eorlundDialogue,
+  astridDialogue,
+  delphineDialogue,
+  portedNPCs,
+} from './dialogue/dol_ported';
+
+import {
+  templeOfMaraData,
+  ratwayData,
+  skyforgeData,
+  darkSanctuaryData,
+  sleepingGiantData,
+  khajiitCaravanData,
+  jorrvaskrData,
+  senchalData,
+  rimmenData,
+  orcrestData,
+  duneData,
+  elderscrollsLocations,
+} from './locations/index';
+
+import type { LocationData, LocationEvent } from './locations/index';
+
+import {
+  banditAmbushEncounter,
+  wolfPackEncounter,
+  sprigganAttackEncounter,
+  draugrTombEncounter,
+  forswornRaidEncounter,
+  thievesGuildShakedownEncounter,
+  imperialPatrolEncounter,
+  vampireHunterEncounter,
+  seductionAttemptEncounter,
+  corruptGuardEncounter,
+  encountersByDifficulty,
+  encountersByLocation,
+} from './encounters/index';
+
+import type { EncounterData, EncounterOutcome } from './encounters/index';
+
+// Re-export for external consumers
 export {
   sigridDialogue,
   wulfgarDialogue,
@@ -40,7 +85,8 @@ export {
   portedNPCs,
 } from './dialogue/dol_ported';
 
-// Import all ported locations
+export type { NPCDialogue, DialogueLine } from './dialogue/dol_ported';
+
 export {
   templeOfMaraData,
   ratwayData,
@@ -54,9 +100,10 @@ export {
   orcrestData,
   duneData,
   elderscrollsLocations,
-} from './locations';
+} from './locations/index';
 
-// Import all ported encounters
+export type { LocationData, LocationEvent } from './locations/index';
+
 export {
   banditAmbushEncounter,
   wolfPackEncounter,
@@ -70,25 +117,16 @@ export {
   corruptGuardEncounter,
   encountersByDifficulty,
   encountersByLocation,
-} from './encounters';
+} from './encounters/index';
 
-// Export types
-export type { NPCDialogue, DialogueLine } from './dialogue/dol_ported';
-export type { LocationData, LocationEvent } from './locations';
-export type { EncounterData, EncounterOutcome } from './encounters';
+export type { EncounterData, EncounterOutcome } from './encounters/index';
 
 // Integration helper functions
 export class DOLElderScrollsIntegration {
-  /**
-   * Get all ported NPCs as an array
-   */
   static getAllNPCs() {
     return portedNPCs;
   }
 
-  /**
-   * Get NPC dialogue by ID
-   */
   static getNPCDialogue(npcId: string) {
     const npcMap: Record<string, any> = {
       sigrid: sigridDialogue,
@@ -102,9 +140,6 @@ export class DOLElderScrollsIntegration {
     return npcMap[npcId.toLowerCase()];
   }
 
-  /**
-   * Get location data by ID
-   */
   static getLocation(locationId: string) {
     const locationMap: Record<string, any> = {
       temple_of_mara: templeOfMaraData,
@@ -122,9 +157,6 @@ export class DOLElderScrollsIntegration {
     return locationMap[locationId.toLowerCase()];
   }
 
-  /**
-   * Get encounter by ID
-   */
   static getEncounter(encounterId: string) {
     const encounterMap: Record<string, any> = {
       bandit_ambush: banditAmbushEncounter,
@@ -141,16 +173,10 @@ export class DOLElderScrollsIntegration {
     return encounterMap[encounterId.toLowerCase()];
   }
 
-  /**
-   * Get encounters suitable for a location type
-   */
   static getEncountersForLocation(locationType: string) {
     return encountersByLocation[locationType as keyof typeof encountersByLocation] || [];
   }
 
-  /**
-   * Get random dialogue line for an NPC
-   */
   static getRandomDialogue(npcId: string, category: string): string | null {
     const npc = this.getNPCDialogue(npcId);
     if (!npc || !npc.variants) return null;
