@@ -784,7 +784,7 @@ Example: { "health": 50, "allure": 20 }`;
             )}
             
             <button 
-              aria-label="Open settings"
+              aria-label="Open Settings"
               onClick={() => setShowSettings(true)}
               className="p-2 hover:bg-white/5 rounded-full transition-colors group"
             >
