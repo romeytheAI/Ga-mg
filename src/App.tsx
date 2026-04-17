@@ -177,7 +177,7 @@ export interface GameState {
   },
   world: {
     day: number, hour: number, weather: string,
-    current_location: { id?: string, name: string, danger: number, atmosphere: string, npcs: any[], actions?: any[] },
+    current_location: { id?: string, name: string, danger: number, atmosphere: string, npcs: any[], actions?: any[], lore?: any, x?: number, y?: number, description?: string },
     macro_events: string[],
     local_tension: number,
     aggression_counter: number,
@@ -254,6 +254,14 @@ const LOCATIONS: Record<string, any> = {
     x: 80, y: 70,
     npcs: ['constance_michel', 'grelod_the_kind'],
     description: "Your 'home'. A bleak, stone-walled building in the poorer district of town. The roof leaks during the frequent rains, and the drafty windows offer no protection from the biting winter winds. The children here are thin and fearful, their eyes darting to the shadows where the matron might be lurking. The air is thick with unspoken misery, the smell of stale cabbage soup, and the desperate hope of one day escaping the iron grip of Matron Grelod. Every creaking floorboard serves as a reminder of the punishments that await the disobedient.",
+    lore: {
+      province: "Skyrim",
+      region: "Riften - Honorhall District",
+      factions: ["Riften Guards", "Orphanage caretakers"],
+      divine: "Mara",
+      daedric: ["Nocturnal influence lingers through the nearby Ratway"],
+      landmark: "Honorhall Orphanage"
+    },
     actions: [
       { id: 'sleep', label: "Sleep in your cot", intent: "neutral", outcome: "You curl up on the thin, lumpy mattress, pulling the scratchy wool blanket tight. You try to ignore the cold and the muffled sobs of the younger children. You wake up feeling slightly more rested, though your muscles ache from the hard wooden slats.", stat_deltas: { stamina: 30, stress: -10, lust: -5 } },
       { id: 'clean_floors', label: "Scrub the stone floors", intent: "work", skill_check: { stat: "stamina", difficulty: 40 }, outcome: "You spend hours on your knees, your hands raw and bleeding from the harsh lye soap. The cold stone bites into your joints. For your grueling labor, you are tossed a small, moldy crust of bread.", fail_outcome: "Your arms give out and you collapse from exhaustion before finishing the grand hall. Grelod finds you and beats you mercilessly with her cane, leaving welts across your back.", stat_deltas: { stamina: -15, stress: 5, purity: 2 }, fail_stat_deltas: { stamina: -20, pain: 10, stress: 15, trauma: 5 }, new_items: [{ name: "Stale Bread Crust", type: "consumable", rarity: "common", description: "Hard as a rock and speckled with mold, but hunger makes it a feast." }] },
@@ -269,6 +277,14 @@ const LOCATIONS: Record<string, any> = {
     x: 60, y: 30,
     npcs: [],
     description: "A strict institution of learning funded by the local nobility. The halls echo with droning lectures and the sharp crack of the headmaster's ruler. The instructors are unforgiving, demanding perfection, while the older, wealthier students often prey on the weak and impoverished orphans. The scent of old parchment and chalk dust is suffocating, a constant reminder of the rigid expectations placed upon you.",
+    lore: {
+      province: "Skyrim",
+      region: "Riften upper ward",
+      factions: ["Town Elders", "Mages sympathetic to the College"],
+      divine: "Julianos",
+      daedric: [],
+      landmark: "Parchment Hall"
+    },
     actions: [
       { id: 'attend_class', label: "Attend classes", intent: "education", skill_check: { stat: "willpower", difficulty: 40 }, outcome: "You focus intensely on the complex arcane theories and historical texts, feeling your mind expand despite the oppressive atmosphere.", fail_outcome: "Exhaustion overtakes you and you fall asleep at your desk. The instructor humiliates you in front of the entire class, making you wear the dunce cap.", stat_deltas: { willpower: 10, stress: 10, stamina: -10 }, fail_stat_deltas: { stress: 20, trauma: 5, stamina: -5 }, skill_deltas: { school_grades: 5 }, fail_skill_deltas: { school_grades: -2 } },
       { id: 'study_library', label: "Study in the Library", intent: "education", outcome: "You seek refuge in the dusty, silent library, spending hours poring over ancient tomes hidden in the back corners.", stat_deltas: { willpower: 5, stress: 5, stamina: -5 }, skill_deltas: { school_grades: 2 } },
@@ -282,15 +298,26 @@ const LOCATIONS: Record<string, any> = {
     atmosphere: "bustling, smelling of fresh bread, roasting meats, woodsmoke, and the damp mist from the alleys",
     danger: 20,
     x: 82, y: 68,
-    npcs: ['brynjolf', 'brand_shei'],
+    npcs: ['brynjolf', 'brand_shei', 'maven_black_briar'],
     description: "The vibrant, chaotic heart of the town. Stalls line the cobblestone streets, selling everything from fresh produce to stolen trinkets. Wealthy merchants in fine silks brush past ragged beggars. Thieves and guards eye each other warily across the crowded plaza. It's a place of opportunity, but also immense danger for an unprotected youth. The cacophony of shouting vendors, clinking coins, and braying livestock is overwhelming.",
+    lore: {
+      province: "Skyrim",
+      region: "Riften Marketplace",
+      factions: ["Thieves Guild", "Black-Briar Family", "Riften Guards"],
+      divine: "Mara",
+      daedric: ["Nocturnal has eyes beneath the city"],
+      landmark: "Ragged Flagon entrance hidden below"
+    },
     actions: [
       { id: 'work_stall', label: "Work at a merchant stall", intent: "work", skill_check: { stat: "stamina", difficulty: 30 }, outcome: "You spend the day hauling heavy crates and shouting prices until your throat is raw. It's exhausting, backbreaking work, but the merchant tosses you a few coins at the end of the day.", fail_outcome: "Your tired arms give out and you drop a crate of fragile glass goods. The merchant screams at you and fires you without pay, threatening to call the guards.", stat_deltas: { stamina: -20, stress: 10 }, fail_stat_deltas: { stamina: -10, stress: 20, trauma: 2 }, new_items: [{ name: "Gold Coin", type: "misc", rarity: "common", description: "The currency of the realm. Cold, hard, and necessary." }, { name: "Gold Coin", type: "misc", rarity: "common", description: "The currency of the realm. Cold, hard, and necessary." }] },
       { id: 'beg_gold', label: "Beg for coins", intent: "social", skill_check: { stat: "purity", difficulty: 20 }, outcome: "You put on your most pathetic expression. A wealthy merchant, perhaps feeling a twinge of guilt, tosses a single coin at your feet with a look of profound pity.", fail_outcome: "A passing town guard kicks dirt at you, calling you a nuisance and threatening to throw you in the dungeons if you don't move along.", stat_deltas: { purity: -5, stress: 5 }, fail_stat_deltas: { stress: 10, trauma: 5 }, new_items: [{ name: "Gold Coin", type: "misc", rarity: "common", description: "The currency of the realm. Cold, hard, and necessary." }] },
       { id: 'travel_orphanage', label: "Return to the Orphanage", intent: "travel", outcome: "You trudge back to the orphanage, dreading the matron's inevitable wrath.", stat_deltas: { stamina: -5 }, new_location: 'orphanage' },
       { id: 'travel_alleyways', label: "Slip into the Alleyways", intent: "stealth", outcome: "You find a dark, narrow path leading away from the crowds and into the dangerous, shadowed alleyways.", stat_deltas: { stress: 10 }, new_location: 'alleyways' },
       { id: 'travel_docks', label: "Head to the Docks", intent: "travel", outcome: "You walk down the sloping streets towards the misty, salt-smelling docks.", stat_deltas: { stamina: -5 }, new_location: 'docks' },
-      { id: 'travel_temple', label: "Seek refuge at the Temple", intent: "travel", outcome: "You walk towards the serene, quiet gardens of the Temple, seeking a moment of peace.", stat_deltas: { stamina: -5 }, new_location: 'temple_gardens' }
+      { id: 'travel_temple', label: "Seek refuge at the Temple", intent: "travel", outcome: "You walk towards the serene, quiet gardens of the Temple, seeking a moment of peace.", stat_deltas: { stamina: -5 }, new_location: 'temple_gardens' },
+      { id: 'travel_whiterun', label: "Hire a carriage to Whiterun", intent: "travel", outcome: "You pay a surly driver to rattle you across the tundra toward Whiterun's walls.", stat_deltas: { stamina: -10, stress: 5 }, new_items: [{ name: "Carriage Ticket", type: "misc", rarity: "common", description: "A stamped chit allowing travel between Skyrim holds." }], new_location: 'whiterun' },
+      { id: 'travel_winterhold', label: "Join a mage-bound caravan to Winterhold", intent: "travel", outcome: "A wagon of scholars agrees to take you north, provided you help keep the campfire lit through the cold night.", stat_deltas: { stamina: -15, stress: 10, willpower: 3 }, new_location: 'college_winterhold' },
+      { id: 'travel_imperial_city', label: "Book passage to the Imperial City", intent: "travel", outcome: "A courier caravan on the Gold Road agrees to take you toward Cyrodiil's heart, warning of bandits.", stat_deltas: { stamina: -15, stress: 10 }, new_location: 'imperial_city' }
     ]
   },
   'temple_gardens': {
@@ -301,6 +328,14 @@ const LOCATIONS: Record<string, any> = {
     x: 85, y: 65,
     npcs: [],
     description: "A rare place of tranquility in the town. Priests tend to the flora, and citizens come to pray for love and peace. The shadows under the large ancient trees offer seclusion, and the air is thick with the sweet, heady scent of blooming nightshade and burning incense. The gentle trickle of a stone fountain provides a soothing backdrop to the quiet murmurs of the devout.",
+    lore: {
+      province: "Skyrim",
+      region: "Temple of Mara grounds",
+      factions: ["Priests of Mara"],
+      divine: "Mara",
+      daedric: [],
+      landmark: "Mara's shrine"
+    },
     actions: [
       { id: 'pray', label: "Pray at the altar", intent: "neutral", outcome: "You kneel before the altar. A sense of calm washes over you.", stat_deltas: { stress: -20, trauma: -5, purity: 5 } },
       { id: 'rest_bench', label: "Rest on a secluded bench", intent: "neutral", outcome: "You sit and watch the leaves fall. It's quiet here.", stat_deltas: { stamina: 15, stress: -10 } },
@@ -316,6 +351,14 @@ const LOCATIONS: Record<string, any> = {
     x: 82, y: 72,
     npcs: [],
     description: "The sprawling, dangerous paths between buildings. It is home to vagrants and criminals. Shadows seem to move on their own here, and the air is thick with danger and illicit desires. The cobblestones are slick with unknown grime, and the stench of sewage and decay is overpowering. Every footstep echoes ominously, and you constantly feel eyes watching you from the darkness.",
+    lore: {
+      province: "Skyrim",
+      region: "Riften Ratway approaches",
+      factions: ["Thieves Guild", "Beggar Syndicate"],
+      divine: "None",
+      daedric: ["Nocturnal"],
+      landmark: "Secret entrance to the Ragged Flagon"
+    },
     actions: [
       { id: 'scavenge_trash', label: "Scavenge in the muck", intent: "work", skill_check: { stat: "willpower", difficulty: 40 }, outcome: "You find a discarded iron dagger hidden in the filth.", fail_outcome: "A rat bites your hand before scurrying away!", stat_deltas: { purity: -5, stress: 10 }, fail_stat_deltas: { health: -10, pain: 15, stress: 20, trauma: 5 }, new_items: [{ name: "Rusty Iron Dagger", type: "weapon", rarity: "common", description: "A discarded, rusted blade found in the muck. The edge is dull, chipped, and stained with questionable brown spots. It's barely sharp enough to cut cheese, but gripping its worn, sweat-stained leather hilt gives you a slight sense of security in these dark alleys. It smells faintly of old blood, rust, and desperation." }] },
       { id: 'travel_market', label: "Climb back to the Town Square", intent: "travel", outcome: "You scramble back to the main streets.", stat_deltas: { stamina: -10 }, new_location: 'town_square' },
@@ -331,11 +374,20 @@ const LOCATIONS: Record<string, any> = {
     x: 90, y: 60,
     npcs: [],
     description: "The deep forests outside the town. Beautiful but treacherous. Wild animals and bandits roam freely here. The canopy is so thick that it blocks out most of the sunlight, casting the forest floor in perpetual twilight. The air is cool and damp, filled with the rustling of unseen creatures and the distant, lonely howl of wolves.",
+    lore: {
+      province: "Skyrim",
+      region: "The Rift treeline",
+      factions: ["Forsworn raiding parties", "Stormcloak scouts"],
+      divine: "Kynareth",
+      daedric: [],
+      landmark: "Ancient Nordic barrow stones"
+    },
     actions: [
       { id: 'forage', label: "Forage for ingredients", intent: "work", skill_check: { stat: "willpower", difficulty: 30 }, outcome: "You gather some useful herbs and mushrooms.", fail_outcome: "You wander aimlessly, getting scratched by thorns.", stat_deltas: { stamina: -15 }, fail_stat_deltas: { stamina: -20, pain: 5, stress: 10 }, new_items: [{ name: "Blue Mountain Flower", type: "consumable", rarity: "common", description: "Useful for alchemy." }] },
       { id: 'travel_temple', label: "Return to the City", intent: "travel", outcome: "You head back towards the safety of the town's walls.", stat_deltas: { stamina: -10 }, new_location: 'temple_gardens' },
       { id: 'travel_farm', label: "Walk to the Farm", intent: "travel", outcome: "You follow a dirt path towards the nearby farm.", stat_deltas: { stamina: -15 }, new_location: 'farm' },
-      { id: 'travel_swamp', label: "Venture towards the Swamps", intent: "travel", outcome: "The trees thin out as the ground grows soggy and foul-smelling.", stat_deltas: { stamina: -20, stress: 10 }, new_location: 'swamp' }
+      { id: 'travel_swamp', label: "Venture towards the Swamps", intent: "travel", outcome: "The trees thin out as the ground grows soggy and foul-smelling.", stat_deltas: { stamina: -20, stress: 10 }, new_location: 'swamp' },
+      { id: 'travel_blackreach', label: "Investigate a Dwemer lift", intent: "explore", outcome: "You find a hidden Dwemer mechanism and step into the rattling lift as it grinds downward.", stat_deltas: { stamina: -10, stress: 10 }, new_location: 'blackreach' }
     ]
   },
   'docks': {
@@ -346,10 +398,19 @@ const LOCATIONS: Record<string, any> = {
     x: 85, y: 70,
     npcs: [],
     description: "Wooden walkways stretch out over the dark, churning waters. Fishermen haul in their catches while workers toil under the harsh gaze of their overseers. It's a rough place, especially at night, when the fog rolls in thick and heavy, obscuring the unsavory deals and violent encounters that take place in the shadows. The smell of brine, dead fish, and cheap ale is inescapable.",
+    lore: {
+      province: "Skyrim",
+      region: "Riften Docks on Lake Honrich",
+      factions: ["East Empire Company", "Smuggler Cartels"],
+      divine: "Stendarr (rarely seen here)",
+      daedric: ["Sanguine revelers on leave"],
+      landmark: "Ferry to Morrowind-bound ships"
+    },
     actions: [
       { id: 'fish', label: "Work sorting fish", intent: "work", skill_check: { stat: "stamina", difficulty: 40 }, outcome: "You spend hours covered in fish guts, but you earn your pay.", fail_outcome: "You slip and fall into the freezing, filthy water!", stat_deltas: { stamina: -20, purity: -5 }, fail_stat_deltas: { health: -5, stress: 20, trauma: 5 }, new_items: [{ name: "Gold Coin", type: "misc", rarity: "common", description: "The currency of the realm." }] },
       { id: 'swim', label: "Swim in the lake", intent: "neutral", outcome: "The water is freezing, but it washes away the grime of the city.", stat_deltas: { stamina: -10, stress: -10, purity: 5 } },
-      { id: 'travel_market', label: "Return to the Town Square", intent: "travel", outcome: "You walk back up the wooden stairs to the city.", stat_deltas: { stamina: -5 }, new_location: 'town_square' }
+      { id: 'travel_market', label: "Return to the Town Square", intent: "travel", outcome: "You walk back up the wooden stairs to the city.", stat_deltas: { stamina: -5 }, new_location: 'town_square' },
+      { id: 'sail_vivec', label: "Board a skiff toward Vvardenfell", intent: "travel", outcome: "You slip onto a creaking skiff bound for Morrowind, the air thick with salt and kwama chitin.", stat_deltas: { stamina: -15, stress: 10 }, new_items: [{ name: "Travel Scrip", type: "misc", rarity: "uncommon", description: "Stamped with East Empire Company wax." }], new_location: 'vivec_canton' }
     ]
   },
   'brothel': {
@@ -360,6 +421,14 @@ const LOCATIONS: Record<string, any> = {
     x: 80, y: 75,
     npcs: [],
     description: "A hidden den of iniquity deep within the alleys. Patrons lie on plush velvet cushions, lost in narcotic hazes or engaging in base desires. The air itself makes you feel lightheaded and flushed, thick with the scent of exotic perfumes, sweat, and spilled wine. The lighting is dim and red, casting long, suggestive shadows across the room.",
+    lore: {
+      province: "Skyrim",
+      region: "Riften backrooms",
+      factions: ["Black-Briar agents", "Skooma runners"],
+      divine: "Dibella",
+      daedric: ["Sanguine"],
+      landmark: "Hidden Skooma still"
+    },
     actions: [
       { id: 'serve_drinks', label: "Serve drinks (and more)", intent: "work", skill_check: { stat: "lust", difficulty: 50 }, outcome: "You navigate the handsy patrons, earning a significant amount of coin, though you feel degraded.", fail_outcome: "A patron gets too aggressive. You manage to escape, but you are shaken and unpaid.", stat_deltas: { stamina: -15, stress: 20, lust: 15, purity: -10, trauma: 5 }, fail_stat_deltas: { pain: 10, stress: 30, trauma: 15, lust: 20 }, new_items: [{ name: "Gold Coin", type: "misc", rarity: "common", description: "The currency of the realm." }, { name: "Gold Coin", type: "misc", rarity: "common", description: "The currency of the realm." }, { name: "Gold Coin", type: "misc", rarity: "common", description: "The currency of the realm." }] },
       { id: 'travel_alleyways', label: "Flee back to the Alleyways", intent: "flee", outcome: "You stumble out of the hazy den, gasping for cleaner air.", stat_deltas: { stamina: -5, stress: -5 }, new_location: 'alleyways' }
@@ -373,6 +442,14 @@ const LOCATIONS: Record<string, any> = {
     x: 95, y: 65,
     npcs: [],
     description: "A large farm outside the city walls. Fields of wheat stretch out like a golden sea, and large, drafty barns house various livestock. The farmhands are gruff but generally leave you alone if you work hard. The smell of manure, hay, and fresh earth is strong, a stark contrast to the stench of the city alleys.",
+    lore: {
+      province: "Skyrim",
+      region: "Snow-Shod fields",
+      factions: ["Local militia", "Stormcloak sympathizers"],
+      divine: "Kynareth",
+      daedric: [],
+      landmark: "Old Nordic watchtower"
+    },
     actions: [
       { id: 'farm_labor', label: "Do manual labor in the fields", intent: "work", skill_check: { stat: "stamina", difficulty: 50 }, outcome: "Backbreaking work under the sun. You are exhausted but paid.", fail_outcome: "You collapse from the heat. The farmer yells at you and kicks you off the property.", stat_deltas: { stamina: -30, stress: 5 }, fail_stat_deltas: { health: -10, stamina: -40, pain: 10, stress: 15 }, new_items: [{ name: "Gold Coin", type: "misc", rarity: "common", description: "The currency of the realm." }, { name: "Gold Coin", type: "misc", rarity: "common", description: "The currency of the realm." }] },
       { id: 'travel_wilds', label: "Head into the Forest", intent: "travel", outcome: "You leave the cultivated fields for the untamed forest.", stat_deltas: { stamina: -10 }, new_location: 'forest' }
@@ -386,9 +463,127 @@ const LOCATIONS: Record<string, any> = {
     x: 95, y: 80,
     npcs: [],
     description: "The treacherous swamplands. The mud sucks at your boots with every step, and strange, tentacled flora pulse in the gloom. It feels like the land itself is watching you. The air is thick, humid, and smells of rot and ancient, stagnant magic. Unearthly croaks and splashes echo through the mist, warning of the horrors lurking beneath the murky water.",
+    lore: {
+      province: "Skyrim",
+      region: "Edge of Hjaalmarch marshes",
+      factions: ["Hagraven covens", "Forsworn stragglers"],
+      divine: "Arkay struggles here",
+      daedric: ["Molag Bal cult rumors"],
+      landmark: "Sunken Nordic ruin"
+    },
     actions: [
       { id: 'gather_rare_herbs', label: "Search for rare swamp flora", intent: "work", skill_check: { stat: "willpower", difficulty: 70 }, outcome: "You find a glowing mushroom, carefully avoiding the toxic pools.", fail_outcome: "You step into a deep bog! Leeches attach to you before you can scramble out.", stat_deltas: { stamina: -20, stress: 15 }, fail_stat_deltas: { health: -20, pain: 20, stress: 30, trauma: 10, purity: -10 }, new_items: [{ name: "Glowing Mushroom", type: "consumable", rarity: "rare", description: "Pulses with strange energy." }] },
       { id: 'travel_wilds', label: "Flee back to the Forest", intent: "flee", outcome: "You scramble out of the muck, desperate for solid ground.", stat_deltas: { stamina: -15, stress: -5 }, new_location: 'forest' }
+    ]
+  },
+  'whiterun': {
+    id: 'whiterun',
+    name: "Whiterun Plains District",
+    atmosphere: "wind-scoured tundra smelling of mead, forge-smoke, and tundra cotton",
+    danger: 35,
+    x: 48, y: 46,
+    npcs: ['aela_the_huntress', 'farengar_secret_fire'],
+    description: "Stone walls rise over golden plains. Dragonsreach looms above the city, Companions howl from Jorrvaskr's mead hall, and merchants hawk goods on the Gildergreen-lined street. The air tastes of iron and frost.",
+    lore: {
+      province: "Skyrim",
+      region: "Whiterun Hold",
+      factions: ["Companions", "Whiterun Guard"],
+      divine: "Kynareth",
+      daedric: ["Hircine's hunters pass through"],
+      landmark: "Dragonsreach and the Gildergreen"
+    },
+    actions: [
+      { id: 'train_companions', label: "Spar with the Companions", intent: "combat", skill_check: { stat: "stamina", difficulty: 55 }, outcome: "You trade blows in Jorrvaskr's courtyard. The mead-soaked shouts of shield-siblings push you to fight harder.", fail_outcome: "A heavy shield bash drops you to one knee. The Companions laugh, telling you to return once you've toughened up.", stat_deltas: { stamina: -20, health: -5, willpower: 5, pain: 5 }, fail_stat_deltas: { stamina: -15, health: -10, pain: 15, stress: 10 }, new_items: [{ name: "Companions Token", type: "misc", rarity: "uncommon", description: "A stamped bronze chip proving you trained at Jorrvaskr." }] },
+      { id: 'consult_farengar', label: "Consult Farengar at Dragonsreach", intent: "education", skill_check: { stat: "willpower", difficulty: 45 }, outcome: "Farengar unfurls dusty scrolls, muttering about dragon shouts and soul gems. He lets you hold a faintly humming gem.", fail_outcome: "You nod off as Farengar drones on about wards, earning a sharp rebuke and a ban from the study for the day.", stat_deltas: { willpower: 10, stress: 5, arousal: -5 }, fail_stat_deltas: { willpower: -5, stress: 10, trauma: 2 }, new_items: [{ name: "Petty Soul Gem", type: "misc", rarity: "uncommon", description: "A cloudy gem that thrums with captured magicka." }] },
+      { id: 'travel_riften', label: "Ride back toward Riften", intent: "travel", outcome: "You barter for a spot on a cart heading east along the hold's roads.", stat_deltas: { stamina: -10, stress: 5 }, new_location: 'town_square' }
+    ]
+  },
+  'college_winterhold': {
+    id: 'college_winterhold',
+    name: "College of Winterhold",
+    atmosphere: "icy winds whipping through ancient arches, smell of old vellum and ozone",
+    danger: 60,
+    x: 38, y: 20,
+    npcs: ['savos_aren', 'faralda'],
+    description: "A precarious stone bridge leads to the College's isolated spire. Spell impacts scar the courtyard, and the Arcanaeum's stacks creak with the weight of forbidden tomes. The Sea of Ghosts churns far below.",
+    lore: {
+      province: "Skyrim",
+      region: "Winterhold",
+      factions: ["College of Winterhold"],
+      divine: "Julianos",
+      daedric: ["Hermaeus Mora's inkblots stain margins of certain tomes"],
+      landmark: "Hall of the Elements"
+    },
+    actions: [
+      { id: 'study_arcanaeum', label: "Study in the Arcanaeum", intent: "education", skill_check: { stat: "willpower", difficulty: 60 }, outcome: "You pore over brittle pages on Alteration theory while Urag gro-Shub eyes you closely.", fail_outcome: "The runes blur and a ward snaps at your fingers, leaving you shaken and reprimanded.", stat_deltas: { willpower: 12, stress: 8, stamina: -10 }, fail_stat_deltas: { willpower: -5, stress: 15, pain: 5, trauma: 5 }, new_items: [{ name: "Research Notes", type: "misc", rarity: "uncommon", description: "Scrawled glyphs about leylines and ward structure." }] },
+      { id: 'practice_wards', label: "Practice wards with Faralda", intent: "training", skill_check: { stat: "willpower", difficulty: 55 }, outcome: "A shimmering ward blossoms in your hands, absorbing a test firebolt that leaves your palms tingling.", fail_outcome: "Your concentration breaks and the ward collapses, the bolt singing your sleeve.", stat_deltas: { willpower: 8, stamina: -10, stress: -5 }, fail_stat_deltas: { health: -8, stamina: -12, stress: 10, pain: 8 }, new_items: [{ name: "Minor Magicka Draught", type: "consumable", rarity: "uncommon", description: "A vial that restores a trickle of magicka." }] },
+      { id: 'travel_riften_from_winterhold', label: "Return south toward Riften", intent: "travel", outcome: "You descend the icy causeway and hitch a ride with a northbound trader.", stat_deltas: { stamina: -15, stress: 10 }, new_location: 'town_square' }
+    ]
+  },
+  'blackreach': {
+    id: 'blackreach',
+    name: "Blackreach Caverns",
+    atmosphere: "vast underground expanse glowing with crimson nirnroot and dwemer machinery hum",
+    danger: 90,
+    x: 58, y: 78,
+    npcs: [],
+    description: "An impossible cavern beneath Skyrim. Dwemer towers pierce the gloom, Falmer chitter in the darkness, and a silent giant guards a glowing orb. The air is metallic and damp, filled with distant clanks and ethereal chimes.",
+    lore: {
+      province: "Skyrim",
+      region: "Deep beneath the Rift",
+      factions: ["Dwemer automatons", "Falmer tribes"],
+      divine: "None",
+      daedric: ["Hermaeus Mora hungers for the secrets here"],
+      landmark: "Tower of Mzark's lift"
+    },
+    actions: [
+      { id: 'harvest_crimson_nirnroot', label: "Harvest crimson nirnroot", intent: "work", skill_check: { stat: "willpower", difficulty: 70 }, outcome: "You pluck a luminous crimson nirnroot, its hum vibrating through your bones.", fail_outcome: "A Falmer arrow grazes you as you fumble with the glowing plant.", stat_deltas: { stamina: -20, stress: 15 }, fail_stat_deltas: { health: -15, pain: 20, stress: 25, trauma: 10 }, new_items: [{ name: "Crimson Nirnroot", type: "consumable", rarity: "rare", description: "A resonant plant prized by alchemists and scholars." }] },
+      { id: 'sneak_past_centurion', label: "Sneak past a Dwemer centurion", intent: "stealth", skill_check: { stat: "stamina", difficulty: 65 }, outcome: "Steam hisses as you edge past the dormant metal giant, its ruby eye dim.", fail_outcome: "The centurion stirs, releasing a blast of scalding steam that sends you scrambling.", stat_deltas: { stamina: -15, stress: 10, corruption: 2 }, fail_stat_deltas: { health: -20, pain: 25, stress: 20, trauma: 10 }, new_items: [{ name: "Dwemer Cogs", type: "misc", rarity: "uncommon", description: "Heavy brass mechanisms etched with tonal runes." }] },
+      { id: 'ascend_to_forest', label: "Take the lift toward the surface", intent: "travel", outcome: "You crank a Dwemer lift and feel the grinding ascent back toward daylight.", stat_deltas: { stamina: -10, stress: 5 }, new_location: 'forest' }
+    ]
+  },
+  'vivec_canton': {
+    id: 'vivec_canton',
+    name: "Vivec's Foreign Quarter",
+    atmosphere: "sulfur and incense mingling over cantons rising from the Inner Sea",
+    danger: 45,
+    x: 22, y: 82,
+    npcs: ['ordinator', 'maiq_the_liar'],
+    description: "Tiered cantons tower above the water, connected by narrow bridges. Ordinators patrol in golden masks, and ash from Red Mountain drifts on the breeze. Pilgrims kneel at shrines while merchants haggle in the plazas.",
+    lore: {
+      province: "Morrowind",
+      region: "Vivec City",
+      factions: ["Tribunal Temple", "Ordinators", "Morag Tong rumor"],
+      divine: "Vivec",
+      daedric: ["Azura faithful travel quietly"],
+      landmark: "Shrines to the Tribunal"
+    },
+    actions: [
+      { id: 'pay_respects_vivec', label: "Pay respects at a shrine", intent: "neutral", outcome: "You kneel at a brass shrine, the sermon-voices whispering of ALMSIVI's mercy and pride.", stat_deltas: { purity: 8, stress: -10, trauma: -3 } },
+      { id: 'shadow_market', label: "Browse the shadow market", intent: "stealth", skill_check: { stat: "willpower", difficulty: 50 }, outcome: "Under an overhang, a Dunmer hawker sells chitin gear and illegal moonsugar.", fail_outcome: "An Ordinator's golden mask turns toward you, and you quickly back away under their glare.", stat_deltas: { stamina: -10, stress: 10, corruption: 3 }, fail_stat_deltas: { stress: 20, trauma: 5, purity: -5 }, new_items: [{ name: "Chitin Pauldron", type: "armor", rarity: "uncommon", description: "Light armor plates made from insect shell, smelling faintly of resin." }] },
+      { id: 'sail_back_riften', label: "Hire passage back to Skyrim", intent: "travel", outcome: "A salt-stained captain agrees to take you north past Solstheim and into the Sea of Ghosts.", stat_deltas: { stamina: -20, stress: 10 }, new_location: 'docks' }
+    ]
+  },
+  'imperial_city': {
+    id: 'imperial_city',
+    name: "Imperial City Market District",
+    atmosphere: "bustling heart of Cyrodiil, incense from the Temple District mixing with frying street food",
+    danger: 30,
+    x: 55, y: 55,
+    npcs: ['legion_centurion', 'brand_shei'],
+    description: "White-Gold Tower pierces the sky above orderly streets. Legionnaires march between marble plazas, and Ayleid stonework gleams beneath newer Imperial facades. Rumors swirl of Synod politicking and Thalmor diplomats.",
+    lore: {
+      province: "Cyrodiil",
+      region: "Market and Arboretum",
+      factions: ["Imperial Legion", "Synod scholars", "Thalmor envoys"],
+      divine: "Akatosh",
+      daedric: ["Mehrunes Dagon's scars remain a cautionary tale"],
+      landmark: "White-Gold Tower"
+    },
+    actions: [
+      { id: 'report_legion', label: "Report to a Legion recruiter", intent: "work", skill_check: { stat: "stamina", difficulty: 50 }, outcome: "A centurion sizes you up, assigning you to haul crates and polish armor under the midday sun.", fail_outcome: "The centurion laughs you out of line for your poor posture, sending you away bruised in pride.", stat_deltas: { stamina: -20, willpower: 5, stress: 5 }, fail_stat_deltas: { stress: 15, trauma: 5, stamina: -10 }, new_items: [{ name: "Legion Chit", type: "misc", rarity: "common", description: "Proof you did odd jobs for the Legion." }] },
+      { id: 'explore_ayleid', label: "Explore an Ayleid substructure", intent: "explore", skill_check: { stat: "willpower", difficulty: 55 }, outcome: "You descend into cool, blue-lit halls where welkynd stones hum. You pry one loose before the patrols return.", fail_outcome: "A pressure plate releases darts, forcing you to retreat empty-handed.", stat_deltas: { stamina: -10, stress: 10 }, fail_stat_deltas: { health: -10, pain: 10, stress: 15 }, new_items: [{ name: "Welkynd Stone", type: "misc", rarity: "rare", description: "A pale blue crystal humming with magicka." }] },
+      { id: 'return_riften', label: "Join a caravan back to Skyrim", intent: "travel", outcome: "You secure a place on a caravan bound for the Rift, the Gold Road stretching out before you.", stat_deltas: { stamina: -15, stress: 5 }, new_location: 'town_square' }
     ]
   }
 };
@@ -437,6 +632,94 @@ const NPCS: Record<string, any> = {
       'social': { narrative_text: "He offers a warm, genuine smile. 'Ah, a customer. Or just browsing? Either way, welcome to my humble stall. Stay out of trouble, young one.'", stat_deltas: { stress: -5 } },
       'work': { narrative_text: "He hands you a small broom. 'I could use a hand organizing these wares and sweeping up, if you're looking for a few honest coins.'", stat_deltas: { stamina: -10 } }
     }
+  },
+  'maven_black_briar': {
+    id: 'maven_black_briar',
+    name: "Maven Black-Briar",
+    race: "Human",
+    relationship: -20,
+    description: "Riften's power broker. Her voice is honey over daggers, and every guard in town answers to her coin. She smells faintly of juniper mead and danger.",
+    responses: {
+      'social': { narrative_text: "She eyes you like a resource. 'If you want coin, earn it. Loyalty is bought, not begged.'", stat_deltas: { stress: 10, willpower: 3 } },
+      'work': { narrative_text: "She assigns you a menial task with a thin smile. 'Don't fail me. People who do tend to disappear.'", stat_deltas: { stamina: -15, trauma: 2 } }
+    }
+  },
+  'aela_the_huntress': {
+    id: 'aela_the_huntress',
+    name: "Aela the Huntress",
+    race: "Nord",
+    relationship: 5,
+    description: "A fierce Companion clad in wolf pelts. Her eyes appraise you like fresh prey or a potential shield-sibling.",
+    responses: {
+      'social': { narrative_text: "She grins. 'Blood and honor, little whelp. Keep your blade sharp.'", stat_deltas: { willpower: 5, stress: -5 } },
+      'work': { narrative_text: "She drags you on a short hunt outside the walls. 'Run until your lungs burn, then you'll be worth training.'", stat_deltas: { stamina: -20, pain: 5, willpower: 5 } }
+    }
+  },
+  'farengar_secret_fire': {
+    id: 'farengar_secret_fire',
+    name: "Farengar Secret-Fire",
+    race: "Nord",
+    relationship: 0,
+    description: "Court wizard of Whiterun. Ink-stained fingers, absent-minded demeanor, and a mind full of dragon lore.",
+    responses: {
+      'social': { narrative_text: "'Dragons are not mere beasts. If you witness anything unusual, you will tell me, yes?'", stat_deltas: { willpower: 3, stress: 2 } },
+      'work': { narrative_text: "He has you grind reagents and copy draconic runes until your eyes ache.", stat_deltas: { stamina: -10, willpower: 4, stress: 5 } }
+    }
+  },
+  'savos_aren': {
+    id: 'savos_aren',
+    name: "Savos Aren",
+    race: "Elf",
+    relationship: 10,
+    description: "Arch-Mage of the College of Winterhold. Calm, calculating, and protective of magical secrets.",
+    responses: {
+      'social': { narrative_text: "'Knowledge is power, but hubris kills. Respect both, and you may endure here.'", stat_deltas: { willpower: 5, stress: -5 } },
+      'work': { narrative_text: "He sets you to stabilizing a volatile atronach core, guiding your breathing as the energies flare.", stat_deltas: { willpower: 8, stamina: -12, stress: 5 } }
+    }
+  },
+  'faralda': {
+    id: 'faralda',
+    name: "Faralda",
+    race: "Elf",
+    relationship: 0,
+    description: "Gatekeeper of the College bridge. Stern, exacting, and unimpressed by novices lacking focus.",
+    responses: {
+      'social': { narrative_text: "She eyes your hands. 'Magicka is discipline. Show me control before you ask for entry.'", stat_deltas: { willpower: 4, stress: 4 } },
+      'work': { narrative_text: "She drills you on precise ward angles, slapping your wrist when you slip.", stat_deltas: { willpower: 6, stamina: -8, stress: 6 } }
+    }
+  },
+  'maiq_the_liar': {
+    id: 'maiq_the_liar',
+    name: "M'aiq the Liar",
+    race: "Khajiit",
+    relationship: 0,
+    description: "A wandering storyteller with a talent for half-truths. His pack rattles with odd trinkets.",
+    responses: {
+      'social': { narrative_text: "M'aiq purrs, 'Many interesting things in Tamriel. M'aiq has seen them. Maybe.'", stat_deltas: { stress: -5, willpower: 2 } },
+      'work': { narrative_text: "He trades riddles for coin, teaching you to listen between the lines.", stat_deltas: { willpower: 3, stress: -3, stamina: -5 } }
+    }
+  },
+  'ordinator': {
+    id: 'ordinator',
+    name: "Ordinator",
+    race: "Elf",
+    relationship: -10,
+    description: "A golden-masked guardian of the Tribunal Temple. Their tone is clipped, their patience thin.",
+    responses: {
+      'social': { narrative_text: "The Ordinator warns you: 'Mind your steps in Vivec's shadow. Blasphemy is punished swiftly.'", stat_deltas: { stress: 8, purity: 2 } },
+      'work': { narrative_text: "They assign you to scrub ash from shrine steps under their watchful gaze.", stat_deltas: { stamina: -10, stress: 5, purity: 3 } }
+    }
+  },
+  'legion_centurion': {
+    id: 'legion_centurion',
+    name: "Imperial Centurion",
+    race: "Human",
+    relationship: 0,
+    description: "An armored veteran of the Great War. Their voice carries the authority of the Empire.",
+    responses: {
+      'social': { narrative_text: "'Discipline wins wars. Skyrim forgets this; Cyrodiil does not.'", stat_deltas: { willpower: 4, stress: 4 } },
+      'work': { narrative_text: "They run you through drills in the Market District courtyard, barking cadence until your legs shake.", stat_deltas: { stamina: -18, willpower: 5, stress: 6 } }
+    }
   }
 };
 
@@ -463,7 +746,11 @@ const BASIC_ITEMS: Record<string, any> = {
   'rusty_iron_dagger': { id: 'rusty_iron_dagger', name: "Rusty Iron Dagger", type: 'weapon', rarity: 'common', description: "A discarded, rusted blade found in the muck. The edge is dull, chipped, and stained with questionable brown spots. It's barely sharp enough to cut cheese, but gripping its worn, sweat-stained leather hilt gives you a slight sense of security in these dark alleys. It smells faintly of old blood, rust, and desperation.", value: 5, weight: 2, stats: { willpower: 10 } },
   'threadbare_tunic': { id: 'threadbare_tunic', name: "Threadbare Tunic", type: 'clothing', rarity: 'common', description: "A simple, coarse wool tunic. It's thin, itchy, and offers almost no protection from the cold or anything else. It smells faintly of sweat and the desperate, cramped conditions of the orphanage. Wearing it immediately marks you as someone of low social standing.", value: 1, weight: 0.5 },
   'strange_amulet': { id: 'strange_amulet', name: "Strange Amulet", type: 'misc', rarity: 'rare', description: "A heavy, cold metal amulet depicting an eye surrounded by tentacles. It whispers to you in the dark when you try to sleep.", value: 50, weight: 0.5, stats: { willpower: -5, corruption: 5 } },
-  'healing_poultice': { id: 'healing_poultice', name: "Healing Poultice", type: 'consumable', rarity: 'uncommon', description: "A foul-smelling paste made of crushed herbs and mud. It burns when applied, but it closes wounds quickly.", value: 10, weight: 0.5, stats: { health: 20, pain: -10 } }
+  'healing_poultice': { id: 'healing_poultice', name: "Healing Poultice", type: 'consumable', rarity: 'uncommon', description: "A foul-smelling paste made of crushed herbs and mud. It burns when applied, but it closes wounds quickly.", value: 10, weight: 0.5, stats: { health: 20, pain: -10 } },
+  'sweetroll': { id: 'sweetroll', name: "Sweetroll", type: 'consumable', rarity: 'common', description: "A frosted sweetroll coveted across Tamriel. Guards might joke about stealing it.", value: 5, weight: 0.2, stats: { stamina: 5, stress: -5, purity: -2 } },
+  'skooma': { id: 'skooma', name: "Skooma Vial", type: 'consumable', rarity: 'uncommon', description: "A glimmering bottle of refined moon sugar. Illegal, addictive, and blissfully numbing.", value: 25, weight: 0.1, stats: { pain: -20, control: -10, corruption: 5 } },
+  'petty_soul_gem': { id: 'petty_soul_gem', name: "Petty Soul Gem", type: 'misc', rarity: 'uncommon', description: "A cloudy gem that thrums with captured minor spirits.", value: 15, weight: 0.3, stats: { willpower: 2, allure: 1 } },
+  'welkynd_stone': { id: 'welkynd_stone', name: "Welkynd Stone", type: 'misc', rarity: 'rare', description: "A smooth blue crystal from Ayleid ruins, storing a pulse of magicka.", value: 50, weight: 0.8, stats: { willpower: 5, purity: 2 } }
 };
 
 const ENCOUNTERS = [
@@ -506,8 +793,55 @@ const ENCOUNTERS = [
     id: 'shadowy_cultist',
     condition: (state: GameState) => state.world.current_location.id === 'temple_gardens' || state.world.current_location.id === 'swamp',
     outcome: "A figure in dark, tattered robes steps out from the gloom. They chant in a guttural, forgotten language, their eyes glowing with unnatural fervor."
+  },
+  {
+    id: 'dragon_overflight',
+    condition: (state: GameState) => state.world.current_location.lore?.province === 'Skyrim' && state.world.day > 2,
+    outcome: "A vast shadow eclipses the sun for a moment as a dragon circles overhead, its roar shaking loose dust from every surface."
+  },
+  {
+    id: 'thalmor_patrol',
+    condition: (state: GameState) =>
+      state.world.current_location.lore?.factions?.some(
+        f => f.toLowerCase().includes('thalmor')
+      ) || state.world.current_location.lore?.province === 'Skyrim',
+    outcome: "A trio of Thalmor Justiciars in gleaming elven mail halt you, demanding proof of loyalty to the Dominion and searching for Talos worshippers."
+  },
+  {
+    id: 'daedric_cult',
+    condition: (state: GameState) => state.world.current_location.lore?.daedric?.length > 0,
+    outcome: "Whispers of a forbidden shrine guide you to hooded cultists mid-ritual, Daedric runes burning faintly in the air."
   }
 ];
+
+const ELDER_SCROLLS_LORE_SYSTEMS = {
+  provinces: [
+    "Skyrim: Nords, mead, Companions, Stormcloak rebellion, harsh tundra.",
+    "Morrowind: Dunmer houses, Tribunal ruins, ash storms, Telvanni mushrooms.",
+    "Cyrodiil: Imperial Legion, the Gold Road, Ayleid ruins, Imperial City towers."
+  ],
+  guilds: [
+    "Thieves Guild (Riften/Ragged Flagon), jobs, fences, Nocturnal oaths.",
+    "Dark Brotherhood (The Void), black sacrament, Night Mother whispers.",
+    "College of Winterhold (mages), novice exams, dangerous experiments.",
+    "Companions (Whiterun), Ysgramor legacy, beast-blood trials."
+  ],
+  daedric_princes: [
+    "Azura (dawn/dusk), Boethiah (plots), Hermaeus Mora (forbidden knowledge), Sheogorath (madness), Nocturnal (shadows), Sanguine (revelry)."
+  ],
+  divines: [
+    "Akatosh (time), Arkay (death), Dibella (beauty), Julianos (wisdom), Kynareth (wind), Mara (love), Stendarr (mercy), Talos (war)."
+  ],
+  artifacts: [
+    "Wabbajack, Ebony Blade, Volendrung, Sanguine Rose, Skeleton Key, Azura's Star, Auriel's Bow."
+  ],
+  travel_networks: [
+    "Carriages between Skyrim holds, ferries along the Karth and Sea of Ghosts, silt striders in Morrowind, secret Thieves Guild routes beneath Riften."
+  ],
+  recent_history: "4E civil war strains Skyrim; dragons return; Thalmor pressure Talos worship; refugee flows from Morrowind's Red Mountain aftermath."
+};
+
+const LORE_PRIMER = `Use Tamrielic flavor constantly. Holds and provinces matter; guilds leave marks; Daedric and Divine loyalties shape NPC reactions. Keep Stormcloak vs Imperial tensions simmering. Remember artifacts with unique effects and travel networks that explain how the player moves between distant holds.`;
 
 // --- Procedural Generation ---
 const ITEM_PREFIXES = ["Torn", "Soiled", "Fine", "Silken", "Blessed", "Cursed", "Gilded", "Sturdy", "Fragile", "Mystic", "Seductive", "Revealing"];
@@ -1951,6 +2285,10 @@ self.onmessage = function(e) {
     enable_extreme_content: false,
     streamer_mode: false
   };
+  const lorePrimer = ${JSON.stringify(LORE_PRIMER)};
+  const loreSystems = ${JSON.stringify(ELDER_SCROLLS_LORE_SYSTEMS)};
+  const locationLore = state.world.current_location.lore || {};
+  const locationLoreStr = Object.keys(locationLore).length ? JSON.stringify(locationLore) : "No special lore hooks";
 
   let prompt = \`You are the AI Director of a dark fantasy RPG set in the Elder Scrolls universe (Tamriel).
 Respond ONLY with a valid JSON object. No conversational text.
@@ -1961,6 +2299,9 @@ Lore Guidelines:
 - NPCs must use Elder Scrolls naming conventions and cultural attitudes (e.g., Dunmer are often xenophobic, Argonians are resilient, Nords are hardy).
 - Mention Daedric Princes, Aedra, or specific Tamrielic locations where appropriate.
 - Magic should feel like Elder Scrolls magic (Destruction, Restoration, Alteration, etc.).
+- Lore Primer: \${lorePrimer}
+- Lore Systems Matrix: \${JSON.stringify(loreSystems)}
+- Location Lore Hooks: \${locationLoreStr}
 
 DoL Parity Guidelines:
 - Track and update arousal, pain, control, stress, and hallucination.
@@ -2929,6 +3270,7 @@ function App({ state, dispatch }: { state: GameState, dispatch: React.Dispatch<a
     const prompt = `Generate RPG stats for a legendary item in the Elder Scrolls universe.
 Item Name: ${name}
 Description: ${description}
+Anchor the item's effects in Tamrielic artifacts and Daedric themes such as ${ELDER_SCROLLS_LORE_SYSTEMS.artifacts.join(', ')}.
 
 Output ONLY a JSON object with stat keys (health, stamina, willpower, lust, trauma, hygiene, corruption, allure, arousal, pain, control, stress, hallucination, purity) and numeric values.
 Example: { "health": 50, "allure": 20 }`;

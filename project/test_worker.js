@@ -26,6 +26,35 @@ self.onmessage = function(e) {
   const topAfflictions = state.player.afflictions ? state.player.afflictions.slice(0, 3) : [];
   const isIndoors = state.world.current_location.name.toLowerCase().includes('inside') || state.world.current_location.name.toLowerCase().includes('room');
   const weatherStr = isIndoors ? "" : `Weather: ${state.world.weather}`;
+  const lorePrimer = "Use Tamrielic flavor constantly. Holds and provinces matter; guilds leave marks; Daedric and Divine loyalties shape NPC reactions. Keep Stormcloak vs Imperial tensions simmering. Remember artifacts with unique effects and travel networks that explain how the player moves between distant holds.";
+  const loreSystems = {
+    provinces: [
+      "Skyrim: Nords, mead, Companions, Stormcloak rebellion, harsh tundra.",
+      "Morrowind: Dunmer houses, Tribunal ruins, ash storms, Telvanni mushrooms.",
+      "Cyrodiil: Imperial Legion, the Gold Road, Ayleid ruins, Imperial City towers."
+    ],
+    guilds: [
+      "Thieves Guild (Riften/Ragged Flagon), jobs, fences, Nocturnal oaths.",
+      "Dark Brotherhood (The Void), black sacrament, Night Mother whispers.",
+      "College of Winterhold (mages), novice exams, dangerous experiments.",
+      "Companions (Whiterun), Ysgramor legacy, beast-blood trials."
+    ],
+    daedric_princes: [
+      "Azura (dawn/dusk), Boethiah (plots), Hermaeus Mora (forbidden knowledge), Sheogorath (madness), Nocturnal (shadows), Sanguine (revelry)."
+    ],
+    divines: [
+      "Akatosh (time), Arkay (death), Dibella (beauty), Julianos (wisdom), Kynareth (wind), Mara (love), Stendarr (mercy), Talos (war)."
+    ],
+    artifacts: [
+      "Wabbajack, Ebony Blade, Volendrung, Sanguine Rose, Skeleton Key, Azura's Star, Auriel's Bow."
+    ],
+    travel_networks: [
+      "Carriages between Skyrim holds, ferries along the Karth and Sea of Ghosts, silt striders in Morrowind, secret Thieves Guild routes beneath Riften."
+    ],
+    recent_history: "4E civil war strains Skyrim; dragons return; Thalmor pressure Talos worship; refugee flows from Morrowind's Red Mountain aftermath."
+  };
+  const locationLore = state.world.current_location.lore || {};
+  const locationLoreStr = Object.keys(locationLore).length ? JSON.stringify(locationLore) : "No special lore hooks";
 
   const worldStateMatrix = JSON.stringify({
     economy: state.world.economy,
@@ -86,6 +115,9 @@ Lore Guidelines:
 - NPCs must use Elder Scrolls naming conventions and cultural attitudes (e.g., Dunmer are often xenophobic, Argonians are resilient, Nords are hardy).
 - Mention Daedric Princes, Aedra, or specific Tamrielic locations where appropriate.
 - Magic should feel like Elder Scrolls magic (Destruction, Restoration, Alteration, etc.).
+- Lore Primer: ${lorePrimer}
+- Lore Systems Matrix: ${JSON.stringify(loreSystems)}
+- Location Lore Hooks: ${locationLoreStr}
 
 DoL Parity Guidelines:
 - Track and update arousal, pain, control, stress, and hallucination.
