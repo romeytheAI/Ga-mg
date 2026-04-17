@@ -457,7 +457,7 @@ export const ImmersiveStartMenu: React.FC<ImmersiveStartMenuProps> = ({ onStartG
                             <button 
                               aria-label={`Delete save ${save.name} (Hold to confirm)`}
                               className="p-2 hover:bg-red-900/50 text-white/40 hover:text-red-400 transition-colors" 
-                              title="Delete Save (Hold)"
+                              title={`Delete save ${save.name} (Hold to confirm)`}
                               onMouseDown={(e) => {
                                 const timer = setTimeout(() => handleDeleteSave(save.id), 2000);
                                 e.currentTarget.onmouseup = () => clearTimeout(timer);
