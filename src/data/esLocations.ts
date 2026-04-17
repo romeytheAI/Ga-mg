@@ -10,9 +10,9 @@ export const ES_LOCATIONS: Record<string, any> = {
     npcs: ['npc_es_dwemer_ghost'],
     items: ['dwemer_bronze_sword', 'dwemer_gyro_core', 'aetherium_shard'],
     actions: [
-      { id: 'explore_corridors', label: 'Explore the bronze corridors', skill: 'athletics', difficulty: 40, reward: { gold: 15, xp: 30 } },
-      { id: 'salvage_tech', label: 'Salvage Dwemer technology', skill: 'skulduggery', difficulty: 50, reward: { gold: 25, items: ['dwemer_gyro_core'], xp: 40 } },
-      { id: 'activate_machine', label: 'Activate dormant machinery', skill: 'magic', difficulty: 60, reward: { xp: 60, items: ['aetherium_shard'] } },
+      { id: 'explore_corridors', intent: 'work', label: 'Explore the bronze corridors', skill: 'athletics', difficulty: 40, reward: { gold: 15, xp: 30 } },
+      { id: 'salvage_tech', intent: 'stealth', label: 'Salvage Dwemer technology', skill: 'skulduggery', difficulty: 50, reward: { gold: 25, items: ['dwemer_gyro_core'], xp: 40 } },
+      { id: 'activate_machine', intent: 'education', label: 'Activate dormant machinery', skill: 'magic', difficulty: 60, reward: { xp: 60, items: ['aetherium_shard'] } },
     ],
   },
 
@@ -27,9 +27,9 @@ export const ES_LOCATIONS: Record<string, any> = {
     npcs: ['npc_es_corprus_beast', 'npc_es_dagoth_cultist'],
     items: ['corprus_weed', 'sixth_house_amulet', 'ancient_scroll'],
     actions: [
-      { id: 'search_ruins', label: 'Search the ruined throne room', skill: 'athletics', difficulty: 55, reward: { gold: 20, xp: 35 } },
-      { id: 'avoid_corprus', label: 'Navigate past corprus beast', skill: 'skulduggery', difficulty: 45, reward: { xp: 25 } },
-      { id: 'sixth_house_ritual', label: 'Perform a Sixth House ritual', skill: 'magic', difficulty: 70, reward: { xp: 50, items: ['sixth_house_amulet'] } },
+      { id: 'search_ruins', intent: 'work', label: 'Search the ruined throne room', skill: 'athletics', difficulty: 55, reward: { gold: 20, xp: 35 } },
+      { id: 'avoid_corprus', intent: 'crime', label: 'Navigate past corprus beast', skill: 'skulduggery', difficulty: 45, reward: { xp: 25 } },
+      { id: 'sixth_house_ritual', intent: 'study', label: 'Perform a Sixth House ritual', skill: 'magic', difficulty: 70, reward: { xp: 50, items: ['sixth_house_amulet'] } },
     ],
   },
 
@@ -44,9 +44,9 @@ export const ES_LOCATIONS: Record<string, any> = {
     npcs: ['npc_es_snow_elf_spirit'],
     items: ['crystal_shard', 'snow_elf_amulet', 'frost_salt'],
     actions: [
-      { id: 'explore_crystal_cave', label: 'Explore the crystal cavern', skill: 'athletics', difficulty: 30, reward: { gold: 15, items: ['crystal_shard'], xp: 25 } },
-      { id: 'pray_snow_elf', label: 'Pray at the Snow Elf shrine', skill: 'willpower', difficulty: 25, reward: { xp: 30, skills: { willpower: 2 } } },
-      { id: 'collect_frost_salt', label: 'Harvest frost salt from the falls', skill: 'foraging', difficulty: 35, reward: { items: ['frost_salt'], gold: 10 } },
+      { id: 'explore_crystal_cave', intent: 'work', label: 'Explore the crystal cavern', skill: 'athletics', difficulty: 30, reward: { gold: 15, items: ['crystal_shard'], xp: 25 } },
+      { id: 'pray_snow_elf', intent: 'study', label: 'Pray at the Snow Elf shrine', skill: 'willpower', difficulty: 25, reward: { xp: 30, skills: { willpower: 2 } } },
+      { id: 'collect_frost_salt', intent: 'work', label: 'Harvest frost salt from the falls', skill: 'foraging', difficulty: 35, reward: { items: ['frost_salt'], gold: 10 } },
     ],
   },
 
@@ -61,9 +61,9 @@ export const ES_LOCATIONS: Record<string, any> = {
     npcs: ['npc_es_vampire_lord', 'npc_es_thrall'],
     items: ['blood_wine', 'ancient_tome', 'vampire_ring'],
     actions: [
-      { id: 'steal_blood_wine', label: 'Steal from the blood wine cellar', skill: 'skulduggery', difficulty: 50, reward: { items: ['blood_wine'], gold: 30 } },
-      { id: 'read_tomes', label: 'Read ancient tomes in the library', skill: 'willpower', difficulty: 40, reward: { xp: 35, skills: { willpower: 3 } } },
-      { id: 'confront_vampire', label: 'Confront the vampire lord', skill: 'athletics', difficulty: 65, reward: { xp: 70, gold: 50, items: ['vampire_ring'] } },
+      { id: 'steal_blood_wine', intent: 'crime', label: 'Steal from the blood wine cellar', skill: 'skulduggery', difficulty: 50, reward: { items: ['blood_wine'], gold: 30 } },
+      { id: 'read_tomes', intent: 'study', label: 'Read ancient tomes in the library', skill: 'willpower', difficulty: 40, reward: { xp: 35, skills: { willpower: 3 } } },
+      { id: 'confront_vampire', intent: 'work', label: 'Confront the vampire lord', skill: 'athletics', difficulty: 65, reward: { xp: 70, gold: 50, items: ['vampire_ring'] } },
     ],
   },
 
@@ -77,9 +77,9 @@ export const ES_LOCATIONS: Record<string, any> = {
     npcs: ['npc_es_ancient_spirit'],
     items: ['divine_shard', 'ancient_relic'],
     actions: [
-      { id: 'study_statues', label: 'Study the colossal statues', skill: 'willpower', difficulty: 30, reward: { xp: 40, skills: { willpower: 5 } } },
-      { id: 'explore_hidden_temple', label: 'Find the hidden temple', skill: 'skulduggery', difficulty: 45, reward: { xp: 35, items: ['divine_shard'] } },
-      { id: 'pray_ancient_altar', label: 'Pray at the ancient altar', skill: 'willpower', difficulty: 20, reward: { xp: 20, skills: { willpower: 3 } } },
+      { id: 'study_statues', intent: 'study', label: 'Study the colossal statues', skill: 'willpower', difficulty: 30, reward: { xp: 40, skills: { willpower: 5 } } },
+      { id: 'explore_hidden_temple', intent: 'crime', label: 'Find the hidden temple', skill: 'skulduggery', difficulty: 45, reward: { xp: 35, items: ['divine_shard'] } },
+      { id: 'pray_ancient_altar', intent: 'study', label: 'Pray at the ancient altar', skill: 'willpower', difficulty: 20, reward: { xp: 20, skills: { willpower: 3 } } },
     ],
   },
 
@@ -94,9 +94,9 @@ export const ES_LOCATIONS: Record<string, any> = {
     npcs: ['npc_es_tonal_architect'],
     items: ['paradox_crystal', 'dwemer_tonal_rod', 'void_shard'],
     actions: [
-      { id: 'navigate_shifting', label: 'Navigate the shifting walls', skill: 'skulduggery', difficulty: 70, reward: { xp: 50, items: ['paradox_crystal'] } },
-      { id: 'enter_time_loop', label: 'Enter the time loop chamber', skill: 'magic', difficulty: 80, reward: { xp: 70, items: ['dwemer_tonal_rod'] } },
-      { id: 'touch_dimensional_rift', label: 'Reach into the dimensional rift', skill: 'willpower', difficulty: 90, reward: { xp: 100, items: ['void_shard'] } },
+      { id: 'navigate_shifting', intent: 'crime', label: 'Navigate the shifting walls', skill: 'skulduggery', difficulty: 70, reward: { xp: 50, items: ['paradox_crystal'] } },
+      { id: 'enter_time_loop', intent: 'study', label: 'Enter the time loop chamber', skill: 'magic', difficulty: 80, reward: { xp: 70, items: ['dwemer_tonal_rod'] } },
+      { id: 'touch_dimensional_rift', intent: 'study', label: 'Reach into the dimensional rift', skill: 'willpower', difficulty: 90, reward: { xp: 100, items: ['void_shard'] } },
     ],
   },
 
@@ -111,9 +111,9 @@ export const ES_LOCATIONS: Record<string, any> = {
     npcs: ['npc_es_sanguine', 'npc_es_maigq'],
     items: ['wabbajack_shard', 'golden_crown', 'madness_tonic'],
     actions: [
-      { id: 'explore_mania', label: 'Explore the Mania gardens', skill: 'athletics', difficulty: 30, reward: { gold: 10, items: ['madness_tonic'], xp: 25 } },
-      { id: 'brave_dementia', label: 'Venture into the Dementia forest', skill: 'skulduggery', difficulty: 55, reward: { xp: 40, items: ['wabbajack_shard'] } },
-      { id: 'approach_throne', label: 'Approach Sheogorath\'s throne', skill: 'willpower', difficulty: 45, reward: { xp: 55, items: ['golden_crown'] } },
+      { id: 'explore_mania', intent: 'work', label: 'Explore the Mania gardens', skill: 'athletics', difficulty: 30, reward: { gold: 10, items: ['madness_tonic'], xp: 25 } },
+      { id: 'brave_dementia', intent: 'crime', label: 'Venture into the Dementia forest', skill: 'skulduggery', difficulty: 55, reward: { xp: 40, items: ['wabbajack_shard'] } },
+      { id: 'approach_throne', intent: 'explore', label: 'Approach Sheogorath\'s throne', skill: 'willpower', difficulty: 45, reward: { xp: 55, items: ['golden_crown'] } },
     ],
   },
 
@@ -128,9 +128,9 @@ export const ES_LOCATIONS: Record<string, any> = {
     npcs: [],
     items: ['healing_water', 'fungi_spore'],
     actions: [
-      { id: 'drink_pool', label: 'Drink from the healing pool', skill: null, difficulty: 0, reward: { skills: { willpower: 5, athletics: 3 }, xp: 10 } },
-      { id: 'study_carvings', label: 'Study the dragon worship carvings', skill: 'willpower', difficulty: 20, reward: { xp: 20, skills: { willpower: 2 } } },
-      { id: 'harvest_fungi', label: 'Harvest luminescent fungi', skill: 'foraging', difficulty: 15, reward: { items: ['fungi_spore'], gold: 5 } },
+      { id: 'drink_pool', intent: 'explore', label: 'Drink from the healing pool', skill: null, difficulty: 0, reward: { skills: { willpower: 5, athletics: 3 }, xp: 10 } },
+      { id: 'study_carvings', intent: 'study', label: 'Study the dragon worship carvings', skill: 'willpower', difficulty: 20, reward: { xp: 20, skills: { willpower: 2 } } },
+      { id: 'harvest_fungi', intent: 'work', label: 'Harvest luminescent fungi', skill: 'foraging', difficulty: 15, reward: { items: ['fungi_spore'], gold: 5 } },
     ],
   },
 
@@ -145,9 +145,9 @@ export const ES_LOCATIONS: Record<string, any> = {
     npcs: ['npc_es_redguard_merchant', 'npc_es_corsair_captain'],
     items: ['hammerfell_spice', 'curved_sword', 'iliac_pearl'],
     actions: [
-      { id: 'haggle_bazaar', label: 'Haggle in the Grand Bazaar', skill: 'skulduggery', difficulty: 35, reward: { gold: 30, items: ['hammerfell_spice'], xp: 20 } },
-      { id: 'listen_corsairs', label: 'Listen to corsair tales at the harbor', skill: 'social', difficulty: 25, reward: { xp: 25, skills: { willpower: 2 } } },
-      { id: 'admire_palace', label: 'Admire the limestone palaces', skill: 'willpower', difficulty: 20, reward: { xp: 15 } },
+      { id: 'haggle_bazaar', intent: 'crime', label: 'Haggle in the Grand Bazaar', skill: 'skulduggery', difficulty: 35, reward: { gold: 30, items: ['hammerfell_spice'], xp: 20 } },
+      { id: 'listen_corsairs', intent: 'social', label: 'Listen to corsair tales at the harbor', skill: 'social', difficulty: 25, reward: { xp: 25, skills: { willpower: 2 } } },
+      { id: 'admire_palace', intent: 'study', label: 'Admire the limestone palaces', skill: 'willpower', difficulty: 20, reward: { xp: 15 } },
     ],
   },
 
@@ -162,9 +162,9 @@ export const ES_LOCATIONS: Record<string, any> = {
     npcs: ['npc_es_master_smith', 'npc_es_apprentice_armorer'],
     items: ['sunforged_ingot', 'singing_steel_blade', 'dragontail_ore'],
     actions: [
-      { id: 'watch_smiths', label: 'Watch the master smiths at work', skill: 'willpower', difficulty: 40, reward: { xp: 30, skills: { willpower: 3 } } },
-      { id: 'mine_ore', label: 'Mine ore near the magma flows', skill: 'athletics', difficulty: 50, reward: { items: ['dragontail_ore'], gold: 15, xp: 25 } },
-      { id: 'assist_forge', label: 'Assist at the singing anvils', skill: 'athletics', difficulty: 65, reward: { xp: 45, items: ['sunforged_ingot'] } },
+      { id: 'watch_smiths', intent: 'study', label: 'Watch the master smiths at work', skill: 'willpower', difficulty: 40, reward: { xp: 30, skills: { willpower: 3 } } },
+      { id: 'mine_ore', intent: 'work', label: 'Mine ore near the magma flows', skill: 'athletics', difficulty: 50, reward: { items: ['dragontail_ore'], gold: 15, xp: 25 } },
+      { id: 'assist_forge', intent: 'work', label: 'Assist at the singing anvils', skill: 'athletics', difficulty: 65, reward: { xp: 45, items: ['sunforged_ingot'] } },
     ],
   },
 
@@ -179,9 +179,9 @@ export const ES_LOCATIONS: Record<string, any> = {
     npcs: ['npc_es_arena_champion', 'npc_es_imperial_diplomat'],
     items: ['arena_token', 'rihad_mercenary_contract', 'abecean_coral'],
     actions: [
-      { id: 'watch_arena', label: 'Watch the fights in the Grand Arena', skill: 'willpower', difficulty: 30, reward: { xp: 25 } },
-      { id: 'train_mercenaries', label: 'Train with the local mercenaries', skill: 'athletics', difficulty: 55, reward: { xp: 40, skills: { athletics: 4 } } },
-      { id: 'search_docks', label: 'Search the docks for interesting finds', skill: 'skulduggery', difficulty: 45, reward: { items: ['abecean_coral'], gold: 20, xp: 20 } },
+      { id: 'watch_arena', intent: 'study', label: 'Watch the fights in the Grand Arena', skill: 'willpower', difficulty: 30, reward: { xp: 25 } },
+      { id: 'train_mercenaries', intent: 'work', label: 'Train with the local mercenaries', skill: 'athletics', difficulty: 55, reward: { xp: 40, skills: { athletics: 4 } } },
+      { id: 'search_docks', intent: 'crime', label: 'Search the docks for interesting finds', skill: 'skulduggery', difficulty: 45, reward: { items: ['abecean_coral'], gold: 20, xp: 20 } },
     ],
   },
 
@@ -196,9 +196,9 @@ export const ES_LOCATIONS: Record<string, any> = {
     npcs: ['npc_es_restless_league_member', 'npc_es_smuggler_boss'],
     items: ['stros_mkai_rum', 'dwemer_cog', 'pirate_treasure'],
     actions: [
-      { id: 'drink_tavern', label: 'Drink rum in a smuggler\'s tavern', skill: 'social', difficulty: 40, reward: { xp: 20, items: ['stros_mkai_rum'] } },
-      { id: 'explore_observatory', label: 'Explore the Dwemer Observatory', skill: 'willpower', difficulty: 60, reward: { xp: 45, items: ['dwemer_cog'] } },
-      { id: 'search_jungle', label: 'Search the jungle for hidden caches', skill: 'foraging', difficulty: 55, reward: { gold: 40, items: ['pirate_treasure'], xp: 35 } },
+      { id: 'drink_tavern', intent: 'explore', label: 'Drink rum in a smuggler\'s tavern', skill: 'social', difficulty: 40, reward: { xp: 20, items: ['stros_mkai_rum'] } },
+      { id: 'explore_observatory', intent: 'study', label: 'Explore the Dwemer Observatory', skill: 'willpower', difficulty: 60, reward: { xp: 45, items: ['dwemer_cog'] } },
+      { id: 'search_jungle', intent: 'work', label: 'Search the jungle for hidden caches', skill: 'foraging', difficulty: 55, reward: { gold: 40, items: ['pirate_treasure'], xp: 35 } },
     ],
   },
 
@@ -213,9 +213,9 @@ export const ES_LOCATIONS: Record<string, any> = {
     npcs: ['npc_es_high_elf_scholar', 'npc_es_kinlord'],
     items: ['welkynd_stone', 'firsthold_vintage', 'aldmeri_tome'],
     actions: [
-      { id: 'study_crystal_arch', label: 'Study the crystalline architecture', skill: 'magic', difficulty: 45, reward: { xp: 40, skills: { magic: 3 } } },
-      { id: 'sneak_palace', label: 'Sneak into the palace grounds', skill: 'skulduggery', difficulty: 75, reward: { gold: 50, items: ['welkynd_stone'], xp: 60 } },
-      { id: 'purchase_vintage', label: 'Purchase rare Firsthold Vintage', skill: 'persuasion', difficulty: 50, reward: { items: ['firsthold_vintage'], xp: 20 } },
+      { id: 'study_crystal_arch', intent: 'study', label: 'Study the crystalline architecture', skill: 'magic', difficulty: 45, reward: { xp: 40, skills: { magic: 3 } } },
+      { id: 'sneak_palace', intent: 'crime', label: 'Sneak into the palace grounds', skill: 'skulduggery', difficulty: 75, reward: { gold: 50, items: ['welkynd_stone'], xp: 60 } },
+      { id: 'purchase_vintage', intent: 'explore', label: 'Purchase rare Firsthold Vintage', skill: 'persuasion', difficulty: 50, reward: { items: ['firsthold_vintage'], xp: 20 } },
     ],
   },
 
@@ -229,9 +229,9 @@ export const ES_LOCATIONS: Record<string, any> = {
     npcs: ['npc_es_divine_prosecution_officer', 'npc_es_shimmerene_merchant'],
     items: ['shimmerene_pearl', 'sapiarch_tract', 'sea_elf_smuggled_goods'],
     actions: [
-      { id: 'bribe_prosecution', label: 'Bribe a Prosecution Officer', skill: 'persuasion', difficulty: 60, reward: { xp: 30, skills: { persuasion: 2 } } },
-      { id: 'smuggle_goods', label: 'Smuggle goods past the Sapiarchs', skill: 'skulduggery', difficulty: 65, reward: { gold: 60, items: ['sea_elf_smuggled_goods'], xp: 50 } },
-      { id: 'harvest_coral', label: 'Harvest rare coral', skill: 'foraging', difficulty: 40, reward: { items: ['shimmerene_pearl'], gold: 20 } },
+      { id: 'bribe_prosecution', intent: 'explore', label: 'Bribe a Prosecution Officer', skill: 'persuasion', difficulty: 60, reward: { xp: 30, skills: { persuasion: 2 } } },
+      { id: 'smuggle_goods', intent: 'crime', label: 'Smuggle goods past the Sapiarchs', skill: 'skulduggery', difficulty: 65, reward: { gold: 60, items: ['sea_elf_smuggled_goods'], xp: 50 } },
+      { id: 'harvest_coral', intent: 'work', label: 'Harvest rare coral', skill: 'foraging', difficulty: 40, reward: { items: ['shimmerene_pearl'], gold: 20 } },
     ],
   },
 
@@ -246,9 +246,9 @@ export const ES_LOCATIONS: Record<string, any> = {
     npcs: ['npc_es_sapiarch', 'npc_es_student_mage'],
     items: ['sapiarchic_scroll', 'magicka_potion', 'enchanted_quill'],
     actions: [
-      { id: 'attend_lecture', label: 'Attend a Sapiarch lecture', skill: 'willpower', difficulty: 35, reward: { xp: 30, skills: { willpower: 4 } } },
-      { id: 'steal_scroll', label: 'Steal a restricted scroll', skill: 'skulduggery', difficulty: 80, reward: { gold: 40, items: ['sapiarchic_scroll'], xp: 70 } },
-      { id: 'practice_magic', label: 'Practice spells on the cliffs', skill: 'magic', difficulty: 50, reward: { xp: 45, skills: { magic: 5 } } },
+      { id: 'attend_lecture', intent: 'study', label: 'Attend a Sapiarch lecture', skill: 'willpower', difficulty: 35, reward: { xp: 30, skills: { willpower: 4 } } },
+      { id: 'steal_scroll', intent: 'crime', label: 'Steal a restricted scroll', skill: 'skulduggery', difficulty: 80, reward: { gold: 40, items: ['sapiarchic_scroll'], xp: 70 } },
+      { id: 'practice_magic', intent: 'study', label: 'Practice spells on the cliffs', skill: 'magic', difficulty: 50, reward: { xp: 45, skills: { magic: 5 } } },
     ],
   },
 
@@ -263,10 +263,10 @@ export const ES_LOCATIONS: Record<string, any> = {
     npcs: ['npc_es_welkynar_rider', 'npc_es_griffon'],
     items: ['griffon_feather', 'cloudrest_crystal', 'aetheric_breeze_vial'],
     actions: [
-      { id: 'tame_griffon', label: 'Attempt to tame a young griffon', skill: 'willpower', difficulty: 85, reward: { xp: 80, items: ['griffon_feather'] } },
-      { id: 'climb_summit', label: 'Climb to the very peak of Eton Nir', skill: 'athletics', difficulty: 70, reward: { xp: 60, skills: { athletics: 5 } } },
-      { id: 'harvest_crystal', label: 'Harvest a Cloudrest crystal', skill: 'foraging', difficulty: 55, reward: { gold: 35, items: ['cloudrest_crystal'], xp: 40 } }
-    ]
+      { id: 'tame_griffon', intent: 'study', label: 'Attempt to tame a young griffon', skill: 'willpower', difficulty: 85, reward: { xp: 80, items: ['griffon_feather'] } },
+      { id: 'climb_summit', intent: 'work', label: 'Climb to the very peak of Eton Nir', skill: 'athletics', difficulty: 70, reward: { xp: 60, skills: { athletics: 5 } } },
+      { id: 'harvest_crystal', intent: 'work', label: 'Harvest a Cloudrest crystal', skill: 'foraging', difficulty: 55, reward: { gold: 35, items: ['cloudrest_crystal'], xp: 40 } },
+    ],
   },
 
   loc_es_vivec_city: {
@@ -280,9 +280,9 @@ export const ES_LOCATIONS: Record<string, any> = {
     npcs: ['npc_es_vivec', 'npc_es_ordinator'],
     items: ['temple_blessing', 'vivec_pamphlet', 'exquisite_clothing'],
     actions: [
-      { id: 'navigate_cantons', label: 'Navigate the complex cantons', skill: 'athletics', difficulty: 35, reward: { xp: 20 } },
-      { id: 'attend_sermon', label: 'Attend a Temple sermon', skill: 'willpower', difficulty: 20, reward: { xp: 30, skills: { willpower: 2 } } },
-      { id: 'bribe_ordinator', label: 'Bribe an Ordinator for information', skill: 'skulduggery', difficulty: 50, reward: { gold: -20, xp: 40, items: ['secret_missive'] } },
+      { id: 'navigate_cantons', intent: 'work', label: 'Navigate the complex cantons', skill: 'athletics', difficulty: 35, reward: { xp: 20 } },
+      { id: 'attend_sermon', intent: 'study', label: 'Attend a Temple sermon', skill: 'willpower', difficulty: 20, reward: { xp: 30, skills: { willpower: 2 } } },
+      { id: 'bribe_ordinator', intent: 'crime', label: 'Bribe an Ordinator for information', skill: 'skulduggery', difficulty: 50, reward: { gold: -20, xp: 40, items: ['secret_missive'] } },
     ],
   },
 
@@ -296,9 +296,9 @@ export const ES_LOCATIONS: Record<string, any> = {
     npcs: ['npc_es_caius_cosades', 'npc_es_hlaalu_guard'],
     items: ['skooma', 'moon_sugar', 'hlaalu_writ'],
     actions: [
-      { id: 'visit_guilds', label: 'Check the local Guild boards', skill: 'willpower', difficulty: 25, reward: { xp: 20, gold: 10 } },
-      { id: 'buy_skooma', label: 'Purchase illicit goods', skill: 'skulduggery', difficulty: 40, reward: { gold: -30, items: ['skooma', 'moon_sugar'] } },
-      { id: 'spy_council', label: 'Eavesdrop at the Council Club', skill: 'skulduggery', difficulty: 55, reward: { xp: 50, items: ['hlaalu_writ'] } },
+      { id: 'visit_guilds', intent: 'study', label: 'Check the local Guild boards', skill: 'willpower', difficulty: 25, reward: { xp: 20, gold: 10 } },
+      { id: 'buy_skooma', intent: 'crime', label: 'Purchase illicit goods', skill: 'skulduggery', difficulty: 40, reward: { gold: -30, items: ['skooma', 'moon_sugar'] } },
+      { id: 'spy_council', intent: 'crime', label: 'Eavesdrop at the Council Club', skill: 'skulduggery', difficulty: 55, reward: { xp: 50, items: ['hlaalu_writ'] } },
     ],
   },
 
@@ -313,9 +313,9 @@ export const ES_LOCATIONS: Record<string, any> = {
     npcs: ['npc_es_neloth', 'npc_es_telvanni_guard'],
     items: ['levitation_potion', 'telvanni_bug_musk', 'soul_gem'],
     actions: [
-      { id: 'navigate_mushroom', label: 'Levitate up a mushroom tower', skill: 'magic', difficulty: 50, reward: { xp: 45 } },
-      { id: 'trade_spices', label: 'Trade for rare Telvanni goods', skill: 'willpower', difficulty: 45, reward: { gold: -50, items: ['telvanni_bug_musk'] } },
-      { id: 'steal_soul_gem', label: 'Steal from an enchanter\'s stall', skill: 'skulduggery', difficulty: 70, reward: { xp: 60, items: ['soul_gem'] } },
+      { id: 'navigate_mushroom', intent: 'study', label: 'Levitate up a mushroom tower', skill: 'magic', difficulty: 50, reward: { xp: 45 } },
+      { id: 'trade_spices', intent: 'study', label: 'Trade for rare Telvanni goods', skill: 'willpower', difficulty: 45, reward: { gold: -50, items: ['telvanni_bug_musk'] } },
+      { id: 'steal_soul_gem', intent: 'explore', label: 'Steal from an enchanter\'s stall', skill: 'skulduggery', difficulty: 70, reward: { xp: 60, items: ['soul_gem'] } },
     ],
   },
 
@@ -330,24 +330,26 @@ export const ES_LOCATIONS: Record<string, any> = {
     npcs: ['npc_es_divayth_fyr', 'npc_es_corprus_inmate'],
     items: ['dwemer_puzzle_box', 'daedric_crescent', 'corprus_weepings'],
     actions: [
-      { id: 'brave_corprusarium', label: 'Brave the Corprusarium', skill: 'athletics', difficulty: 75, reward: { xp: 60, items: ['corprus_weepings'] } },
-      { id: 'speak_divayth', label: 'Seek audience with Divayth Fyr', skill: 'willpower', difficulty: 80, reward: { xp: 100, skills: { magic: 3 } } },
-      { id: 'loot_vault', label: 'Attempt to loot the Daedric vault', skill: 'skulduggery', difficulty: 95, reward: { xp: 150, items: ['daedric_crescent'] } }
-    ]
+      { id: 'brave_corprusarium', intent: 'work', label: 'Brave the Corprusarium', skill: 'athletics', difficulty: 75, reward: { xp: 60, items: ['corprus_weepings'] } },
+      { id: 'speak_divayth', intent: 'study', label: 'Seek audience with Divayth Fyr', skill: 'willpower', difficulty: 80, reward: { xp: 100, skills: { magic: 3 } } },
+      { id: 'loot_vault', intent: 'crime', label: 'Attempt to loot the Daedric vault', skill: 'skulduggery', difficulty: 95, reward: { xp: 150, items: ['daedric_crescent'] } },
+    ],
   },
+
   loc_es_wayrest: {
     id: 'loc_es_wayrest',
     name: 'Wayrest',
     description: 'The glittering jewel of the Iliac Bay. Wayrest is a city of high spires, sprawling markets, and intricate political webs. The air here smells of expensive perfumes, imported spices, and hidden daggers. Every smile in the merchant district is a transaction, and every shadow in the noble quarter hides a spy.',
+    danger: 0.3,
     atmosphere: 'wealthy, treacherous, politically charged',
     exits: ['loc_es_daggerfall', 'loc_es_camlorn', 'crossroads'],
     features: ['grand_bazaar', 'castle_wayrest', 'fighters_guild_hall', 'dark_alleys'],
     npcs: ['npc_es_breton_merchant', 'npc_es_wayrest_guard'],
     items: ['wayrest_silk', 'fine_wine', 'silver_dagger'],
     actions: [
-      { id: 'trade_bazaar', label: 'Trade in the Grand Bazaar', skill: 'social', difficulty: 40, reward: { gold: 30, items: ['wayrest_silk'], xp: 20 } },
-      { id: 'eavesdrop_nobles', label: 'Eavesdrop on noble gossip', skill: 'skulduggery', difficulty: 55, reward: { xp: 35 } },
-      { id: 'visit_guild', label: 'Take a contract at the Fighters Guild', skill: 'athletics', difficulty: 50, reward: { gold: 50, xp: 45 } },
+      { id: 'trade_bazaar', intent: 'social', label: 'Trade in the Grand Bazaar', skill: 'social', difficulty: 40, reward: { gold: 30, items: ['wayrest_silk'], xp: 20 } },
+      { id: 'eavesdrop_nobles', intent: 'crime', label: 'Eavesdrop on noble gossip', skill: 'skulduggery', difficulty: 55, reward: { xp: 35 } },
+      { id: 'visit_guild', intent: 'work', label: 'Take a contract at the Fighters Guild', skill: 'athletics', difficulty: 50, reward: { gold: 50, xp: 45 } },
     ],
   },
 
@@ -355,15 +357,16 @@ export const ES_LOCATIONS: Record<string, any> = {
     id: 'loc_es_daggerfall',
     name: 'Daggerfall',
     description: 'One of the oldest and most powerful kingdoms in High Rock. Daggerfall is a city steeped in history and magic, its stone walls bearing the scars of countless wars. The air is thick with the smell of old parchment, rain on cobblestones, and the ozone tang of spellcraft. The Mages Guild here is legendary, but the city\'s underworld is equally vast.',
+    danger: 0.35,
     atmosphere: 'ancient, magical, rain-swept',
     exits: ['loc_es_wayrest', 'crossroads'],
     features: ['mages_guild_headquarters', 'castle_daggerfall', 'ancient_crypts', 'bustling_port'],
     npcs: ['npc_es_mages_guild_scholar', 'npc_es_daggerfall_knight'],
     items: ['spell_tome', 'daggerfall_steel_sword', 'mana_potion'],
     actions: [
-      { id: 'study_magic', label: 'Study at the Mages Guild', skill: 'magic', difficulty: 45, reward: { xp: 50, items: ['spell_tome'] } },
-      { id: 'explore_crypts', label: 'Explore the ancient crypts beneath the city', skill: 'skulduggery', difficulty: 60, reward: { gold: 40, xp: 55 } },
-      { id: 'work_docks', label: 'Find work at the port', skill: 'athletics', difficulty: 30, reward: { gold: 20, xp: 25 } },
+      { id: 'study_magic', intent: 'study', label: 'Study at the Mages Guild', skill: 'magic', difficulty: 45, reward: { xp: 50, items: ['spell_tome'] } },
+      { id: 'explore_crypts', intent: 'crime', label: 'Explore the ancient crypts beneath the city', skill: 'skulduggery', difficulty: 60, reward: { gold: 40, xp: 55 } },
+      { id: 'work_docks', intent: 'work', label: 'Find work at the port', skill: 'athletics', difficulty: 30, reward: { gold: 20, xp: 25 } },
     ],
   },
 
@@ -377,28 +380,28 @@ export const ES_LOCATIONS: Record<string, any> = {
     features: ['great_forge', 'chieftains_hall', 'training_pits', 'mountain_pass'],
     npcs: ['npc_es_orc_smith', 'npc_es_orsinium_warrior'],
     items: ['orichalcum_ingot', 'orcish_armor', 'strong_ale'],
-    items: ['arena_token', 'rihad_mercenary_contract', 'abecean_coral'],
     actions: [
-      { id: 'watch_arena', label: 'Watch the fights in the Grand Arena', skill: 'willpower', difficulty: 30, reward: { xp: 25 } },
-      { id: 'train_mercenaries', label: 'Train with the local mercenaries', skill: 'athletics', difficulty: 55, reward: { xp: 40, skills: { athletics: 4 } } },
-      { id: 'search_docks', label: 'Search the docks for interesting finds', skill: 'skulduggery', difficulty: 45, reward: { items: ['abecean_coral'], gold: 20, xp: 20 } },
+      { id: 'work_forge', intent: 'work', label: 'Work at the Great Forge', skill: 'athletics', difficulty: 50, reward: { gold: 35, items: ['orichalcum_ingot'], xp: 40 } },
+      { id: 'spar_warriors', intent: 'work', label: 'Spar in the training pits', skill: 'athletics', difficulty: 65, reward: { xp: 60 } },
+      { id: 'drink_ale', intent: 'social', label: 'Drink with the locals', skill: 'social', difficulty: 35, reward: { xp: 20, items: ['strong_ale'] } },
     ],
   },
 
-  loc_es_stros_m_kai: {
-    id: 'loc_es_stros_m_kai',
-    name: 'Stros M\'Kai',
-    description: 'An island off the southern coast of Hammerfell, famous for its deepwater port, its history of rebellion, and the ancient Dwemer ruins that dot its landscape. The air is thick with humidity and the smell of tropical flora. The island serves as a haven for pirates, smugglers, and independent thinkers who chafe under mainland rule.',
-    danger: 65,
-    atmosphere: 'tropical, rebellious, mysterious, lawless',
-    exits: ['loc_es_sentinel'],
-    features: ['port_hunding', 'smugglers_den', 'dwemer_observatory', 'tropical_jungle'],
-    npcs: ['npc_es_restless_league_member', 'npc_es_smuggler_boss'],
-    items: ['stros_mkai_rum', 'dwemer_cog', 'pirate_treasure'],
+  loc_es_camlorn: {
+    id: 'loc_es_camlorn',
+    name: 'Camlorn',
+    description: 'A proud city in western High Rock, known for its artisans, poets, and the lingering scars of a werewolf invasion. Camlorn is rebuilding its glory, with beautiful architecture juxtaposed against barricaded alleyways. The moon seems to shine brighter here, casting long, suspicious shadows, and the scent of silver-weed hangs heavy in the night air.',
+    danger: 0.45,
+    atmosphere: 'artistic, recovering, lycanthropic tension',
+    exits: ['loc_es_wayrest', 'crossroads'],
+    features: ['artisans_plaza', 'silver_smiths', 'wolf_hunter_camp', 'moonlit_gardens'],
+    npcs: ['npc_es_camlorn_artisan', 'npc_es_wolf_hunter'],
+    items: ['silver_bolt', 'fine_poetry_book', 'wolf_pelt'],
     actions: [
-      { id: 'drink_tavern', label: 'Drink rum in a smuggler\'s tavern', skill: 'social', difficulty: 40, reward: { xp: 20, items: ['stros_mkai_rum'] } },
-      { id: 'explore_observatory', label: 'Explore the Dwemer Observatory', skill: 'willpower', difficulty: 60, reward: { xp: 45, items: ['dwemer_cog'] } },
-      { id: 'search_jungle', label: 'Search the jungle for hidden caches', skill: 'foraging', difficulty: 55, reward: { gold: 40, items: ['pirate_treasure'], xp: 35 } },
+      { id: 'buy_silver', intent: 'social', label: 'Commission a silver weapon', skill: 'social', difficulty: 40, reward: { items: ['silver_bolt'], xp: 20 } },
+      { id: 'hunt_werewolves', intent: 'work', label: 'Join a wolf-hunting patrol', skill: 'athletics', difficulty: 60, reward: { gold: 45, items: ['wolf_pelt'], xp: 50 } },
+      { id: 'appreciate_art', intent: 'study', label: 'Appreciate the local artisans', skill: 'willpower', difficulty: 30, reward: { xp: 30 } },
     ],
   },
+
 };
