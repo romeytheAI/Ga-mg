@@ -1859,7 +1859,7 @@ Example: { "health": 50, "allure": 20 }`;
               className="bg-[#0a0a0a] border border-white/10 p-8 rounded-sm max-w-2xl w-full relative shadow-2xl overflow-y-auto max-h-[80vh] z-10"
             >
               <button 
-                aria-label="Close Companions"
+                aria-label="Close Companion Roster"
                 onClick={() => setShowCompanions(false)}
                 className="absolute top-6 right-6 text-white/40 hover:text-white transition-colors"
               >
