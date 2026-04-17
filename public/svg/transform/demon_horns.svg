@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 150 250">
+  <defs>
+    <linearGradient id="hornGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#8a8a8a;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#5a5a5a;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#2a2a2a;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+
+  <!-- Left horn -->
+  <path d="M 50,-20 Q 45,-50 35,-70 Q 30,-60 40,-45 Q 48,-30 52,-15 Z" fill="url(#hornGrad)"/>
+
+  <!-- Right horn -->
+  <path d="M 100,-20 Q 105,-50 115,-70 Q 120,-60 110,-45 Q 102,-30 98,-15 Z" fill="url(#hornGrad)"/>
+
+  <!-- Horn ridges -->
+  <path d="M 40,-55 L 42,-52" stroke="#1a1a1a" stroke-width="1"/>
+  <path d="M 110,-55 L 108,-52" stroke="#1a1a1a" stroke-width="1"/>
+</svg>

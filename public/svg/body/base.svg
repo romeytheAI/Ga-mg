@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 150 250">
+  <defs>
+    <linearGradient id="skinGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#dcb5a8;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#e8c4b8;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#dcb5a8;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="skinShade" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#e8c4b8;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#c9a090;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+
+  <!-- Legs -->
+  <path d="M 45,140 Q 40,180 42,220 L 48,245 L 62,245 L 65,220 Q 68,180 63,140 Z" fill="url(#skinGrad)"/>
+  <path d="M 87,140 Q 82,180 85,220 L 88,245 L 102,245 L 108,220 Q 110,180 105,140 Z" fill="url(#skinGrad)"/>
+
+  <!-- Torso -->
+  <path d="M 35,50 Q 30,80 35,110 Q 38,130 45,140 L 105,140 Q 112,130 115,110 Q 120,80 115,50 Q 110,30 75,25 Q 40,30 35,50 Z" fill="url(#skinGrad)"/>
+
+  <!-- Torso shading -->
+  <path d="M 35,50 Q 30,80 35,110 Q 38,130 45,140 L 75,140 L 75,25 Q 40,30 35,50 Z" fill="url(#skinShade)" opacity="0.3"/>
+
+  <!-- Arms -->
+  <path d="M 35,55 Q 20,80 22,110 L 25,140 L 38,140 L 40,110 Q 42,80 38,55 Z" fill="url(#skinGrad)"/>
+  <path d="M 115,55 Q 130,80 128,110 L 125,140 L 112,140 L 110,110 Q 108,80 112,55 Z" fill="url(#skinGrad)"/>
+
+  <!-- Neck -->
+  <path d="M 60,25 L 60,15 L 90,15 L 90,25 Q 75,30 60,25 Z" fill="url(#skinGrad)"/>
+
+  <!-- Head -->
+  <ellipse cx="75" cy="5" rx="28" ry="32" fill="url(#skinGrad)"/>
+
+  <!-- Head shading -->
+  <ellipse cx="75" cy="5" rx="28" ry="32" fill="url(#skinShade)" opacity="0.2"/>
+</svg>

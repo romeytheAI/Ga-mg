@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 150 250">
+  <defs>
+    <linearGradient id="tshirtGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#8a9aaa;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#7a8a9a;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+
+  <!-- T-shirt body -->
+  <path d="M 32,52 Q 28,80 32,110 L 35,135 L 115,135 L 118,110 Q 122,80 118,52 Q 114,40 75,35 Q 36,40 32,52 Z" fill="url(#tshirtGrad)"/>
+
+  <!-- Short sleeves -->
+  <path d="M 32,55 L 18,75 L 25,95 L 40,85 L 42,65 Z" fill="url(#tshirtGrad)"/>
+  <path d="M 118,55 L 132,75 L 125,95 L 110,85 L 108,65 Z" fill="url(#tshirtGrad)"/>
+
+  <!-- Neckline -->
+  <path d="M 55,35 Q 75,50 95,35" stroke="#6a7a8a" stroke-width="2" fill="none"/>
+
+  <!-- Logo/design area -->
+  <rect x="60" y="60" width="30" height="25" rx="3" fill="#9aabbb" opacity="0.5"/>
+</svg>

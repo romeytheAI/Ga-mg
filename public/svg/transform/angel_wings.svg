@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 150 250">
+  <defs>
+    <linearGradient id="angelWingGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#ffffff;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#e8e8e8;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="angelWingShade" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#f0f0f0;stop-opacity:0.8" />
+      <stop offset="100%" style="stop-color:#d0d0d0;stop-opacity:0.8" />
+    </linearGradient>
+  </defs>
+
+  <!-- Left wing -->
+  <path d="M 35,55 Q 10,35 5,5 Q 10,25 25,40 Q 15,15 20,-5 Q 30,20 40,45 Z" fill="url(#angelWingGrad)"/>
+  <ellipse cx="20" cy="25" rx="15" ry="20" fill="url(#angelWingShade)"/>
+
+  <!-- Right wing -->
+  <path d="M 115,55 Q 140,35 145,5 Q 140,25 125,40 Q 135,15 130,-5 Q 120,20 110,45 Z" fill="url(#angelWingGrad)"/>
+  <ellipse cx="130" cy="25" rx="15" ry="20" fill="url(#angelWingShade)"/>
+
+  <!-- Feather details -->
+  <path d="M 15,15 Q 20,20 25,15" stroke="#d0d0d0" stroke-width="1" fill="none"/>
+  <path d="M 125,15 Q 130,20 135,15" stroke="#d0d0d0" stroke-width="1" fill="none"/>
+</svg>

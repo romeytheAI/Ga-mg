@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 150 250">
+  <!-- Left blush -->
+  <ellipse cx="50" cy="8" rx="12" ry="8" fill="#e8a0a0" opacity="0.4"/>
+
+  <!-- Right blush -->
+  <ellipse cx="100" cy="8" rx="12" ry="8" fill="#e8a0a0" opacity="0.4"/>
+</svg>

@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 150 250">
+  <!-- Lips -->
+  <path d="M 62,18 Q 75,22 88,18" stroke="#c97a7a" stroke-width="2" fill="none" stroke-linecap="round"/>
+  <path d="M 62,18 Q 75,24 88,18" fill="#d48a8a" opacity="0.6"/>
+</svg>

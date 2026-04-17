@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 150 250">
+  <!-- Left eye -->
+  <ellipse cx="58" cy="-2" rx="10" ry="8" fill="#fff"/>
+  <circle cx="58" cy="-2" r="5" fill="#4a6fa5"/>
+  <circle cx="58" cy="-2" r="2.5" fill="#1a3a6a"/>
+  <circle cx="60" cy="-4" r="2" fill="#fff" opacity="0.8"/>
+
+  <!-- Right eye -->
+  <ellipse cx="92" cy="-2" rx="10" ry="8" fill="#fff"/>
+  <circle cx="92" cy="-2" r="5" fill="#4a6fa5"/>
+  <circle cx="92" cy="-2" r="2.5" fill="#1a3a6a"/>
+  <circle cx="94" cy="-4" r="2" fill="#fff" opacity="0.8"/>
+
+  <!-- Eyelashes -->
+  <path d="M 48,-6 Q 52,-10 58,-10" stroke="#1a1a1a" stroke-width="1" fill="none"/>
+  <path d="M 82,-6 Q 88,-10 92,-10" stroke="#1a1a1a" stroke-width="1" fill="none"/>
+</svg>
