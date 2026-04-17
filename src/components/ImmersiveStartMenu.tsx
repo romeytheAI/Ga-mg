@@ -561,7 +561,7 @@ export const ImmersiveStartMenu: React.FC<ImmersiveStartMenuProps> = ({ onStartG
                       <Toggle label="WebSocket Mode" description="Use WS instead of polling for Horde." checked={useWebSockets} onChange={setUseWebSockets} />
                     </div>
 
-                    <a href="https://stablehorde.net/" target="_blank" rel="noreferrer" className="block w-full p-3 border border-primary-gold/30 text-primary-gold/80 hover:bg-primary-gold/10 text-center text-xs tracking-widest uppercase transition-colors mt-4">
+                    <a href="https://stablehorde.net/" target="_blank" rel="noopener noreferrer" className="block w-full p-3 border border-primary-gold/30 text-primary-gold/80 hover:bg-primary-gold/10 text-center text-xs tracking-widest uppercase transition-colors mt-4">
                       Run a Worker. Earn Kudos.
                     </a>
                   </div>
