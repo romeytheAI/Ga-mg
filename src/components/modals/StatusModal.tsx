@@ -52,7 +52,7 @@ export const StatusModal: React.FC<StatusModalProps> = ({ state, onClose }) => {
         className="bg-[#0a0a0a] border border-white/10 p-8 rounded-sm max-w-md w-full relative shadow-2xl z-10"
       >
         <button 
-          aria-label="Close Status"
+          aria-label="Close Physiological Matrix"
           onClick={onClose}
           className="absolute top-6 right-6 text-white/40 hover:text-white transition-colors"
         >
