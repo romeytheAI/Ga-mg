@@ -268,6 +268,8 @@ export const ES_LOCATIONS: Record<string, any> = {
       { id: 'tame_griffon', label: 'Attempt to tame a young griffon', skill: 'willpower', difficulty: 85, reward: { xp: 80, items: ['griffon_feather'] } },
       { id: 'climb_summit', label: 'Climb to the very peak of Eton Nir', skill: 'athletics', difficulty: 70, reward: { xp: 60, skills: { athletics: 5 } } },
       { id: 'harvest_crystal', label: 'Harvest a Cloudrest crystal', skill: 'foraging', difficulty: 55, reward: { gold: 35, items: ['cloudrest_crystal'], xp: 40 } },
+    ],
+  },
 
   loc_es_vivec_city: {
     id: 'loc_es_vivec_city',
@@ -334,12 +336,14 @@ export const ES_LOCATIONS: Record<string, any> = {
       { id: 'brave_corprusarium', label: 'Brave the Corprusarium', skill: 'athletics', difficulty: 75, reward: { xp: 60, items: ['corprus_weepings'] } },
       { id: 'speak_divayth', label: 'Seek audience with Divayth Fyr', skill: 'willpower', difficulty: 80, reward: { xp: 100, skills: { magic: 3 } } },
       { id: 'loot_vault', label: 'Attempt to loot the Daedric vault', skill: 'skulduggery', difficulty: 95, reward: { xp: 150, items: ['daedric_crescent'] } },
+    ],
+  },
+
   loc_es_wayrest: {
     id: 'loc_es_wayrest',
     name: 'Wayrest',
     description: 'The glittering jewel of the Iliac Bay. Wayrest is a city of high spires, sprawling markets, and intricate political webs. The air here smells of expensive perfumes, imported spices, and hidden daggers. Every smile in the merchant district is a transaction, and every shadow in the noble quarter hides a spy.',
     danger: 30,
-    danger: 0.3,
     atmosphere: 'wealthy, treacherous, politically charged',
     exits: ['loc_es_daggerfall', 'loc_es_camlorn', 'crossroads'],
     features: ['grand_bazaar', 'castle_wayrest', 'fighters_guild_hall', 'dark_alleys'],
@@ -357,7 +361,6 @@ export const ES_LOCATIONS: Record<string, any> = {
     name: 'Daggerfall',
     description: 'One of the oldest and most powerful kingdoms in High Rock. Daggerfall is a city steeped in history and magic, its stone walls bearing the scars of countless wars. The air is thick with the smell of old parchment, rain on cobblestones, and the ozone tang of spellcraft. The Mages Guild here is legendary, but the city\'s underworld is equally vast.',
     danger: 35,
-    danger: 0.35,
     atmosphere: 'ancient, magical, rain-swept',
     exits: ['loc_es_wayrest', 'crossroads'],
     features: ['mages_guild_headquarters', 'castle_daggerfall', 'ancient_crypts', 'bustling_port'],
@@ -401,6 +404,9 @@ export const ES_LOCATIONS: Record<string, any> = {
       { id: 'buy_silver', label: 'Commission a silver weapon', skill: 'social', difficulty: 40, reward: { items: ['silver_bolt'], xp: 20 } },
       { id: 'hunt_werewolves', label: 'Join a wolf-hunting patrol', skill: 'athletics', difficulty: 60, reward: { gold: 45, items: ['wolf_pelt'], xp: 50 } },
       { id: 'appreciate_art', label: 'Appreciate the local artisans', skill: 'willpower', difficulty: 30, reward: { xp: 30 } },
+    ],
+  },
+
   loc_es_sentinel: {
     id: 'loc_es_sentinel',
     name: 'Sentinel',

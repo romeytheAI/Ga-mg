@@ -422,10 +422,10 @@ export const ImmersiveStartMenu: React.FC<ImmersiveStartMenuProps> = ({ onStartG
                   <div className="flex items-center justify-between border-b border-white/10 pb-4">
                     <h2 className="text-xl tracking-widest uppercase text-white/80">Chronicles</h2>
                     <div className="flex gap-2">
-                      <button className="p-2 bg-white/5 hover:bg-white/10 border border-white/10 text-white/60 hover:text-white transition-colors" title="Cloud Sync">
+                      <button aria-label="Cloud Sync" className="p-2 bg-white/5 hover:bg-white/10 border border-white/10 text-white/60 hover:text-white transition-colors" title="Cloud Sync">
                         <Cloud className="w-4 h-4" />
                       </button>
-                      <button className="p-2 bg-white/5 hover:bg-white/10 border border-white/10 text-white/60 hover:text-white transition-colors" title="Import Base64">
+                      <button aria-label="Import Base64" className="p-2 bg-white/5 hover:bg-white/10 border border-white/10 text-white/60 hover:text-white transition-colors" title="Import Base64">
                         <Download className="w-4 h-4" />
                       </button>
                     </div>
@@ -451,7 +451,7 @@ export const ImmersiveStartMenu: React.FC<ImmersiveStartMenuProps> = ({ onStartG
                             </div>
                           </div>
                           <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                            <button className="p-2 hover:bg-white/10 text-white/40 hover:text-white transition-colors" title="Export Base64">
+                            <button aria-label={`Export save ${save.name}`} className="p-2 hover:bg-white/10 text-white/40 hover:text-white transition-colors" title="Export Base64">
                               <Upload className="w-4 h-4" />
                             </button>
                             <button 
