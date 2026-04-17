@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useReducer, createContext, useCallback, Component, Suspense } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { 
+import { CalendarDays, Hourglass,
   Heart, Wind, Moon, Settings, X, BookOpen, User, Map as MapIcon, 
   Shield, Sword, Zap, Droplets, AlertTriangle, Ghost, Sparkles, 
   Layers, ShoppingBag, Eye, EyeOff, Thermometer, Clock, Calendar, RefreshCw, Book,
@@ -701,6 +701,23 @@ Example: { "health": 50, "allure": 20 }`;
               <Book className="w-4 h-4 text-white/40 group-hover:text-white/80" />
               <span className="text-[10px] tracking-widest uppercase text-white/50 group-hover:text-white/90">Journal</span>
             </motion.button>
+            <motion.button
+              whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
+              onClick={() => dispatch({ type: 'PASS_TIME', payload: { hours: 24 } })}
+              title="Debug: Pass 24 Hours (Sanity Test)"
+              className="group flex items-center gap-2 px-3 py-1.5 border border-red-500/20 hover:border-red-500/50 bg-red-900/10 transition-all rounded-sm ml-2"
+            >
+              <CalendarDays className="w-4 h-4 text-red-400/50 group-hover:text-red-400/90" />
+              <span className="text-[10px] tracking-widest uppercase text-red-400/60 group-hover:text-red-400">Pass Day</span>
+            </motion.button>
+            <motion.button
+              whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
+              onClick={() => dispatch({ type: 'PASS_TIME', payload: { hours: 1 } })}
+              className="group flex items-center gap-2 px-3 py-1.5 border border-white/10 hover:border-white/30 transition-all rounded-sm"
+            >
+              <Hourglass className="w-4 h-4 text-emerald-400/40 group-hover:text-emerald-400/80" />
+              <span className="text-[10px] tracking-widest uppercase text-white/50 group-hover:text-white/90">Pass Time</span>
+            </motion.button>
             <motion.button 
               whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
               onClick={() => dispatch({ type: 'TOGGLE_UI_SETTING', payload: { key: 'show_shop', value: true } })}
@@ -784,6 +801,7 @@ Example: { "health": 50, "allure": 20 }`;
             )}
             
             <button 
+              aria-label="Open Settings"
               onClick={() => setShowSettings(true)}
               className="p-2 hover:bg-white/5 rounded-full transition-colors group"
             >
@@ -908,14 +926,25 @@ Example: { "health": 50, "allure": 20 }`;
           {/* Hero Image Container */}
           <div className={`relative w-full max-w-2xl aspect-[4/3] rounded-sm overflow-hidden border border-white/10 shadow-2xl shadow-black/80 z-10 bg-[#0a0a0a] ${visualEffectClasses}`}>
             {state.ui.currentImage ? (
-              <motion.img 
-                key={state.ui.currentImage}
-                src={state.ui.currentImage} 
-                className="w-[110%] h-[110%] -left-[5%] -top-[5%] absolute object-cover will-change-transform"
-                style={{ transform: 'translateZ(0)' }}
-                animate={{ x: mousePos.x, y: mousePos.y }}
-                transition={{ type: 'spring', stiffness: 40, damping: 30 }}
-              />
+              <>
+                <motion.img
+                  key={state.ui.currentImage}
+                  src={state.ui.currentImage}
+                  className={`w-[110%] h-[110%] -left-[5%] -top-[5%] absolute object-cover will-change-transform ${shouldCensorImage(state) ? 'blur-3xl' : ''}`}
+                  style={{ transform: 'translateZ(0)' }}
+                  animate={{ x: mousePos.x, y: mousePos.y }}
+                  transition={{ type: 'spring', stiffness: 40, damping: 30 }}
+                />
+                {shouldCensorImage(state) && (
+                  <div className="absolute inset-0 bg-black/70 flex items-center justify-center">
+                    <div className="text-center">
+                      <EyeOff className="w-16 h-16 text-white/40 mx-auto mb-4" />
+                      <p className="text-xs tracking-widest uppercase text-white/60">Streamer Mode Active</p>
+                      <p className="text-[10px] text-white/40 mt-1">Content Obscured</p>
+                    </div>
+                  </div>
+                )}
+              </>
             ) : (
               <div className="absolute inset-0 flex items-center justify-center">
                 <div className="w-32 h-[1px] bg-gradient-to-r from-transparent via-white/20 to-transparent" />
@@ -1118,8 +1147,7 @@ Example: { "health": 50, "allure": 20 }`;
               initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }}
               className="bg-[#0a0a0a] border border-white/10 p-8 rounded-sm max-w-2xl w-full relative shadow-2xl overflow-y-auto max-h-[90vh] z-10"
             >
-              <button onClick={() => dispatch({ type: 'TOGGLE_UI_SETTING', payload: { key: 'show_quests', value: false } })} className="absolute top-6 right-6 text-white/40 hover:text-white" aria-label="Close modal">
-              <X className="w-6 h-6" /></button>
+              <button aria-label="Close Journal" onClick={() => dispatch({ type: 'TOGGLE_UI_SETTING', payload: { key: 'show_quests', value: false } })} className="absolute top-6 right-6 text-white/40 hover:text-white"><X className="w-6 h-6" /></button>
               <h2 className="text-2xl font-serif text-white/90 mb-8 border-b border-white/10 pb-4 tracking-widest uppercase">Journal</h2>
               
               <div className="space-y-6">
@@ -1184,8 +1212,7 @@ Example: { "health": 50, "allure": 20 }`;
               initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }}
               className="bg-[#0a0a0a] border border-white/10 p-8 rounded-sm max-w-4xl w-full relative shadow-2xl overflow-y-auto max-h-[90vh] z-10"
             >
-              <button onClick={() => dispatch({ type: 'TOGGLE_UI_SETTING', payload: { key: 'show_map', value: false } })} className="absolute top-6 right-6 text-white/40 hover:text-white" aria-label="Close modal">
-              <X className="w-6 h-6" /></button>
+              <button aria-label="Close Map" onClick={() => dispatch({ type: 'TOGGLE_UI_SETTING', payload: { key: 'show_map', value: false } })} className="absolute top-6 right-6 text-white/40 hover:text-white"><X className="w-6 h-6" /></button>
               <h2 className="text-2xl font-serif text-white/90 mb-8 border-b border-white/10 pb-4 tracking-widest uppercase">Cartography of Tamriel</h2>
               
               <div className="grid grid-cols-3 gap-8">
@@ -1301,8 +1328,7 @@ Example: { "health": 50, "allure": 20 }`;
               initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }}
               className="max-w-2xl w-full relative"
             >
-              <button onClick={() => dispatch({ type: 'TOGGLE_UI_SETTING', payload: { key: 'show_xray', value: false } })} className="absolute top-6 right-6 text-white/40 hover:text-white z-10" aria-label="Close modal">
-              <X className="w-6 h-6" /></button>
+              <button aria-label="Close X-Ray view" onClick={() => dispatch({ type: 'TOGGLE_UI_SETTING', payload: { key: 'show_xray', value: false } })} className="absolute top-6 right-6 text-white/40 hover:text-white z-10"><X className="w-6 h-6" /></button>
               <Suspense fallback={<ChunkFallback />}><XRayView anatomy={state.player.anatomy} highlightedPart={state.ui.highlighted_part || undefined} /></Suspense>
             </motion.div>
           </motion.div>
@@ -1345,8 +1371,7 @@ Example: { "health": 50, "allure": 20 }`;
               initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }}
               className="bg-[#0a0a0a] border border-white/10 p-8 rounded-sm max-w-2xl w-full relative shadow-2xl overflow-y-auto max-h-[90vh] z-10"
             >
-              <button onClick={() => dispatch({ type: 'TOGGLE_UI_SETTING', payload: { key: 'show_stats', value: false } })} className="absolute top-6 right-6 text-white/40 hover:text-white" aria-label="Close modal">
-              <X className="w-6 h-6" /></button>
+              <button aria-label="Close Character Stats" onClick={() => dispatch({ type: 'TOGGLE_UI_SETTING', payload: { key: 'show_stats', value: false } })} className="absolute top-6 right-6 text-white/40 hover:text-white"><X className="w-6 h-6" /></button>
               <h2 className="text-2xl font-serif text-white/90 mb-8 border-b border-white/10 pb-4 tracking-widest uppercase">Character Essence</h2>
               
               <div className="grid grid-cols-2 gap-8">
@@ -1549,8 +1574,7 @@ Example: { "health": 50, "allure": 20 }`;
               initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }}
               className="bg-[#0a0a0a] border border-white/10 p-8 rounded-sm max-w-4xl w-full relative shadow-2xl overflow-y-auto max-h-[90vh] z-10"
             >
-              <button onClick={() => dispatch({ type: 'TOGGLE_UI_SETTING', payload: { key: 'show_inventory', value: false } })} className="absolute top-6 right-6 text-white/40 hover:text-white" aria-label="Close modal">
-              <X className="w-6 h-6" /></button>
+              <button aria-label="Close Possessions" onClick={() => dispatch({ type: 'TOGGLE_UI_SETTING', payload: { key: 'show_inventory', value: false } })} className="absolute top-6 right-6 text-white/40 hover:text-white"><X className="w-6 h-6" /></button>
               <h2 className="text-2xl font-serif text-white/90 mb-8 border-b border-white/10 pb-4 tracking-widest uppercase">Possessions</h2>
               
               <div className="grid grid-cols-3 gap-8">
@@ -1691,8 +1715,7 @@ Example: { "health": 50, "allure": 20 }`;
               onClick={(e) => e.stopPropagation()}
               className="bg-[#0a0a0a] border border-amber-900/30 p-8 rounded-sm max-w-2xl w-full relative shadow-2xl overflow-y-auto max-h-[90vh] z-10"
             >
-              <button onClick={() => setSelectedItem(null)} className="absolute top-6 right-6 text-white/40 hover:text-white" aria-label="Close modal">
-              <X className="w-6 h-6" /></button>
+              <button aria-label="Close Item Details" onClick={() => setSelectedItem(null)} className="absolute top-6 right-6 text-white/40 hover:text-white"><X className="w-6 h-6" /></button>
               
               <div className="flex items-center gap-3 mb-6 border-b border-white/10 pb-4">
                 <h2 className="text-2xl font-serif text-amber-500/90 tracking-widest uppercase">{selectedItem.name}</h2>
@@ -1853,6 +1876,7 @@ Example: { "health": 50, "allure": 20 }`;
               className="bg-[#0a0a0a] border border-white/10 p-8 rounded-sm max-w-2xl w-full relative shadow-2xl overflow-y-auto max-h-[80vh] z-10"
             >
               <button 
+                aria-label="Close Companion Roster"
                 onClick={() => setShowCompanions(false)}
                 className="absolute top-6 right-6 text-white/40 hover:text-white transition-colors"
                aria-label="Close modal">

@@ -77,7 +77,7 @@ export const SaveLoadModal: React.FC<SaveLoadModalProps> = ({ onClose, onLoad, c
           initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }}
           className="bg-[#0a0a0a] border border-white/10 p-8 rounded-sm max-w-2xl w-full relative shadow-2xl overflow-y-auto max-h-[90vh] z-10"
         >
-          <button onClick={onClose} className="absolute top-6 right-6 text-white/40 hover:text-white transition-colors">
+          <button aria-label="Close modal" onClick={onClose} className="absolute top-6 right-6 text-white/40 hover:text-white transition-colors">
             <X className="w-6 h-6" />
           </button>
           
@@ -154,6 +154,7 @@ export const SaveLoadModal: React.FC<SaveLoadModalProps> = ({ onClose, onLoad, c
                         whileHover={{ scale: 1.1, color: "rgb(96, 165, 250)" }}
                         whileTap={{ scale: 0.9 }}
                         onClick={() => handleLoad(save.id)} 
+                        aria-label={`Load save ${save.name ?? save.player_name}`}
                         className="text-blue-400/70 p-2 border border-blue-900/30 rounded-sm bg-blue-950/20 transition-colors"
                         title="Load"
                       >
@@ -163,6 +164,7 @@ export const SaveLoadModal: React.FC<SaveLoadModalProps> = ({ onClose, onLoad, c
                         whileHover={{ scale: 1.1, color: "rgb(248, 113, 113)" }}
                         whileTap={{ scale: 0.9 }}
                         onClick={() => handleDelete(save.id)} 
+                        aria-label={`Delete save ${save.name ?? save.player_name}`}
                         className="text-red-400/70 p-2 border border-red-900/30 rounded-sm bg-red-950/20 transition-colors"
                         title="Delete"
                       >

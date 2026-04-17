@@ -66,6 +66,7 @@ export const GltfExportButton: React.FC<GltfExportButtonProps> = ({ state }) => 
   return (
     <button
       onClick={handleExport}
+      aria-label="Export character as glTF 3D model"
       className="text-[7px] tracking-widest uppercase px-1.5 py-0.5 rounded-sm border transition-all bg-black/40 border-white/10 text-white/40 hover:text-white/70 hover:border-white/25"
       title="Export character as glTF 3D model"
     >

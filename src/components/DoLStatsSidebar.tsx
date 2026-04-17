@@ -127,7 +127,7 @@ const SpriteWithXRay: React.FC<{ state: GameState }> = ({ state }) => {
   );
 };
 
-export const DoLStatsSidebar: React.FC<DoLStatsSidebarProps> = ({
+export const DoLStatsSidebar: React.FC<DoLStatsSidebarProps> = React.memo(({
   state, dispatch, onOpenStats, onOpenInventory
 }) => {
   const { stats, skills, life_sim, clothing, biology, psych_profile, temperature, bailey_payment, lewdity_stats, attitudes } = state.player;
@@ -592,4 +592,4 @@ export const DoLStatsSidebar: React.FC<DoLStatsSidebarProps> = ({
       </div>
     </div>
   );
-};
+});

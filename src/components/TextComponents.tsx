@@ -28,20 +28,26 @@ export const TypewriterText = ({ text, speed, className }: { text: string, speed
   );
 };
 
-export const SemanticText = ({ text, className }: { text: string, className?: string }) => {
+const SEMANTIC_KEYWORD_REGEX = /(\bBlood\b|\bSeptims\b|\bGold\b|\bPain\b|\bDeath\b|\bWillpower\b|\bLust\b|\bCorruption\b|\bParasite\b|\bDream\b)/gi;
+
+export const SemanticText = React.memo(({ text, className }: { text: string, className?: string }) => {
   // Regex auto-colors keywords
-  const parts = text.split(/(\bBlood\b|\bSeptims\b|\bGold\b|\bPain\b|\bDeath\b|\bWillpower\b|\bLust\b|\bCorruption\b|\bParasite\b|\bDream\b)/gi);
+  const content = React.useMemo(() => {
+    const parts = text.split(SEMANTIC_KEYWORD_REGEX);
+    return parts.map((part, i) => {
+      if (part.match(SEMANTIC_KEYWORD_REGEX)) {
+        return <span key={i} className="text-rose-400 font-bold">{part}</span>;
+      }
+      return part;
+    });
+  }, [text]);
+
   return (
     <span className={className}>
-      {parts.map((part, i) => {
-        if (part.match(/(\bBlood\b|\bSeptims\b|\bGold\b|\bPain\b|\bDeath\b|\bWillpower\b|\bLust\b|\bCorruption\b|\bParasite\b|\bDream\b)/gi)) {
-          return <span key={i} className="text-rose-400 font-bold">{part}</span>;
-        }
-        return part;
-      })}
+      {content}
     </span>
   );
-};
+});
 
 export const FloatingDeltas = ({ deltas, onComplete }: { deltas: Partial<Record<import('../types').StatKey, number>>, onComplete: () => void }) => {
   useEffect(() => {

@@ -65,6 +65,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
         className="bg-[#0a0a0a] border border-white/10 p-8 rounded-sm max-w-md w-full relative shadow-2xl z-10 max-h-[90vh] overflow-y-auto scrollbar-hide"
       >
         <button 
+          aria-label="Close Settings"
           onClick={onClose}
           className="absolute top-6 right-6 text-white/40 hover:text-white transition-colors"
          aria-label="Close modal">
