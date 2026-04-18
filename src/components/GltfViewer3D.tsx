@@ -96,7 +96,7 @@ export const GltfViewer3D: React.FC<GltfViewer3DProps> = ({
         digiAnkleY: ankleY - 12,
       };
 
-      return convertSvgToGltf({ geom, spriteState, skinColor });
+      return convertSvgToGltf({ geom, spriteState, skinColor, quality: graphicsQuality });
     } catch (e) {
       console.error('GltfViewer3D: failed to build glTF from state', e);
       return null;

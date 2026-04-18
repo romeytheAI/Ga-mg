@@ -1032,6 +1032,7 @@ export interface GameState {
     show_social: boolean,
     show_feats: boolean,
     show_traits: boolean,
+    show_day_summary: boolean,
     highlighted_part: string | null,
     targeted_part: string | null,
     combat_animation: string | null,

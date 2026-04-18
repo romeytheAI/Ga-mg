@@ -405,7 +405,9 @@ export function gameReducer(state: GameState, action: any): GameState {
 
       // 14c. Daily summary and reset
       const advancedLog = [...state.ui.currentLog];
+      let triggerDaySummary = false;
       if (newDay > state.world.day) {
+        triggerDaySummary = true;
         const stats = state.player.life_sim.daily_stats;
         advancedLog.push({
           text: `--- Day ${state.world.day} Summary: ${Math.round(stats.calories_burned)} kcal burned, ${stats.interactions_count} social interactions. ---`,
@@ -707,6 +709,7 @@ export function gameReducer(state: GameState, action: any): GameState {
           currentLog: advancedLog,
           choices: newChoices,
           last_stat_deltas: Object.keys(appliedDeltas).length > 0 ? appliedDeltas : null,
+          show_day_summary: triggerDaySummary || state.ui.show_day_summary,
         },
       };
     }

@@ -254,6 +254,7 @@ export const initialState: GameState = {
     show_social: false,
     show_feats: false,
     show_traits: false,
+    show_day_summary: false,
     highlighted_part: null,
     targeted_part: null,
     combat_animation: null,

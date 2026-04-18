@@ -45,6 +45,7 @@ const WardrobeModal = React.lazy(() => import('./components/modals/WardrobeModal
 const SocialModal = React.lazy(() => import('./components/modals/SocialModal').then(m => ({ default: m.SocialModal })));
 const FeatsModal = React.lazy(() => import('./components/modals/FeatsModal').then(m => ({ default: m.FeatsModal })));
 const TraitsModal = React.lazy(() => import('./components/modals/TraitsModal').then(m => ({ default: m.TraitsModal })));
+const DaySummaryModal = React.lazy(() => import('./components/modals/DaySummaryModal').then(m => ({ default: m.DaySummaryModal })));
 
 // ── Lazy-loaded heavy components ────────────────────────────────────────
 const CharacterModel = React.lazy(() => import('./components/CharacterModel').then(m => ({ default: m.CharacterModel })));
@@ -1970,6 +1971,10 @@ Example: { "health": 50, "allure": 20 }`;
         {state.ui.show_traits && <Suspense fallback={<ChunkFallback />}><TraitsModal state={state} dispatch={dispatch} /></Suspense>}
       </AnimatePresence>
 
+      {/* Day Summary Modal */}
+      <AnimatePresence>
+        {state.ui.show_day_summary && <Suspense fallback={<ChunkFallback />}><DaySummaryModal state={state} dispatch={dispatch} /></Suspense>}
+      </AnimatePresence>
 
 
     </div>

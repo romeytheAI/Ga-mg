@@ -3,6 +3,7 @@ import { GameState } from '../types';
 import { resolveRace } from '../data/races';
 import { buildBodyGeom, resolveSkinColor, SpriteState } from './dol/sprite/utils';
 import { convertSvgToGltf, downloadGltf } from '../utils/svgToGltf';
+import { getQualityPreset } from '../utils/graphicsQuality';
 
 interface GltfExportButtonProps {
   state: GameState;
@@ -58,7 +59,12 @@ export const GltfExportButton: React.FC<GltfExportButtonProps> = ({ state }) => 
       legLX, legRX, isDigi, digiKneeY, digiAnkleY,
     };
 
-    const gltfJson = convertSvgToGltf({ geom, spriteState, skinColor });
+    const gltfJson = convertSvgToGltf({ 
+      geom, 
+      spriteState, 
+      skinColor, 
+      quality: getQualityPreset('ultra') 
+    });
     const name = identity.name?.replace(/\s+/g, '_') || 'character';
     downloadGltf(gltfJson, `${name}.gltf`);
   }, [state]);
