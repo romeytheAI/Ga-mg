@@ -255,6 +255,7 @@ export const initialState: GameState = {
     show_feats: false,
     show_traits: false,
     show_day_summary: false,
+    show_life_sim_dashboard: false,
     highlighted_part: null,
     targeted_part: null,
     combat_animation: null,
