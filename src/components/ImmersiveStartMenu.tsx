@@ -455,8 +455,9 @@ export const ImmersiveStartMenu: React.FC<ImmersiveStartMenuProps> = ({ onStartG
                               <Upload className="w-4 h-4" />
                             </button>
                             <button 
-                              className="p-2 hover:bg-red-900/50 text-white/40 hover:text-red-400 transition-colors" 
+                              className="p-2 hover:bg-red-900/50 text-white/40 hover:text-red-400 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400"
                               title="Delete Save (Hold)"
+                              aria-label="Delete Save"
                               onMouseDown={(e) => {
                                 const timer = setTimeout(() => handleDeleteSave(save.id), 2000);
                                 e.currentTarget.onmouseup = () => clearTimeout(timer);
@@ -638,8 +639,8 @@ export const ImmersiveStartMenu: React.FC<ImmersiveStartMenuProps> = ({ onStartG
 
         {/* Feature 39: Discord/Community Links */}
         <div className="absolute bottom-8 right-8 flex items-center gap-4">
-          <a href="#" className="text-white/40 hover:text-white transition-colors"><MessageSquare className="w-4 h-4" /></a>
-          <a href="#" className="text-white/40 hover:text-white transition-colors"><Globe className="w-4 h-4" /></a>
+          <a href="#" aria-label="Discord" className="text-white/40 hover:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40"><MessageSquare className="w-4 h-4" /></a>
+          <a href="#" aria-label="Website" className="text-white/40 hover:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40"><Globe className="w-4 h-4" /></a>
         </div>
 
       </div>
@@ -664,15 +665,21 @@ const MenuButton = ({ icon, label, active, onClick, onMouseEnter }: { icon: Reac
 );
 
 const Toggle = ({ label, description, checked, onChange }: { label: string, description: string, checked: boolean, onChange: (v: boolean) => void }) => (
-  <div className="flex items-center justify-between p-3 bg-white/5 border border-white/5 hover:border-white/10 transition-colors cursor-pointer" onClick={() => onChange(!checked)}>
+  <button
+    type="button"
+    role="switch"
+    aria-checked={checked}
+    onClick={() => onChange(!checked)}
+    className="w-full flex items-center justify-between p-3 bg-white/5 border border-white/5 hover:border-white/10 transition-colors text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
+  >
     <div>
       <div className="text-sm text-white/80 tracking-widest uppercase">{label}</div>
       <div className="text-xs text-white/40 mt-1">{description}</div>
     </div>
-    <div className={`w-10 h-5 rounded-full relative transition-colors ${checked ? 'bg-white/40' : 'bg-black/60 border border-white/20'}`}>
+    <div className={`w-10 h-5 rounded-full relative transition-colors shrink-0 ${checked ? 'bg-white/40' : 'bg-black/60 border border-white/20'}`}>
       <div className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white transition-transform ${checked ? 'translate-x-5' : 'translate-x-0'}`} />
     </div>
-  </div>
+  </button>
 );
 
 const ScenarioCard = ({ title, desc, onClick, highlight = false }: { title: string, desc: string, onClick: () => void, highlight?: boolean }) => (

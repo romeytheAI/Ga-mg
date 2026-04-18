@@ -155,7 +155,8 @@ export const EncounterUI: React.FC<EncounterUIProps> = ({ encounter, playerStats
       <div className="flex justify-end -mt-2 mb-1 relative z-10">
         <button
           onClick={() => setShow3D(!show3D)}
-          className={`text-[7px] tracking-widest uppercase px-1.5 py-0.5 rounded-sm border transition-all ${
+          aria-label={show3D ? 'Switch to 2D view' : 'Switch to 3D view'}
+          className={`text-[7px] tracking-widest uppercase px-1.5 py-0.5 rounded-sm border transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400/50 ${
             show3D
               ? 'bg-cyan-500/20 border-cyan-400/50 text-cyan-300'
               : 'bg-black/40 border-white/10 text-white/40 hover:text-white/70'
@@ -180,7 +181,8 @@ export const EncounterUI: React.FC<EncounterUIProps> = ({ encounter, playerStats
                 key={spell.id}
                 disabled={state.player.arcane.mana < spell.magicka_cost}
                 onClick={() => onAction(`Cast ${spell.name}`, 'arcane', spell.id)}
-                className={`px-3 py-1 border rounded-sm text-[9px] uppercase tracking-widest transition-all ${
+                title={state.player.arcane.mana < spell.magicka_cost ? "Not enough mana" : `Cast ${spell.name}`}
+                className={`px-3 py-1 border rounded-sm text-[9px] uppercase tracking-widest transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 ${
                   state.player.arcane.mana >= spell.magicka_cost
                     ? 'bg-purple-950/20 border-purple-500/50 text-purple-200 hover:bg-purple-900/40 hover:border-purple-400'
                     : 'bg-black/40 border-white/5 text-white/20 cursor-not-allowed'
