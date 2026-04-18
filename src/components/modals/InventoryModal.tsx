@@ -1,6 +1,6 @@
 import React from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { X } from 'lucide-react';
+import { motion, AnimatePresence } from 'motion/react';
+import { X } from '../../components/Icons';
 import { GameState, Item } from '../../types';
 
 interface InventoryModalProps {

@@ -4,7 +4,7 @@ import {
   Play, Save, Settings, Trash2, Cloud, Upload, Download, 
   Shield, Zap, Skull, Globe, Activity, Terminal, Image as ImageIcon,
   BookOpen, Trophy, BarChart2, MessageSquare, AlertTriangle, Check
-} from 'lucide-react';
+} from '../components/Icons';
 import { getAllSaves, loadGame, deleteSave, SaveSlot } from '../utils/saveManager';
 
 interface ImmersiveStartMenuProps {

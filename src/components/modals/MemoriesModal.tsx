@@ -1,6 +1,6 @@
 import React from 'react';
-import { motion } from 'framer-motion';
-import { X, BookOpen } from 'lucide-react';
+import { motion } from 'motion/react';
+import { X, BookOpen } from '../../components/Icons';
 import { GameState } from '../../types';
 
 interface MemoriesModalProps {

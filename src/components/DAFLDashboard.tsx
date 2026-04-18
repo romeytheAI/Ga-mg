@@ -4,7 +4,7 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { Activity, TrendingUp, DollarSign, Zap, AlertTriangle, CheckCircle } from 'lucide-react';
+import { Activity, TrendingUp, DollarSign, Zap, AlertTriangle, CheckCircle } from '../components/Icons';
 
 interface DAFLMetrics {
   total_revenue: number;

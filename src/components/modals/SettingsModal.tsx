@@ -1,6 +1,6 @@
 import React from 'react';
-import { motion } from 'framer-motion';
-import { X, Settings } from 'lucide-react';
+import { motion } from 'motion/react';
+import { X, Settings } from '../../components/Icons';
 import { GameState } from '../../types';
 import { saveGame } from '../../utils/saveManager';
 

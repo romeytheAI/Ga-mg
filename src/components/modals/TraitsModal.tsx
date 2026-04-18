@@ -1,6 +1,6 @@
 import React from 'react';
-import { motion } from 'framer-motion';
-import { X, Sparkles, Trash2 } from 'lucide-react';
+import { motion } from 'motion/react';
+import { X, Sparkles, Trash2 } from '../../components/Icons';
 import { GameState } from '../../types';
 
 interface TraitsModalProps {

@@ -19,7 +19,7 @@ export default defineConfig(({mode}) => {
             'vendor-three': ['three'],
             'vendor-genai': ['@google/genai'],
             'vendor-motion': ['motion', 'motion/react'],
-            'vendor-lucide': ['lucide-react'],
+
             'sim-engine': [
               './src/sim/SimulationEngine.ts',
               './src/sim/types.ts',

@@ -6,7 +6,7 @@ import {
   Layers, ShoppingBag, Eye, EyeOff, Thermometer, Clock, Calendar, RefreshCw, Book,
   Cloud, Sun, Snowflake, CloudRain, CloudLightning, CloudDrizzle, CloudFog, Flame,
   Coins, Shirt, Users, Star
-} from 'lucide-react';
+} from './components/Icons';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { SemanticText } from './components/TextComponents';
 import { GameState, Item, StatKey, ActiveEncounter } from './types';

@@ -1,6 +1,6 @@
 import React from 'react';
-import { motion } from 'framer-motion';
-import { X, User, Skull, Bug, Users } from 'lucide-react';
+import { motion } from 'motion/react';
+import { X, User, Skull, Bug, Users } from '../../components/Icons';
 import { GameState } from '../../types';
 import { diseaseSummary, diseaseSeverityLabel } from '../../utils/diseaseEngine';
 import { parasiteSummary } from '../../utils/parasiteEngine';

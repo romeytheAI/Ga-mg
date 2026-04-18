@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'motion/react';
 import { saveGame, loadGame, getAllSaves, deleteSave, SAVE_SCHEMA_VERSION } from '../utils/saveManager';
 import { GameState } from '../types';
-import { X, Save, Download, Trash2, AlertTriangle } from 'lucide-react';
+import { X, Save, Download, Trash2, AlertTriangle } from '../components/Icons';
 
 interface SaveLoadModalProps {
   onClose: () => void;

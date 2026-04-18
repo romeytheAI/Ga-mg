@@ -1,3 +1,4 @@
+import { storage } from "../utils/storage";
 /**
  * DAFL (Distributed Autonomous Funding Layer) - Cost Tracking System
  * Tracks API costs, compute usage, and revenue to enable autonomous funding
@@ -239,7 +240,7 @@ class CostTracker {
   }
 
   /**
-   * Save to localStorage
+   * Save to storage
    */
   private saveToStorage(): void {
     try {
@@ -248,18 +249,18 @@ class CostTracker {
         computeCosts: this.computeCosts,
         revenues: this.revenues
       };
-      localStorage.setItem(this.STORAGE_KEY, JSON.stringify(data));
+      storage.setItem(this.STORAGE_KEY, JSON.stringify(data));
     } catch (e) {
       console.warn('Failed to save cost tracker data:', e);
     }
   }
 
   /**
-   * Load from localStorage
+   * Load from storage
    */
   private loadFromStorage(): void {
     try {
-      const data = localStorage.getItem(this.STORAGE_KEY);
+      const data = storage.getItem(this.STORAGE_KEY);
       if (data) {
         const parsed = JSON.parse(data);
         this.apiCalls = parsed.apiCalls || [];
@@ -279,7 +280,7 @@ class CostTracker {
     this.apiCalls = [];
     this.computeCosts = [];
     this.revenues = [];
-    localStorage.removeItem(this.STORAGE_KEY);
+    storage.removeItem(this.STORAGE_KEY);
   }
 
   /**

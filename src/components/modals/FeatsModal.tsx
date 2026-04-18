@@ -1,6 +1,6 @@
 import React from 'react';
-import { motion } from 'framer-motion';
-import { X, Trophy, Lock, Unlock } from 'lucide-react';
+import { motion } from 'motion/react';
+import { X, Trophy, Lock, Unlock } from '../../components/Icons';
 import { GameState } from '../../types';
 
 interface FeatsModalProps {

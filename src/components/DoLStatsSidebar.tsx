@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'motion/react';
-import { Heart, Wind, Shield, Flame, Droplets, Sun, Moon, Zap, Coffee, Users, Star } from 'lucide-react';
+import { Heart, Wind, Shield, Flame, Droplets, Sun, Moon, Zap, Coffee, Users, Star } from '../components/Icons';
 import { GameState, StatKey, Incubation } from '../types';
 import { DoLCharacterSprite } from './DoLCharacterSprite';
 

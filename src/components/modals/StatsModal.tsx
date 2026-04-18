@@ -1,6 +1,6 @@
 import React from 'react';
-import { motion } from 'framer-motion';
-import { X, Briefcase, Zap, Star } from 'lucide-react';
+import { motion } from 'motion/react';
+import { X, Briefcase, Zap, Star } from '../../components/Icons';
 import { GameState, StatKey } from '../../types';
 import { CharacterModel } from '../CharacterModel';
 import { JOB_LABELS, jobRiskLevel } from '../../utils/jobEngine';

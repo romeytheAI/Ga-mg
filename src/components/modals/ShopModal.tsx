@@ -1,6 +1,6 @@
 import React from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { X, Coins, ShoppingBag, ArrowRightLeft } from 'lucide-react';
+import { motion, AnimatePresence } from 'motion/react';
+import { X, Coins, ShoppingBag, ArrowRightLeft } from '../../components/Icons';
 import { GameState, Item } from '../../types';
 import { BASIC_ITEMS } from '../../data/items';
 import { generateId } from '../../utils/crypto';

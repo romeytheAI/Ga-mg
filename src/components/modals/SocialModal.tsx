@@ -1,6 +1,6 @@
 import React from 'react';
-import { motion } from 'framer-motion';
-import { X, Heart, Shield, Users, Swords, Star, GitBranch } from 'lucide-react';
+import { motion } from 'motion/react';
+import { X, Heart, Shield, Users, Swords, Star, GitBranch } from '../../components/Icons';
 import { GameState } from '../../types';
 import { NPCS } from '../../data/npcs';
 import { computeMilestone, MILESTONE_ORDER } from '../../utils/relationshipEngine';

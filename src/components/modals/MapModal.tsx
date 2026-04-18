@@ -1,6 +1,6 @@
 import React from 'react';
-import { motion } from 'framer-motion';
-import { X } from 'lucide-react';
+import { motion } from 'motion/react';
+import { X } from '../../components/Icons';
 import { GameState } from '../../types';
 import { LOCATIONS } from '../../data/locations';
 import { getAllNpcCurrentLocations } from '../../utils/scheduleEngine';

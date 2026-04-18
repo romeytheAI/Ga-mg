@@ -1,5 +1,5 @@
 import React, { useRef, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'motion/react';
 import { GameState } from '../types';
 import { EncounterUI } from './EncounterUI';
 

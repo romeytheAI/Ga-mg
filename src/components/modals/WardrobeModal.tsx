@@ -1,6 +1,6 @@
 import React from 'react';
-import { motion } from 'framer-motion';
-import { X, Shirt, Wrench, Coins } from 'lucide-react';
+import { motion } from 'motion/react';
+import { X, Shirt, Wrench, Coins } from '../../components/Icons';
 import { GameState, Item } from '../../types';
 
 interface WardrobeModalProps {
