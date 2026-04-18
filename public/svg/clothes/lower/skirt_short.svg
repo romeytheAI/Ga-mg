@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 150 250">
+  <defs>
+    <linearGradient id="skirtGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#8a6a9a;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#7a5a8a;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+
+  <!-- Skirt -->
+  <path d="M 38,135 L 32,185 Q 75,195 118,185 L 112,135 Q 75,140 38,135 Z" fill="url(#skirtGrad)"/>
+
+  <!-- Pleats -->
+  <path d="M 55,137 L 50,188" stroke="#6a4a7a" stroke-width="1" opacity="0.5"/>
+  <path d="M 75,140 L 75,192" stroke="#6a4a7a" stroke-width="1" opacity="0.5"/>
+  <path d="M 95,137 L 100,188" stroke="#6a4a7a" stroke-width="1" opacity="0.5"/>
+
+  <!-- Waistband -->
+  <rect x="38" y="132" width="74" height="8" rx="2" fill="#9a7aaa"/>
+</svg>

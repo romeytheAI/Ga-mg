@@ -1,0 +1,6 @@
+<div class="stats">
+    <h3>Stats</h3>
+    <p>Health: {{ player.health }}/{{ player.max_health }}</p>
+    <p>Lust: {{ player.lust }}</p>
+    <p>Willpower: {{ player.willpower }}</p>
+</div>

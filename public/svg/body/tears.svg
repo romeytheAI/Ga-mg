@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 150 250">
+  <!-- Left tear -->
+  <ellipse cx="50" cy="5" rx="3" ry="5" fill="#a8d8e8" opacity="0.7"/>
+  <ellipse cx="48" cy="12" rx="2.5" ry="4" fill="#98c8d8" opacity="0.6"/>
+  <ellipse cx="47" cy="18" rx="2" ry="3" fill="#88b8c8" opacity="0.5"/>
+
+  <!-- Right tear -->
+  <ellipse cx="100" cy="5" rx="3" ry="5" fill="#a8d8e8" opacity="0.7"/>
+  <ellipse cx="102" cy="12" rx="2.5" ry="4" fill="#98c8d8" opacity="0.6"/>
+  <ellipse cx="103" cy="18" rx="2" ry="3" fill="#88b8c8" opacity="0.5"/>
+</svg>

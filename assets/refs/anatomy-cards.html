@@ -1,0 +1,945 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>ES Race Anatomy Reference Cards</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#1a1a2e;color:#e0e0e0;font-family:'Segoe UI',system-ui,sans-serif;padding:20px}
+h1{text-align:center;color:#c8a850;font-size:1.4em;margin-bottom:4px;letter-spacing:2px}
+.sub{text-align:center;color:#888;font-size:0.75em;margin-bottom:20px}
+.grid{display:grid;gap:14px;grid-template-columns:repeat(auto-fill,minmax(660px,1fr));max-width:1500px;margin:0 auto}
+.card{background:#16213e;border:1px solid #2a3a5e;border-radius:8px;padding:14px}
+.chd{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;border-bottom:1px solid #2a3a5e;padding-bottom:6px}
+.ct{font-size:1.15em;font-weight:700;color:#c8a850}
+.cs{font-size:0.65em;color:#888;font-style:italic}
+.cst{font-size:0.7em;color:#aaa}
+.sr{display:flex;justify-content:center;gap:28px;margin-bottom:10px}
+.sf{position:relative}
+.sl{position:absolute;bottom:-14px;left:50%;transform:translateX(-50%);font-size:0.6em;color:#888}
+.fr{display:flex;gap:10px;margin-bottom:8px;flex-wrap:wrap}
+.sg{display:flex;flex-direction:column;gap:2px}
+.slabel{font-size:0.55em;color:#888;text-transform:uppercase;letter-spacing:1px}
+.swc{display:flex;gap:2px}
+.sw{width:15px;height:15px;border:1px solid #444;border-radius:2px}
+.ftag{background:#2a3a5e;color:#bbb;padding:2px 7px;border-radius:4px;font-size:0.6em}
+.cv{background:#0f3460;border:1px solid #1a4a7e;border-radius:4px;padding:6px 8px;font-family:monospace;font-size:0.6em}
+.vr{display:flex;justify-content:space-between;padding:1px 0;border-bottom:1px solid #1a2a4e}
+.vn{color:#70b0ff}.vv{color:#90ee90}
+.vs{color:#c8a850;font-size:0.85em;letter-spacing:1px;margin:4px 0 2px;text-transform:uppercase}
+.legend{text-align:center;margin:14px 0 8px;padding:10px;background:#16213e;border-radius:6px;border:1px solid #2a3a5e;font-size:0.65em;color:#999}
+.legend b{margin:0 10px}
+</style></head><body>
+<h1>ELDER SCROLLS: RACE ANATOMY REFERENCE</h1>
+<p class="sub">Gender-specific proportion data for all 10 playable races -- from anatomy.ts sprite system values</p>
+<div class="legend">
+<b style="color:#4a9eff">-- Shoulder Width (sw)</b>
+<b style="color:#ff6a4a">-- Hip Width (hw)</b>
+<b style="color:#ffa040">-- Torso Length (tl)</b>
+<b style="color:#40e0d0">-- Leg Length (ll)</b>
+</div>
+<div class="grid">
+<div class="card">
+<div class="chd"><div><div class="ct">NORD</div><div class="cs">Sons and daughters of the frozen north.</div></div>
+<div class="cst">192cm avg | muscular build</div></div>
+<div class="sr">
+<div class="sf">
+<svg viewBox="0 0 120 240" width="110" height="240" xmlns="http://www.w3.org/2000/svg" data-race="nord" data-gender="male">
+<g class="body-outline" fill="none" stroke="#f5d5b5" stroke-width="1.2" stroke-linejoin="round" stroke-linecap="round">
+  <path d="M51,34 C51,13 69,13 69,34 L64,42 L73.5,48 Q84.3,54 83.3,64 L82.3,106 L74.5,102 Q83.5,55.608695652173914 85.5,48 Q71.36,89.84782608695653 68.36,89.84782608695653 L69.5,101.2608695652174 L69.5,124.08695652173914 L67.5,159.56521739130437 L66.5,194.0 L73.5,198.0 L46.5,198.0 L53.5,194.0 L52.5,159.56521739130437 L50.5,124.08695652173914 L50.5,101.2608695652174 L51.64,89.84782608695653 Q34.5,48 34.5,55.608695652173914 L45.5,102 L37.7,106 L36.7,64 Q35.7,54 46.5,48 L56,42 C51,13 51,34 51,34 Z"/></g>
+<g class="muscle-fill" fill="#f5d5b5" opacity="0.12">
+  <path d="M51,34 C51,13 69,13 69,34 L64,42 L73.5,48 Q84.3,54 83.3,64 L82.3,106 L74.5,102 Q83.5,55.608695652173914 85.5,48 Q71.36,89.84782608695653 68.36,89.84782608695653 L69.5,101.2608695652174 L69.5,124.08695652173914 L67.5,159.56521739130437 L66.5,194.0 L73.5,198.0 L46.5,198.0 L53.5,194.0 L52.5,159.56521739130437 L50.5,124.08695652173914 L50.5,101.2608695652174 L51.64,89.84782608695653 Q34.5,48 34.5,55.608695652173914 L45.5,102 L37.7,106 L36.7,64 Q35.7,54 46.5,48 L56,42 C51,13 51,34 51,34 Z"/></g>
+<g class="feature-markers" fill="#f5d5b5">
+  </g>
+<g class="dimension-annotations" font-family="monospace">
+  <line x1="46.5" y1="5" x2="73.5" y2="5" stroke="#4a9eff" stroke-width="0.5" stroke-dasharray="1.5,1"/>
+<text x="60" y="4" text-anchor="middle" fill="#4a9eff" font-size="4" font-family="monospace">sw:27%</text>
+<line x1="50.5" y1="206.0" x2="69.5" y2="206.0" stroke="#ff6a4a" stroke-width="0.5" stroke-dasharray="1.5,1"/>
+<text x="60" y="212.0" text-anchor="middle" fill="#ff6a4a" font-size="4" font-family="monospace">hw:19%</text>
+<line x1="22" y1="48" x2="22" y2="124.08695652173914" stroke="#ffa040" stroke-width="0.4"/>
+<text x="18" y="86" fill="#ffa040" font-size="3.5" font-family="monospace" text-anchor="end" transform="rotate(-90,18,86)">tl:0.35</text>
+<line x1="27" y1="124.08695652173914" x2="27" y2="198.0" stroke="#40e0d0" stroke-width="0.4"/>
+<text x="30" y="161" fill="#40e0d0" font-size="3.5" font-family="monospace" transform="rotate(-90,30,161)">ll:0.34</text></g>
+</svg>
+<div class="sl">male (98kg)</div></div>
+<div class="sf">
+<svg viewBox="0 0 120 240" width="110" height="240" xmlns="http://www.w3.org/2000/svg" data-race="nord" data-gender="female">
+<g class="body-outline" fill="none" stroke="#f5d5b5" stroke-width="1.2" stroke-linejoin="round" stroke-linecap="round">
+  <path d="M51,34 C51,13 69,13 69,34 L64,42 L71.5,48 Q79.9,54 78.9,64 L77.9,106 L72.5,102 Q75.5,55.285714285714285 77.5,48 Q71.58,88.07142857142858 68.58,88.07142857142858 L71.0,99.0 L71.0,120.85714285714286 L69.0,157.8857142857143 L68.0,194.0 L75.0,198.0 L45.0,198.0 L52.0,194.0 L51.0,157.8857142857143 L49.0,120.85714285714286 L49.0,99.0 L51.42,88.07142857142858 Q42.5,48 42.5,55.285714285714285 L47.5,102 L42.1,106 L41.1,64 Q40.1,54 48.5,48 L56,42 C51,13 51,34 51,34 Z"/></g>
+<g class="muscle-fill" fill="#f5d5b5" opacity="0.12">
+  <path d="M51,34 C51,13 69,13 69,34 L64,42 L71.5,48 Q79.9,54 78.9,64 L77.9,106 L72.5,102 Q75.5,55.285714285714285 77.5,48 Q71.58,88.07142857142858 68.58,88.07142857142858 L71.0,99.0 L71.0,120.85714285714286 L69.0,157.8857142857143 L68.0,194.0 L75.0,198.0 L45.0,198.0 L52.0,194.0 L51.0,157.8857142857143 L49.0,120.85714285714286 L49.0,99.0 L51.42,88.07142857142858 Q42.5,48 42.5,55.285714285714285 L47.5,102 L42.1,106 L41.1,64 Q40.1,54 48.5,48 L56,42 C51,13 51,34 51,34 Z"/></g>
+<g class="feature-markers" fill="#f5d5b5">
+  </g>
+<g class="dimension-annotations" font-family="monospace">
+  <line x1="48.5" y1="5" x2="71.5" y2="5" stroke="#4a9eff" stroke-width="0.5" stroke-dasharray="1.5,1"/>
+<text x="60" y="4" text-anchor="middle" fill="#4a9eff" font-size="4" font-family="monospace">sw:23%</text>
+<line x1="49.0" y1="206.0" x2="71.0" y2="206.0" stroke="#ff6a4a" stroke-width="0.5" stroke-dasharray="1.5,1"/>
+<text x="60" y="212.0" text-anchor="middle" fill="#ff6a4a" font-size="4" font-family="monospace">hw:22%</text>
+<line x1="22" y1="48" x2="22" y2="120.85714285714286" stroke="#ffa040" stroke-width="0.4"/>
+<text x="18" y="84" fill="#ffa040" font-size="3.5" font-family="monospace" text-anchor="end" transform="rotate(-90,18,84)">tl:0.34</text>
+<line x1="27" y1="120.85714285714286" x2="27" y2="198.0" stroke="#40e0d0" stroke-width="0.4"/>
+<text x="30" y="159" fill="#40e0d0" font-size="3.5" font-family="monospace" transform="rotate(-90,30,159)">ll:0.36</text></g>
+</svg>
+<div class="sl">female (72kg)</div></div>
+</div>
+<div class="fr">
+<div class="sg"><div class="slabel">Skin</div><div class="swc">
+<div class="sw" style="background:#f5d5b5"></div>
+<div class="sw" style="background:#e8c4a0"></div>
+<div class="sw" style="background:#ddb88a"></div>
+<div class="sw" style="background:#f0e0cc"></div>
+</div></div>
+<div class="sg"><div class="slabel">Hair</div><div class="swc">
+<div class="sw" style="background:#d4a843"></div>
+<div class="sw" style="background:#a07830"></div>
+<div class="sw" style="background:#e8d0a0"></div>
+<div class="sw" style="background:#c0c0c0"></div>
+<div class="sw" style="background:#8b4513"></div>
+<div class="sw" style="background:#f5f0e8"></div>
+</div></div>
+<div class="sg"><div class="slabel">Eyes</div><div class="swc">
+<div class="sw" style="background:#5580cc"></div>
+<div class="sw" style="background:#6699bb"></div>
+<div class="sw" style="background:#4a7a60"></div>
+<div class="sw" style="background:#8888aa"></div>
+</div></div></div>
+<div class="cv"><div class="vs">CSS Variables -- Male / Female</div>
+<div class="vs" style="margin-top:6px">Proportions</div>
+<div class="vr"><span class="vn">--shoulder-width</span><span class="vv">0.2700 / 0.2300</span></div>
+<div class="vr"><span class="vn">--hip-width</span><span class="vv">0.1900 / 0.2200</span></div>
+<div class="vr"><span class="vn">--torso-length</span><span class="vv">0.3500 / 0.3400</span></div>
+<div class="vr"><span class="vn">--leg-length</span><span class="vv">0.3400 / 0.3600</span></div>
+<div class="vr"><span class="vn">--waist-hip-ratio</span><span class="vv">0.8800 / 0.7800</span></div>
+<div class="vs" style="margin-top:6px">Body</div>
+<div class="vr"><span class="vn">--muscle-mass</span><span class="vv">2.0000 / 1.5000</span></div>
+<div class="vr"><span class="vn">--fat-distribution</span><span class="vv">even / hips_thighs</span></div>
+<div class="vr"><span class="vn">--chest-size</span><span class="vv">120.0 / 100.0</span></div>
+<div class="vr"><span class="vn">--avg-weight</span><span class="vv">98.0 / 72.0</span></div>
+<div class="vs" style="margin-top:8px">M vs F Deltas</div>
+<div class="vr"><span class="vn">--shoulder-width M+</span><span class="vv">0.2700 / 0.2300</span></div>
+<div class="vr"><span class="vn">--hip-width F+</span><span class="vv">0.1900 / 0.2200</span></div>
+<div class="vr"><span class="vn">--waist-hip-ratio M+</span><span class="vv">0.8800 / 0.7800</span></div>
+<div class="vr"><span class="vn">--muscle-mass M+</span><span class="vv">2.0000 / 1.5000</span></div>
+<div class="vr"><span class="vn">--chest-size M+</span><span class="vv">120.0 / 100.0</span></div>
+</div>
+</div>
+<div class="card">
+<div class="chd"><div><div class="ct">IMPERIAL</div><div class="cs">Natives of Cyrodiil, masters of diplomacy.</div></div>
+<div class="cst">175cm avg | average build</div></div>
+<div class="sr">
+<div class="sf">
+<svg viewBox="0 0 120 240" width="110" height="240" xmlns="http://www.w3.org/2000/svg" data-race="imperial" data-gender="male">
+<g class="body-outline" fill="none" stroke="#d4a870" stroke-width="1.2" stroke-linejoin="round" stroke-linecap="round">
+  <path d="M51,34 C51,13 69,13 69,34 L64,42 L72.0,48 Q78.0,54 77.0,64 L76.0,106 L73.0,102 Q70.0,55.285714285714285 72.0,48 Q70.74,88.07142857142858 67.74,88.07142857142858 L69.0,99.0 L69.0,120.85714285714286 L67.0,157.8857142857143 L66.0,194.0 L73.0,198.0 L47.0,198.0 L54.0,194.0 L53.0,157.8857142857143 L51.0,120.85714285714286 L51.0,99.0 L52.26,88.07142857142858 Q48.0,48 48.0,55.285714285714285 L47.0,102 L44.0,106 L43.0,64 Q42.0,54 48.0,48 L56,42 C51,13 51,34 51,34 Z"/></g>
+<g class="muscle-fill" fill="#d4a870" opacity="0.12">
+  <path d="M51,34 C51,13 69,13 69,34 L64,42 L72.0,48 Q78.0,54 77.0,64 L76.0,106 L73.0,102 Q70.0,55.285714285714285 72.0,48 Q70.74,88.07142857142858 67.74,88.07142857142858 L69.0,99.0 L69.0,120.85714285714286 L67.0,157.8857142857143 L66.0,194.0 L73.0,198.0 L47.0,198.0 L54.0,194.0 L53.0,157.8857142857143 L51.0,120.85714285714286 L51.0,99.0 L52.26,88.07142857142858 Q48.0,48 48.0,55.285714285714285 L47.0,102 L44.0,106 L43.0,64 Q42.0,54 48.0,48 L56,42 C51,13 51,34 51,34 Z"/></g>
+<g class="feature-markers" fill="#d4a870">
+  </g>
+<g class="dimension-annotations" font-family="monospace">
+  <line x1="48.0" y1="5" x2="72.0" y2="5" stroke="#4a9eff" stroke-width="0.5" stroke-dasharray="1.5,1"/>
+<text x="60" y="4" text-anchor="middle" fill="#4a9eff" font-size="4" font-family="monospace">sw:24%</text>
+<line x1="51.0" y1="206.0" x2="69.0" y2="206.0" stroke="#ff6a4a" stroke-width="0.5" stroke-dasharray="1.5,1"/>
+<text x="60" y="212.0" text-anchor="middle" fill="#ff6a4a" font-size="4" font-family="monospace">hw:18%</text>
+<line x1="22" y1="48" x2="22" y2="120.85714285714286" stroke="#ffa040" stroke-width="0.4"/>
+<text x="18" y="84" fill="#ffa040" font-size="3.5" font-family="monospace" text-anchor="end" transform="rotate(-90,18,84)">tl:0.34</text>
+<line x1="27" y1="120.85714285714286" x2="27" y2="198.0" stroke="#40e0d0" stroke-width="0.4"/>
+<text x="30" y="159" fill="#40e0d0" font-size="3.5" font-family="monospace" transform="rotate(-90,30,159)">ll:0.36</text></g>
+</svg>
+<div class="sl">male (78kg)</div></div>
+<div class="sf">
+<svg viewBox="0 0 120 240" width="110" height="240" xmlns="http://www.w3.org/2000/svg" data-race="imperial" data-gender="female">
+<g class="body-outline" fill="none" stroke="#d4a870" stroke-width="1.2" stroke-linejoin="round" stroke-linecap="round">
+  <path d="M51,34 C51,13 69,13 69,34 L64,42 L70.5,48 Q76.5,54 75.5,64 L74.5,106 L71.5,102 Q68.5,54.971830985915496 70.5,48 Q70.56,86.34507042253523 67.56,86.34507042253523 L70.5,96.80281690140845 L70.5,117.71830985915494 L68.5,156.25352112676057 L67.5,194.00000000000003 L74.5,198.00000000000003 L45.5,198.00000000000003 L52.5,194.00000000000003 L51.5,156.25352112676057 L49.5,117.71830985915494 L49.5,96.80281690140845 L52.44,86.34507042253523 Q49.5,48 49.5,54.971830985915496 L48.5,102 L45.5,106 L44.5,64 Q43.5,54 49.5,48 L56,42 C51,13 51,34 51,34 Z"/></g>
+<g class="muscle-fill" fill="#d4a870" opacity="0.12">
+  <path d="M51,34 C51,13 69,13 69,34 L64,42 L70.5,48 Q76.5,54 75.5,64 L74.5,106 L71.5,102 Q68.5,54.971830985915496 70.5,48 Q70.56,86.34507042253523 67.56,86.34507042253523 L70.5,96.80281690140845 L70.5,117.71830985915494 L68.5,156.25352112676057 L67.5,194.00000000000003 L74.5,198.00000000000003 L45.5,198.00000000000003 L52.5,194.00000000000003 L51.5,156.25352112676057 L49.5,117.71830985915494 L49.5,96.80281690140845 L52.44,86.34507042253523 Q49.5,48 49.5,54.971830985915496 L48.5,102 L45.5,106 L44.5,64 Q43.5,54 49.5,48 L56,42 C51,13 51,34 51,34 Z"/></g>
+<g class="feature-markers" fill="#d4a870">
+  </g>
+<g class="dimension-annotations" font-family="monospace">
+  <line x1="49.5" y1="5" x2="70.5" y2="5" stroke="#4a9eff" stroke-width="0.5" stroke-dasharray="1.5,1"/>
+<text x="60" y="4" text-anchor="middle" fill="#4a9eff" font-size="4" font-family="monospace">sw:21%</text>
+<line x1="49.5" y1="206.00000000000003" x2="70.5" y2="206.00000000000003" stroke="#ff6a4a" stroke-width="0.5" stroke-dasharray="1.5,1"/>
+<text x="60" y="212.00000000000003" text-anchor="middle" fill="#ff6a4a" font-size="4" font-family="monospace">hw:21%</text>
+<line x1="22" y1="48" x2="22" y2="117.71830985915494" stroke="#ffa040" stroke-width="0.4"/>
+<text x="18" y="83" fill="#ffa040" font-size="3.5" font-family="monospace" text-anchor="end" transform="rotate(-90,18,83)">tl:0.33</text>
+<line x1="27" y1="117.71830985915494" x2="27" y2="198.00000000000003" stroke="#40e0d0" stroke-width="0.4"/>
+<text x="30" y="158" fill="#40e0d0" font-size="3.5" font-family="monospace" transform="rotate(-90,30,158)">ll:0.38</text></g>
+</svg>
+<div class="sl">female (62kg)</div></div>
+</div>
+<div class="fr">
+<div class="sg"><div class="slabel">Skin</div><div class="swc">
+<div class="sw" style="background:#d4a870"></div>
+<div class="sw" style="background:#c89060"></div>
+<div class="sw" style="background:#b87c50"></div>
+<div class="sw" style="background:#e8c090"></div>
+</div></div>
+<div class="sg"><div class="slabel">Hair</div><div class="swc">
+<div class="sw" style="background:#1a1a1a"></div>
+<div class="sw" style="background:#3a2010"></div>
+<div class="sw" style="background:#6a4020"></div>
+<div class="sw" style="background:#8a6030"></div>
+<div class="sw" style="background:#c0a060"></div>
+</div></div>
+<div class="sg"><div class="slabel">Eyes</div><div class="swc">
+<div class="sw" style="background:#6a4020"></div>
+<div class="sw" style="background:#7a5530"></div>
+<div class="sw" style="background:#5a6a30"></div>
+<div class="sw" style="background:#888880"></div>
+</div></div></div>
+<div class="cv"><div class="vs">CSS Variables -- Male / Female</div>
+<div class="vs" style="margin-top:6px">Proportions</div>
+<div class="vr"><span class="vn">--shoulder-width</span><span class="vv">0.2400 / 0.2100</span></div>
+<div class="vr"><span class="vn">--hip-width</span><span class="vv">0.1800 / 0.2100</span></div>
+<div class="vr"><span class="vn">--torso-length</span><span class="vv">0.3400 / 0.3300</span></div>
+<div class="vr"><span class="vn">--leg-length</span><span class="vv">0.3600 / 0.3800</span></div>
+<div class="vr"><span class="vn">--waist-hip-ratio</span><span class="vv">0.8600 / 0.7200</span></div>
+<div class="vs" style="margin-top:6px">Body</div>
+<div class="vr"><span class="vn">--muscle-mass</span><span class="vv">1.0000 / 1.0000</span></div>
+<div class="vr"><span class="vn">--fat-distribution</span><span class="vv">even / hips_thighs</span></div>
+<div class="vr"><span class="vn">--chest-size</span><span class="vv">105.0 / 89.0</span></div>
+<div class="vr"><span class="vn">--avg-weight</span><span class="vv">78.0 / 62.0</span></div>
+<div class="vs" style="margin-top:8px">M vs F Deltas</div>
+<div class="vr"><span class="vn">--shoulder-width M+</span><span class="vv">0.2400 / 0.2100</span></div>
+<div class="vr"><span class="vn">--hip-width F+</span><span class="vv">0.1800 / 0.2100</span></div>
+<div class="vr"><span class="vn">--waist-hip-ratio M+</span><span class="vv">0.8600 / 0.7200</span></div>
+<div class="vr"><span class="vn">--muscle-mass</span><span class="vv">1.0000 / 1.0000</span></div>
+<div class="vr"><span class="vn">--chest-size M+</span><span class="vv">105.0 / 89.0</span></div>
+</div>
+</div>
+<div class="card">
+<div class="chd"><div><div class="ct">BRETON</div><div class="cs">Half-elven mage-blooded of High Rock.</div></div>
+<div class="cst">165cm avg | slim build</div></div>
+<div class="sr">
+<div class="sf">
+<svg viewBox="0 0 120 240" width="110" height="240" xmlns="http://www.w3.org/2000/svg" data-race="breton" data-gender="male">
+<g class="body-outline" fill="none" stroke="#f2e4cc" stroke-width="1.2" stroke-linejoin="round" stroke-linecap="round">
+  <path d="M51,34 C51,13 69,13 69,34 L64,42 L71.0,48 Q75.4,54 74.4,64 L73.4,106 L72.0,102 Q65.0,54.971830985915496 67.0,48 Q70.14,86.34507042253523 67.14,86.34507042253523 L68.5,96.80281690140845 L68.5,117.71830985915494 L66.5,156.25352112676057 L65.5,194.00000000000003 L72.5,198.00000000000003 L47.5,198.00000000000003 L54.5,194.00000000000003 L53.5,156.25352112676057 L51.5,117.71830985915494 L51.5,96.80281690140845 L52.86,86.34507042253523 Q53.0,48 53.0,54.971830985915496 L48.0,102 L46.6,106 L45.6,64 Q44.6,54 49.0,48 L56,42 C51,13 51,34 51,34 Z"/></g>
+<g class="muscle-fill" fill="#f2e4cc" opacity="0.12">
+  <path d="M51,34 C51,13 69,13 69,34 L64,42 L71.0,48 Q75.4,54 74.4,64 L73.4,106 L72.0,102 Q65.0,54.971830985915496 67.0,48 Q70.14,86.34507042253523 67.14,86.34507042253523 L68.5,96.80281690140845 L68.5,117.71830985915494 L66.5,156.25352112676057 L65.5,194.00000000000003 L72.5,198.00000000000003 L47.5,198.00000000000003 L54.5,194.00000000000003 L53.5,156.25352112676057 L51.5,117.71830985915494 L51.5,96.80281690140845 L52.86,86.34507042253523 Q53.0,48 53.0,54.971830985915496 L48.0,102 L46.6,106 L45.6,64 Q44.6,54 49.0,48 L56,42 C51,13 51,34 51,34 Z"/></g>
+<g class="feature-markers" fill="#f2e4cc">
+  </g>
+<g class="dimension-annotations" font-family="monospace">
+  <line x1="49.0" y1="5" x2="71.0" y2="5" stroke="#4a9eff" stroke-width="0.5" stroke-dasharray="1.5,1"/>
+<text x="60" y="4" text-anchor="middle" fill="#4a9eff" font-size="4" font-family="monospace">sw:22%</text>
+<line x1="51.5" y1="206.00000000000003" x2="68.5" y2="206.00000000000003" stroke="#ff6a4a" stroke-width="0.5" stroke-dasharray="1.5,1"/>
+<text x="60" y="212.00000000000003" text-anchor="middle" fill="#ff6a4a" font-size="4" font-family="monospace">hw:17%</text>
+<line x1="22" y1="48" x2="22" y2="117.71830985915494" stroke="#ffa040" stroke-width="0.4"/>
+<text x="18" y="83" fill="#ffa040" font-size="3.5" font-family="monospace" text-anchor="end" transform="rotate(-90,18,83)">tl:0.33</text>
+<line x1="27" y1="117.71830985915494" x2="27" y2="198.00000000000003" stroke="#40e0d0" stroke-width="0.4"/>
+<text x="30" y="158" fill="#40e0d0" font-size="3.5" font-family="monospace" transform="rotate(-90,30,158)">ll:0.38</text></g>
+</svg>
+<div class="sl">male (65kg)</div></div>
+<div class="sf">
+<svg viewBox="0 0 120 240" width="110" height="240" xmlns="http://www.w3.org/2000/svg" data-race="breton" data-gender="female">
+<g class="body-outline" fill="none" stroke="#f2e4cc" stroke-width="1.2" stroke-linejoin="round" stroke-linecap="round">
+  <path d="M51,34 C51,13 69,13 69,34 L64,42 L69.5,48 Q73.9,54 72.9,64 L71.9,106 L70.5,102 Q63.5,54.66666666666667 65.5,48 Q69.46000000000001,84.66666666666667 66.46000000000001,84.66666666666667 L69.5,94.66666666666666 L69.5,114.66666666666667 L67.5,154.66666666666669 L66.5,194.0 L73.5,198.0 L46.5,198.0 L53.5,194.0 L52.5,154.66666666666669 L50.5,114.66666666666667 L50.5,94.66666666666666 L53.54,84.66666666666667 Q54.5,48 54.5,54.66666666666667 L49.5,102 L48.1,106 L47.1,64 Q46.1,54 50.5,48 L56,42 C51,13 51,34 51,34 Z"/></g>
+<g class="muscle-fill" fill="#f2e4cc" opacity="0.12">
+  <path d="M51,34 C51,13 69,13 69,34 L64,42 L69.5,48 Q73.9,54 72.9,64 L71.9,106 L70.5,102 Q63.5,54.66666666666667 65.5,48 Q69.46000000000001,84.66666666666667 66.46000000000001,84.66666666666667 L69.5,94.66666666666666 L69.5,114.66666666666667 L67.5,154.66666666666669 L66.5,194.0 L73.5,198.0 L46.5,198.0 L53.5,194.0 L52.5,154.66666666666669 L50.5,114.66666666666667 L50.5,94.66666666666666 L53.54,84.66666666666667 Q54.5,48 54.5,54.66666666666667 L49.5,102 L48.1,106 L47.1,64 Q46.1,54 50.5,48 L56,42 C51,13 51,34 51,34 Z"/></g>
+<g class="feature-markers" fill="#f2e4cc">
+  </g>
+<g class="dimension-annotations" font-family="monospace">
+  <line x1="50.5" y1="5" x2="69.5" y2="5" stroke="#4a9eff" stroke-width="0.5" stroke-dasharray="1.5,1"/>
+<text x="60" y="4" text-anchor="middle" fill="#4a9eff" font-size="4" font-family="monospace">sw:19%</text>
+<line x1="50.5" y1="206.0" x2="69.5" y2="206.0" stroke="#ff6a4a" stroke-width="0.5" stroke-dasharray="1.5,1"/>
+<text x="60" y="212.0" text-anchor="middle" fill="#ff6a4a" font-size="4" font-family="monospace">hw:19%</text>
+<line x1="22" y1="48" x2="22" y2="114.66666666666667" stroke="#ffa040" stroke-width="0.4"/>
+<text x="18" y="81" fill="#ffa040" font-size="3.5" font-family="monospace" text-anchor="end" transform="rotate(-90,18,81)">tl:0.32</text>
+<line x1="27" y1="114.66666666666667" x2="27" y2="198.0" stroke="#40e0d0" stroke-width="0.4"/>
+<text x="30" y="156" fill="#40e0d0" font-size="3.5" font-family="monospace" transform="rotate(-90,30,156)">ll:0.4</text></g>
+</svg>
+<div class="sl">female (52kg)</div></div>
+</div>
+<div class="fr">
+<div class="sg"><div class="slabel">Skin</div><div class="swc">
+<div class="sw" style="background:#f2e4cc"></div>
+<div class="sw" style="background:#eed8bb"></div>
+<div class="sw" style="background:#e8cca8"></div>
+<div class="sw" style="background:#f8f0e0"></div>
+</div></div>
+<div class="sg"><div class="slabel">Hair</div><div class="swc">
+<div class="sw" style="background:#8b4513"></div>
+<div class="sw" style="background:#5a3010"></div>
+<div class="sw" style="background:#c0a060"></div>
+<div class="sw" style="background:#2a1a08"></div>
+<div class="sw" style="background:#888888"></div>
+</div></div>
+<div class="sg"><div class="slabel">Eyes</div><div class="swc">
+<div class="sw" style="background:#4a6a9a"></div>
+<div class="sw" style="background:#6a8a6a"></div>
+<div class="sw" style="background:#7a6a9a"></div>
+<div class="sw" style="background:#5a7a5a"></div>
+</div></div></div>
+<div class="cv"><div class="vs">CSS Variables -- Male / Female</div>
+<div class="vs" style="margin-top:6px">Proportions</div>
+<div class="vr"><span class="vn">--shoulder-width</span><span class="vv">0.2200 / 0.1900</span></div>
+<div class="vr"><span class="vn">--hip-width</span><span class="vv">0.1700 / 0.1900</span></div>
+<div class="vr"><span class="vn">--torso-length</span><span class="vv">0.3300 / 0.3200</span></div>
+<div class="vr"><span class="vn">--leg-length</span><span class="vv">0.3800 / 0.4000</span></div>
+<div class="vr"><span class="vn">--waist-hip-ratio</span><span class="vv">0.8400 / 0.6800</span></div>
+<div class="vs" style="margin-top:6px">Body</div>
+<div class="vr"><span class="vn">--muscle-mass</span><span class="vv">0.5000 / 0.5000</span></div>
+<div class="vr"><span class="vn">--fat-distribution</span><span class="vv">even / hips_thighs</span></div>
+<div class="vr"><span class="vn">--chest-size</span><span class="vv">92.0 / 79.0</span></div>
+<div class="vr"><span class="vn">--avg-weight</span><span class="vv">65.0 / 52.0</span></div>
+<div class="vs" style="margin-top:8px">M vs F Deltas</div>
+<div class="vr"><span class="vn">--shoulder-width M+</span><span class="vv">0.2200 / 0.1900</span></div>
+<div class="vr"><span class="vn">--hip-width F+</span><span class="vv">0.1700 / 0.1900</span></div>
+<div class="vr"><span class="vn">--waist-hip-ratio M+</span><span class="vv">0.8400 / 0.6800</span></div>
+<div class="vr"><span class="vn">--muscle-mass</span><span class="vv">0.5000 / 0.5000</span></div>
+<div class="vr"><span class="vn">--chest-size M+</span><span class="vv">92.0 / 79.0</span></div>
+</div>
+</div>
+<div class="card">
+<div class="chd"><div><div class="ct">REDGUARD</div><div class="cs">Warrior-people of the Alik'r Desert.</div></div>
+<div class="cst">178cm avg | athletic build</div></div>
+<div class="sr">
+<div class="sf">
+<svg viewBox="0 0 120 240" width="110" height="240" xmlns="http://www.w3.org/2000/svg" data-race="redguard" data-gender="male">
+<g class="body-outline" fill="none" stroke="#6b3d2e" stroke-width="1.2" stroke-linejoin="round" stroke-linecap="round">
+  <path d="M51,34 C51,13 69,13 69,34 L64,42 L72.5,48 Q80.9,54 79.9,64 L78.9,106 L73.5,102 Q76.5,55.285714285714285 78.5,48 Q70.65,88.07142857142858 67.65,88.07142857142858 L69.0,99.0 L69.0,120.85714285714286 L67.0,157.8857142857143 L66.0,194.0 L73.0,198.0 L47.0,198.0 L54.0,194.0 L53.0,157.8857142857143 L51.0,120.85714285714286 L51.0,99.0 L52.35,88.07142857142858 Q41.5,48 41.5,55.285714285714285 L46.5,102 L41.1,106 L40.1,64 Q39.1,54 47.5,48 L56,42 C51,13 51,34 51,34 Z"/></g>
+<g class="muscle-fill" fill="#6b3d2e" opacity="0.12">
+  <path d="M51,34 C51,13 69,13 69,34 L64,42 L72.5,48 Q80.9,54 79.9,64 L78.9,106 L73.5,102 Q76.5,55.285714285714285 78.5,48 Q70.65,88.07142857142858 67.65,88.07142857142858 L69.0,99.0 L69.0,120.85714285714286 L67.0,157.8857142857143 L66.0,194.0 L73.0,198.0 L47.0,198.0 L54.0,194.0 L53.0,157.8857142857143 L51.0,120.85714285714286 L51.0,99.0 L52.35,88.07142857142858 Q41.5,48 41.5,55.285714285714285 L46.5,102 L41.1,106 L40.1,64 Q39.1,54 47.5,48 L56,42 C51,13 51,34 51,34 Z"/></g>
+<g class="feature-markers" fill="#6b3d2e">
+  </g>
+<g class="dimension-annotations" font-family="monospace">
+  <line x1="47.5" y1="5" x2="72.5" y2="5" stroke="#4a9eff" stroke-width="0.5" stroke-dasharray="1.5,1"/>
+<text x="60" y="4" text-anchor="middle" fill="#4a9eff" font-size="4" font-family="monospace">sw:25%</text>
+<line x1="51.0" y1="206.0" x2="69.0" y2="206.0" stroke="#ff6a4a" stroke-width="0.5" stroke-dasharray="1.5,1"/>
+<text x="60" y="212.0" text-anchor="middle" fill="#ff6a4a" font-size="4" font-family="monospace">hw:18%</text>
+<line x1="22" y1="48" x2="22" y2="120.85714285714286" stroke="#ffa040" stroke-width="0.4"/>
+<text x="18" y="84" fill="#ffa040" font-size="3.5" font-family="monospace" text-anchor="end" transform="rotate(-90,18,84)">tl:0.34</text>
+<line x1="27" y1="120.85714285714286" x2="27" y2="198.0" stroke="#40e0d0" stroke-width="0.4"/>
+<text x="30" y="159" fill="#40e0d0" font-size="3.5" font-family="monospace" transform="rotate(-90,30,159)">ll:0.36</text></g>
+</svg>
+<div class="sl">male (80kg)</div></div>
+<div class="sf">
+<svg viewBox="0 0 120 240" width="110" height="240" xmlns="http://www.w3.org/2000/svg" data-race="redguard" data-gender="female">
+<g class="body-outline" fill="none" stroke="#6b3d2e" stroke-width="1.2" stroke-linejoin="round" stroke-linecap="round">
+  <path d="M51,34 C51,13 69,13 69,34 L64,42 L71.0,48 Q79.4,54 78.4,64 L77.4,106 L72.0,102 Q75.0,54.971830985915496 77.0,48 Q70.0,86.34507042253523 67.0,86.34507042253523 L70.0,96.80281690140845 L70.0,117.71830985915494 L68.0,156.25352112676057 L67.0,194.00000000000003 L74.0,198.00000000000003 L46.0,198.00000000000003 L53.0,194.00000000000003 L52.0,156.25352112676057 L50.0,117.71830985915494 L50.0,96.80281690140845 L53.0,86.34507042253523 Q43.0,48 43.0,54.971830985915496 L48.0,102 L42.6,106 L41.6,64 Q40.6,54 49.0,48 L56,42 C51,13 51,34 51,34 Z"/></g>
+<g class="muscle-fill" fill="#6b3d2e" opacity="0.12">
+  <path d="M51,34 C51,13 69,13 69,34 L64,42 L71.0,48 Q79.4,54 78.4,64 L77.4,106 L72.0,102 Q75.0,54.971830985915496 77.0,48 Q70.0,86.34507042253523 67.0,86.34507042253523 L70.0,96.80281690140845 L70.0,117.71830985915494 L68.0,156.25352112676057 L67.0,194.00000000000003 L74.0,198.00000000000003 L46.0,198.00000000000003 L53.0,194.00000000000003 L52.0,156.25352112676057 L50.0,117.71830985915494 L50.0,96.80281690140845 L53.0,86.34507042253523 Q43.0,48 43.0,54.971830985915496 L48.0,102 L42.6,106 L41.6,64 Q40.6,54 49.0,48 L56,42 C51,13 51,34 51,34 Z"/></g>
+<g class="feature-markers" fill="#6b3d2e">
+  </g>
+<g class="dimension-annotations" font-family="monospace">
+  <line x1="49.0" y1="5" x2="71.0" y2="5" stroke="#4a9eff" stroke-width="0.5" stroke-dasharray="1.5,1"/>
+<text x="60" y="4" text-anchor="middle" fill="#4a9eff" font-size="4" font-family="monospace">sw:22%</text>
+<line x1="50.0" y1="206.00000000000003" x2="70.0" y2="206.00000000000003" stroke="#ff6a4a" stroke-width="0.5" stroke-dasharray="1.5,1"/>
+<text x="60" y="212.00000000000003" text-anchor="middle" fill="#ff6a4a" font-size="4" font-family="monospace">hw:20%</text>
+<line x1="22" y1="48" x2="22" y2="117.71830985915494" stroke="#ffa040" stroke-width="0.4"/>
+<text x="18" y="83" fill="#ffa040" font-size="3.5" font-family="monospace" text-anchor="end" transform="rotate(-90,18,83)">tl:0.33</text>
+<line x1="27" y1="117.71830985915494" x2="27" y2="198.00000000000003" stroke="#40e0d0" stroke-width="0.4"/>
+<text x="30" y="158" fill="#40e0d0" font-size="3.5" font-family="monospace" transform="rotate(-90,30,158)">ll:0.38</text></g>
+</svg>
+<div class="sl">female (64kg)</div></div>
+</div>
+<div class="fr">
+<span class="ftag">Tattoos/warpaint</span>
+</div>
+<div class="fr">
+<div class="sg"><div class="slabel">Skin</div><div class="swc">
+<div class="sw" style="background:#6b3d2e"></div>
+<div class="sw" style="background:#7a4535"></div>
+<div class="sw" style="background:#8a5540"></div>
+<div class="sw" style="background:#5a2e20"></div>
+<div class="sw" style="background:#9a6550"></div>
+</div></div>
+<div class="sg"><div class="slabel">Hair</div><div class="swc">
+<div class="sw" style="background:#1a0a00"></div>
+<div class="sw" style="background:#2a1005"></div>
+<div class="sw" style="background:#3a1a08"></div>
+<div class="sw" style="background:#c8a030"></div>
+</div></div>
+<div class="sg"><div class="slabel">Eyes</div><div class="swc">
+<div class="sw" style="background:#3a2010"></div>
+<div class="sw" style="background:#5a3a18"></div>
+<div class="sw" style="background:#2a3a10"></div>
+<div class="sw" style="background:#6a5030"></div>
+</div></div></div>
+<div class="cv"><div class="vs">CSS Variables -- Male / Female</div>
+<div class="vs" style="margin-top:6px">Proportions</div>
+<div class="vr"><span class="vn">--shoulder-width</span><span class="vv">0.2500 / 0.2200</span></div>
+<div class="vr"><span class="vn">--hip-width</span><span class="vv">0.1800 / 0.2000</span></div>
+<div class="vr"><span class="vn">--torso-length</span><span class="vv">0.3400 / 0.3300</span></div>
+<div class="vr"><span class="vn">--leg-length</span><span class="vv">0.3600 / 0.3800</span></div>
+<div class="vr"><span class="vn">--waist-hip-ratio</span><span class="vv">0.8500 / 0.7000</span></div>
+<div class="vs" style="margin-top:6px">Body</div>
+<div class="vr"><span class="vn">--muscle-mass</span><span class="vv">1.5000 / 1.5000</span></div>
+<div class="vr"><span class="vn">--fat-distribution</span><span class="vv">even / even</span></div>
+<div class="vr"><span class="vn">--chest-size</span><span class="vv">109.0 / 85.0</span></div>
+<div class="vr"><span class="vn">--avg-weight</span><span class="vv">80.0 / 64.0</span></div>
+<div class="vs" style="margin-top:8px">M vs F Deltas</div>
+<div class="vr"><span class="vn">--shoulder-width M+</span><span class="vv">0.2500 / 0.2200</span></div>
+<div class="vr"><span class="vn">--hip-width F+</span><span class="vv">0.1800 / 0.2000</span></div>
+<div class="vr"><span class="vn">--waist-hip-ratio M+</span><span class="vv">0.8500 / 0.7000</span></div>
+<div class="vr"><span class="vn">--muscle-mass</span><span class="vv">1.5000 / 1.5000</span></div>
+<div class="vr"><span class="vn">--chest-size M+</span><span class="vv">109.0 / 85.0</span></div>
+</div>
+</div>
+<div class="card">
+<div class="chd"><div><div class="ct">DUNMER</div><div class="cs">Dark Elves of Morrowind, ashen-skinned.</div></div>
+<div class="cst">172cm avg | wiry build</div></div>
+<div class="sr">
+<div class="sf">
+<svg viewBox="0 0 120 240" width="110" height="240" xmlns="http://www.w3.org/2000/svg" data-race="dunmer" data-gender="male">
+<g class="body-outline" fill="none" stroke="#8a9090" stroke-width="1.2" stroke-linejoin="round" stroke-linecap="round">
+  <path d="M51,34 C51,13 69,13 69,34 L64,42 L71.5,48 Q77.5,54 76.5,64 L75.5,106 L72.5,102 Q69.5,55.285714285714285 71.5,48 Q70.14,88.07142857142858 67.14,88.07142857142858 L68.5,99.0 L68.5,120.85714285714286 L66.5,157.8857142857143 L65.5,194.0 L72.5,198.0 L47.5,198.0 L54.5,194.0 L53.5,157.8857142857143 L51.5,120.85714285714286 L51.5,99.0 L52.86,88.07142857142858 Q48.5,48 48.5,55.285714285714285 L47.5,102 L44.5,106 L43.5,64 Q42.5,54 48.5,48 L56,42 C51,13 51,34 51,34 Z"/></g>
+<g class="muscle-fill" fill="#8a9090" opacity="0.12">
+  <path d="M51,34 C51,13 69,13 69,34 L64,42 L71.5,48 Q77.5,54 76.5,64 L75.5,106 L72.5,102 Q69.5,55.285714285714285 71.5,48 Q70.14,88.07142857142858 67.14,88.07142857142858 L68.5,99.0 L68.5,120.85714285714286 L66.5,157.8857142857143 L65.5,194.0 L72.5,198.0 L47.5,198.0 L54.5,194.0 L53.5,157.8857142857143 L51.5,120.85714285714286 L51.5,99.0 L52.86,88.07142857142858 Q48.5,48 48.5,55.285714285714285 L47.5,102 L44.5,106 L43.5,64 Q42.5,54 48.5,48 L56,42 C51,13 51,34 51,34 Z"/></g>
+<g class="feature-markers" fill="#8a9090">
+  <polygon points="65,8 61,-1 70,4" fill="currentColor" opacity="0.7"/>
+<polygon points="55,8 59,-1 50,4" fill="currentColor" opacity="0.7"/></g>
+<g class="dimension-annotations" font-family="monospace">
+  <line x1="48.5" y1="5" x2="71.5" y2="5" stroke="#4a9eff" stroke-width="0.5" stroke-dasharray="1.5,1"/>
+<text x="60" y="4" text-anchor="middle" fill="#4a9eff" font-size="4" font-family="monospace">sw:23%</text>
+<line x1="51.5" y1="206.0" x2="68.5" y2="206.0" stroke="#ff6a4a" stroke-width="0.5" stroke-dasharray="1.5,1"/>
+<text x="60" y="212.0" text-anchor="middle" fill="#ff6a4a" font-size="4" font-family="monospace">hw:17%</text>
+<line x1="22" y1="48" x2="22" y2="120.85714285714286" stroke="#ffa040" stroke-width="0.4"/>
+<text x="18" y="84" fill="#ffa040" font-size="3.5" font-family="monospace" text-anchor="end" transform="rotate(-90,18,84)">tl:0.34</text>
+<line x1="27" y1="120.85714285714286" x2="27" y2="198.0" stroke="#40e0d0" stroke-width="0.4"/>
+<text x="30" y="159" fill="#40e0d0" font-size="3.5" font-family="monospace" transform="rotate(-90,30,159)">ll:0.36</text></g>
+</svg>
+<div class="sl">male (68kg)</div></div>
+<div class="sf">
+<svg viewBox="0 0 120 240" width="110" height="240" xmlns="http://www.w3.org/2000/svg" data-race="dunmer" data-gender="female">
+<g class="body-outline" fill="none" stroke="#8a9090" stroke-width="1.2" stroke-linejoin="round" stroke-linecap="round">
+  <path d="M51,34 C51,13 69,13 69,34 L64,42 L70.0,48 Q74.4,54 73.4,64 L72.4,106 L71.0,102 Q64.0,54.971830985915496 66.0,48 Q70.03,86.34507042253523 67.03,86.34507042253523 L69.5,96.80281690140845 L69.5,117.71830985915494 L67.5,156.25352112676057 L66.5,194.00000000000003 L73.5,198.00000000000003 L46.5,198.00000000000003 L53.5,194.00000000000003 L52.5,156.25352112676057 L50.5,117.71830985915494 L50.5,96.80281690140845 L52.97,86.34507042253523 Q54.0,48 54.0,54.971830985915496 L49.0,102 L47.6,106 L46.6,64 Q45.6,54 50.0,48 L56,42 C51,13 51,34 51,34 Z"/></g>
+<g class="muscle-fill" fill="#8a9090" opacity="0.12">
+  <path d="M51,34 C51,13 69,13 69,34 L64,42 L70.0,48 Q74.4,54 73.4,64 L72.4,106 L71.0,102 Q64.0,54.971830985915496 66.0,48 Q70.03,86.34507042253523 67.03,86.34507042253523 L69.5,96.80281690140845 L69.5,117.71830985915494 L67.5,156.25352112676057 L66.5,194.00000000000003 L73.5,198.00000000000003 L46.5,198.00000000000003 L53.5,194.00000000000003 L52.5,156.25352112676057 L50.5,117.71830985915494 L50.5,96.80281690140845 L52.97,86.34507042253523 Q54.0,48 54.0,54.971830985915496 L49.0,102 L47.6,106 L46.6,64 Q45.6,54 50.0,48 L56,42 C51,13 51,34 51,34 Z"/></g>
+<g class="feature-markers" fill="#8a9090">
+  <polygon points="65,8 61,-1 70,4" fill="#8a9090" opacity="0.7"/>
+<polygon points="55,8 59,-1 50,4" fill="#8a9090" opacity="0.7"/></g>
+<g class="dimension-annotations" font-family="monospace">
+  <line x1="50.0" y1="5" x2="70.0" y2="5" stroke="#4a9eff" stroke-width="0.5" stroke-dasharray="1.5,1"/>
+<text x="60" y="4" text-anchor="middle" fill="#4a9eff" font-size="4" font-family="monospace">sw:20%</text>
+<line x1="50.5" y1="206.00000000000003" x2="69.5" y2="206.00000000000003" stroke="#ff6a4a" stroke-width="0.5" stroke-dasharray="1.5,1"/>
+<text x="60" y="212.00000000000003" text-anchor="middle" fill="#ff6a4a" font-size="4" font-family="monospace">hw:19%</text>
+<line x1="22" y1="48" x2="22" y2="117.71830985915494" stroke="#ffa040" stroke-width="0.4"/>
+<text x="18" y="83" fill="#ffa040" font-size="3.5" font-family="monospace" text-anchor="end" transform="rotate(-90,18,83)">tl:0.33</text>
+<line x1="27" y1="117.71830985915494" x2="27" y2="198.00000000000003" stroke="#40e0d0" stroke-width="0.4"/>
+<text x="30" y="158" fill="#40e0d0" font-size="3.5" font-family="monospace" transform="rotate(-90,30,158)">ll:0.38</text></g>
+</svg>
+<div class="sl">female (55kg)</div></div>
+</div>
+<div class="fr">
+<span class="ftag">Pointed ears (short)</span>
+<span class="ftag">red eyes</span>
+</div>
+<div class="fr">
+<div class="sg"><div class="slabel">Skin</div><div class="swc">
+<div class="sw" style="background:#8a9090"></div>
+<div class="sw" style="background:#7a8888"></div>
+<div class="sw" style="background:#6a7878"></div>
+<div class="sw" style="background:#9a9898"></div>
+<div class="sw" style="background:#b0a0a0"></div>
+</div></div>
+<div class="sg"><div class="slabel">Hair</div><div class="swc">
+<div class="sw" style="background:#1a1a1a"></div>
+<div class="sw" style="background:#3a1a1a"></div>
+<div class="sw" style="background:#2a2a2a"></div>
+<div class="sw" style="background:#5a1a1a"></div>
+<div class="sw" style="background:#0a0a0a"></div>
+</div></div>
+<div class="sg"><div class="slabel">Eyes</div><div class="swc">
+<div class="sw" style="background:#cc2020"></div>
+<div class="sw" style="background:#aa1818"></div>
+<div class="sw" style="background:#dd3030"></div>
+<div class="sw" style="background:#bb2828"></div>
+</div></div></div>
+<div class="cv"><div class="vs">CSS Variables -- Male / Female</div>
+<div class="vs" style="margin-top:6px">Proportions</div>
+<div class="vr"><span class="vn">--shoulder-width</span><span class="vv">0.2300 / 0.2000</span></div>
+<div class="vr"><span class="vn">--hip-width</span><span class="vv">0.1700 / 0.1900</span></div>
+<div class="vr"><span class="vn">--torso-length</span><span class="vv">0.3400 / 0.3300</span></div>
+<div class="vr"><span class="vn">--leg-length</span><span class="vv">0.3600 / 0.3800</span></div>
+<div class="vr"><span class="vn">--waist-hip-ratio</span><span class="vv">0.8400 / 0.7400</span></div>
+<div class="vs" style="margin-top:6px">Body</div>
+<div class="vr"><span class="vn">--muscle-mass</span><span class="vv">1.0000 / 0.5000</span></div>
+<div class="vr"><span class="vn">--fat-distribution</span><span class="vv">upper_heavy / upper_heavy</span></div>
+<div class="vr"><span class="vn">--chest-size</span><span class="vv">97.0 / 77.0</span></div>
+<div class="vr"><span class="vn">--avg-weight</span><span class="vv">68.0 / 55.0</span></div>
+<div class="vs" style="margin-top:8px">M vs F Deltas</div>
+<div class="vr"><span class="vn">--shoulder-width M+</span><span class="vv">0.2300 / 0.2000</span></div>
+<div class="vr"><span class="vn">--hip-width F+</span><span class="vv">0.1700 / 0.1900</span></div>
+<div class="vr"><span class="vn">--waist-hip-ratio M+</span><span class="vv">0.8400 / 0.7400</span></div>
+<div class="vr"><span class="vn">--muscle-mass M+</span><span class="vv">1.0000 / 0.5000</span></div>
+<div class="vr"><span class="vn">--chest-size M+</span><span class="vv">97.0 / 77.0</span></div>
+</div>
+</div>
+<div class="card">
+<div class="chd"><div><div class="ct">ALTMER</div><div class="cs">High Elves of Summerset, tall and golden.</div></div>
+<div class="cst">198cm avg | slim build</div></div>
+<div class="sr">
+<div class="sf">
+<svg viewBox="0 0 120 240" width="110" height="240" xmlns="http://www.w3.org/2000/svg" data-race="altmer" data-gender="male">
+<g class="body-outline" fill="none" stroke="#d4bc60" stroke-width="1.2" stroke-linejoin="round" stroke-linecap="round">
+  <path d="M51,34 C51,13 69,13 69,34 L64,42 L72.0,48 Q78.0,54 77.0,64 L76.0,106 L73.0,102 Q70.0,55.173913043478265 72.0,48 Q69.56,87.45652173913044 66.56,87.45652173913044 L68.0,98.21739130434784 L68.0,119.73913043478262 L66.0,157.30434782608697 L65.0,194.0 L72.0,198.0 L48.0,198.0 L55.0,194.0 L54.0,157.30434782608697 L52.0,119.73913043478262 L52.0,98.21739130434784 L53.44,87.45652173913044 Q48.0,48 48.0,55.173913043478265 L47.0,102 L44.0,106 L43.0,64 Q42.0,54 48.0,48 L56,42 C51,13 51,34 51,34 Z"/></g>
+<g class="muscle-fill" fill="#d4bc60" opacity="0.12">
+  <path d="M51,34 C51,13 69,13 69,34 L64,42 L72.0,48 Q78.0,54 77.0,64 L76.0,106 L73.0,102 Q70.0,55.173913043478265 72.0,48 Q69.56,87.45652173913044 66.56,87.45652173913044 L68.0,98.21739130434784 L68.0,119.73913043478262 L66.0,157.30434782608697 L65.0,194.0 L72.0,198.0 L48.0,198.0 L55.0,194.0 L54.0,157.30434782608697 L52.0,119.73913043478262 L52.0,98.21739130434784 L53.44,87.45652173913044 Q48.0,48 48.0,55.173913043478265 L47.0,102 L44.0,106 L43.0,64 Q42.0,54 48.0,48 L56,42 C51,13 51,34 51,34 Z"/></g>
+<g class="feature-markers" fill="#d4bc60">
+  <polygon points="64,5 58,-7 70,-1" fill="currentColor" opacity="0.7"/>
+<polygon points="56,5 62,-7 50,-1" fill="currentColor" opacity="0.7"/></g>
+<g class="dimension-annotations" font-family="monospace">
+  <line x1="48.0" y1="5" x2="72.0" y2="5" stroke="#4a9eff" stroke-width="0.5" stroke-dasharray="1.5,1"/>
+<text x="60" y="4" text-anchor="middle" fill="#4a9eff" font-size="4" font-family="monospace">sw:24%</text>
+<line x1="52.0" y1="206.0" x2="68.0" y2="206.0" stroke="#ff6a4a" stroke-width="0.5" stroke-dasharray="1.5,1"/>
+<text x="60" y="212.0" text-anchor="middle" fill="#ff6a4a" font-size="4" font-family="monospace">hw:16%</text>
+<line x1="22" y1="48" x2="22" y2="119.73913043478262" stroke="#ffa040" stroke-width="0.4"/>
+<text x="18" y="84" fill="#ffa040" font-size="3.5" font-family="monospace" text-anchor="end" transform="rotate(-90,18,84)">tl:0.33</text>
+<line x1="27" y1="119.73913043478262" x2="27" y2="198.0" stroke="#40e0d0" stroke-width="0.4"/>
+<text x="30" y="159" fill="#40e0d0" font-size="3.5" font-family="monospace" transform="rotate(-90,30,159)">ll:0.36</text></g>
+</svg>
+<div class="sl">male (82kg)</div></div>
+<div class="sf">
+<svg viewBox="0 0 120 240" width="110" height="240" xmlns="http://www.w3.org/2000/svg" data-race="altmer" data-gender="female">
+<g class="body-outline" fill="none" stroke="#d4bc60" stroke-width="1.2" stroke-linejoin="round" stroke-linecap="round">
+  <path d="M51,34 C51,13 69,13 69,34 L64,42 L70.5,48 Q74.9,54 73.9,64 L72.9,106 L71.5,102 Q64.5,54.85714285714286 66.5,48 Q69.46000000000001,85.71428571428572 66.46000000000001,85.71428571428572 L69.5,96.0 L69.5,116.57142857142858 L67.5,155.65714285714287 L66.5,194.00000000000003 L73.5,198.00000000000003 L46.5,198.00000000000003 L53.5,194.00000000000003 L52.5,155.65714285714287 L50.5,116.57142857142858 L50.5,96.0 L53.54,85.71428571428572 Q53.5,48 53.5,54.85714285714286 L48.5,102 L47.1,106 L46.1,64 Q45.1,54 49.5,48 L56,42 C51,13 51,34 51,34 Z"/></g>
+<g class="muscle-fill" fill="#d4bc60" opacity="0.12">
+  <path d="M51,34 C51,13 69,13 69,34 L64,42 L70.5,48 Q74.9,54 73.9,64 L72.9,106 L71.5,102 Q64.5,54.85714285714286 66.5,48 Q69.46000000000001,85.71428571428572 66.46000000000001,85.71428571428572 L69.5,96.0 L69.5,116.57142857142858 L67.5,155.65714285714287 L66.5,194.00000000000003 L73.5,198.00000000000003 L46.5,198.00000000000003 L53.5,194.00000000000003 L52.5,155.65714285714287 L50.5,116.57142857142858 L50.5,96.0 L53.54,85.71428571428572 Q53.5,48 53.5,54.85714285714286 L48.5,102 L47.1,106 L46.1,64 Q45.1,54 49.5,48 L56,42 C51,13 51,34 51,34 Z"/></g>
+<g class="feature-markers" fill="#d4bc60">
+  <polygon points="64,5 58,-7 70,-1" fill="#d4bc60" opacity="0.7"/>
+<polygon points="56,5 62,-7 50,-1" fill="#d4bc60" opacity="0.7"/></g>
+<g class="dimension-annotations" font-family="monospace">
+  <line x1="49.5" y1="5" x2="70.5" y2="5" stroke="#4a9eff" stroke-width="0.5" stroke-dasharray="1.5,1"/>
+<text x="60" y="4" text-anchor="middle" fill="#4a9eff" font-size="4" font-family="monospace">sw:21%</text>
+<line x1="50.5" y1="206.00000000000003" x2="69.5" y2="206.00000000000003" stroke="#ff6a4a" stroke-width="0.5" stroke-dasharray="1.5,1"/>
+<text x="60" y="212.00000000000003" text-anchor="middle" fill="#ff6a4a" font-size="4" font-family="monospace">hw:19%</text>
+<line x1="22" y1="48" x2="22" y2="116.57142857142858" stroke="#ffa040" stroke-width="0.4"/>
+<text x="18" y="82" fill="#ffa040" font-size="3.5" font-family="monospace" text-anchor="end" transform="rotate(-90,18,82)">tl:0.32</text>
+<line x1="27" y1="116.57142857142858" x2="27" y2="198.00000000000003" stroke="#40e0d0" stroke-width="0.4"/>
+<text x="30" y="157" fill="#40e0d0" font-size="3.5" font-family="monospace" transform="rotate(-90,30,157)">ll:0.38</text></g>
+</svg>
+<div class="sl">female (62kg)</div></div>
+</div>
+<div class="fr">
+<span class="ftag">Pointed ears (long)</span>
+<span class="ftag">golden skin</span>
+</div>
+<div class="fr">
+<div class="sg"><div class="slabel">Skin</div><div class="swc">
+<div class="sw" style="background:#d4bc60"></div>
+<div class="sw" style="background:#c8b050"></div>
+<div class="sw" style="background:#bca040"></div>
+<div class="sw" style="background:#dcc870"></div>
+<div class="sw" style="background:#e8d880"></div>
+</div></div>
+<div class="sg"><div class="slabel">Hair</div><div class="swc">
+<div class="sw" style="background:#d4c060"></div>
+<div class="sw" style="background:#b0a040"></div>
+<div class="sw" style="background:#e8d890"></div>
+<div class="sw" style="background:#ffffff"></div>
+<div class="sw" style="background:#806020"></div>
+</div></div>
+<div class="sg"><div class="slabel">Eyes</div><div class="swc">
+<div class="sw" style="background:#c8a020"></div>
+<div class="sw" style="background:#d4b030"></div>
+<div class="sw" style="background:#b09010"></div>
+<div class="sw" style="background:#e0c040"></div>
+</div></div></div>
+<div class="cv"><div class="vs">CSS Variables -- Male / Female</div>
+<div class="vs" style="margin-top:6px">Proportions</div>
+<div class="vr"><span class="vn">--shoulder-width</span><span class="vv">0.2400 / 0.2100</span></div>
+<div class="vr"><span class="vn">--hip-width</span><span class="vv">0.1600 / 0.1900</span></div>
+<div class="vr"><span class="vn">--torso-length</span><span class="vv">0.3300 / 0.3200</span></div>
+<div class="vr"><span class="vn">--leg-length</span><span class="vv">0.3600 / 0.3800</span></div>
+<div class="vr"><span class="vn">--waist-hip-ratio</span><span class="vv">0.8200 / 0.6800</span></div>
+<div class="vs" style="margin-top:6px">Body</div>
+<div class="vr"><span class="vn">--muscle-mass</span><span class="vv">1.0000 / 0.5000</span></div>
+<div class="vr"><span class="vn">--fat-distribution</span><span class="vv">even / even</span></div>
+<div class="vr"><span class="vn">--chest-size</span><span class="vv">106.0 / 86.0</span></div>
+<div class="vr"><span class="vn">--avg-weight</span><span class="vv">82.0 / 62.0</span></div>
+<div class="vs" style="margin-top:8px">M vs F Deltas</div>
+<div class="vr"><span class="vn">--shoulder-width M+</span><span class="vv">0.2400 / 0.2100</span></div>
+<div class="vr"><span class="vn">--hip-width F+</span><span class="vv">0.1600 / 0.1900</span></div>
+<div class="vr"><span class="vn">--waist-hip-ratio M+</span><span class="vv">0.8200 / 0.6800</span></div>
+<div class="vr"><span class="vn">--muscle-mass M+</span><span class="vv">1.0000 / 0.5000</span></div>
+<div class="vr"><span class="vn">--chest-size M+</span><span class="vv">106.0 / 86.0</span></div>
+</div>
+</div>
+<div class="card">
+<div class="chd"><div><div class="ct">BOSMER</div><div class="cs">Wood Elves of Valenwood, swift hunters.</div></div>
+<div class="cst">155cm avg | wiry build</div></div>
+<div class="sr">
+<div class="sf">
+<svg viewBox="0 0 120 240" width="110" height="240" xmlns="http://www.w3.org/2000/svg" data-race="bosmer" data-gender="male">
+<g class="body-outline" fill="none" stroke="#b8a060" stroke-width="1.2" stroke-linejoin="round" stroke-linecap="round">
+  <path d="M51,34 C51,13 69,13 69,34 L64,42 L71.0,48 Q77.0,54 76.0,64 L75.0,106 L72.0,102 Q69.0,55.07142857142857 71.0,48 Q70.055,86.89285714285715 67.055,86.89285714285715 L68.5,97.5 L68.5,118.71428571428572 L66.5,156.77142857142857 L65.5,194.0 L72.5,198.0 L47.5,198.0 L54.5,194.0 L53.5,156.77142857142857 L51.5,118.71428571428572 L51.5,97.5 L52.945,86.89285714285715 Q49.0,48 49.0,55.07142857142857 L48.0,102 L45.0,106 L44.0,64 Q43.0,54 49.0,48 L56,42 C51,13 51,34 51,34 Z"/></g>
+<g class="muscle-fill" fill="#b8a060" opacity="0.12">
+  <path d="M51,34 C51,13 69,13 69,34 L64,42 L71.0,48 Q77.0,54 76.0,64 L75.0,106 L72.0,102 Q69.0,55.07142857142857 71.0,48 Q70.055,86.89285714285715 67.055,86.89285714285715 L68.5,97.5 L68.5,118.71428571428572 L66.5,156.77142857142857 L65.5,194.0 L72.5,198.0 L47.5,198.0 L54.5,194.0 L53.5,156.77142857142857 L51.5,118.71428571428572 L51.5,97.5 L52.945,86.89285714285715 Q49.0,48 49.0,55.07142857142857 L48.0,102 L45.0,106 L44.0,64 Q43.0,54 49.0,48 L56,42 C51,13 51,34 51,34 Z"/></g>
+<g class="feature-markers" fill="#b8a060">
+  <polygon points="65,8 61,-1 70,4" fill="currentColor" opacity="0.7"/>
+<polygon points="55,8 59,-1 50,4" fill="currentColor" opacity="0.7"/></g>
+<g class="dimension-annotations" font-family="monospace">
+  <line x1="49.0" y1="5" x2="71.0" y2="5" stroke="#4a9eff" stroke-width="0.5" stroke-dasharray="1.5,1"/>
+<text x="60" y="4" text-anchor="middle" fill="#4a9eff" font-size="4" font-family="monospace">sw:22%</text>
+<line x1="51.5" y1="206.0" x2="68.5" y2="206.0" stroke="#ff6a4a" stroke-width="0.5" stroke-dasharray="1.5,1"/>
+<text x="60" y="212.0" text-anchor="middle" fill="#ff6a4a" font-size="4" font-family="monospace">hw:17%</text>
+<line x1="22" y1="48" x2="22" y2="118.71428571428572" stroke="#ffa040" stroke-width="0.4"/>
+<text x="18" y="83" fill="#ffa040" font-size="3.5" font-family="monospace" text-anchor="end" transform="rotate(-90,18,83)">tl:0.33</text>
+<line x1="27" y1="118.71428571428572" x2="27" y2="198.0" stroke="#40e0d0" stroke-width="0.4"/>
+<text x="30" y="158" fill="#40e0d0" font-size="3.5" font-family="monospace" transform="rotate(-90,30,158)">ll:0.37</text></g>
+</svg>
+<div class="sl">male (55kg)</div></div>
+<div class="sf">
+<svg viewBox="0 0 120 240" width="110" height="240" xmlns="http://www.w3.org/2000/svg" data-race="bosmer" data-gender="female">
+<g class="body-outline" fill="none" stroke="#b8a060" stroke-width="1.2" stroke-linejoin="round" stroke-linecap="round">
+  <path d="M51,34 C51,13 69,13 69,34 L64,42 L69.5,48 Q73.9,54 72.9,64 L71.9,106 L70.5,102 Q63.5,54.76056338028169 65.5,48 Q69.65,85.1830985915493 66.65,85.1830985915493 L69.5,95.32394366197182 L69.5,115.6056338028169 L67.5,155.15492957746477 L66.5,194.0 L73.5,198.0 L46.5,198.0 L53.5,194.0 L52.5,155.15492957746477 L50.5,115.6056338028169 L50.5,95.32394366197182 L53.35,85.1830985915493 Q54.5,48 54.5,54.76056338028169 L49.5,102 L48.1,106 L47.1,64 Q46.1,54 50.5,48 L56,42 C51,13 51,34 51,34 Z"/></g>
+<g class="muscle-fill" fill="#b8a060" opacity="0.12">
+  <path d="M51,34 C51,13 69,13 69,34 L64,42 L69.5,48 Q73.9,54 72.9,64 L71.9,106 L70.5,102 Q63.5,54.76056338028169 65.5,48 Q69.65,85.1830985915493 66.65,85.1830985915493 L69.5,95.32394366197182 L69.5,115.6056338028169 L67.5,155.15492957746477 L66.5,194.0 L73.5,198.0 L46.5,198.0 L53.5,194.0 L52.5,155.15492957746477 L50.5,115.6056338028169 L50.5,95.32394366197182 L53.35,85.1830985915493 Q54.5,48 54.5,54.76056338028169 L49.5,102 L48.1,106 L47.1,64 Q46.1,54 50.5,48 L56,42 C51,13 51,34 51,34 Z"/></g>
+<g class="feature-markers" fill="#b8a060">
+  <polygon points="65,8 61,-1 70,4" fill="#b8a060" opacity="0.7"/>
+<polygon points="55,8 59,-1 50,4" fill="#b8a060" opacity="0.7"/></g>
+<g class="dimension-annotations" font-family="monospace">
+  <line x1="50.5" y1="5" x2="69.5" y2="5" stroke="#4a9eff" stroke-width="0.5" stroke-dasharray="1.5,1"/>
+<text x="60" y="4" text-anchor="middle" fill="#4a9eff" font-size="4" font-family="monospace">sw:19%</text>
+<line x1="50.5" y1="206.0" x2="69.5" y2="206.0" stroke="#ff6a4a" stroke-width="0.5" stroke-dasharray="1.5,1"/>
+<text x="60" y="212.0" text-anchor="middle" fill="#ff6a4a" font-size="4" font-family="monospace">hw:19%</text>
+<line x1="22" y1="48" x2="22" y2="115.6056338028169" stroke="#ffa040" stroke-width="0.4"/>
+<text x="18" y="82" fill="#ffa040" font-size="3.5" font-family="monospace" text-anchor="end" transform="rotate(-90,18,82)">tl:0.32</text>
+<line x1="27" y1="115.6056338028169" x2="27" y2="198.0" stroke="#40e0d0" stroke-width="0.4"/>
+<text x="30" y="157" fill="#40e0d0" font-size="3.5" font-family="monospace" transform="rotate(-90,30,157)">ll:0.39</text></g>
+</svg>
+<div class="sl">female (44kg)</div></div>
+</div>
+<div class="fr">
+<span class="ftag">Pointed ears (short)</span>
+<span class="ftag">shortest race</span>
+</div>
+<div class="fr">
+<div class="sg"><div class="slabel">Skin</div><div class="swc">
+<div class="sw" style="background:#b8a060"></div>
+<div class="sw" style="background:#a08848"></div>
+<div class="sw" style="background:#8a7038"></div>
+<div class="sw" style="background:#c8b070"></div>
+<div class="sw" style="background:#d0bc80"></div>
+</div></div>
+<div class="sg"><div class="slabel">Hair</div><div class="swc">
+<div class="sw" style="background:#3a2810"></div>
+<div class="sw" style="background:#5a4020"></div>
+<div class="sw" style="background:#8a6840"></div>
+<div class="sw" style="background:#2a1808"></div>
+<div class="sw" style="background:#c0a040"></div>
+</div></div>
+<div class="sg"><div class="slabel">Eyes</div><div class="swc">
+<div class="sw" style="background:#7a8a30"></div>
+<div class="sw" style="background:#5a7a28"></div>
+<div class="sw" style="background:#8a9a38"></div>
+<div class="sw" style="background:#9aaa50"></div>
+</div></div></div>
+<div class="cv"><div class="vs">CSS Variables -- Male / Female</div>
+<div class="vs" style="margin-top:6px">Proportions</div>
+<div class="vr"><span class="vn">--shoulder-width</span><span class="vv">0.2200 / 0.1900</span></div>
+<div class="vr"><span class="vn">--hip-width</span><span class="vv">0.1700 / 0.1900</span></div>
+<div class="vr"><span class="vn">--torso-length</span><span class="vv">0.3300 / 0.3200</span></div>
+<div class="vr"><span class="vn">--leg-length</span><span class="vv">0.3700 / 0.3900</span></div>
+<div class="vr"><span class="vn">--waist-hip-ratio</span><span class="vv">0.8300 / 0.7000</span></div>
+<div class="vs" style="margin-top:6px">Body</div>
+<div class="vr"><span class="vn">--muscle-mass</span><span class="vv">1.0000 / 0.5000</span></div>
+<div class="vr"><span class="vn">--fat-distribution</span><span class="vv">even / lower_heavy</span></div>
+<div class="vr"><span class="vn">--chest-size</span><span class="vv">89.0 / 75.0</span></div>
+<div class="vr"><span class="vn">--avg-weight</span><span class="vv">55.0 / 44.0</span></div>
+<div class="vs" style="margin-top:8px">M vs F Deltas</div>
+<div class="vr"><span class="vn">--shoulder-width M+</span><span class="vv">0.2200 / 0.1900</span></div>
+<div class="vr"><span class="vn">--hip-width F+</span><span class="vv">0.1700 / 0.1900</span></div>
+<div class="vr"><span class="vn">--waist-hip-ratio M+</span><span class="vv">0.8300 / 0.7000</span></div>
+<div class="vr"><span class="vn">--muscle-mass M+</span><span class="vv">1.0000 / 0.5000</span></div>
+<div class="vr"><span class="vn">--chest-size M+</span><span class="vv">89.0 / 75.0</span></div>
+</div>
+</div>
+<div class="card">
+<div class="chd"><div><div class="ct">ORSIMER</div><div class="cs">Orcs, pariah-folk of Wrothgar.</div></div>
+<div class="cst">188cm avg | heavy build</div></div>
+<div class="sr">
+<div class="sf">
+<svg viewBox="0 0 120 240" width="110" height="240" xmlns="http://www.w3.org/2000/svg" data-race="orsimer" data-gender="male">
+<g class="body-outline" fill="none" stroke="#4a6a30" stroke-width="1.2" stroke-linejoin="round" stroke-linecap="round">
+  <path d="M51,34 C51,13 69,13 69,34 L64,42 L75.0,48 Q85.8,54 84.8,64 L83.8,106 L76.0,102 Q85.0,55.82608695652174 87.0,48 Q72.24,91.04347826086956 69.24,91.04347826086956 L70.5,102.78260869565217 L70.5,126.26086956521739 L68.5,160.69565217391306 L67.5,194.0 L74.5,198.0 L45.5,198.0 L52.5,194.0 L51.5,160.69565217391306 L49.5,126.26086956521739 L49.5,102.78260869565217 L50.76,91.04347826086956 Q33.0,48 33.0,55.82608695652174 L44.0,102 L36.2,106 L35.2,64 Q34.2,54 45.0,48 L56,42 C51,13 51,34 51,34 Z"/></g>
+<g class="muscle-fill" fill="#4a6a30" opacity="0.12">
+  <path d="M51,34 C51,13 69,13 69,34 L64,42 L75.0,48 Q85.8,54 84.8,64 L83.8,106 L76.0,102 Q85.0,55.82608695652174 87.0,48 Q72.24,91.04347826086956 69.24,91.04347826086956 L70.5,102.78260869565217 L70.5,126.26086956521739 L68.5,160.69565217391306 L67.5,194.0 L74.5,198.0 L45.5,198.0 L52.5,194.0 L51.5,160.69565217391306 L49.5,126.26086956521739 L49.5,102.78260869565217 L50.76,91.04347826086956 Q33.0,48 33.0,55.82608695652174 L44.0,102 L36.2,106 L35.2,64 Q34.2,54 45.0,48 L56,42 C51,13 51,34 51,34 Z"/></g>
+<g class="feature-markers" fill="#4a6a30">
+  </g>
+<g class="dimension-annotations" font-family="monospace">
+  <line x1="45.0" y1="5" x2="75.0" y2="5" stroke="#4a9eff" stroke-width="0.5" stroke-dasharray="1.5,1"/>
+<text x="60" y="4" text-anchor="middle" fill="#4a9eff" font-size="4" font-family="monospace">sw:30%</text>
+<line x1="49.5" y1="206.0" x2="70.5" y2="206.0" stroke="#ff6a4a" stroke-width="0.5" stroke-dasharray="1.5,1"/>
+<text x="60" y="212.0" text-anchor="middle" fill="#ff6a4a" font-size="4" font-family="monospace">hw:21%</text>
+<line x1="22" y1="48" x2="22" y2="126.26086956521739" stroke="#ffa040" stroke-width="0.4"/>
+<text x="18" y="87" fill="#ffa040" font-size="3.5" font-family="monospace" text-anchor="end" transform="rotate(-90,18,87)">tl:0.36</text>
+<line x1="27" y1="126.26086956521739" x2="27" y2="198.0" stroke="#40e0d0" stroke-width="0.4"/>
+<text x="30" y="162" fill="#40e0d0" font-size="3.5" font-family="monospace" transform="rotate(-90,30,162)">ll:0.33</text></g>
+</svg>
+<div class="sl">male (112kg)</div></div>
+<div class="sf">
+<svg viewBox="0 0 120 240" width="110" height="240" xmlns="http://www.w3.org/2000/svg" data-race="orsimer" data-gender="female">
+<g class="body-outline" fill="none" stroke="#4a6a30" stroke-width="1.2" stroke-linejoin="round" stroke-linecap="round">
+  <path d="M51,34 C51,13 69,13 69,34 L64,42 L72.5,48 Q80.9,54 79.9,64 L78.9,106 L73.5,102 Q76.5,55.5 78.5,48 Q72.5,89.25 69.5,89.25 L72.5,100.5 L72.5,123.0 L70.5,159.0 L69.5,194.0 L76.5,198.0 L43.5,198.0 L50.5,194.0 L49.5,159.0 L47.5,123.0 L47.5,100.5 L50.5,89.25 Q41.5,48 41.5,55.5 L46.5,102 L41.1,106 L40.1,64 Q39.1,54 47.5,48 L56,42 C51,13 51,34 51,34 Z"/></g>
+<g class="muscle-fill" fill="#4a6a30" opacity="0.12">
+  <path d="M51,34 C51,13 69,13 69,34 L64,42 L72.5,48 Q80.9,54 79.9,64 L78.9,106 L73.5,102 Q76.5,55.5 78.5,48 Q72.5,89.25 69.5,89.25 L72.5,100.5 L72.5,123.0 L70.5,159.0 L69.5,194.0 L76.5,198.0 L43.5,198.0 L50.5,194.0 L49.5,159.0 L47.5,123.0 L47.5,100.5 L50.5,89.25 Q41.5,48 41.5,55.5 L46.5,102 L41.1,106 L40.1,64 Q39.1,54 47.5,48 L56,42 C51,13 51,34 51,34 Z"/></g>
+<g class="feature-markers" fill="#4a6a30">
+  </g>
+<g class="dimension-annotations" font-family="monospace">
+  <line x1="47.5" y1="5" x2="72.5" y2="5" stroke="#4a9eff" stroke-width="0.5" stroke-dasharray="1.5,1"/>
+<text x="60" y="4" text-anchor="middle" fill="#4a9eff" font-size="4" font-family="monospace">sw:25%</text>
+<line x1="47.5" y1="206.0" x2="72.5" y2="206.0" stroke="#ff6a4a" stroke-width="0.5" stroke-dasharray="1.5,1"/>
+<text x="60" y="212.0" text-anchor="middle" fill="#ff6a4a" font-size="4" font-family="monospace">hw:25%</text>
+<line x1="22" y1="48" x2="22" y2="123.0" stroke="#ffa040" stroke-width="0.4"/>
+<text x="18" y="86" fill="#ffa040" font-size="3.5" font-family="monospace" text-anchor="end" transform="rotate(-90,18,86)">tl:0.35</text>
+<line x1="27" y1="123.0" x2="27" y2="198.0" stroke="#40e0d0" stroke-width="0.4"/>
+<text x="30" y="160" fill="#40e0d0" font-size="3.5" font-family="monospace" transform="rotate(-90,30,160)">ll:0.35</text></g>
+</svg>
+<div class="sl">female (85kg)</div></div>
+</div>
+<div class="fr">
+<span class="ftag">Tusks</span>
+<span class="ftag">heavy brow</span>
+<span class="ftag">thick claws</span>
+</div>
+<div class="fr">
+<div class="sg"><div class="slabel">Skin</div><div class="swc">
+<div class="sw" style="background:#4a6a30"></div>
+<div class="sw" style="background:#3a5a20"></div>
+<div class="sw" style="background:#5a7a38"></div>
+<div class="sw" style="background:#6a8040"></div>
+<div class="sw" style="background:#2a4818"></div>
+</div></div>
+<div class="sg"><div class="slabel">Hair</div><div class="swc">
+<div class="sw" style="background:#1a1a1a"></div>
+<div class="sw" style="background:#2a1a08"></div>
+<div class="sw" style="background:#0a0a0a"></div>
+<div class="sw" style="background:#3a2a1a"></div>
+</div></div>
+<div class="sg"><div class="slabel">Eyes</div><div class="swc">
+<div class="sw" style="background:#c0a020"></div>
+<div class="sw" style="background:#d0b030"></div>
+<div class="sw" style="background:#a08010"></div>
+<div class="sw" style="background:#b89020"></div>
+</div></div></div>
+<div class="cv"><div class="vs">CSS Variables -- Male / Female</div>
+<div class="vs" style="margin-top:6px">Proportions</div>
+<div class="vr"><span class="vn">--shoulder-width</span><span class="vv">0.3000 / 0.2500</span></div>
+<div class="vr"><span class="vn">--hip-width</span><span class="vv">0.2100 / 0.2500</span></div>
+<div class="vr"><span class="vn">--torso-length</span><span class="vv">0.3600 / 0.3500</span></div>
+<div class="vr"><span class="vn">--leg-length</span><span class="vv">0.3300 / 0.3500</span></div>
+<div class="vr"><span class="vn">--waist-hip-ratio</span><span class="vv">0.8800 / 0.7600</span></div>
+<div class="vs" style="margin-top:6px">Body</div>
+<div class="vr"><span class="vn">--muscle-mass</span><span class="vv">2.0000 / 1.5000</span></div>
+<div class="vr"><span class="vn">--fat-distribution</span><span class="vv">upper_heavy / hips_thighs</span></div>
+<div class="vr"><span class="vn">--chest-size</span><span class="vv">130.0 / 107.0</span></div>
+<div class="vr"><span class="vn">--avg-weight</span><span class="vv">112.0 / 85.0</span></div>
+<div class="vs" style="margin-top:8px">M vs F Deltas</div>
+<div class="vr"><span class="vn">--shoulder-width M+</span><span class="vv">0.3000 / 0.2500</span></div>
+<div class="vr"><span class="vn">--hip-width F+</span><span class="vv">0.2100 / 0.2500</span></div>
+<div class="vr"><span class="vn">--waist-hip-ratio M+</span><span class="vv">0.8800 / 0.7600</span></div>
+<div class="vr"><span class="vn">--muscle-mass M+</span><span class="vv">2.0000 / 1.5000</span></div>
+<div class="vr"><span class="vn">--chest-size M+</span><span class="vv">130.0 / 107.0</span></div>
+</div>
+</div>
+<div class="card">
+<div class="chd"><div><div class="ct">KHAJIIT</div><div class="cs">Cat-folk of Elsweyr, lithe and cunning.</div></div>
+<div class="cst">168cm avg | athletic build | CAT physiology</div></div>
+<div class="sr">
+<div class="sf">
+<svg viewBox="0 0 120 240" width="110" height="240" xmlns="http://www.w3.org/2000/svg" data-race="khajiit" data-gender="male">
+<g class="body-outline" fill="none" stroke="#c8a878" stroke-width="1.2" stroke-linejoin="round" stroke-linecap="round">
+  <path d="M53,28 C52,9 68,9 67,28 L63,36 L81.25,42 Q89.75,47 88.75,55 L87.75,98 L82.25,95 Q87.65,47.48571428571429 89.65,42 Q70.64,79.71428571428572 68.64,79.71428571428572 L68.0,90.0 L68.0,110.57142857142858 L66.0,139.07142857142858 L60.0,157.39285714285717 L58.0,171.34285714285716 L62.0,177.34285714285716 L71.0,177.34285714285716 L49.0,177.34285714285716 L68.0,177.34285714285716 L60.0,171.34285714285716 L62.0,157.39285714285717 L54.0,139.07142857142858 L52.0,110.57142857142858 L52.0,90.0 L51.36,79.71428571428572 Q30.349999999999994,42 30.349999999999994,47.48571428571429 L37.75,95 L32.25,98 L31.25,55 Q30.25,47 38.75,42 L57,36 C52,9 53,28 53,28 Z"/></g>
+<g class="muscle-fill" fill="#c8a878" opacity="0.12">
+  <path d="M53,28 C52,9 68,9 67,28 L63,36 L81.25,42 Q89.75,47 88.75,55 L87.75,98 L82.25,95 Q87.65,47.48571428571429 89.65,42 Q70.64,79.71428571428572 68.64,79.71428571428572 L68.0,90.0 L68.0,110.57142857142858 L66.0,139.07142857142858 L60.0,157.39285714285717 L58.0,171.34285714285716 L62.0,177.34285714285716 L71.0,177.34285714285716 L49.0,177.34285714285716 L68.0,177.34285714285716 L60.0,171.34285714285716 L62.0,157.39285714285717 L54.0,139.07142857142858 L52.0,110.57142857142858 L52.0,90.0 L51.36,79.71428571428572 Q30.349999999999994,42 30.349999999999994,47.48571428571429 L37.75,95 L32.25,98 L31.25,55 Q30.25,47 38.75,42 L57,36 C52,9 53,28 53,28 Z"/></g>
+<g class="feature-markers" fill="#c8a878">
+  <polygon points="57,7 53,-2 62,3" fill="#c0a070" opacity="0.8"/>
+<polygon points="63,7 67,-2 58,3" fill="#c0a070" opacity="0.8"/>
+<path d="M45,150 C35,158 30,148 33,138 C35,132 40,130 45,133" fill="none" stroke="#c8a878" stroke-width="1.8" stroke-linecap="round"/>
+<text x="18" y="145" fill="#ffd700" font-size="3.8" font-family="sans-serif">tail</text>
+<circle cx="76" cy="178" r="2" fill="#ffd700" stroke="none"/>
+<text x="79" y="180" fill="#ffd700" font-size="3.5" font-family="sans-serif">dig-knee</text></g>
+<g class="dimension-annotations" font-family="monospace">
+  <line x1="47.5" y1="5" x2="72.5" y2="5" stroke="#4a9eff" stroke-width="0.5" stroke-dasharray="1.5,1"/>
+<text x="60" y="4" text-anchor="middle" fill="#4a9eff" font-size="4" font-family="monospace">sw:25%</text>
+<line x1="52.0" y1="206.00000000000003" x2="68.0" y2="206.00000000000003" stroke="#ff6a4a" stroke-width="0.5" stroke-dasharray="1.5,1"/>
+<text x="60" y="212.00000000000003" text-anchor="middle" fill="#ff6a4a" font-size="4" font-family="monospace">hw:16%</text>
+<line x1="22" y1="48" x2="22" y2="116.57142857142858" stroke="#ffa040" stroke-width="0.4"/>
+<text x="18" y="82" fill="#ffa040" font-size="3.5" font-family="monospace" text-anchor="end" transform="rotate(-90,18,82)">tl:0.32</text>
+<line x1="27" y1="116.57142857142858" x2="27" y2="198.00000000000003" stroke="#40e0d0" stroke-width="0.4"/>
+<text x="30" y="157" fill="#40e0d0" font-size="3.5" font-family="monospace" transform="rotate(-90,30,157)">ll:0.38</text></g>
+</svg>
+<div class="sl">male (70kg)</div></div>
+<div class="sf">
+<svg viewBox="0 0 120 240" width="110" height="240" xmlns="http://www.w3.org/2000/svg" data-race="khajiit" data-gender="female">
+<g class="body-outline" fill="none" stroke="#c8a878" stroke-width="1.2" stroke-linejoin="round" stroke-linecap="round">
+  <path d="M53,28 C52,9 68,9 67,28 L63,36 L76.5,42 Q84.0,47 83.0,55 L82.0,98 L77.5,95 Q80.5,47.23943661971831 82.5,42 Q70.075,78.02112676056339 68.075,78.02112676056339 L69.5,87.84507042253522 L69.5,107.49295774647888 L67.5,137.07042253521126 L61.5,156.0845070422535 L59.5,170.7887323943662 L63.5,176.7887323943662 L72.5,176.7887323943662 L47.5,176.7887323943662 L66.5,176.7887323943662 L58.5,170.7887323943662 L60.5,156.0845070422535 L52.5,137.07042253521126 L50.5,107.49295774647888 L50.5,87.84507042253522 L51.925,78.02112676056339 Q37.5,42 37.5,47.23943661971831 L42.5,95 L38.0,98 L37.0,55 Q36.0,47 43.5,42 L57,36 C52,9 53,28 53,28 Z"/></g>
+<g class="muscle-fill" fill="#c8a878" opacity="0.12">
+  <path d="M53,28 C52,9 68,9 67,28 L63,36 L76.5,42 Q84.0,47 83.0,55 L82.0,98 L77.5,95 Q80.5,47.23943661971831 82.5,42 Q70.075,78.02112676056339 68.075,78.02112676056339 L69.5,87.84507042253522 L69.5,107.49295774647888 L67.5,137.07042253521126 L61.5,156.0845070422535 L59.5,170.7887323943662 L63.5,176.7887323943662 L72.5,176.7887323943662 L47.5,176.7887323943662 L66.5,176.7887323943662 L58.5,170.7887323943662 L60.5,156.0845070422535 L52.5,137.07042253521126 L50.5,107.49295774647888 L50.5,87.84507042253522 L51.925,78.02112676056339 Q37.5,42 37.5,47.23943661971831 L42.5,95 L38.0,98 L37.0,55 Q36.0,47 43.5,42 L57,36 C52,9 53,28 53,28 Z"/></g>
+<g class="feature-markers" fill="#c8a878">
+  <polygon points="57,7 53,-2 62,3" fill="#c0a070" opacity="0.8"/>
+<polygon points="63,7 67,-2 58,3" fill="#c0a070" opacity="0.8"/>
+<path d="M45,150 C35,158 30,148 33,138 C35,132 40,130 45,133" fill="none" stroke="#c8a878" stroke-width="1.8" stroke-linecap="round"/>
+<text x="18" y="145" fill="#ffd700" font-size="3.8" font-family="sans-serif">tail</text>
+<circle cx="76" cy="178" r="2" fill="#ffd700" stroke="none"/>
+<text x="79" y="180" fill="#ffd700" font-size="3.5" font-family="sans-serif">dig-knee</text></g>
+<g class="dimension-annotations" font-family="monospace">
+  <line x1="49.0" y1="5" x2="71.0" y2="5" stroke="#4a9eff" stroke-width="0.5" stroke-dasharray="1.5,1"/>
+<text x="60" y="4" text-anchor="middle" fill="#4a9eff" font-size="4" font-family="monospace">sw:22%</text>
+<line x1="50.5" y1="206.0" x2="69.5" y2="206.0" stroke="#ff6a4a" stroke-width="0.5" stroke-dasharray="1.5,1"/>
+<text x="60" y="212.0" text-anchor="middle" fill="#ff6a4a" font-size="4" font-family="monospace">hw:19%</text>
+<line x1="22" y1="48" x2="22" y2="113.49295774647888" stroke="#ffa040" stroke-width="0.4"/>
+<text x="18" y="81" fill="#ffa040" font-size="3.5" font-family="monospace" text-anchor="end" transform="rotate(-90,18,81)">tl:0.31</text>
+<line x1="27" y1="113.49295774647888" x2="27" y2="198.0" stroke="#40e0d0" stroke-width="0.4"/>
+<text x="30" y="156" fill="#40e0d0" font-size="3.5" font-family="monospace" transform="rotate(-90,30,156)">ll:0.4</text></g>
+</svg>
+<div class="sl">female (58kg)</div></div>
+</div>
+<div class="fr">
+<span class="ftag">Cat ears</span>
+<span class="ftag">tail</span>
+<span class="ftag">digitigrade legs</span>
+<span class="ftag">muzzle</span>
+<span class="ftag">fur</span>
+</div>
+<div class="fr">
+<div class="sg"><div class="slabel">Skin</div><div class="swc">
+<div class="sw" style="background:#c8a878"></div>
+<div class="sw" style="background:#b89868"></div>
+<div class="sw" style="background:#d0b888"></div>
+<div class="sw" style="background:#a07858"></div>
+<div class="sw" style="background:#886040"></div>
+</div></div>
+<div class="sg"><div class="slabel">Fur</div><div class="swc">
+<div class="sw" style="background:#c8a878"></div>
+<div class="sw" style="background:#b89868"></div>
+<div class="sw" style="background:#d0b888"></div>
+<div class="sw" style="background:#a07858"></div>
+<div class="sw" style="background:#886040"></div>
+</div></div>
+<div class="sg"><div class="slabel">Eyes</div><div class="swc">
+<div class="sw" style="background:#c8a020"></div>
+<div class="sw" style="background:#e0c030"></div>
+<div class="sw" style="background:#50b050"></div>
+<div class="sw" style="background:#2090c8"></div>
+<div class="sw" style="background:#c83030"></div>
+</div></div></div>
+<div class="cv"><div class="vs">CSS Variables -- Male / Female</div>
+<div class="vs" style="margin-top:6px">Proportions</div>
+<div class="vr"><span class="vn">--shoulder-width</span><span class="vv">0.2500 / 0.2200</span></div>
+<div class="vr"><span class="vn">--hip-width</span><span class="vv">0.1600 / 0.1900</span></div>
+<div class="vr"><span class="vn">--torso-length</span><span class="vv">0.3200 / 0.3100</span></div>
+<div class="vr"><span class="vn">--leg-length</span><span class="vv">0.3800 / 0.4000</span></div>
+<div class="vr"><span class="vn">--waist-hip-ratio</span><span class="vv">0.8000 / 0.6800</span></div>
+<div class="vs" style="margin-top:6px">Body</div>
+<div class="vr"><span class="vn">--muscle-mass</span><span class="vv">1.5000 / 1.0000</span></div>
+<div class="vr"><span class="vn">--fat-distribution</span><span class="vv">even / even</span></div>
+<div class="vr"><span class="vn">--chest-size</span><span class="vv">96.0 / 81.0</span></div>
+<div class="vr"><span class="vn">--avg-weight</span><span class="vv">70.0 / 58.0</span></div>
+<div class="vs" style="margin-top:8px">M vs F Deltas</div>
+<div class="vr"><span class="vn">--shoulder-width M+</span><span class="vv">0.2500 / 0.2200</span></div>
+<div class="vr"><span class="vn">--hip-width F+</span><span class="vv">0.1600 / 0.1900</span></div>
+<div class="vr"><span class="vn">--waist-hip-ratio M+</span><span class="vv">0.8000 / 0.6800</span></div>
+<div class="vr"><span class="vn">--muscle-mass M+</span><span class="vv">1.5000 / 1.0000</span></div>
+<div class="vr"><span class="vn">--chest-size M+</span><span class="vv">96.0 / 81.0</span></div>
+</div>
+</div>
+<div class="card">
+<div class="chd"><div><div class="ct">ARGONIAN</div><div class="cs">Lizard-folk of Black Marsh, children of Hist.</div></div>
+<div class="cst">172cm avg | athletic build | LIZARD physiology</div></div>
+<div class="sr">
+<div class="sf">
+<svg viewBox="0 0 120 240" width="110" height="240" xmlns="http://www.w3.org/2000/svg" data-race="argonian" data-gender="male">
+<g class="body-outline" fill="none" stroke="#3a6830" stroke-width="1.2" stroke-linejoin="round" stroke-linecap="round">
+  <path d="M52,28 Q51,6 60,6 Q68,6 74,28 Q75,32 68,28 L64,36 L72.0,42 Q79.4,47 78.4,56 L77.4,98 L73.0,95 Q76.0,47.82857142857143 78.0,42 Q68.97,82.07142857142858 66.97,82.07142857142858 L68.5,93.0 L68.5,114.85714285714286 L66.5,151.8857142857143 L65.5,188.0 L73.5,192.0 L46.5,192.0 L54.5,188.0 L53.5,151.8857142857143 L51.5,114.85714285714286 L51.5,93.0 L53.03,82.07142857142858 Q42.0,42 42.0,47.82857142857143 L47.0,95 L42.6,98 L41.6,56 Q40.6,47 48.0,42 L56,36 Q51,4 52,28 Z"/></g>
+<g class="muscle-fill" fill="#3a6830" opacity="0.12">
+  <path d="M52,28 Q51,6 60,6 Q68,6 74,28 Q75,32 68,28 L64,36 L72.0,42 Q79.4,47 78.4,56 L77.4,98 L73.0,95 Q76.0,47.82857142857143 78.0,42 Q68.97,82.07142857142858 66.97,82.07142857142858 L68.5,93.0 L68.5,114.85714285714286 L66.5,151.8857142857143 L65.5,188.0 L73.5,192.0 L46.5,192.0 L54.5,188.0 L53.5,151.8857142857143 L51.5,114.85714285714286 L51.5,93.0 L53.03,82.07142857142858 Q42.0,42 42.0,47.82857142857143 L47.0,95 L42.6,98 L41.6,56 Q40.6,47 48.0,42 L56,36 Q51,4 52,28 Z"/></g>
+<g class="feature-markers" fill="#3a6830">
+  <polygon points="66,6 78,10 72,15" fill="#5a7838" opacity="0.6"/>
+<text x="79" y="14" fill="#70ff70" font-size="3.5" font-family="sans-serif">snout</text>
+<circle cx="55" cy="5" r="2" fill="#6aaa50"/>
+<circle cx="65" cy="3" r="2" fill="#6aaa50"/>
+<circle cx="72" cy="5" r="2" fill="#6aaa50"/>
+<circle cx="47" cy="8" r="1.5" fill="#6aaa50"/>
+<text x="75" y="9" fill="#70ff70" font-size="3.5" font-family="sans-serif">frills</text>
+<path d="M45,160 C33,166 26,156 28,146 C30,138 36,134 43,138" fill="none" stroke="#4a8a50" stroke-width="2.2" stroke-linecap="round"/>
+<text x="14" y="153" fill="#70ff70" font-size="3.5" font-family="sans-serif">tail</text></g>
+<g class="dimension-annotations" font-family="monospace">
+  <line x1="48.0" y1="5" x2="72.0" y2="5" stroke="#4a9eff" stroke-width="0.5" stroke-dasharray="1.5,1"/>
+<text x="60" y="4" text-anchor="middle" fill="#4a9eff" font-size="4" font-family="monospace">sw:24%</text>
+<line x1="51.5" y1="206.0" x2="68.5" y2="206.0" stroke="#ff6a4a" stroke-width="0.5" stroke-dasharray="1.5,1"/>
+<text x="60" y="212.0" text-anchor="middle" fill="#ff6a4a" font-size="4" font-family="monospace">hw:17%</text>
+<line x1="22" y1="48" x2="22" y2="120.85714285714286" stroke="#ffa040" stroke-width="0.4"/>
+<text x="18" y="84" fill="#ffa040" font-size="3.5" font-family="monospace" text-anchor="end" transform="rotate(-90,18,84)">tl:0.34</text>
+<line x1="27" y1="120.85714285714286" x2="27" y2="198.0" stroke="#40e0d0" stroke-width="0.4"/>
+<text x="30" y="159" fill="#40e0d0" font-size="3.5" font-family="monospace" transform="rotate(-90,30,159)">ll:0.36</text></g>
+</svg>
+<div class="sl">male (75kg)</div></div>
+<div class="sf">
+<svg viewBox="0 0 120 240" width="110" height="240" xmlns="http://www.w3.org/2000/svg" data-race="argonian" data-gender="female">
+<g class="body-outline" fill="none" stroke="#3a6830" stroke-width="1.2" stroke-linejoin="round" stroke-linecap="round">
+  <path d="M52,28 Q51,6 60,6 Q68,6 74,28 Q75,32 68,28 L64,36 L70.5,42 Q75.5,47 74.5,56 L73.5,98 L71.5,95 Q68.5,47.5774647887324 70.5,42 Q69.4,80.34507042253523 67.4,80.34507042253523 L70.0,90.80281690140845 L70.0,111.71830985915494 L68.0,150.25352112676057 L67.0,188.00000000000003 L75.0,192.00000000000003 L45.0,192.00000000000003 L53.0,188.00000000000003 L52.0,150.25352112676057 L50.0,111.71830985915494 L50.0,90.80281690140845 L52.6,80.34507042253523 Q49.5,42 49.5,47.5774647887324 L48.5,95 L46.5,98 L45.5,56 Q44.5,47 49.5,42 L56,36 Q51,4 52,28 Z"/></g>
+<g class="muscle-fill" fill="#3a6830" opacity="0.12">
+  <path d="M52,28 Q51,6 60,6 Q68,6 74,28 Q75,32 68,28 L64,36 L70.5,42 Q75.5,47 74.5,56 L73.5,98 L71.5,95 Q68.5,47.5774647887324 70.5,42 Q69.4,80.34507042253523 67.4,80.34507042253523 L70.0,90.80281690140845 L70.0,111.71830985915494 L68.0,150.25352112676057 L67.0,188.00000000000003 L75.0,192.00000000000003 L45.0,192.00000000000003 L53.0,188.00000000000003 L52.0,150.25352112676057 L50.0,111.71830985915494 L50.0,90.80281690140845 L52.6,80.34507042253523 Q49.5,42 49.5,47.5774647887324 L48.5,95 L46.5,98 L45.5,56 Q44.5,47 49.5,42 L56,36 Q51,4 52,28 Z"/></g>
+<g class="feature-markers" fill="#3a6830">
+  <polygon points="66,6 78,10 72,15" fill="#5a7838" opacity="0.6"/>
+<text x="79" y="14" fill="#70ff70" font-size="3.5" font-family="sans-serif">snout</text>
+<circle cx="55" cy="5" r="2" fill="#6aaa50"/>
+<circle cx="65" cy="3" r="2" fill="#6aaa50"/>
+<circle cx="72" cy="5" r="2" fill="#6aaa50"/>
+<circle cx="47" cy="8" r="1.5" fill="#6aaa50"/>
+<text x="75" y="9" fill="#70ff70" font-size="3.5" font-family="sans-serif">frills</text>
+<path d="M45,160 C33,166 26,156 28,146 C30,138 36,134 43,138" fill="none" stroke="#4a8a50" stroke-width="2.2" stroke-linecap="round"/>
+<text x="14" y="153" fill="#70ff70" font-size="3.5" font-family="sans-serif">tail</text></g>
+<g class="dimension-annotations" font-family="monospace">
+  <line x1="49.5" y1="5" x2="70.5" y2="5" stroke="#4a9eff" stroke-width="0.5" stroke-dasharray="1.5,1"/>
+<text x="60" y="4" text-anchor="middle" fill="#4a9eff" font-size="4" font-family="monospace">sw:21%</text>
+<line x1="50.0" y1="206.00000000000003" x2="70.0" y2="206.00000000000003" stroke="#ff6a4a" stroke-width="0.5" stroke-dasharray="1.5,1"/>
+<text x="60" y="212.00000000000003" text-anchor="middle" fill="#ff6a4a" font-size="4" font-family="monospace">hw:20%</text>
+<line x1="22" y1="48" x2="22" y2="117.71830985915494" stroke="#ffa040" stroke-width="0.4"/>
+<text x="18" y="83" fill="#ffa040" font-size="3.5" font-family="monospace" text-anchor="end" transform="rotate(-90,18,83)">tl:0.33</text>
+<line x1="27" y1="117.71830985915494" x2="27" y2="198.00000000000003" stroke="#40e0d0" stroke-width="0.4"/>
+<text x="30" y="158" fill="#40e0d0" font-size="3.5" font-family="monospace" transform="rotate(-90,30,158)">ll:0.38</text></g>
+</svg>
+<div class="sl">female (62kg)</div></div>
+</div>
+<div class="fr">
+<span class="ftag">Thick tail</span>
+<span class="ftag">head frills</span>
+<span class="ftag">snout</span>
+<span class="ftag">heavy claws</span>
+</div>
+<div class="fr">
+<div class="sg"><div class="slabel">Skin</div><div class="swc">
+<div class="sw" style="background:#3a6830"></div>
+<div class="sw" style="background:#4a7838"></div>
+<div class="sw" style="background:#5a5820"></div>
+<div class="sw" style="background:#2a5828"></div>
+<div class="sw" style="background:#486840"></div>
+</div></div>
+<div class="sg"><div class="slabel">Scales</div><div class="swc">
+<div class="sw" style="background:#3a6830"></div>
+<div class="sw" style="background:#4a7838"></div>
+<div class="sw" style="background:#5a5820"></div>
+<div class="sw" style="background:#2a5828"></div>
+<div class="sw" style="background:#486840"></div>
+</div></div>
+<div class="sg"><div class="slabel">Eyes</div><div class="swc">
+<div class="sw" style="background:#e06020"></div>
+<div class="sw" style="background:#c85018"></div>
+<div class="sw" style="background:#d07030"></div>
+<div class="sw" style="background:#f08040"></div>
+</div></div></div>
+<div class="cv"><div class="vs">CSS Variables -- Male / Female</div>
+<div class="vs" style="margin-top:6px">Proportions</div>
+<div class="vr"><span class="vn">--shoulder-width</span><span class="vv">0.2400 / 0.2100</span></div>
+<div class="vr"><span class="vn">--hip-width</span><span class="vv">0.1700 / 0.2000</span></div>
+<div class="vr"><span class="vn">--torso-length</span><span class="vv">0.3400 / 0.3300</span></div>
+<div class="vr"><span class="vn">--leg-length</span><span class="vv">0.3600 / 0.3800</span></div>
+<div class="vr"><span class="vn">--waist-hip-ratio</span><span class="vv">0.8200 / 0.7400</span></div>
+<div class="vs" style="margin-top:6px">Body</div>
+<div class="vr"><span class="vn">--muscle-mass</span><span class="vv">1.5000 / 1.0000</span></div>
+<div class="vr"><span class="vn">--fat-distribution</span><span class="vv">even / lower_heavy</span></div>
+<div class="vr"><span class="vn">--chest-size</span><span class="vv">100.0 / 83.0</span></div>
+<div class="vr"><span class="vn">--avg-weight</span><span class="vv">75.0 / 62.0</span></div>
+<div class="vs" style="margin-top:8px">M vs F Deltas</div>
+<div class="vr"><span class="vn">--shoulder-width M+</span><span class="vv">0.2400 / 0.2100</span></div>
+<div class="vr"><span class="vn">--hip-width F+</span><span class="vv">0.1700 / 0.2000</span></div>
+<div class="vr"><span class="vn">--waist-hip-ratio M+</span><span class="vv">0.8200 / 0.7400</span></div>
+<div class="vr"><span class="vn">--muscle-mass M+</span><span class="vv">1.5000 / 1.0000</span></div>
+<div class="vr"><span class="vn">--chest-size M+</span><span class="vv">100.0 / 83.0</span></div>
+</div>
+</div>
+</div>
+<p class="sub" style="margin-top:16px">Generated from Ga-mg/src/data/anatomy.ts and races.ts -- for sprite development reference</p>
+</body></html>

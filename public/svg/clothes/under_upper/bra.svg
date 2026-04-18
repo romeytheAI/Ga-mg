@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 150 250">
+  <defs>
+    <linearGradient id="braGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#d4a4b4;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#c494a4;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+
+  <!-- Left cup -->
+  <path d="M 38,70 Q 35,95 52,100 Q 70,95 72,70 Q 55,65 38,70 Z" fill="url(#braGrad)"/>
+
+  <!-- Right cup -->
+  <path d="M 78,70 Q 80,95 98,100 Q 115,95 112,70 Q 95,65 78,70 Z" fill="url(#braGrad)"/>
+
+  <!-- Center -->
+  <rect x="70" y="75" width="10" height="15" fill="#b48494"/>
+
+  <!-- Straps -->
+  <line x1="45" y1="70" x2="40" y2="45" stroke="#c494a4" stroke-width="3"/>
+  <line x1="105" y1="70" x2="110" y2="45" stroke="#c494a4" stroke-width="3"/>
+</svg>

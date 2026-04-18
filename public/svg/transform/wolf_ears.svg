@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 150 250">
+  <defs>
+    <linearGradient id="wolfEarGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#5a5a5a;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#3a3a3a;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="wolfEarInner" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#c8b8a8;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#b8a898;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+
+  <!-- Left ear -->
+  <path d="M 48,-22 L 38,-50 L 65,-38 Z" fill="url(#wolfEarGrad)"/>
+  <path d="M 50,-26 L 44,-44 L 60,-36 Z" fill="url(#wolfEarInner)"/>
+
+  <!-- Right ear -->
+  <path d="M 102,-22 L 112,-50 L 85,-38 Z" fill="url(#wolfEarGrad)"/>
+  <path d="M 100,-26 L 106,-44 L 90,-36 Z" fill="url(#wolfEarInner)"/>
+
+  <!-- Ear tufts -->
+  <circle cx="40" cy="-48" r="3" fill="#4a4a4a"/>
+  <circle cx="110" cy="-48" r="3" fill="#4a4a4a"/>
+</svg>

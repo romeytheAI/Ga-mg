@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 150 250">
+  <defs>
+    <linearGradient id="catTailGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#4a3728;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#3a2718;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+
+  <!-- Tail -->
+  <path d="M 75,140 Q 95,160 100,190 Q 105,220 90,240" 
+        fill="none" stroke="url(#catTailGrad)" stroke-width="10" stroke-linecap="round"/>
+
+  <!-- Tail stripes -->
+  <line x1="85" y1="165" x2="95" y2="168" stroke="#2a1708" stroke-width="3" opacity="0.5"/>
+  <line x1="92" y1="185" x2="102" y2="188" stroke="#2a1708" stroke-width="3" opacity="0.5"/>
+  <line x1="95" y1="205" x2="100" y2="208" stroke="#2a1708" stroke-width="3" opacity="0.5"/>
+</svg>

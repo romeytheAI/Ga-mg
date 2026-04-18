@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 150 250">
+  <defs>
+    <linearGradient id="demonWingGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#4a2a4a;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#2a0a2a;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="demonWingMembrane" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#6a3a5a;stop-opacity:0.9" />
+      <stop offset="100%" style="stop-color:#4a1a3a;stop-opacity:0.9" />
+    </linearGradient>
+  </defs>
+
+  <!-- Left wing -->
+  <path d="M 30,60 Q 5,40 0,10 Q 5,30 20,45 Q 10,20 15,0 Q 25,25 35,50 Z" fill="url(#demonWingGrad)"/>
+  <path d="M 30,60 Q 10,45 5,20 Q 15,35 25,50 Q 18,30 22,15 Q 28,35 35,55" fill="url(#demonWingMembrane)"/>
+
+  <!-- Right wing -->
+  <path d="M 120,60 Q 145,40 150,10 Q 145,30 130,45 Q 140,20 135,0 Q 125,25 115,50 Z" fill="url(#demonWingGrad)"/>
+  <path d="M 120,60 Q 140,45 145,20 Q 135,35 125,50 Q 132,30 128,15 Q 122,35 115,55" fill="url(#demonWingMembrane)"/>
+</svg>

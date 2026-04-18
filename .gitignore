@@ -1,0 +1,18 @@
+node_modules/
+build/
+dist/
+coverage/
+.DS_Store
+*.log
+.env*
+!.env.example
+-e 
+# Environment files
+*.env
+*.env.*
+
+# Let ga-mg-python pass through
+!ga-mg-python/**
+
+# AutoClaw KDream data
+.autoclaw/

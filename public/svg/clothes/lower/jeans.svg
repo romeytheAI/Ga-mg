@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 150 250">
+  <defs>
+    <linearGradient id="jeansGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#4a5a8a;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#3a4a7a;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+
+  <!-- Left leg -->
+  <path d="M 38,135 L 35,200 L 42,245 L 58,245 L 62,200 L 65,140 Z" fill="url(#jeansGrad)"/>
+
+  <!-- Right leg -->
+  <path d="M 85,140 L 88,200 L 92,245 L 108,245 L 115,200 L 112,135 Z" fill="url(#jeansGrad)"/>
+
+  <!-- Waist -->
+  <rect x="38" y="130" width="74" height="12" rx="2" fill="#5a6a9a"/>
+
+  <!-- Pockets -->
+  <path d="M 42,140 L 50,155 L 55,140" stroke="#2a3a6a" stroke-width="1" fill="none"/>
+  <path d="M 95,140 L 100,155 L 108,140" stroke="#2a3a6a" stroke-width="1" fill="none"/>
+
+  <!-- Seams -->
+  <line x1="75" y1="135" x2="75" y2="245" stroke="#2a3a6a" stroke-width="1" opacity="0.5"/>
+</svg>

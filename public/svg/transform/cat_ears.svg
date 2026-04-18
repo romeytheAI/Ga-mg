@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 150 250">
+  <defs>
+    <linearGradient id="catEarGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#4a3728;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#3a2718;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="catEarInner" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#e8a8a8;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#d89898;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+
+  <!-- Left ear -->
+  <path d="M 45,-25 L 35,-55 L 60,-40 Z" fill="url(#catEarGrad)"/>
+  <path d="M 48,-30 L 42,-48 L 55,-40 Z" fill="url(#catEarInner)"/>
+
+  <!-- Right ear -->
+  <path d="M 105,-25 L 115,-55 L 90,-40 Z" fill="url(#catEarGrad)"/>
+  <path d="M 102,-30 L 108,-48 L 95,-40 Z" fill="url(#catEarInner)"/>
+</svg>
