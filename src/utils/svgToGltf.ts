@@ -108,55 +108,92 @@ interface RawMesh {
   indices: number[];
 }
 
-function emptyRaw(): RawMesh {
-  return { positions: [], normals: [], uvs: [], indices: [] };
+interface RawMesh {
+  positions: number[];
+  normals: number[];
+  uvs: number[];
+  indices: number[];
 }
 
-/** Merge multiple RawMesh into one, reindexing. */
-function merge(...meshes: RawMesh[]): RawMesh {
-  const r = emptyRaw();
-  for (const m of meshes) {
-    const off = r.positions.length / 3;
-    r.positions.push(...m.positions);
-    r.normals.push(...m.normals);
-    r.uvs.push(...m.uvs);
-    for (const i of m.indices) r.indices.push(i + off);
+class VertexCache {
+  positions: number[] = [];
+  normals: number[] = [];
+  uvs: number[] = [];
+  indices: number[] = [];
+  private map = new Map<string, number>();
+
+  addVertex(px: number, py: number, pz: number, nx: number, ny: number, nz: number, u: number, v: number): number {
+    const key = `${px.toFixed(5)},${py.toFixed(5)},${pz.toFixed(5)},${nx.toFixed(5)},${ny.toFixed(5)},${nz.toFixed(5)},${u.toFixed(5)},${v.toFixed(5)}`;
+    let idx = this.map.get(key);
+    if (idx === undefined) {
+      idx = this.positions.length / 3;
+      this.positions.push(px, py, pz);
+      this.normals.push(nx, ny, nz);
+      this.uvs.push(u, v);
+      this.map.set(key, idx);
+    }
+    return idx;
   }
-  return r;
+
+  addTriangle(a: number, b: number, c: number) {
+    this.indices.push(a, b, c);
+  }
+
+  toRawMesh(): RawMesh {
+    return {
+      positions: this.positions,
+      normals: this.normals,
+      uvs: this.uvs,
+      indices: this.indices,
+    };
+  }
 }
 
 /* ── 3-D primitive: UV sphere (ellipsoid) ────────────────────────────── */
 
 function ellipsoid(
+  cache: VertexCache,
   cx: number, cy: number, cz: number,
   rx: number, ry: number, rz: number,
   rings: number, segs: number,
-): RawMesh {
-  const r = emptyRaw();
+): void {
+  const stride = segs + 1;
+  const grid: number[][] = [];
 
   for (let lat = 0; lat <= rings; lat++) {
     const v = lat / rings;
     const phi = Math.PI * v;                  // 0 → π
     const sp = Math.sin(phi), cp = Math.cos(phi);
+    const row: number[] = [];
     for (let lon = 0; lon <= segs; lon++) {
       const u = lon / segs;
       const theta = 2 * Math.PI * u;          // 0 → 2π
       const st = Math.sin(theta), ct = Math.cos(theta);
       const nx = ct * sp, ny = cp, nz = st * sp;
-      r.positions.push(cx + rx * nx, cy + ry * ny, cz + rz * nz);
-      r.normals.push(...norm([nx / (rx || 1), ny / (ry || 1), nz / (rz || 1)]));
-      r.uvs.push(u, v);
+
+      const ppx = cx + rx * nx;
+      const ppy = cy + ry * ny;
+      const ppz = cz + rz * nz;
+
+      const nVector = norm([nx / (rx || 1), ny / (ry || 1), nz / (rz || 1)]);
+
+      const idx = cache.addVertex(ppx, ppy, ppz, nVector[0], nVector[1], nVector[2], u, v);
+      row.push(idx);
     }
+    grid.push(row);
   }
-  const stride = segs + 1;
+
   for (let lat = 0; lat < rings; lat++) {
     for (let lon = 0; lon < segs; lon++) {
-      const a = lat * stride + lon;
-      const b = a + stride;
-      r.indices.push(a, b, a + 1, a + 1, b, b + 1);
+      const a = grid[lat][lon];
+      const b = grid[lat + 1][lon];
+      const c = grid[lat][lon + 1];
+      const d = grid[lat + 1][lon + 1];
+
+      cache.addTriangle(a, b, c);
+      cache.addTriangle(c, b, d);
     }
   }
-  return r;
 }
 
 /* ── 3-D primitive: profiled tube (multi-ring) ───────────────────────── */
@@ -177,13 +214,12 @@ interface RingDef {
 }
 
 function profiledTube(
+  cache: VertexCache,
   rings: RingDef[],
   segs: number,
   subdiv: number,     // how many interpolated rows between each pair
   caps: 'both' | 'top' | 'bottom' | 'none' = 'both',
-): RawMesh {
-  const r = emptyRaw();
-
+): void {
   // Build interpolated ring list
   const allRings: RingDef[] = [];
   for (let i = 0; i < rings.length - 1; i++) {
@@ -201,6 +237,7 @@ function profiledTube(
   allRings.push(rings[rings.length - 1]);  // last ring
 
   const totalRings = allRings.length;
+  const grid: number[][] = [];
 
   // Generate vertices for each ring
   for (let ri = 0; ri < totalRings; ri++) {
@@ -215,29 +252,39 @@ function profiledTube(
     const dyN = nextR.cy - prevR.cy;
     const drxN = (nextR.rx - prevR.rx) * S;
 
+    const row: number[] = [];
+
     for (let si = 0; si <= segs; si++) {
       const u = si / segs;
       const theta = 2 * Math.PI * u;
       const ca = Math.cos(theta), sa = Math.sin(theta);
 
-      r.positions.push(ring.cx + rxS * ca, ring.cy, rzS * sa);
+      const ppx = ring.cx + rxS * ca;
+      const ppy = ring.cy;
+      const ppz = rzS * sa;
 
       // Normal: outward radial + slope correction
       const nx = ca * (ring.rz || 1);
       const nz = sa * (ring.rx || 1);
       const ny = -drxN * (ring.rz || 1);  // slope tilt
-      r.normals.push(...norm([nx, ny, nz]));
-      r.uvs.push(u, v);
+      const nVector = norm([nx, ny, nz]);
+
+      const idx = cache.addVertex(ppx, ppy, ppz, nVector[0], nVector[1], nVector[2], u, v);
+      row.push(idx);
     }
+    grid.push(row);
   }
 
   // Connect adjacent rings
-  const stride = segs + 1;
   for (let ri = 0; ri < totalRings - 1; ri++) {
     for (let si = 0; si < segs; si++) {
-      const a = ri * stride + si;
-      const b = a + stride;
-      r.indices.push(a, b, a + 1, a + 1, b, b + 1);
+      const a = grid[ri][si];
+      const b = grid[ri + 1][si];
+      const c = grid[ri][si + 1];
+      const d = grid[ri + 1][si + 1];
+
+      cache.addTriangle(a, b, c);
+      cache.addTriangle(c, b, d);
     }
   }
 
@@ -246,26 +293,28 @@ function profiledTube(
     const ring = allRings[ringIdx];
     const rxS = ring.rx * S;
     const rzS = ring.rz * S;
-    const ci = r.positions.length / 3;
-    r.positions.push(ring.cx, ring.cy, 0);
-    r.normals.push(0, nDir, 0);
-    r.uvs.push(0.5, 0.5);
+
+    const centerIdx = cache.addVertex(ring.cx, ring.cy, 0, 0, nDir, 0, 0.5, 0.5);
+
+    const capRow: number[] = [];
     for (let si = 0; si <= segs; si++) {
       const theta = (2 * Math.PI * si) / segs;
-      r.positions.push(ring.cx + rxS * Math.cos(theta), ring.cy, rzS * Math.sin(theta));
-      r.normals.push(0, nDir, 0);
-      r.uvs.push(0.5 + 0.5 * Math.cos(theta), 0.5 + 0.5 * Math.sin(theta));
+      const ppx = ring.cx + rxS * Math.cos(theta);
+      const ppy = ring.cy;
+      const ppz = rzS * Math.sin(theta);
+
+      const idx = cache.addVertex(ppx, ppy, ppz, 0, nDir, 0, 0.5 + 0.5 * Math.cos(theta), 0.5 + 0.5 * Math.sin(theta));
+      capRow.push(idx);
     }
+
     for (let si = 0; si < segs; si++) {
-      if (nDir > 0) r.indices.push(ci, ci + 1 + si, ci + 2 + si);
-      else          r.indices.push(ci, ci + 2 + si, ci + 1 + si);
+      if (nDir > 0) cache.addTriangle(centerIdx, capRow[si], capRow[si + 1]);
+      else          cache.addTriangle(centerIdx, capRow[si + 1], capRow[si]);
     }
   };
 
   if (caps === 'both' || caps === 'top')    addCap(0, 1);
   if (caps === 'both' || caps === 'bottom') addCap(totalRings - 1, -1);
-
-  return r;
 }
 
 /* ── body-part mesh builders ─────────────────────────────────────────── */
@@ -301,8 +350,11 @@ function buildHeadMesh(
   const [cx, cy] = svgToGl(s.cx, s.headCY);
   const depthR = geom.headRX * 0.82;      // skull front-to-back
 
+  const cache = new VertexCache();
+
   // Main cranium with quality-based detail
-  const headSphere = ellipsoid(
+  ellipsoid(
+    cache,
     cx, cy, 0,
     geom.headRX * S, geom.headRY * S, depthR * S,
     qualityConfig.RING_HIGH, qualityConfig.SEG_HIGH,
@@ -311,7 +363,8 @@ function buildHeadMesh(
   // Chin/jaw extension with gender-specific width
   const chinCy = cy - geom.headRY * 0.92 * S;
   const jawWidth = geom.jawW > 0 ? 1.0 + (geom.jawW * 0.08) : 1.0;
-  const chin = ellipsoid(
+  ellipsoid(
+    cache,
     cx, chinCy, 0,
     geom.headRX * 0.55 * jawWidth * S,
     geom.headRY * 0.18 * S,
@@ -320,7 +373,7 @@ function buildHeadMesh(
     qualityConfig.SEG_LOW,
   );
 
-  return toMeshData('Head', merge(headSphere, chin), skinHex);
+  return toMeshData('Head', cache.toRawMesh(), skinHex);
 }
 
 /* ── NECK ─────────────────────────────────────────────────────────────── */
@@ -353,7 +406,9 @@ function buildNeckMesh(
     { cx: botCx, cy: botCy, rx: nwBot, rz: depthBot },
   ];
 
-  return toMeshData('Neck', profiledTube(rings, qualityConfig.SEG_LOW, 3), skinHex);
+  const cache = new VertexCache();
+  profiledTube(cache, rings, qualityConfig.SEG_LOW, 3);
+  return toMeshData('Neck', cache.toRawMesh(), skinHex);
 }
 
 /* ── TORSO ────────────────────────────────────────────────────────────── */
@@ -486,7 +541,9 @@ function buildTorsoMesh(
     ];
   }
 
-  return toMeshData('Torso', profiledTube(rings, qualityConfig.SEG_HIGH, 4), skinHex);
+  const cache = new VertexCache();
+  profiledTube(cache, rings, qualityConfig.SEG_HIGH, 4);
+  return toMeshData('Torso', cache.toRawMesh(), skinHex);
 }
 
 /* ── ARM ──────────────────────────────────────────────────────────────── */
@@ -549,17 +606,19 @@ function buildArmMesh(
     { cx: wrGx, cy: wrGy, rx: fw * 0.78, rz: fw * 0.7 },
   ];
 
-  const upper = profiledTube(upperRings, qualityConfig.SEG_MED, qualityConfig.limbSubdiv, 'top');
-  const fore  = profiledTube(foreRings, qualityConfig.SEG_MED, qualityConfig.limbSubdiv, 'none');
+  const cache = new VertexCache();
+  profiledTube(cache, upperRings, qualityConfig.SEG_MED, qualityConfig.limbSubdiv, 'top');
+  profiledTube(cache, foreRings, qualityConfig.SEG_MED, qualityConfig.limbSubdiv, 'none');
 
   // Hand: ellipsoid with quality-based detail
-  const hand = ellipsoid(
+  ellipsoid(
+    cache,
     hdGx, hdGy, 0,
     geom.handW / 2 * S, geom.handH / 2 * S, geom.handW * 0.32 * S,
     qualityConfig.RING_MED, qualityConfig.SEG_LOW,
   );
 
-  return toMeshData(`Arm_${side}`, merge(upper, fore, hand), skinHex);
+  return toMeshData(`Arm_${side}`, cache.toRawMesh(), skinHex);
 }
 
 /* ── LEG ──────────────────────────────────────────────────────────────── */
@@ -630,17 +689,19 @@ function buildLegMesh(
     { cx: anGx, cy: anGy, rx: cw * 0.65, rz: cw * 0.58 },
   ];
 
-  const thigh = profiledTube(thighRings, qualityConfig.SEG_MED, qualityConfig.limbSubdiv, 'top');
-  const calf  = profiledTube(calfRings, qualityConfig.SEG_MED, qualityConfig.limbSubdiv, 'none');
+  const cache = new VertexCache();
+  profiledTube(cache, thighRings, qualityConfig.SEG_MED, qualityConfig.limbSubdiv, 'top');
+  profiledTube(cache, calfRings, qualityConfig.SEG_MED, qualityConfig.limbSubdiv, 'none');
 
   // Foot: elongated ellipsoid (deeper front-to-back than side-to-side)
-  const foot = ellipsoid(
+  ellipsoid(
+    cache,
     ftGx, ftGy, geom.footW * 0.12 * S,
     geom.footW / 2 * S, geom.footH / 2 * S, geom.footW * 0.42 * S,
     qualityConfig.RING_MED, qualityConfig.SEG_LOW,
   );
 
-  return toMeshData(`Leg_${side}`, merge(thigh, calf, foot), skinHex);
+  return toMeshData(`Leg_${side}`, cache.toRawMesh(), skinHex);
 }
 
 /* ── Skeleton ────────────────────────────────────────────────────────── */
@@ -672,7 +733,7 @@ function toBase64(arr: ArrayBuffer): string {
   const bytes = new Uint8Array(arr);
   const chunks: string[] = [];
   for (let i = 0; i < bytes.length; i += 8192) {
-    chunks.push(String.fromCharCode(...bytes.subarray(i, i + 8192)));
+    chunks.push(String.fromCharCode.apply(null, Array.from(bytes.subarray(i, i + 8192))));
   }
   return btoa(chunks.join(''));
 }
