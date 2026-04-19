@@ -61,7 +61,7 @@ export const DaySummaryModal: React.FC<DaySummaryModalProps> = ({ state, dispatc
         initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }}
         className="bg-[#0a0a0a] border border-white/10 p-8 rounded-sm max-w-md w-full relative shadow-2xl overflow-hidden z-10"
       >
-        <button
+        <button aria-label="Close Day Summary"
           onClick={() => dispatch({ type: 'TOGGLE_UI_SETTING', payload: { key: 'show_day_summary', value: false } })}
           className="absolute top-6 right-6 text-white/40 hover:text-white"
         >

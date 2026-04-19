@@ -51,7 +51,7 @@ export const DeveloperModeModal: React.FC<DeveloperModeModalProps> = ({ state, d
         exit={{ scale: 0.95, opacity: 0 }}
         className="bg-[#0a0a0a] border border-purple-500/20 p-8 rounded-sm max-w-2xl w-full relative shadow-[0_0_50px_rgba(168,85,247,0.1)] z-10"
       >
-        <button 
+        <button aria-label="Close Developer Mode"
           onClick={onClose}
           className="absolute top-6 right-6 text-white/40 hover:text-white transition-colors"
         >

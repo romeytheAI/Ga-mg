@@ -48,7 +48,7 @@ export const MemoriesModal: React.FC<MemoriesModalProps> = ({ state, onClose }) 
         exit={{ scale: 0.95, opacity: 0 }}
         className="bg-[#0a0a0a] border border-white/10 p-8 rounded-sm max-w-2xl w-full max-h-[80vh] flex flex-col relative shadow-2xl z-10"
       >
-        <button 
+        <button aria-label="Close Memories"
           onClick={onClose}
           className="absolute top-6 right-6 text-white/40 hover:text-white transition-colors"
         >
