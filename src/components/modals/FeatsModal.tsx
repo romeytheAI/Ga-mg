@@ -1,5 +1,5 @@
 import React from 'react';
-import { motion } from 'framer-motion';
+import { motion } from 'motion/react';
 import { X, Trophy, Lock, Unlock } from 'lucide-react';
 import { GameState } from '../../types';
 
@@ -50,7 +50,7 @@ export const FeatsModal: React.FC<FeatsModalProps> = ({ state, dispatch }) => {
           aria-label="Close Feats"
           onClick={() => dispatch({ type: 'TOGGLE_UI_SETTING', payload: { key: 'show_feats', value: false } })}
           className="absolute top-6 right-6 text-white/40 hover:text-white"
-         aria-label="Close modal">
+         >
               <X className="w-6 h-6" />
         </button>
 

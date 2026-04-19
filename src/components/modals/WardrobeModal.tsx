@@ -1,5 +1,5 @@
 import React from 'react';
-import { motion } from 'framer-motion';
+import { motion } from 'motion/react';
 import { X, Shirt, Wrench, Coins } from 'lucide-react';
 import { GameState, Item } from '../../types';
 

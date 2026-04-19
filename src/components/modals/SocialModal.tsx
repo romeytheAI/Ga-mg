@@ -1,5 +1,5 @@
 import React from 'react';
-import { motion } from 'framer-motion';
+import { motion } from 'motion/react';
 import { X, Heart, Shield, Users, Swords, Star, GitBranch } from 'lucide-react';
 import { GameState } from '../../types';
 import { NPCS } from '../../data/npcs';

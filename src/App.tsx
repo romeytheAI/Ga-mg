@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useReducer, createContext, useCallback, Component, Suspense } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence, useMotionValue, useSpring } from 'motion/react';
 import { CalendarDays, Hourglass,
   Heart, Wind, Moon, Settings, X, BookOpen, User, Map as MapIcon, 
   Shield, Sword, Zap, Droplets, AlertTriangle, Ghost, Sparkles, 
@@ -147,7 +147,11 @@ function App({ state, dispatch }: { state: GameState, dispatch: React.Dispatch<a
   const [showMap, setShowMap] = useState(false);
   const [showCompanions, setShowCompanions] = useState(false);
 
-  const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
+  const mouseX = useMotionValue(0);
+  const mouseY = useMotionValue(0);
+
+  const smoothX = useSpring(mouseX, { stiffness: 40, damping: 30 });
+  const smoothY = useSpring(mouseY, { stiffness: 40, damping: 30 });
   const logRef = useRef<HTMLDivElement>(null);
   const isInitialMount = useRef(true);
   const encounterBuffer = useEncounterBuffer(state);
@@ -243,13 +247,12 @@ function App({ state, dispatch }: { state: GameState, dispatch: React.Dispatch<a
   }, [state.player.stats.stamina]);
 
   const handleMouseMove = useCallback((e: React.MouseEvent) => {
-    requestAnimationFrame(() => {
-      const { clientX, clientY } = e;
-      const x = (clientX / window.innerWidth - 0.5) * 20;
-      const y = (clientY / window.innerHeight - 0.5) * 20;
-      setMousePos({ x, y });
-    });
-  }, []);
+    const { clientX, clientY } = e;
+    const x = (clientX / window.innerWidth - 0.5) * 20;
+    const y = (clientY / window.innerHeight - 0.5) * 20;
+    mouseX.set(x);
+    mouseY.set(y);
+  }, [mouseX, mouseY]);
 
   useEffect(() => {
     if (state.ui.ambient_audio) {
@@ -930,12 +933,10 @@ Example: { "health": 50, "allure": 20 }`;
                 <motion.img
                   key={state.ui.currentImage}
                   src={state.ui.currentImage}
-                  className={`w-[110%] h-[110%] -left-[5%] -top-[5%] absolute object-cover will-change-transform ${shouldCensorImage(state) ? 'blur-3xl' : ''}`}
-                  style={{ transform: 'translateZ(0)' }}
-                  animate={{ x: mousePos.x, y: mousePos.y }}
-                  transition={{ type: 'spring', stiffness: 40, damping: 30 }}
+                  className={`w-[110%] h-[110%] -left-[5%] -top-[5%] absolute object-cover will-change-transform ${state.ui.settings?.enable_extreme_content === false ? 'blur-3xl' : ''}`}
+                  style={{ transform: 'translateZ(0)', x: smoothX, y: smoothY }}
                 />
-                {shouldCensorImage(state) && (
+                {state.ui.settings?.enable_extreme_content === false && (
                   <div className="absolute inset-0 bg-black/70 flex items-center justify-center">
                     <div className="text-center">
                       <EyeOff className="w-16 h-16 text-white/40 mx-auto mb-4" />
@@ -1879,7 +1880,7 @@ Example: { "health": 50, "allure": 20 }`;
                 aria-label="Close Companion Roster"
                 onClick={() => setShowCompanions(false)}
                 className="absolute top-6 right-6 text-white/40 hover:text-white transition-colors"
-               aria-label="Close modal">
+               >
               <X className="w-5 h-5" />
               </button>
               

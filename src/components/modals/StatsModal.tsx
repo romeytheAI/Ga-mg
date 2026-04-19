@@ -1,5 +1,5 @@
 import React from 'react';
-import { motion } from 'framer-motion';
+import { motion } from 'motion/react';
 import { X, Briefcase, Zap, Star } from 'lucide-react';
 import { GameState, StatKey } from '../../types';
 import { CharacterModel } from '../CharacterModel';

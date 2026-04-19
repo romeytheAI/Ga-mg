@@ -1,5 +1,5 @@
 import React from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'motion/react';
 import { X, Coins, ShoppingBag, ArrowRightLeft } from 'lucide-react';
 import { GameState, Item } from '../../types';
 import { BASIC_ITEMS } from '../../data/items';

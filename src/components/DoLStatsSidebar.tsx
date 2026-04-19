@@ -592,4 +592,30 @@ export const DoLStatsSidebar: React.FC<DoLStatsSidebarProps> = React.memo(({
       </div>
     </div>
   );
+}, (prevProps, nextProps) => {
+  // Only re-render if specific relevant parts of the state change
+  const pPlayer = prevProps.state.player;
+  const nPlayer = nextProps.state.player;
+  const pWorld = prevProps.state.world;
+  const nWorld = nextProps.state.world;
+
+  return (
+    pPlayer.stats === nPlayer.stats &&
+    pPlayer.skills === nPlayer.skills &&
+    pPlayer.life_sim === nPlayer.life_sim &&
+    pPlayer.clothing === nPlayer.clothing &&
+    pPlayer.biology === nPlayer.biology &&
+    pPlayer.psych_profile === nPlayer.psych_profile &&
+    pPlayer.temperature === nPlayer.temperature &&
+    pPlayer.bailey_payment === nPlayer.bailey_payment &&
+    pPlayer.lewdity_stats === nPlayer.lewdity_stats &&
+    pPlayer.attitudes === nPlayer.attitudes &&
+    pPlayer.gold === nPlayer.gold &&
+    pPlayer.fame === nPlayer.fame &&
+    pPlayer.notoriety === nPlayer.notoriety &&
+    pPlayer.afflictions === nPlayer.afflictions &&
+    pPlayer.quests === nPlayer.quests &&
+    pWorld.hour === nWorld.hour &&
+    pWorld.day === nWorld.day
+  );
 });
