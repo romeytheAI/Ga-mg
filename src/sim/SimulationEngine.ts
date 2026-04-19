@@ -32,6 +32,12 @@ import { computeAllure } from './AllureSystem';
 import { tickRestraints, restraintStress } from './RestraintSystem';
 import { tickAscension } from './TransformationSystem';
 import { driftFactions } from './FactionSystem';
+import { tickCivilization } from './CivilizationSystem';
+import { tickPolitics } from './PoliticsSystem';
+import { tickTrade } from './TradeSystem';
+import { tickKnowledge } from './KnowledgeSystem';
+import { tickDaedricPower } from './DaedricSystem';
+import { tickDeceptions } from './DeceptionSystem';
 
 const HOURS_PER_TICK = 1;
 const EVENT_CHANCE_PER_DAY = 0.15; // 15% chance of a world event per day
@@ -58,6 +64,22 @@ export function tickSimulation(world: SimWorld): SimWorld {
 
   // Faction daily drift (reputation slowly returns to neutral)
   const factions = dayChanged ? driftFactions(w.factions ?? []) : (w.factions ?? []);
+
+  w = { ...w, economy, factions };
+
+  // civilization simulation (Procedural & Emergent)
+  w = tickCivilization(w);
+  w = tickTrade(w);
+  w = tickPolitics(w);
+  w = tickKnowledge(w);
+  w = tickDaedricPower(w);
+
+  // Deception & Social Correction
+  const deceptionResult = tickDeceptions(w);
+  w = deceptionResult.world;
+  if (deceptionResult.corrections.length > 0) {
+    w.global_events.push(...deceptionResult.corrections);
+  }
 
   // Resolve active combats
   let activeCombats = [...(w.active_combats ?? [])];

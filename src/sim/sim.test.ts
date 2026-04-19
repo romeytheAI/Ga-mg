@@ -59,25 +59,20 @@ function makeNpc(overrides: Partial<SimNpc> = {}): SimNpc {
     companion_state: defaultCompanionState(),
     allure_state: defaultAllureState(),
     restraint_state: defaultRestraintState(),
+    clothing_damage: [],
     ...overrides,
   };
 }
 
 function makeWorld(overrides: Partial<SimWorld> = {}): SimWorld {
-  const { locations, npcs, economy } = generateStartingWorld(1);
+  const base = generateStartingWorld(1);
   return {
+    ...base,
     turn: 0,
     day: 1,
     hour: 9,
     weather: 'Sunny',
     season: 'spring',
-    npcs: [],
-    economy,
-    global_events: [],
-    locations,
-    active_combats: [],
-    factions: defaultFactions(),
-    criminal_records: {},
     ...overrides,
   };
 }

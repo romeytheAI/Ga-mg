@@ -99,6 +99,8 @@ export interface ClothingItem {
   warmth: number;        // 0-1 warmth factor
   concealment: number;   // 0-1 how much it covers
   allure: number;        // 0-1 attractiveness modifier
+  buc_status?: 'blessed' | 'uncursed' | 'cursed';
+  identification?: 'unidentified' | 'familiar' | 'identified';
 }
 
 export type ClothingSlot = 'head' | 'chest' | 'legs' | 'feet' | 'hands' | 'underwear';
@@ -141,6 +143,25 @@ export type NpcTrait =
 export type NpcState = 'idle' | 'working' | 'socializing' | 'eating' | 'sleeping'
   | 'fleeing' | 'hostile' | 'trading' | 'travelling' | 'exercising' | 'studying';
 
+// ── Mantling & Godhood (End-game simulation) ───────────────────────────
+
+export interface MantlingState {
+  target_god: DaedricPrinceId | 'talos' | 'vivec';
+  synchronicity: number; // 0-100, reach 100 to "become" the god
+  paradox_level: number; // 0-100, risk of erasure if too high
+  mantle_traits: string[]; // acquired divine characteristics
+  reality_anchors: string[]; // tethering the player to Mundus
+}
+
+// ── Advanced Clothing Integrity ──────────────────────────────────────────
+
+export interface ClothingDamage {
+  slot: ClothingSlot;
+  tear_size: number; // 0-100
+  stains: ('blood' | 'semen' | 'mud' | 'sweat')[];
+  repair_difficulty: number;
+}
+
 export interface SimNpc {
   id: string;
   name: string;
@@ -175,6 +196,8 @@ export interface SimNpc {
   companion_state: CompanionState;
   allure_state: AllureState;
   restraint_state: RestraintState;
+  mantling?: MantlingState;
+  clothing_damage: ClothingDamage[];
 }
 
 // ── Schedule ─────────────────────────────────────────────────────────────────
@@ -187,6 +210,141 @@ export interface ScheduleSlot {
 
 export interface DailySchedule {
   slots: ScheduleSlot[];
+}
+
+// ── Civilization System (Procedural & Emergent) ───────────────────────────
+
+/** Internal faction structure and NPC roles. */
+export interface FactionHierarchy {
+  leader_id: string | null;
+  lieutenants: string[];
+  members: string[];
+  ranks: Record<string, string>; // npc_id -> rank_name
+  territories: string[]; // location_ids
+}
+
+/** Active laws or directives in a jurisdiction. */
+export interface GovernmentPolicy {
+  id: string;
+  name: string;
+  description: string;
+  affected_resources: string[];
+  price_multiplier: number;
+  tax_rate: number;
+  is_illegal: boolean; // e.g. "Skooma Prohibition"
+  enforcement_priority: number; // 0-100
+}
+
+/** State level government tracking. */
+export interface GovernmentState {
+  faction_id: FactionId;
+  capital_id: string;
+  stability: number; // 0-100
+  treasury: number;
+  policies: GovernmentPolicy[];
+  corruption_level: number; // 0-100
+}
+
+/** Economic supply chain node. */
+export interface SupplyNode {
+  location_id: string;
+  produces: string[]; // resource names
+  consumes: string[];
+  inventory: Record<string, number>;
+  throughput: number; // max per tick
+}
+
+/** Regional trade route connecting nodes. */
+export interface TradeRoute {
+  id: string;
+  from_node: string;
+  to_node: string;
+  resource: string;
+  efficiency: number; // 0-1 (affected by danger/distance)
+  active_caravans: number;
+}
+
+/** Faction-level research and progression. */
+export interface ResearchNode {
+  id: string;
+  name: string;
+  description: string;
+  prerequisites: string[];
+  cost: number;
+  progress: number; // 0-100
+  is_unlocked: boolean;
+  effect_id: string;
+}
+
+/** Information propagation and shared knowledge. */
+export interface KnowledgeFact {
+  subject_id: string;
+  predicate: string; // e.g. "is_criminal", "has_amulet"
+  object_val: any;
+  confidence: number; // 0-1
+  source_id: string | null;
+  turn_acquired: number;
+}
+
+// ── Daedric & Divine Systems (Godlike Power) ─────────────────────────────
+
+export type DaedricPrinceId = 
+  | 'azura' | 'boethiah' | 'clavicus_vile' | 'hermaeus_mora' | 'hircine' 
+  | 'malacath' | 'mehrunes_dagon' | 'mephala' | 'meridia' | 'molag_bal' 
+  | 'namira' | 'nocturnal' | 'peryite' | 'sanguine' | 'sheogorath' | 'vaermina';
+
+/** A Prince's domain of absolute control. */
+export interface DaedricRealm {
+  id: string;
+  name: string;
+  prince_id: DaedricPrinceId;
+  physics_stability: number; // 0-100, at low stability gravity/time warps
+  corruption_type: 'blood' | 'madness' | 'shadow' | 'order' | 'nature' | 'none';
+  connected_locations: string[]; // which Mundus locations are being bled into
+}
+
+/** The manifestation of divine power scaling. */
+export interface DaedricInfluence {
+  prince_id: DaedricPrinceId;
+  power_level: number; // 0-100, 100 = absolute godhood over Mundus pocket
+  worship_base: number;
+  current_intent: 'destruction' | 'corruption' | 'domination' | 'trickery' | 'revelry' | 'stagnation';
+  active_curses: string[];
+  manifested_avatars: string[]; // npc_id refs
+}
+
+/** Levels of knowledge: Individual, Group (Faction), or State. */
+export interface KnowledgeGraph {
+  individual_knowledge: Record<string, KnowledgeFact[]>; // npc_id -> facts
+  faction_knowledge: Record<FactionId, KnowledgeFact[]>;
+  state_knowledge: Record<string, KnowledgeFact[]>; // jurisdiction -> facts
+}
+
+// ── Deception & Truth (Social Intrigue) ──────────────────────────────────
+
+export interface ActiveDeception {
+  id: string;
+  source_id: string; // "player" or npc_id
+  target_id: string; // "player" or npc_id
+  subject_fact: string; // The truth
+  lied_fact: string;    // The falsehood
+  leveraged_ignorance: 'sexual' | 'cultural' | 'location' | 'none';
+  detection_threshold: number; // 0-100
+  turn_started: number;
+}
+
+/** Global civilization state integration. */
+export interface CivilizationState {
+  governments: GovernmentState[];
+  supply_chains: {
+    nodes: SupplyNode[];
+    routes: TradeRoute[];
+  };
+  research: Record<FactionId, ResearchNode[]>;
+  knowledge: KnowledgeGraph;
+  daedric_influence: Record<DaedricPrinceId, DaedricInfluence>;
+  realms: DaedricRealm[];
+  active_deceptions: ActiveDeception[];
 }
 
 // ── World ────────────────────────────────────────────────────────────────────
@@ -202,7 +360,9 @@ export interface SimWorld {
   locations: SimLocation[];
   active_combats: CombatEncounter[];
   factions: FactionEntry[];
-  criminal_records: Record<string, CriminalRecord>; // keyed by entity id
+  faction_hierarchies: Record<FactionId, FactionHierarchy>;
+  criminal_records: Record<string, CriminalRecord>;
+  civilization: CivilizationState;
 }
 
 export interface SimLocation {

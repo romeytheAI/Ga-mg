@@ -1,17 +1,23 @@
 import React, { useRef, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'motion/react';
 import { GameState } from '../types';
-import { EncounterUI } from './EncounterUI';
+import { NarrativeLog } from './NarrativeLog';
+import { 
+  Heart, Zap, Droplets, Sun, Users, Smile, 
+  Send, Sparkles, Sword, Book, Eye, Search
+} from 'lucide-react';
 
 interface NarrativePanelProps {
   state: GameState;
-  handleAction: (action: string, intent?: string, targetedPart?: string) => void;
+  handleAction: (text: string, intent?: string, id?: string) => void;
   customAction: string;
-  setCustomAction: (action: string) => void;
-  NarrativeLog: React.FC<any>;
+  setCustomAction: (val: string) => void;
+  NarrativeLog: any; // Passed from App for consistency
 }
 
-export const NarrativePanel: React.FC<NarrativePanelProps> = ({ state, handleAction, customAction, setCustomAction, NarrativeLog }) => {
+export const NarrativePanel: React.FC<NarrativePanelProps> = ({ 
+  state, handleAction, customAction, setCustomAction 
+}) => {
   const logRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -20,187 +26,109 @@ export const NarrativePanel: React.FC<NarrativePanelProps> = ({ state, handleAct
     }
   }, [state.ui.currentLog]);
 
-  return (
-    <div className="w-full max-w-lg border-l border-white/5 bg-[#0a0a0a]/80 backdrop-blur-2xl flex flex-col relative z-20 shadow-[-20px_0_40px_rgba(0,0,0,0.5)]">
-      
-      {/* Log Area */}
-      <div className="flex-1 overflow-y-auto p-8 flex flex-col gap-6 scrollbar-hide" ref={logRef}>
-        <NarrativeLog logs={state.ui.currentLog} trauma={state.player.stats.trauma} accessibilityMode={state.ui.accessibility_mode} />
-        
-        {/* Needs Warning Banners */}
-        {(state.player.life_sim.needs.hunger <= 20 || state.player.life_sim.needs.thirst <= 15 || state.player.life_sim.needs.energy <= 20 || state.player.life_sim.needs.hygiene <= 20) && (
-          <div className="flex flex-col gap-1.5 mt-2">
-            {state.player.life_sim.needs.hunger <= 20 && (
-              <div className="flex items-center gap-2 px-3 py-1.5 bg-amber-950/30 border border-amber-900/30 rounded-sm animate-pulse">
-                <span className="text-amber-400/80 text-sm">🍞</span>
-                <span className="text-[10px] tracking-widest uppercase text-amber-400/80">
-                  You are starving. Find food soon or your health will suffer.
-                </span>
-              </div>
-            )}
-            {state.player.life_sim.needs.thirst <= 15 && (
-              <div className="flex items-center gap-2 px-3 py-1.5 bg-cyan-950/30 border border-cyan-900/30 rounded-sm animate-pulse">
-                <span className="text-cyan-400/80 text-sm">💧</span>
-                <span className="text-[10px] tracking-widest uppercase text-cyan-400/80">
-                  You are dehydrated. Find water before you collapse.
-                </span>
-              </div>
-            )}
-            {state.player.life_sim.needs.energy <= 20 && (
-              <div className="flex items-center gap-2 px-3 py-1.5 bg-yellow-950/30 border border-yellow-900/30 rounded-sm animate-pulse">
-                <span className="text-yellow-400/80 text-sm">😴</span>
-                <span className="text-[10px] tracking-widest uppercase text-yellow-400/80">
-                  You are exhausted. You need to sleep.
-                </span>
-              </div>
-            )}
-            {state.player.life_sim.needs.hygiene <= 20 && (
-              <div className="flex items-center gap-2 px-3 py-1.5 bg-teal-950/30 border border-teal-900/30 rounded-sm">
-                <span className="text-teal-400/80 text-sm">🧼</span>
-                <span className="text-[10px] tracking-widest uppercase text-teal-400/70">
-                  You are filthy. People will avoid you. Find somewhere to wash.
-                </span>
-              </div>
-            )}
-          </div>
-        )}
+  const needs = state.player.life_sim.needs;
 
-        {/* Afflictions */}
-        {state.player.afflictions.length > 0 && (
-          <div className="flex flex-wrap gap-2 mt-4">
-            {state.player.afflictions.map((aff, i) => (
-              <span key={i} className="px-3 py-1 bg-red-950/30 border border-red-900/30 text-red-400/80 text-[10px] tracking-widest uppercase rounded-sm">
-                {aff}
-              </span>
-            ))}
-          </div>
-        )}
+  return (
+    <div className="flex-1 flex flex-col h-full bg-black/10">
+      
+      {/* Narrative Feed */}
+      <div className="flex-1 overflow-y-auto scrollbar-hide relative" ref={logRef}>
+        <div className="absolute inset-0 pointer-events-none bg-gradient-to-b from-black/40 via-transparent to-black/60 z-10" />
+        <NarrativeLog 
+          logs={state.ui.currentLog} 
+          trauma={state.player.stats.trauma} 
+          accessibilityMode={state.ui.accessibility_mode} 
+          state={state} 
+        />
+        
+        {/* Dynamic Warning Banners */}
+        <AnimatePresence>
+          {(needs.hunger <= 20 || needs.thirst <= 20 || needs.energy <= 20) && (
+            <motion.div 
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="absolute bottom-4 left-8 right-8 z-20"
+            >
+              <div className="aaa-panel bg-red-950/40 border-red-500/30 p-3 flex flex-col gap-1">
+                {needs.hunger <= 20 && <div className="text-[8px] uppercase tracking-widest text-red-400 font-bold flex items-center gap-2"><Sparkles className="w-2.5 h-2.5" /> Your stomach growls with a hollow, painful void.</div>}
+                {needs.thirst <= 20 && <div className="text-[8px] uppercase tracking-widest text-sky-400 font-bold flex items-center gap-2"><Droplets className="w-2.5 h-2.5" /> Your throat is parched, like the sands of Alik'r.</div>}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
 
-      {/* Controls Area */}
-      <div className="p-8 border-t border-white/5 bg-black/50 relative">
-        <AnimatePresence>
-          {state.ui.isPollingText ? (
-            <motion.div 
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="absolute inset-0 bg-[#0a0a0a]/90 backdrop-blur-md flex flex-col items-center justify-center z-10"
+      {/* Action Interaction Deck */}
+      <div className="p-6 border-t border-white/[0.06] bg-black/40 backdrop-blur-3xl space-y-4">
+        
+        {/* Choice Matrix */}
+        <div className="grid grid-cols-2 gap-2">
+          {state.ui.choices.map((choice) => (
+            <motion.button
+              key={choice.id}
+              whileHover={{ scale: 1.02, backgroundColor: "rgba(255,255,255,0.05)" }}
+              whileTap={{ scale: 0.98 }}
+              onClick={() => handleAction(choice.label, choice.intent)}
+              className="aaa-button-ghost py-3 px-4 flex items-center justify-between group"
             >
-              <div className="w-16 h-16 relative mb-6">
-                <div className="absolute inset-0 border border-white/10 rounded-full" />
-                <div className="absolute inset-0 border border-t-white/60 rounded-full animate-spin" />
-                <div className="absolute inset-2 border border-white/5 rounded-full" />
-                <div className="absolute inset-2 border border-b-white/40 rounded-full animate-[spin_3s_linear_infinite_reverse]" />
-              </div>
-              <p className="tracking-[0.3em] uppercase text-[10px] text-white/50 animate-pulse">
-                The Weaver Contemplates...
-              </p>
-            </motion.div>
-          ) : null}
-        </AnimatePresence>
+              <span className="text-[10px] tracking-[0.2em] uppercase font-bold text-white/60 group-hover:text-white/90">{choice.label}</span>
+              <div className="w-1 h-1 rounded-full bg-sky-500/40 group-hover:bg-sky-400 shadow-[0_0_8px_rgba(14,165,233,0.5)] transition-all" />
+            </motion.button>
+          ))}
 
-        <div className="flex flex-col gap-3 relative">
-          {state.world.active_encounter ? (
-            <EncounterUI 
-              encounter={state.world.active_encounter} 
-              playerStats={state.player.stats} 
-              onAction={(action, intent, part) => handleAction(action, intent, part)}
-              state={state}
-            />
-          ) : (
-            <>
-              {state.world.current_location.danger > 80 && !state.ui.isPollingText && (
-                <motion.div 
-                  initial={{ width: '100%' }}
-                  animate={{ width: '0%' }}
-                  transition={{ duration: 5, ease: 'linear' }}
-                  onAnimationComplete={() => handleAction("Struggle", "aggressive")}
-                  className="absolute -top-4 left-0 h-1 bg-red-500/50"
-                />
-              )}
-              {state.ui.choices.map(choice => (
-                <motion.button 
-                  whileHover={{ x: 5 }} whileTap={{ scale: 0.98 }}
-                  key={choice.id}
-                  onClick={() => handleAction(choice.label, choice.intent, choice.id)}
-                  className={`group relative p-4 text-left border border-white/5 bg-white/[0.02] hover:bg-white/[0.05] hover:border-white/20 transition-all rounded-sm overflow-hidden flex justify-between items-center ${state.player.stats.health < 20 ? 'desperation-glow border-red-500/50' : ''}`}
-                >
-                  <div className="absolute inset-0 bg-gradient-to-r from-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                  <div className="relative flex items-center">
-                    <span className="text-[10px] tracking-widest uppercase text-white/30 w-24 shrink-0">[{choice.intent}]</span>
-                    <span className="text-sm text-white/70 group-hover:text-white/90 transition-colors">{choice.label}</span>
-                  </div>
-                  {choice.successChance !== undefined && (
-                    <div className="relative flex items-center gap-2">
-                      <span className={`text-[10px] tracking-widest font-mono ${choice.successChance > 75 ? 'text-emerald-400/80' : choice.successChance > 40 ? 'text-yellow-400/80' : 'text-red-400/80'}`}>
-                        {choice.successChance}%
-                      </span>
-                    </div>
-                  )}
-                </motion.button>
-              ))}
-              
-              {/* Life Sim Activities Grid */}
-              <div className="grid grid-cols-2 gap-2 mt-4 mb-2">
-                <motion.button 
-                  whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
-                  onClick={() => handleAction("Scavenge the area for supplies", "work")}
-                  className="py-2 bg-white/[0.02] hover:bg-white/[0.05] border border-white/10 hover:border-white/30 transition-all rounded-sm text-[10px] tracking-widest uppercase text-white/60 hover:text-white/90"
-                >
-                  Scavenge Area
-                </motion.button>
-                <motion.button 
-                  whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
-                  onClick={() => handleAction("Sleep and recover", "neutral")}
-                  className="py-2 bg-white/[0.02] hover:bg-white/[0.05] border border-white/10 hover:border-white/30 transition-all rounded-sm text-[10px] tracking-widest uppercase text-white/60 hover:text-white/90"
-                >
-                  Sleep (8h)
-                </motion.button>
-                <motion.button 
-                  whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
-                  onClick={() => handleAction("Find something to eat", "neutral")}
-                  className="py-2 bg-white/[0.02] hover:bg-white/[0.05] border border-white/10 hover:border-white/30 transition-all rounded-sm text-[10px] tracking-widest uppercase text-white/60 hover:text-white/90"
-                >
-                  Eat Meal
-                </motion.button>
-                <motion.button 
-                  whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
-                  onClick={() => handleAction("Wash yourself", "neutral")}
-                  className="py-2 bg-white/[0.02] hover:bg-white/[0.05] border border-white/10 hover:border-white/30 transition-all rounded-sm text-[10px] tracking-widest uppercase text-white/60 hover:text-white/90"
-                >
-                  Bathe/Wash
-                </motion.button>
-                <motion.button 
-                  whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
-                  onClick={() => handleAction("Rest and recover", "neutral")}
-                  className="py-2 bg-white/[0.02] hover:bg-white/[0.05] border border-white/10 hover:border-white/30 transition-all rounded-sm text-[10px] tracking-widest uppercase text-white/60 hover:text-white/90"
-                >
-                  Rest & Recover
-                </motion.button>
-                <motion.button 
-                  whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
-                  onClick={() => handleAction("Wait for an hour", "neutral")}
-                  className="py-2 bg-white/[0.02] hover:bg-white/[0.05] border border-white/10 hover:border-white/30 transition-all rounded-sm text-[10px] tracking-widest uppercase text-white/60 hover:text-white/90"
-                >
-                  Wait 1 Hour
-                </motion.button>
-              </div>
-            </>
-          )}
-          
-          <form onSubmit={e => { e.preventDefault(); if(customAction.trim()) { handleAction(customAction); setCustomAction(''); } }} className="relative">
-            <div className="absolute left-0 top-0 bottom-0 w-8 flex items-center justify-center">
-              <div className="w-1 h-1 rounded-full bg-white/20" />
-            </div>
+          {/* Core Fixed Actions */}
+          <motion.button 
+            whileHover={{ scale: 1.02, backgroundColor: "rgba(56, 189, 248, 0.1)" }}
+            onClick={() => handleAction("Observe surroundings", "neutral")}
+            className="aaa-button bg-sky-950/20 border border-sky-500/20 text-sky-400/60 hover:text-sky-400 py-3 rounded-sm flex items-center justify-center gap-2"
+          >
+            <Search className="w-3.5 h-3.5" />
+            <span className="text-[10px] tracking-widest uppercase font-bold">Observe</span>
+          </motion.button>
+
+          <motion.button 
+            whileHover={{ scale: 1.02, backgroundColor: "rgba(168, 85, 247, 0.1)" }}
+            onClick={() => handleAction("Attend Academy class", "neutral")}
+            className="aaa-button bg-purple-950/20 border border-purple-500/20 text-purple-400/60 hover:text-purple-400 py-3 rounded-sm flex items-center justify-center gap-2"
+          >
+            <Book className="w-3.5 h-3.5" />
+            <span className="text-[10px] tracking-widest uppercase font-bold">Academy</span>
+          </motion.button>
+        </div>
+
+        {/* Custom Input Deck */}
+        <div className="relative group">
+          <div className="absolute inset-0 bg-sky-500/5 rounded-sm blur-xl opacity-0 group-focus-within:opacity-100 transition-opacity" />
+          <div className="relative flex items-center">
             <input 
-              type="text" 
+              type="text"
               value={customAction}
-              onChange={e => setCustomAction(e.target.value)}
-              placeholder="Forge your own path..."
-              className="w-full bg-transparent border-b border-white/10 py-3 pl-8 pr-4 text-sm text-white/90 placeholder-white/20 focus:outline-none focus:border-white/40 transition-colors"
+              onChange={(e) => setCustomAction(e.target.value)}
+              placeholder="DIRECTIVE TO FATE..."
+              className="flex-1 bg-black/60 border border-white/10 p-4 pr-12 rounded-sm text-[11px] tracking-[0.3em] uppercase text-white/80 focus:outline-none focus:border-sky-500/50 focus:bg-black/80 transition-all font-mono"
+              onKeyDown={(e) => e.key === 'Enter' && customAction && handleAction(customAction, 'custom')}
             />
-          </form>
+            <button 
+              onClick={() => customAction && handleAction(customAction, 'custom')}
+              className="absolute right-4 text-white/20 hover:text-sky-400 transition-colors"
+            >
+              <Send className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+
+        {/* Interaction Hints */}
+        <div className="flex justify-between items-center px-1">
+          <div className="flex gap-4">
+            <div className="flex items-center gap-1.5 opacity-40">
+              <div className="w-1.5 h-1.5 rounded-full bg-white" />
+              <span className="text-[7px] tracking-[0.2em] uppercase">Shift + Enter for Ritual</span>
+            </div>
+          </div>
+          <div className="text-[7px] tracking-[0.2em] uppercase text-white/20 font-bold">
+            Sim_Engine_v4.2 // Stability: {state.sim_world ? "NOMINAL" : "DORMANT"}
+          </div>
         </div>
       </div>
     </div>

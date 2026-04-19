@@ -115,3 +115,71 @@ export function applyActivityEffect(
   }
   return n;
 }
+
+/**
+ * Player-specific: Calculate needs decay and activity modifiers for the GameState.
+ */
+export function tickPlayerNeeds(state: any, hours: number): any {
+  const n = { ...state.player.life_sim.needs };
+  const currentActivity = state.player.life_sim.schedule.current_activity;
+  const lastIntent = state.world.last_intent;
+
+  // Passive hourly drain
+  let hungerDrain = 3.0;
+  let thirstDrain = 4.0;
+  let energyDrain = 2.5;
+  let hygieneDrain = 1.5;
+  let socialDrain = 1.0;
+  let happinessDrain = 0.5;
+
+  // Activity modifiers
+  switch (currentActivity) {
+    case 'working':
+      hungerDrain += 2.0;
+      energyDrain += 2.5;
+      hygieneDrain += 1.5;
+      break;
+    case 'sleeping':
+      energyDrain = -35.0; // restorative
+      hungerDrain *= 0.5;
+      thirstDrain *= 0.5;
+      happinessDrain = -2.0;
+      break;
+    case 'eating':
+      hungerDrain = -60.0;
+      happinessDrain = -5.0;
+      break;
+    case 'bathing':
+      hygieneDrain = -50.0;
+      happinessDrain = -3.0;
+      break;
+    case 'socializing':
+      socialDrain = -20.0;
+      happinessDrain = -10.0;
+      break;
+    case 'travelling':
+      hungerDrain += 1.0;
+      thirstDrain += 1.5;
+      energyDrain += 2.0;
+      break;
+  }
+
+  // Intent modifiers (if not in a specific scheduled activity)
+  if (currentActivity === 'idle') {
+    if (lastIntent === 'work') {
+      hungerDrain += 1.5;
+      energyDrain += 2.0;
+    } else if (lastIntent === 'social') {
+      socialDrain -= 10.0;
+    }
+  }
+
+  n.hunger = Math.max(0, Math.min(100, n.hunger - hungerDrain * hours));
+  n.thirst = Math.max(0, Math.min(100, n.thirst - thirstDrain * hours));
+  n.energy = Math.max(0, Math.min(100, n.energy - energyDrain * hours));
+  n.hygiene = Math.max(0, Math.min(100, n.hygiene - hygieneDrain * hours));
+  n.social = Math.max(0, Math.min(100, n.social - socialDrain * hours));
+  n.happiness = Math.max(0, Math.min(100, n.happiness - happinessDrain * hours));
+
+  return n;
+}

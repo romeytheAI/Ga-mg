@@ -2,6 +2,9 @@ import React from 'react';
 import { motion } from 'motion/react';
 import { TypewriterText, SemanticText } from './TextComponents';
 
+import { GameState } from '../types';
+import { filterNarrativeByIgnorance } from '../sim/DiscoverySystem';
+
 interface LogEntry {
   text: string;
   type: 'narrative' | 'action' | 'system';
@@ -11,9 +14,10 @@ interface NarrativeLogProps {
   logs: LogEntry[];
   trauma: number;
   accessibilityMode: boolean;
+  state: GameState;
 }
 
-export const NarrativeLog = React.memo(({ logs, trauma, accessibilityMode }: NarrativeLogProps) => {
+export const NarrativeLog = React.memo(({ logs, trauma, accessibilityMode, state }: NarrativeLogProps) => {
   const startIndex = Math.max(0, logs.length - 20);
 
   return (
@@ -25,6 +29,8 @@ export const NarrativeLog = React.memo(({ logs, trauma, accessibilityMode }: Nar
         // Speed scales with trauma (higher trauma = faster/more erratic text)
         const typeSpeed = Math.max(5, 30 - (trauma / 4));
         
+        const filteredText = isNarrative ? filterNarrativeByIgnorance(state, log.text) : log.text;
+        
         return (
           <motion.div 
             key={startIndex + i}
@@ -34,9 +40,9 @@ export const NarrativeLog = React.memo(({ logs, trauma, accessibilityMode }: Nar
           >
             {isAction && <div className="absolute -left-[5px] top-1/2 -translate-y-1/2 w-2 h-2 rounded-full bg-emerald-500/50" />}
             {isLast && isNarrative ? (
-              <TypewriterText text={log.text} speed={typeSpeed} />
+              <TypewriterText text={filteredText} speed={typeSpeed} />
             ) : (
-              <SemanticText text={log.text} />
+              <SemanticText text={filteredText} />
             )}
           </motion.div>
         );

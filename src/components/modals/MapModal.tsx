@@ -5,6 +5,7 @@ import { GameState } from '../../types';
 import { LOCATIONS } from '../../data/locations';
 import { getAllNpcCurrentLocations } from '../../utils/scheduleEngine';
 import { NPCS } from '../../data/npcs';
+import { identifyLocation, identifyNPC } from '../../sim/DiscoverySystem';
 
 interface MapModalProps {
   state: GameState;
@@ -108,13 +109,13 @@ export const MapModal: React.FC<MapModalProps> = ({ state, dispatch, handleActio
                     )}
                   </div>
                   <span className={`text-[10px] tracking-widest uppercase whitespace-nowrap bg-black/80 px-2 py-1 rounded-sm border ${isCurrent ? 'text-red-400 border-red-900/50' : 'text-white/60 border-white/10 group-hover:text-white group-hover:border-white/30'} transition-all`}>
-                    {loc.name}
+                    {identifyLocation(state, loc.id, loc.name)}
                   </span>
                   {/* NPC name tooltip on hover */}
                   {npcsHere.length > 0 && (
                     <div className="hidden group-hover:flex flex-col gap-0.5 bg-black/90 border border-sky-900/50 px-2 py-1 rounded-sm absolute top-full mt-1 left-1/2 -translate-x-1/2 z-20 pointer-events-none min-w-max">
                       {npcsHere.slice(0, 5).map(npcId => {
-                        const npcName = NPCS[npcId]?.name ?? npcId;
+                        const npcName = identifyNPC(state, npcId, NPCS[npcId]?.name ?? npcId);
                         return (
                           <span key={npcId} className="text-[8px] text-sky-300/80 uppercase tracking-widest">
                             {npcName}
@@ -178,7 +179,7 @@ export const MapModal: React.FC<MapModalProps> = ({ state, dispatch, handleActio
                       {here.map((npcId: string) => (
                         <span key={npcId} className="text-[10px] text-sky-300/70 flex items-center gap-1">
                           <span className="w-1.5 h-1.5 rounded-full bg-sky-500/60 inline-block shrink-0" />
-                          {NPCS[npcId]?.name ?? npcId}
+                          {identifyNPC(state, npcId, NPCS[npcId]?.name ?? npcId)}
                         </span>
                       ))}
                     </div>

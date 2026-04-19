@@ -145,3 +145,55 @@ export function chargeNpc(
 function clamp(v: number, min: number, max: number): number {
   return Math.max(min, Math.min(max, v));
 }
+
+/**
+ * Resolve Bailey's weekly debt collection.
+ * Triggers on Monday (Day 0) at midnight.
+ */
+export function resolveBaileyCollection(state: any): { payment: any, logText: string | null } {
+  const p = { ...state.player.bailey_payment };
+  const playerGold = state.player.gold;
+  let logText: string | null = null;
+
+  // If debt is 0, nothing to collect
+  if (p.debt <= 0 && p.weekly_amount <= 0) return { payment: p, logText: null };
+
+  const totalOwed = p.weekly_amount + p.debt;
+  
+  if (playerGold >= totalOwed) {
+    // Player can pay fully
+    p.debt = 0;
+    p.missed_payments = 0;
+    p.punishment_level = 0;
+    logText = `Bailey collected her weekly due of ${totalOwed}g. Your debt is cleared.`;
+  } else {
+    // Player defaults
+    p.missed_payments += 1;
+    p.debt += p.weekly_amount;
+    p.punishment_level = Math.min(3, p.missed_payments);
+    logText = `You failed to pay Bailey. Your debt increases to ${p.debt}g. Punishment level: ${p.punishment_level}.`;
+  }
+
+  // Set next due date (7 days from now)
+  p.due_day = (state.world.day + 7) % 7;
+
+  return { payment: p, logText };
+}
+
+/**
+ * Calculate job shift results based on performance and stats.
+ */
+export function resolveJobShift(state: any, jobType: string, hours: number) {
+  const baseRate = 10; // 10g per hour base
+  const skillMult = 1 + ((state.player.skills.housekeeping || 0) / 100);
+  const fatigueMult = Math.max(0.5, (state.player.life_sim?.needs.energy || 100) / 100);
+  
+  const goldEarned = Math.floor(baseRate * hours * skillMult * fatigueMult);
+  
+  return {
+    gold: goldEarned,
+    stamina_drain: hours * 15,
+    stress_gain: hours * 5,
+    housekeeping_exp: hours * 2
+  };
+}

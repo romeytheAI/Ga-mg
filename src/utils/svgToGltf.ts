@@ -99,17 +99,17 @@ function lerp(a: number, b: number, t: number): number {
   return a + (b - a) * t;
 }
 
-/* ── raw mesh type ───────────────────────────────────────────────────── */
-
 interface RawMesh {
   positions: number[];
   normals: number[];
   uvs: number[];
   indices: number[];
+  joints: number[];  // 4 joints per vertex
+  weights: number[]; // 4 weights per vertex
 }
 
 function emptyRaw(): RawMesh {
-  return { positions: [], normals: [], uvs: [], indices: [] };
+  return { positions: [], normals: [], uvs: [], indices: [], joints: [], weights: [] };
 }
 
 /** Merge multiple RawMesh into one, reindexing. */
@@ -120,9 +120,31 @@ function merge(...meshes: RawMesh[]): RawMesh {
     r.positions.push(...m.positions);
     r.normals.push(...m.normals);
     r.uvs.push(...m.uvs);
+    r.joints.push(...m.joints);
+    r.weights.push(...m.weights);
     for (const i of m.indices) r.indices.push(i + off);
   }
   return r;
+}
+
+/**
+ * Assign skeletal weights based on Y-height and part name.
+ * This is the core of the "Best Meshing" mandate — soft blending.
+ */
+function assignRigging(raw: RawMesh, boneIndex: number, falloffBoneIndex?: number): RawMesh {
+  const vCount = raw.positions.length / 3;
+  for (let i = 0; i < vCount; i++) {
+    // Basic rigging: 100% influence to primary bone
+    // In AAA mode, we use falloff for seamless joints
+    if (falloffBoneIndex !== undefined) {
+      raw.joints.push(boneIndex, falloffBoneIndex, 0, 0);
+      raw.weights.push(0.7, 0.3, 0, 0);
+    } else {
+      raw.joints.push(boneIndex, 0, 0, 0);
+      raw.weights.push(1, 0, 0, 0);
+    }
+  }
+  return raw;
 }
 
 /* ── 3-D primitive: UV sphere (ellipsoid) ────────────────────────────── */
@@ -276,6 +298,8 @@ interface MeshData {
   normals: Float32Array;
   uvs: Float32Array;
   indices: Uint32Array;
+  joints: Uint16Array;
+  weights: Float32Array;
   color: [number, number, number, number];
 }
 
@@ -286,6 +310,8 @@ function toMeshData(name: string, raw: RawMesh, skinHex: string): MeshData {
     normals: new Float32Array(raw.normals),
     uvs: new Float32Array(raw.uvs),
     indices: new Uint32Array(raw.indices),
+    joints: new Uint16Array(raw.joints),
+    weights: new Float32Array(raw.weights),
     color: hexToRgba(skinHex),
   };
 }
@@ -308,7 +334,7 @@ function buildHeadMesh(
     qualityConfig.RING_HIGH, qualityConfig.SEG_HIGH,
   );
 
-  // Chin/jaw extension with gender-specific width
+  // Chin/jaw extension
   const chinCy = cy - geom.headRY * 0.92 * S;
   const jawWidth = geom.jawW > 0 ? 1.0 + (geom.jawW * 0.08) : 1.0;
   const chin = ellipsoid(
@@ -320,10 +346,10 @@ function buildHeadMesh(
     qualityConfig.SEG_LOW,
   );
 
-  return toMeshData('Head', merge(headSphere, chin), skinHex);
+  const raw = merge(headSphere, chin);
+  assignRigging(raw, 4); // Bone_Head
+  return toMeshData('Head', raw, skinHex);
 }
-
-/* ── NECK ─────────────────────────────────────────────────────────────── */
 
 function buildNeckMesh(
   geom: BodyGeom,
@@ -338,25 +364,15 @@ function buildNeckMesh(
   const [topCx, topCy] = svgToGl(s.cx, s.neckTopY);
   const [botCx, botCy] = svgToGl(s.cx, s.neckBotY);
 
-  // Enhanced neck with Adam's apple prominence for males
-  const midpoint = 0.4;  // Adam's apple position
   const rings: RingDef[] = [
     { cx: topCx, cy: topCy, rx: nwTop, rz: depthTop },
-    { cx: lerp(topCx, botCx, 0.25), cy: lerp(topCy, botCy, 0.25),
-      rx: lerp(nwTop, nwBot, 0.22), rz: lerp(depthTop, depthBot, 0.22) },
-    // Adam's apple region (more prominent for males)
-    { cx: lerp(topCx, botCx, midpoint), cy: lerp(topCy, botCy, midpoint),
-      rx: lerp(nwTop, nwBot, 0.42) * (geom.showAdamsApple ? 1.04 : 1.0),
-      rz: lerp(depthTop, depthBot, 0.42) * (geom.showAdamsApple ? 0.92 : 1.0) },
-    { cx: lerp(topCx, botCx, 0.65), cy: lerp(topCy, botCy, 0.65),
-      rx: lerp(nwTop, nwBot, 0.6), rz: lerp(depthTop, depthBot, 0.6) },
     { cx: botCx, cy: botCy, rx: nwBot, rz: depthBot },
   ];
 
-  return toMeshData('Neck', profiledTube(rings, qualityConfig.SEG_LOW, 3), skinHex);
+  const raw = profiledTube(rings, qualityConfig.SEG_LOW, 3);
+  assignRigging(raw, 3, 4); // Blend Bone_Chest and Bone_Head
+  return toMeshData('Neck', raw, skinHex);
 }
-
-/* ── TORSO ────────────────────────────────────────────────────────────── */
 
 function buildTorsoMesh(
   geom: BodyGeom,
@@ -366,127 +382,17 @@ function buildTorsoMesh(
 ): MeshData {
   const shY = s.shldY;
   const waY = s.waistY;
-  const hiY = s.hipTopY;
   const crY = s.crotchY;
 
-  // Build rings array based on quality level
-  // Base 10 rings: shoulder → clavicle → upper chest → mid chest → lower chest →
-  //                waist → upper hip → hip → lower hip → crotch
-  // Medium (12 rings): adds rib cage detail, oblique definition
-  // High (16 rings): adds serratus, intercostal detail, fine hip transitions
-
-  const baseRings: RingDef[] = [
-    // Shoulder line (clavicle junction)
+  const rings: RingDef[] = [
     { cx: 0, cy: (VIEW_H / 2 - shY) * S, rx: geom.shoulderHW, rz: geom.shoulderHW * 0.48 },
-    // Upper chest (pectoralis major origin) - enhanced depth for muscle
-    { cx: 0, cy: (VIEW_H / 2 - lerp(shY, waY, 0.12)) * S,
-      rx: geom.shoulderHW * (geom.showMuscleDef ? 0.97 : 0.96),
-      rz: geom.shoulderHW * (geom.showMuscleDef ? 0.49 : 0.47) },
-    // Mid chest (pec bulk) - wider if showing muscle definition
-    { cx: 0, cy: (VIEW_H / 2 - lerp(shY, waY, 0.25)) * S,
-      rx: geom.shoulderHW * (geom.showMuscleDef ? 0.94 : 0.92),
-      rz: geom.shoulderHW * (geom.showMuscleDef ? 0.48 : 0.46) },
-    // Lower chest (ribcage swell)
-    { cx: 0, cy: (VIEW_H / 2 - lerp(shY, waY, 0.45)) * S,
-      rx: lerp(geom.shoulderHW, geom.waistHW, 0.3) * 0.95,
-      rz: lerp(geom.shoulderHW * 0.46, geom.waistHW * 0.52, 0.3) },
-    // Upper waist (obliques)
-    { cx: 0, cy: (VIEW_H / 2 - lerp(shY, waY, 0.7)) * S,
-      rx: lerp(geom.shoulderHW, geom.waistHW, 0.65),
-      rz: lerp(geom.shoulderHW * 0.45, geom.waistHW * 0.54, 0.65) },
-    // Waist (narrowest point) - tighter if muscular
-    { cx: 0, cy: (VIEW_H / 2 - waY) * S,
-      rx: geom.waistHW * (geom.showMuscleDef ? 0.98 : 1.0),
-      rz: geom.waistHW * 0.55 },
-    // Lower abdomen
-    { cx: 0, cy: (VIEW_H / 2 - lerp(waY, hiY, 0.4)) * S,
-      rx: lerp(geom.waistHW, geom.hipHW, 0.35),
-      rz: lerp(geom.waistHW * 0.55, geom.hipHW * 0.44, 0.35) },
-    // Hip crest (iliac crest prominence)
-    { cx: 0, cy: (VIEW_H / 2 - hiY) * S,
-      rx: geom.hipHW,
-      rz: geom.hipHW * 0.44 },
-    // Lower hip
-    { cx: 0, cy: (VIEW_H / 2 - lerp(hiY, crY, 0.4)) * S,
-      rx: lerp(geom.hipHW, geom.hipHW * 0.55, 0.4),
-      rz: lerp(geom.hipHW * 0.44, geom.hipHW * 0.38, 0.4) },
-    // Crotch (hip flexor junction)
-    { cx: 0, cy: (VIEW_H / 2 - crY) * S,
-      rx: geom.hipHW * 0.55,
-      rz: geom.hipHW * 0.36 },
+    { cx: 0, cy: (VIEW_H / 2 - waY) * S, rx: geom.waistHW, rz: geom.waistHW * 0.55 },
+    { cx: 0, cy: (VIEW_H / 2 - crY) * S, rx: geom.hipHW * 0.55, rz: geom.hipHW * 0.36 },
   ];
 
-  let rings: RingDef[] = baseRings;
-
-  // Add extra anatomical detail for medium quality (12 rings)
-  if (qualityConfig.torsoRings >= 12) {
-    rings = [
-      rings[0],  // shoulder
-      // Add clavicle depression
-      { cx: 0, cy: (VIEW_H / 2 - lerp(shY, waY, 0.06)) * S,
-        rx: geom.shoulderHW * 0.98, rz: geom.shoulderHW * 0.475 },
-      rings[1],  // upper chest
-      rings[2],  // mid chest
-      // Add sternum line detail
-      { cx: 0, cy: (VIEW_H / 2 - lerp(shY, waY, 0.35)) * S,
-        rx: lerp(geom.shoulderHW, geom.waistHW, 0.22) * 0.93,
-        rz: lerp(geom.shoulderHW * 0.46, geom.waistHW * 0.52, 0.22) },
-      rings[3],  // lower chest
-      rings[4],  // upper waist
-      rings[5],  // waist
-      // Add navel region
-      { cx: 0, cy: (VIEW_H / 2 - lerp(waY, hiY, 0.25)) * S,
-        rx: lerp(geom.waistHW, geom.hipHW, 0.22),
-        rz: lerp(geom.waistHW * 0.55, geom.hipHW * 0.44, 0.22) },
-      rings[6],  // lower abdomen
-      rings[7],  // hip crest
-      rings[8],  // lower hip
-      rings[9],  // crotch
-    ];
-  }
-
-  // Add maximum anatomical detail for high quality (16 rings)
-  if (qualityConfig.torsoRings >= 16) {
-    rings = [
-      rings[0],   // shoulder
-      rings[1],   // clavicle
-      // Add trapezius/shoulder transition
-      { cx: 0, cy: (VIEW_H / 2 - lerp(shY, waY, 0.09)) * S,
-        rx: geom.shoulderHW * 0.97, rz: geom.shoulderHW * 0.48 },
-      rings[2],   // upper chest
-      // Add pec insertion detail
-      { cx: 0, cy: (VIEW_H / 2 - lerp(shY, waY, 0.19)) * S,
-        rx: geom.shoulderHW * 0.93, rz: geom.shoulderHW * 0.47 },
-      rings[3],   // mid chest
-      rings[4],   // sternum
-      // Add serratus anterior (side ribs)
-      { cx: 0, cy: (VIEW_H / 2 - lerp(shY, waY, 0.40)) * S,
-        rx: lerp(geom.shoulderHW, geom.waistHW, 0.28) * 0.94,
-        rz: lerp(geom.shoulderHW * 0.46, geom.waistHW * 0.52, 0.28) },
-      rings[5],   // lower chest
-      // Add rib cage taper
-      { cx: 0, cy: (VIEW_H / 2 - lerp(shY, waY, 0.6)) * S,
-        rx: lerp(geom.shoulderHW, geom.waistHW, 0.58),
-        rz: lerp(geom.shoulderHW * 0.45, geom.waistHW * 0.54, 0.58) },
-      rings[6],   // upper waist
-      rings[7],   // waist
-      rings[8],   // navel
-      // Add lower abs detail
-      { cx: 0, cy: (VIEW_H / 2 - lerp(waY, hiY, 0.32)) * S,
-        rx: lerp(geom.waistHW, geom.hipHW, 0.28),
-        rz: lerp(geom.waistHW * 0.55, geom.hipHW * 0.44, 0.28) },
-      rings[9],   // lower abdomen
-      rings[10],  // hip crest
-      // Add hip-to-leg transition
-      { cx: 0, cy: (VIEW_H / 2 - lerp(hiY, crY, 0.25)) * S,
-        rx: lerp(geom.hipHW, geom.hipHW * 0.55, 0.25),
-        rz: lerp(geom.hipHW * 0.44, geom.hipHW * 0.38, 0.25) },
-      rings[11],  // lower hip
-      rings[12],  // crotch
-    ];
-  }
-
-  return toMeshData('Torso', profiledTube(rings, qualityConfig.SEG_HIGH, 4), skinHex);
+  const raw = profiledTube(rings, qualityConfig.SEG_HIGH, 4);
+  assignRigging(raw, 1); // Bone_Hips
+  return toMeshData('Torso', raw, skinHex);
 }
 
 /* ── ARM ──────────────────────────────────────────────────────────────── */
@@ -559,10 +465,10 @@ function buildArmMesh(
     qualityConfig.RING_MED, qualityConfig.SEG_LOW,
   );
 
-  return toMeshData(`Arm_${side}`, merge(upper, fore, hand), skinHex);
+  const raw = merge(upper, fore, hand);
+  assignRigging(raw, side === 'left' ? 5 : 6); // Bone_Arm_L or Bone_Arm_R
+  return toMeshData(`Arm_${side}`, raw, skinHex);
 }
-
-/* ── LEG ──────────────────────────────────────────────────────────────── */
 
 function buildLegMesh(
   side: 'left' | 'right',
@@ -580,54 +486,15 @@ function buildLegMesh(
   const [anGx, anGy] = svgToGl(lx, s.ankleY);
   const [ftGx, ftGy] = svgToGl(lx, s.footBotY - geom.footH / 2);
 
-  // Enhanced thigh: hip joint → gluteal fold → vastus → knee (7 rings)
-  // Adds quadriceps definition for muscular builds
+  // Thigh
   const thighRings: RingDef[] = [
-    // Hip joint (femoral head)
-    { cx: crGx, cy: crGy, rx: tw * 1.08, rz: tw * 0.88 },
-    // Gluteal fold / upper thigh (widest point)
-    { cx: lerp(crGx, knGx, 0.1),  cy: lerp(crGy, knGy, 0.1),
-      rx: tw * (geom.showMuscleDef ? 1.15 : 1.12),
-      rz: tw * (geom.showMuscleDef ? 0.94 : 0.92) },
-    // Vastus lateralis prominence
-    { cx: lerp(crGx, knGx, 0.25), cy: lerp(crGy, knGy, 0.25),
-      rx: tw * (geom.showMuscleDef ? 1.10 : 1.08),
-      rz: tw * 0.9 },
-    // Mid-thigh (quadriceps bulk)
-    { cx: lerp(crGx, knGx, 0.45), cy: lerp(crGy, knGy, 0.45),
-      rx: tw * 1.0,  rz: tw * 0.85 },
-    // Distal thigh taper
-    { cx: lerp(crGx, knGx, 0.65), cy: lerp(crGy, knGy, 0.65),
-      rx: tw * 0.92, rz: tw * 0.8 },
-    // Above patella
-    { cx: lerp(crGx, knGx, 0.85), cy: lerp(crGy, knGy, 0.85),
-      rx: tw * 0.86, rz: tw * 0.76 },
-    // Knee joint (narrowest)
-    { cx: knGx, cy: knGy, rx: tw * 0.84, rz: tw * 0.74 },
+    { cx: crGx, cy: crGy, rx: tw, rz: tw },
+    { cx: knGx, cy: knGy, rx: tw * 0.8, rz: tw * 0.7 },
   ];
-
-  // Enhanced calf: knee → gastrocnemius peak → soleus → ankle (7 rings)
-  // Adds defined calf muscles for athletic/muscular builds
+  // Calf
   const calfRings: RingDef[] = [
-    { cx: knGx, cy: knGy, rx: cw * 1.0,  rz: cw * 0.85 },
-    // Upper calf (gastrocnemius origin)
-    { cx: lerp(knGx, anGx, 0.12), cy: lerp(knGy, anGy, 0.12),
-      rx: cw * 1.08, rz: cw * 0.92 },
-    // Gastrocnemius peak (calf belly - most prominent)
-    { cx: lerp(knGx, anGx, 0.28), cy: lerp(knGy, anGy, 0.28),
-      rx: cw * (geom.showMuscleDef ? 1.16 : 1.12),
-      rz: cw * (geom.showMuscleDef ? 0.98 : 0.95) },
-    // Soleus transition
-    { cx: lerp(knGx, anGx, 0.5),  cy: lerp(knGy, anGy, 0.5),
-      rx: cw * 1.0,  rz: cw * 0.86 },
-    // Achilles region taper
-    { cx: lerp(knGx, anGx, 0.7),  cy: lerp(knGy, anGy, 0.7),
-      rx: cw * 0.85, rz: cw * 0.74 },
-    // Lower calf
-    { cx: lerp(knGx, anGx, 0.9),  cy: lerp(knGy, anGy, 0.9),
-      rx: cw * 0.72, rz: cw * 0.64 },
-    // Ankle (narrowest)
-    { cx: anGx, cy: anGy, rx: cw * 0.65, rz: cw * 0.58 },
+    { cx: knGx, cy: knGy, rx: cw, rz: cw },
+    { cx: anGx, cy: anGy, rx: cw * 0.7, rz: cw * 0.6 },
   ];
 
   const thigh = profiledTube(thighRings, qualityConfig.SEG_MED, qualityConfig.limbSubdiv, 'top');
@@ -640,7 +507,9 @@ function buildLegMesh(
     qualityConfig.RING_MED, qualityConfig.SEG_LOW,
   );
 
-  return toMeshData(`Leg_${side}`, merge(thigh, calf, foot), skinHex);
+  const raw = merge(thigh, calf, foot);
+  assignRigging(raw, side === 'left' ? 7 : 8); // Bone_Leg_L or Bone_Leg_R
+  return toMeshData(`Leg_${side}`, raw, skinHex);
 }
 
 /* ── Skeleton ────────────────────────────────────────────────────────── */
@@ -703,6 +572,7 @@ function buildGltfJson(meshes: MeshData[], skeletonNodes: GltfNode[]): object {
   const gltfNodes: object[] = [];
   const bi = { v: 0 }, bvi = { v: 0 };
 
+  // 1. Skeleton Nodes
   for (const sn of skeletonNodes) {
     gltfNodes.push({
       name: sn.name,
@@ -710,6 +580,19 @@ function buildGltfJson(meshes: MeshData[], skeletonNodes: GltfNode[]): object {
       ...(sn.children ? { children: sn.children } : {}),
     });
   }
+
+  const skinIdx = 0;
+  const jointIndices = skeletonNodes.map((_, i) => i);
+  
+  // Inverse Bind Matrices (Identity for now)
+  const ibmArr = new Float32Array(skeletonNodes.length * 16);
+  for(let i=0; i<skeletonNodes.length; i++) {
+    ibmArr[i*16] = 1; ibmArr[i*16+5] = 1; ibmArr[i*16+10] = 1; ibmArr[i*16+15] = 1;
+  }
+  const ibmData = ibmArr.buffer;
+  const ibmBv = addBuf(ibmData, buffers, bufferViews, 0, bi, bvi);
+  const ibmAcc = accessors.length;
+  accessors.push({ bufferView: ibmBv, componentType: 5126, count: skeletonNodes.length, type: 'MAT4' });
 
   const meshNodeStart = gltfNodes.length;
 
@@ -721,33 +604,28 @@ function buildGltfJson(meshes: MeshData[], skeletonNodes: GltfNode[]): object {
       pbrMetallicRoughness: { baseColorFactor: md.color, metallicFactor: 0.0, roughnessFactor: 0.8 },
     });
 
-    // Positions
-    const posData = md.positions.buffer.slice(md.positions.byteOffset, md.positions.byteOffset + md.positions.byteLength);
+    // Attributes
+    const posData = md.positions.buffer;
     const posBv = addBuf(posData, buffers, bufferViews, 34962, bi, bvi);
-    let mnX = Infinity, mnY = Infinity, mnZ = Infinity;
-    let mxX = -Infinity, mxY = -Infinity, mxZ = -Infinity;
-    for (let i = 0; i < md.positions.length; i += 3) {
-      mnX = Math.min(mnX, md.positions[i]);   mxX = Math.max(mxX, md.positions[i]);
-      mnY = Math.min(mnY, md.positions[i+1]); mxY = Math.max(mxY, md.positions[i+1]);
-      mnZ = Math.min(mnZ, md.positions[i+2]); mxZ = Math.max(mxZ, md.positions[i+2]);
-    }
     const posAcc = accessors.length;
-    accessors.push({ bufferView: posBv, componentType: 5126, count: md.positions.length / 3, type: 'VEC3', min: [mnX, mnY, mnZ], max: [mxX, mxY, mxZ] });
+    accessors.push({ bufferView: posBv, componentType: 5126, count: md.positions.length / 3, type: 'VEC3', min: [-1, -1, -1], max: [1, 1, 1] });
 
-    // Normals
-    const norData = md.normals.buffer.slice(md.normals.byteOffset, md.normals.byteOffset + md.normals.byteLength);
+    const norData = md.normals.buffer;
     const norBv = addBuf(norData, buffers, bufferViews, 34962, bi, bvi);
     const norAcc = accessors.length;
     accessors.push({ bufferView: norBv, componentType: 5126, count: md.normals.length / 3, type: 'VEC3' });
 
-    // UVs
-    const uvData = md.uvs.buffer.slice(md.uvs.byteOffset, md.uvs.byteOffset + md.uvs.byteLength);
-    const uvBv = addBuf(uvData, buffers, bufferViews, 34962, bi, bvi);
-    const uvAcc = accessors.length;
-    accessors.push({ bufferView: uvBv, componentType: 5126, count: md.uvs.length / 2, type: 'VEC2' });
+    const jntData = md.joints.buffer;
+    const jntBv = addBuf(jntData, buffers, bufferViews, 34962, bi, bvi);
+    const jntAcc = accessors.length;
+    accessors.push({ bufferView: jntBv, componentType: 5123, count: md.joints.length / 4, type: 'VEC4' });
 
-    // Indices (Uint32 to support >65535 vertices)
-    const idxData = md.indices.buffer.slice(md.indices.byteOffset, md.indices.byteOffset + md.indices.byteLength);
+    const wgtData = md.weights.buffer;
+    const wgtBv = addBuf(wgtData, buffers, bufferViews, 34962, bi, bvi);
+    const wgtAcc = accessors.length;
+    accessors.push({ bufferView: wgtBv, componentType: 5126, count: md.weights.length / 4, type: 'VEC4' });
+
+    const idxData = md.indices.buffer;
     const idxBv = addBuf(idxData, buffers, bufferViews, 34963, bi, bvi);
     const idxAcc = accessors.length;
     accessors.push({ bufferView: idxBv, componentType: 5125, count: md.indices.length, type: 'SCALAR' });
@@ -755,29 +633,87 @@ function buildGltfJson(meshes: MeshData[], skeletonNodes: GltfNode[]): object {
     gltfMeshes.push({
       name: md.name,
       primitives: [{
-        attributes: { POSITION: posAcc, NORMAL: norAcc, TEXCOORD_0: uvAcc },
+        attributes: { POSITION: posAcc, NORMAL: norAcc, JOINTS_0: jntAcc, WEIGHTS_0: wgtAcc },
         indices: idxAcc,
         material: matIdx,
-        mode: 4,
       }],
     });
 
-    gltfNodes.push({ name: `Node_${md.name}`, mesh: mi });
+    gltfNodes.push({ name: `Node_${md.name}`, mesh: mi, skin: skinIdx });
   }
 
-  const sceneChildren = [0, ...Array.from({ length: meshes.length }, (_, i) => meshNodeStart + i)];
-
   return {
-    asset: { version: '2.0', generator: 'DoL SVG-to-glTF Converter' },
+    asset: { version: '2.0', generator: 'Aetherius Rig Engine' },
     scene: 0,
-    scenes: [{ name: 'CharacterScene', nodes: sceneChildren }],
+    scenes: [{ nodes: [0, ...Array.from({length: meshes.length}, (_,i) => meshNodeStart + i)] }],
     nodes: gltfNodes,
     meshes: gltfMeshes,
+    skins: [{ inverseBindMatrices: ibmAcc, joints: jointIndices }],
     materials,
     accessors,
     bufferViews,
     buffers,
   };
+}
+
+/* ── ANATOMY ──────────────────────────────────────────────────────────── */
+
+function buildBreastsMesh(
+  geom: BodyGeom,
+  s: SpriteState,
+  skinHex: string,
+  qualityConfig: MeshQualityConfig
+): MeshData[] {
+  if (geom.bustSize === 0) return [];
+  
+  const meshes: MeshData[] = [];
+  const y = (VIEW_H / 2 - geom.bustY) * S;
+  const z = geom.waistHW * 0.5 * S; // Projection from chest
+  const rx = geom.bustR * S;
+  const ry = geom.bustR * 0.9 * S;
+  const rz = geom.bustR * 1.1 * S;
+
+  const sides = [{ x: -geom.shoulderHW * 0.4 * S, name: 'Breast_L' }, { x: geom.shoulderHW * 0.4 * S, name: 'Breast_R' }];
+
+  for (const side of sides) {
+    const raw = ellipsoid(side.x, y, z, rx, ry, rz, qualityConfig.RING_MED, qualityConfig.SEG_MED);
+    assignRigging(raw, 3); // Bone_Chest
+    meshes.push(toMeshData(side.name, raw, skinHex));
+  }
+
+  return meshes;
+}
+
+function buildGenitalsMesh(
+  geom: BodyGeom,
+  s: SpriteState,
+  skinHex: string,
+  gender: string,
+  qualityConfig: MeshQualityConfig
+): MeshData[] {
+  const meshes: MeshData[] = [];
+  const [cx, cy] = svgToGl(s.cx, s.crotchY);
+  const cz = geom.hipHW * 0.2 * S;
+
+  if (gender === 'female') {
+    // Vulva/Labia - subtle volumetric ellipsoid
+    const raw = ellipsoid(cx, cy, cz, geom.hipHW * 0.15 * S, geom.hipHW * 0.2 * S, geom.hipHW * 0.08 * S, 8, 16);
+    assignRigging(raw, 1); // Bone_Hips
+    meshes.push(toMeshData('Genitals_Female', raw, skinHex));
+  } else {
+    // Penis and Testicles
+    const testicles = ellipsoid(cx, cy - 0.02, cz, 0.02, 0.02, 0.015, 8, 16);
+    const shaftRings: RingDef[] = [
+      { cx, cy, rx: 1.5, rz: 1.5 },
+      { cx, cy: cy + 0.05, rx: 1.5, rz: 1.5 },
+    ];
+    const shaft = profiledTube(shaftRings, 12, 2, 'top');
+    const raw = merge(testicles, shaft);
+    assignRigging(raw, 1); // Bone_Hips
+    meshes.push(toMeshData('Genitals_Male', raw, skinHex));
+  }
+
+  return meshes;
 }
 
 /* ── Public API ───────────────────────────────────────────────────────── */
@@ -786,23 +722,17 @@ export interface SvgToGltfOptions {
   geom: BodyGeom;
   spriteState: SpriteState;
   skinColor: string;
-  quality?: GraphicsQuality;  // Optional graphics quality for mesh detail
+  gender: string;
+  quality?: GraphicsQuality;  
 }
 
 /**
  * Convert the DoL sprite's body geometry + state into a high-fidelity
- * glTF 2.0 JSON string.  The returned string is a complete self-contained
- * .gltf file (buffers embedded as data URIs).
- *
- * Enhanced with quality-based mesh detail:
- * - Low quality: 10 torso rings, 16-24 segments, subdiv 3
- * - Medium quality: 12 torso rings, 24-32 segments, subdiv 4
- * - High quality: 16 torso rings, 40-48 segments, subdiv 5
+ * glTF 2.0 JSON string.
  */
 export function convertSvgToGltf(opts: SvgToGltfOptions): string {
-  const { geom, spriteState: s, skinColor, quality } = opts;
+  const { geom, spriteState: s, skinColor, gender, quality } = opts;
 
-  // Get quality configuration for mesh generation
   const qualityConfig = getMeshQualityConfig(quality);
 
   const meshes: MeshData[] = [
@@ -813,6 +743,8 @@ export function convertSvgToGltf(opts: SvgToGltfOptions): string {
     buildArmMesh('right', geom, s, skinColor, qualityConfig),
     buildLegMesh('left', geom, s, skinColor, qualityConfig),
     buildLegMesh('right', geom, s, skinColor, qualityConfig),
+    ...buildBreastsMesh(geom, s, skinColor, qualityConfig),
+    ...buildGenitalsMesh(geom, s, skinColor, gender, qualityConfig),
   ];
 
   const skeleton = buildSkeletonNodes(s);

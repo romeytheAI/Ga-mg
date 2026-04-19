@@ -63,6 +63,7 @@ export const GltfExportButton: React.FC<GltfExportButtonProps> = ({ state }) => 
       geom, 
       spriteState, 
       skinColor, 
+      gender: identity.gender,
       quality: getQualityPreset('ultra') 
     });
     const name = identity.name?.replace(/\s+/g, '_') || 'character';

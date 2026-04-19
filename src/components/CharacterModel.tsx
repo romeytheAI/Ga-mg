@@ -1,13 +1,14 @@
 import React from 'react';
 import { motion } from 'motion/react';
-import { Anatomy } from '../types';
+import { Anatomy, GameState } from '../types';
 
 interface CharacterModelProps {
   anatomy: Anatomy;
   isPlayer: boolean;
+  state?: GameState;
 }
 
-export const CharacterModel: React.FC<CharacterModelProps> = ({ anatomy, isPlayer }) => {
+export const CharacterModel: React.FC<CharacterModelProps> = ({ anatomy, isPlayer, state }) => {
   // Derive visual style from anatomy
   const isTall = parseInt(anatomy.height) > 180;
   const isMuscular = anatomy.build === 'muscular';
@@ -37,6 +38,25 @@ export const CharacterModel: React.FC<CharacterModelProps> = ({ anatomy, isPlaye
           <h4 className="uppercase tracking-widest mb-2 font-bold">{anatomy.visage}</h4>
           <p>Height: {anatomy.height}</p>
           <p>Build: {anatomy.build}</p>
+          
+          {isPlayer && state && state.player.clothing_damage.length > 0 && (
+            <div className="mt-4 border-t border-white/10 pt-4 space-y-2">
+              <h5 className="text-[8px] text-red-400 uppercase tracking-widest">Attire Condition</h5>
+              {state.player.clothing_damage.map(d => (
+                <div key={d.slot} className="flex flex-col gap-0.5">
+                  <div className="flex justify-between items-center text-[7px] uppercase">
+                    <span className="text-white/40">{d.slot}</span>
+                    <span className="text-red-300">{d.tear_size}% torn</span>
+                  </div>
+                  <div className="flex flex-wrap gap-1 mt-0.5">
+                    {d.stains.map(s => (
+                      <span key={s} className="px-1 bg-black/60 border border-white/5 text-[6px] text-white/30 uppercase">{s}</span>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </motion.div>
     </div>

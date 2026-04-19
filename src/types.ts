@@ -545,17 +545,45 @@ export interface PlayerSocial {
   town_pariah: boolean;
 }
 
+export type MagicSchool = 'destruction' | 'restoration' | 'illusion' | 'conjuration' | 'alteration' | 'mysticism';
+export type SpellTier = 'novice' | 'apprentice' | 'adept' | 'expert' | 'master';
+
+export interface Spell {
+  id: string;
+  name: string;
+  school: MagicSchool;
+  tier: SpellTier;
+  magicka_cost: number;
+  effect_id: string;
+  description: string;
+}
+
+export interface ActiveEffect {
+  id: string;
+  effect_id?: string; // used for logic checks like 'soul_trap'
+  name: string;
+  type: 'buff' | 'debuff' | 'curse' | 'boon';
+  duration: number; // in hours
+  magnitude: number;
+  school?: MagicSchool;
+}
+
 // ── DoL-parity: Player Arcane ──────────────────────────────────────────────
 export interface PlayerArcane {
-  spells: string[];
+  mana: number;
+  max_mana: number;
+  spells: Spell[];
+  active_effects: ActiveEffect[];
   magicka_overcharge: boolean;
   blood_vials: number;
   true_sight: boolean;
   telepathy_unlocked: boolean;
   toxicity: number;
   withdrawal_timer: number;
-  soul_gems: number;
+  soul_gems: { id: string, size: 'petty'|'lesser'|'common'|'greater'|'grand'|'black', filled: boolean, soul_type?: string }[];
   tattoos: string[];
+  runes_active: { id: string, type: string, power: number, location: string }[];
+  active_rituals: { id: string, progress: number, components_added: string[] }[];
   corruption_taint: number;
   astral_projection: boolean;
 }
@@ -593,7 +621,7 @@ export interface PlayerSubconscious {
   dream_journal: string[];
 }
 
-export type StatKey = 'health' | 'stamina' | 'willpower' | 'lust' | 'trauma' | 'hygiene' | 'corruption' | 'allure' | 'arousal' | 'pain' | 'control' | 'stress' | 'hallucination' | 'purity';
+export type StatKey = 'health' | 'stamina' | 'willpower' | 'lust' | 'trauma' | 'hygiene' | 'corruption' | 'allure' | 'arousal' | 'pain' | 'control' | 'stress' | 'hallucination' | 'purity' | 'devotion';
 
 export type ClothingSlot =
   | 'head'
@@ -621,6 +649,8 @@ export interface Item {
   is_equipped?: boolean;
   lore?: string;
   special_effect?: string;
+  buc_status?: 'blessed' | 'uncursed' | 'cursed';
+  identification?: 'unidentified' | 'familiar' | 'identified';
 }
 
 export interface ClothingLayer {
@@ -940,6 +970,26 @@ export interface GameState {
     /** Active job type — 'none' when unemployed (Milestone 9) */
     player_job: JobType,
     level: number,
+    /** S.P.E.C.I.A.L. Attribute System (Fallout/CDDA-style) */
+    attributes: {
+      strength: number;     // STR: Carry weight, physical damage
+      perception: number;   // PER: Discovery chance, accuracy
+      endurance: number;    // END: Max health, stamina regen, resistance
+      charisma: number;     // CHA: Seduction, trading, NPC trust
+      intelligence: number; // INT: Lore mastery, xp gain, literacy speed
+      agility: number;      // AGI: Stealth, fleeing, movement
+      luck: number;         // LCK: Random event quality, crit chance
+    },
+    /** Permanent traits and unlocked abilities (NV Perk Style) */
+    unlocked_perks: {
+      id: string;
+      name: string;
+      tier: number;
+      rank: number;
+    }[],
+    perk_points: number,
+    xp: number,
+    xp_to_next_level: number,
     /** Substance addiction state — tracks dependency, tolerance, withdrawal (Milestone 9) */
     addiction_state: PlayerAddictionState,
     /** Body transformation and ascension path (Milestone 10) */
@@ -954,10 +1004,51 @@ export interface GameState {
     fame_record: PlayerFameRecord,
     /** Computed allure and presence state (Milestone 11) */
     allure_state: PlayerAllureState,
+    mantling: import('./sim/types').MantlingState | null,
+    clothing_damage: import('./sim/types').ClothingDamage[],
     age_days: number,
     avatar_url?: string | null,
     quests: Quest[],
-    known_recipes: string[]
+    known_recipes: string[],
+    /** Dynasty and multi-generational lineage tracking (CK3-style) */
+    dynasty: {
+      house_name: string;
+      prestige: number;
+      lineage: { id: string, name: string, relationship: 'parent'|'child'|'sibling'|'spouse', status: 'alive'|'dead', traits: string[] }[];
+      succession_law: 'primogeniture' | 'ultimogeniture' | 'seniority' | 'elective';
+      is_locket_possessed: boolean;
+      generational_count: number;
+    },
+    /** Winterhold / Academy system (DoL-parity School) */
+    academy: {
+      enrolled: boolean;
+      track: 'destruction' | 'restoration' | 'illusion' | 'conjuration' | 'alteration' | 'none';
+      grades: Record<string, number>; // track -> 0-100
+      attendance_record: number; // consecutive days
+      suspension_timer: number;
+      is_archmage_candidate: boolean;
+    },
+    /** Special starting modifiers and socioeconomic status */
+    origin_config: {
+      socioeconomic: 'destitute' | 'peasant' | 'merchant' | 'noble' | 'outcast';
+      start_condition: 'standard' | 'experiment' | 'refugee' | 'possessed_locket';
+      starting_age_category: 'young' | 'adult' | 'middle_aged' | 'elder';
+    },
+    /** Player's discovered knowledge - items, locations, NPCs, lore (Phase 6) */
+    knowledge: {
+      discovered_locations: string[], // ids
+      discovered_items: string[],      // ids
+      discovered_npcs: string[],       // ids
+      discovered_lore: string[],       // ids
+      discovered_taboos: string[],     // cultural boundaries known
+      unlocked_spells: string[],
+      unlocked_runes: string[],
+      active_rituals: string[],
+      sexual_awareness: number,        // 0-100 (DoL-parity Awareness)
+      literacy_level: 'illiterate' | 'basic' | 'fluent' | 'scholar' | 'sage';
+      enlightenment: number;           // 0-100, grants metaphysical insight
+      library_size: number;
+    }
   },
   /** World simulation state - time, location, events, NPCs, factions */
   world: {
@@ -1034,6 +1125,9 @@ export interface GameState {
     show_traits: boolean,
     show_day_summary: boolean,
     show_life_sim_dashboard: boolean,
+    show_character_creation: boolean,
+    show_succession: boolean,
+    show_settings: boolean,
     highlighted_part: string | null,
     targeted_part: string | null,
     combat_animation: string | null,

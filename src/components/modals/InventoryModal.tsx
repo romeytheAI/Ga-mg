@@ -3,6 +3,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X } from 'lucide-react';
 import { GameState, Item } from '../../types';
 
+import { identifyItem } from '../../sim/DiscoverySystem';
+
 interface InventoryModalProps {
   state: GameState;
   dispatch: React.Dispatch<any>;
@@ -67,12 +69,14 @@ export const InventoryModal: React.FC<InventoryModalProps> = ({ state, dispatch,
                       >
                         <div className="flex justify-between items-center mb-1">
                           <div className="flex items-center gap-2">
-                            <span className="text-sm font-serif text-white/90">{item.name}</span>
+                            <span className="text-sm font-serif text-white/90">{identifyItem(state, item)}</span>
                             <span className={`text-[8px] px-1 border uppercase rounded-sm ${item.rarity === 'common' ? 'border-white/20 text-white/40' : item.rarity === 'mythic' ? 'border-red-500 text-red-500' : 'border-purple-500 text-purple-500'}`}>{item.rarity}</span>
                           </div>
                           <span className="text-[10px] text-white/30 uppercase tracking-widest">{item.type} {item.slot ? `(${item.slot})` : ''}</span>
                         </div>
-                        <p className="text-[10px] text-white/40 mb-2 line-clamp-1 group-hover:line-clamp-none transition-all">{item.description}</p>
+                        <p className="text-[10px] text-white/40 mb-2 line-clamp-1 group-hover:line-clamp-none transition-all">
+                          {state.player.knowledge.discovered_items.includes(item.id) ? item.description : "You are not familiar with this object."}
+                        </p>
                         
                         <div className="flex justify-between items-end mt-auto pt-2">
                           <div className="flex flex-wrap gap-1">

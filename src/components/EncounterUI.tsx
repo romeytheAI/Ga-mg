@@ -133,7 +133,11 @@ export const EncounterUI: React.FC<EncounterUIProps> = ({ encounter, playerStats
         <span className="text-[10px] uppercase tracking-widest text-red-500/50">Turn {encounter.turn}</span>
       </div>
       <div className="flex justify-center my-4 relative z-10">
-        {state && show3D ? (
+        {state?.player.afflictions.includes('permanently_blind') ? (
+          <div className="w-full h-[280px] bg-black flex flex-col items-center justify-center border border-white/5">
+             <div className="text-[10px] tracking-[0.5em] uppercase text-white/20 animate-pulse">Sightless</div>
+          </div>
+        ) : state && show3D ? (
           <div className="w-full">
             <React.Suspense fallback={<div className="text-white/20 text-xs text-center p-4">Loading 3D…</div>}>
             <GltfViewer3D
@@ -144,7 +148,7 @@ export const EncounterUI: React.FC<EncounterUIProps> = ({ encounter, playerStats
             </React.Suspense>
           </div>
         ) : (
-          <CharacterModel anatomy={encounter.anatomy} isPlayer={false} />
+          <CharacterModel anatomy={encounter.anatomy} isPlayer={false} state={state} />
         )}
       </div>
       {/* 3D / 2D toggle */}
@@ -164,6 +168,29 @@ export const EncounterUI: React.FC<EncounterUIProps> = ({ encounter, playerStats
       {/* ── Restraint Status (Milestone 8) ── */}
       {restraints && restraints.entries.length > 0 && (
         <RestraintPanel restraints={restraints} />
+      )}
+
+      {/* Spellbook / Arcane Actions */}
+      {state && state.player.arcane.spells.length > 0 && (
+        <div className="flex flex-col gap-2 relative z-10 border-t border-purple-900/30 pt-3">
+          <span className="text-[8px] uppercase tracking-widest text-purple-400 font-bold">Arcane Reservoir: {Math.round(state.player.arcane.mana)}/{state.player.arcane.max_mana}</span>
+          <div className="flex flex-wrap gap-2">
+            {state.player.arcane.spells.map(spell => (
+              <button
+                key={spell.id}
+                disabled={state.player.arcane.mana < spell.magicka_cost}
+                onClick={() => onAction(`Cast ${spell.name}`, 'arcane', spell.id)}
+                className={`px-3 py-1 border rounded-sm text-[9px] uppercase tracking-widest transition-all ${
+                  state.player.arcane.mana >= spell.magicka_cost
+                    ? 'bg-purple-950/20 border-purple-500/50 text-purple-200 hover:bg-purple-900/40 hover:border-purple-400'
+                    : 'bg-black/40 border-white/5 text-white/20 cursor-not-allowed'
+                }`}
+              >
+                {spell.name} ({spell.magicka_cost})
+              </button>
+            ))}
+          </div>
+        </div>
       )}
 
       {/* Target Selection */}

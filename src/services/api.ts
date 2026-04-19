@@ -4,9 +4,58 @@ import { imageWorker } from '../utils/workers';
 import { costTracker } from '../dafl/CostTracker';
 import { SemanticAudit } from '../dafl/SemanticAudit';
 
-export async function generateText(prompt: string, apiKey: string, hordeApiKey: string, model: string, dispatch?: any, skipLore: boolean = false) {
+import { GameState } from '../types';
+
+/**
+ * Builds a state-aware context for the AI Director.
+ * This "Realizes" features like Ignorance, Mantling, and Origin.
+ */
+function buildDirectorContext(state: GameState): string {
+  const { player, world } = state;
+  const p = player;
+  const w = world;
+
+  return `
+[DIRECTOR CONTEXT]
+- PLAYER: ${p.identity.name} (${p.identity.race} ${p.identity.gender})
+- ORIGIN: ${p.origin_config.start_condition} (${p.origin_config.socioeconomic})
+- MANTLING: ${p.mantling ? `Synchronizing with ${p.mantling.target_god} (${p.mantling.synchronicity}%)` : 'None'}
+- LITERACY: ${p.cosmetics.literacy ? 'Literate' : 'Illiterate (Gamble with text)'}
+- SEXUAL AWARENESS: ${p.knowledge.sexual_awareness}/100
+- KNOWN TABOOS: ${p.knowledge.discovered_taboos.join(', ') || 'None'}
+- KNOWLEDGE: Discovered ${p.knowledge.discovered_locations.length} locations.
+- WORLD STATE: Day ${w.day}, Hour ${w.hour}, Weather: ${w.weather}
+- DIVINE STATE: ${w.active_world_events.join(', ') || 'Calm'}
+- CURRENT STATUS: Health ${p.stats.health}%, Willpower ${p.stats.willpower}%, Stress ${p.stats.stress}%
+[/DIRECTOR CONTEXT]
+  `.trim();
+}
+
+export async function generateText(
+  prompt: string, 
+  apiKey: string, 
+  hordeApiKey: string, 
+  model: string, 
+  dispatch?: any, 
+  skipLore: boolean = false,
+  state?: GameState
+) {
+  const directorContext = state ? buildDirectorContext(state) : "";
   const relevantLore = skipLore ? null : getRelevantLore(prompt, 10);
-  let enhancedPrompt = relevantLore ? `Relevant Elder Scrolls Lore:\n${relevantLore}\n\n${prompt}` : prompt;
+  
+  let enhancedPrompt = `
+${directorContext}
+${relevantLore ? `Relevant Elder Scrolls Lore:\n${relevantLore}` : ""}
+
+Scenario:
+${prompt}
+
+Director Instructions:
+- Maintain high-fidelity Elder Scrolls atmosphere.
+- If player is illiterate and reading is involved, render text as mysterious symbols or gibberish.
+- Reflect the player's origins and mantling progression in the prose.
+- Respond ONLY with valid JSON in the requested format.
+  `.trim();
 
   // Apply semantic audit to optimize token usage
   const { optimized, audit } = SemanticAudit.auditPrompt(enhancedPrompt);

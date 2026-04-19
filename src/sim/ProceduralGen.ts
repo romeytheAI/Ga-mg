@@ -145,6 +145,7 @@ export function generateNpc(seed: number, locationId: string): SimNpc {
     companion_state: defaultCompanionState(),
     allure_state: defaultAllureState(),
     restraint_state: defaultRestraintState(),
+    clothing_damage: [],
   };
 }
 
@@ -240,13 +241,7 @@ export function generateWorldLocations(seed: number): SimLocation[] {
 }
 
 /** Procedurally generate a starting world with NPCs. */
-export function generateStartingWorld(seed: number): {
-  locations: SimLocation[];
-  npcs: SimNpc[];
-  economy: ReturnType<typeof initEconomy>;
-  factions: ReturnType<typeof defaultFactions>;
-  criminal_records: Record<string, import('./types').CriminalRecord>;
-} {
+export function generateStartingWorld(seed: number): import('./types').SimWorld {
   const locations = generateWorldLocations(seed);
 
   const npcs: SimNpc[] = [];
@@ -262,7 +257,97 @@ export function generateStartingWorld(seed: number): {
     npcs.push(...locNpcs);
   });
 
-  return { locations, npcs, economy: initEconomy(), factions: defaultFactions(), criminal_records: {} };
+  const factions = defaultFactions();
+  const faction_hierarchies: any = {};
+  factions.forEach(f => {
+    faction_hierarchies[f.id] = {
+      leader_id: null,
+      lieutenants: [],
+      members: [],
+      ranks: {},
+      territories: locations.slice(0, 3).map(l => l.id) // Assign first 3 locations to all for now
+    };
+  });
+
+  const civilization = {
+    governments: [
+      {
+        faction_id: 'town_guard' as any,
+        capital_id: locations[0]?.id || 'loc_0',
+        stability: 80,
+        treasury: 5000,
+        policies: [],
+        corruption_level: 10
+      }
+    ],
+    supply_chains: {
+      nodes: locations.map(l => ({
+        location_id: l.id,
+        produces: ['grain'],
+        consumes: ['iron'],
+        inventory: {},
+        throughput: 10
+      })),
+      routes: []
+    },
+    research: (() => {
+      const res: any = {};
+      factions.forEach(f => res[f.id] = []);
+      return res;
+    })(),
+    knowledge: {
+      individual_knowledge: {},
+      faction_knowledge: (() => {
+        const kn: any = {};
+        factions.forEach(f => kn[f.id] = []);
+        return kn;
+      })(),
+      state_knowledge: {}
+    },
+    daedric_influence: (() => {
+      const princes: import('./types').DaedricPrinceId[] = ['azura', 'molag_bal', 'sheogorath', 'hircine', 'hermaeus_mora'];
+      const infl: any = {};
+      princes.forEach(p => {
+        infl[p] = {
+          prince_id: p,
+          power_level: 10 + Math.random() * 20,
+          worship_base: 50,
+          current_intent: p === 'sheogorath' ? 'revelry' : 'domination',
+          active_curses: [],
+          manifested_avatars: []
+        };
+      });
+      return infl;
+    })(),
+    realms: [
+      {
+        id: 'realm_coldharbour',
+        name: 'Coldharbour',
+        prince_id: 'molag_bal' as import('./types').DaedricPrinceId,
+        physics_stability: 90,
+        corruption_type: 'blood' as const,
+        connected_locations: [locations[locations.length - 1]?.id || 'loc_final']
+      }
+    ],
+    active_deceptions: []
+  };
+
+  return { 
+    turn: 0,
+    day: 1,
+    hour: 7,
+    weather: 'Clear',
+    season: 'spring',
+    locations, 
+    npcs, 
+    economy: initEconomy(), 
+    global_events: [],
+    active_combats: [],
+    factions, 
+    faction_hierarchies,
+    criminal_records: {},
+    civilization
+  };
 }
 
 // ── Event generation ───────────────────────────────────────────────────────

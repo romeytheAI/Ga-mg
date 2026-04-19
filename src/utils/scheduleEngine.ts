@@ -204,11 +204,32 @@ export function computeDailyStatDeltas(
   return { stats, npc_trust_deltas, gold_earned };
 }
 
+export const TAMRIEL_DAYS = [
+  'Sundas', 'Morndas', 'Tirdas', 'Middas', 'Turdas', 'Fredas', 'Loredas'
+];
+
+export const TAMRIEL_MONTHS = [
+  'Morning Star', 'Sun\'s Dawn', 'First Seed', 'Rain\'s Hand', 'Second Seed', 'Mid Year',
+  'Sun\'s Height', 'Last Seed', 'Hearthfire', 'Frostfall', 'Sun\'s Dusk', 'Evening Star'
+];
+
+/**
+ * Returns the current Tamrielic date string based on the game day.
+ * Each month has 30 days for simplicity in the sim.
+ */
+export function getTamrielDate(day: number, week_day: number): { dayName: string, monthName: string, dayOfMonth: number } {
+  const dayOfMonth = ((day - 1) % 30) + 1;
+  const monthIdx = Math.floor((day - 1) / 30) % 12;
+  
+  return {
+    dayName: TAMRIEL_DAYS[week_day],
+    monthName: TAMRIEL_MONTHS[monthIdx],
+    dayOfMonth
+  };
+}
+
 /**
  * Compute the week_day after advancing by a number of days.
- *
- * @param currentWeekDay  Current day of week (0=Monday … 6=Sunday)
- * @param daysElapsed     Days to advance
  */
 export function advanceWeekDay(currentWeekDay: number, daysElapsed: number): number {
   return ((currentWeekDay + daysElapsed) % 7 + 7) % 7;
