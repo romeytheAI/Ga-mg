@@ -39,7 +39,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
             <Settings className="w-5 h-5 text-sky-400" />
             <h2 className="text-xl font-serif tracking-widest uppercase text-white/90">System Configuration</h2>
           </div>
-          <button onClick={onClose} className="p-2 hover:bg-white/5 rounded-sm transition-colors text-white/40 hover:text-white">
+          <button aria-label="Close Settings" onClick={onClose} className="p-2 hover:bg-white/5 rounded-sm transition-colors text-white/40 hover:text-white">
             <X className="w-6 h-6" />
           </button>
         </div>
@@ -94,7 +94,7 @@ const Section: React.FC<{ title: string; icon: React.ReactNode; children: React.
 const Toggle: React.FC<{ label: string; active: boolean; onClick: () => void }> = ({ label, active, onClick }) => (
   <div className="flex items-center justify-between group">
     <span className="text-xs text-white/40 group-hover:text-white/70 transition-colors">{label}</span>
-    <button onClick={onClick} className={`w-10 h-5 rounded-full relative transition-colors ${active ? 'bg-sky-500' : 'bg-white/10'}`}>
+    <button role="switch" aria-checked={active} aria-label={label} onClick={onClick} className={`w-10 h-5 rounded-full relative transition-colors ${active ? 'bg-sky-500' : 'bg-white/10'}`}>
       <motion.div animate={{ x: active ? 22 : 2 }} className="absolute top-1 left-0 w-3 h-3 bg-white rounded-full shadow-lg" />
     </button>
   </div>
