@@ -39,7 +39,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
             <Settings className="w-5 h-5 text-sky-400" />
             <h2 className="text-xl font-serif tracking-widest uppercase text-white/90">System Configuration</h2>
           </div>
-          <button onClick={onClose} className="p-2 hover:bg-white/5 rounded-sm transition-colors text-white/40 hover:text-white">
+          <button aria-label="Close settings" onClick={onClose} className="p-2 hover:bg-white/5 rounded-sm transition-colors text-white/40 hover:text-white focus-visible:ring-2 focus-visible:ring-sky-500 focus-visible:outline-none">
             <X className="w-6 h-6" />
           </button>
         </div>
@@ -72,7 +72,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
         </div>
 
         <div className="p-6 border-t border-white/5 bg-black/40 flex justify-end gap-4">
-           <button onClick={() => saveGame('manual', state)} className="px-8 py-3 bg-sky-500/10 border border-sky-500/30 text-sky-400 text-[10px] tracking-[0.3em] uppercase font-bold hover:bg-sky-500/20 transition-all rounded-sm">
+           <button onClick={() => saveGame('manual', state)} className="px-8 py-3 bg-sky-500/10 border border-sky-500/30 text-sky-400 text-[10px] tracking-[0.3em] uppercase font-bold hover:bg-sky-500/20 transition-all rounded-sm focus-visible:ring-2 focus-visible:ring-sky-500 focus-visible:outline-none">
              Commit State to Disk
            </button>
         </div>
@@ -93,8 +93,14 @@ const Section: React.FC<{ title: string; icon: React.ReactNode; children: React.
 
 const Toggle: React.FC<{ label: string; active: boolean; onClick: () => void }> = ({ label, active, onClick }) => (
   <div className="flex items-center justify-between group">
-    <span className="text-xs text-white/40 group-hover:text-white/70 transition-colors">{label}</span>
-    <button onClick={onClick} className={`w-10 h-5 rounded-full relative transition-colors ${active ? 'bg-sky-500' : 'bg-white/10'}`}>
+    <span aria-hidden="true" className="text-xs text-white/40 group-hover:text-white/70 transition-colors">{label}</span>
+    <button
+      role="switch"
+      aria-checked={active}
+      aria-label={label}
+      onClick={onClick}
+      className={`w-10 h-5 rounded-full relative transition-colors focus-visible:ring-2 focus-visible:ring-sky-500 focus-visible:outline-none ${active ? 'bg-sky-500' : 'bg-white/10'}`}
+    >
       <motion.div animate={{ x: active ? 22 : 2 }} className="absolute top-1 left-0 w-3 h-3 bg-white rounded-full shadow-lg" />
     </button>
   </div>
