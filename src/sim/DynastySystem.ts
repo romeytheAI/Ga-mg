@@ -24,7 +24,6 @@ export function resolveSuccession(state: GameState, targetNpcId?: string): GameS
   }
 
   if (!heirId) {
-    console.log("GAME OVER: No heir found.");
     return state;
   }
 
