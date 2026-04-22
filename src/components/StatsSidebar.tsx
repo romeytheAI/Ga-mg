@@ -32,7 +32,7 @@ interface StatBarProps {
   invert?: boolean; 
 }
 
-const StatBar: React.FC<StatBarProps> = ({
+const StatBar: React.FC<StatBarProps> = React.memo(({
   label, value, max = 100, color, icon, pulse: forcedPulse, pulseLow, pulseHigh, invert
 }) => {
   const pct = Math.max(0, Math.min(100, (value / max) * 100));
@@ -67,15 +67,27 @@ const StatBar: React.FC<StatBarProps> = ({
       </div>
     </div>
   );
-};
+}, (prev, next) => (
+  // ⚡ BOLT OPTIMIZATION: Custom comparator ignores the inline React node (icon).
+  // Passing 'icon={<Heart/>}' forces a reference change on every render.
+  // Impact: Prevents dozens of DOM nodes in the sidebar from re-rendering every tick.
+  prev.label === next.label &&
+  prev.value === next.value &&
+  prev.max === next.max &&
+  prev.color === next.color &&
+  prev.pulse === next.pulse &&
+  prev.pulseLow === next.pulseLow &&
+  prev.pulseHigh === next.pulseHigh &&
+  prev.invert === next.invert
+));
 
-const SectionHeader: React.FC<{ label: string; icon?: React.ReactNode }> = ({ label, icon }) => (
+const SectionHeader: React.FC<{ label: string; icon?: React.ReactNode }> = React.memo(({ label, icon }) => (
   <div className="flex items-center gap-2 mt-4 mb-2 px-1">
     {icon && <span className="text-white/20">{icon}</span>}
     <span className="text-[7px] tracking-[0.4em] uppercase text-white/20 font-black whitespace-nowrap">{label}</span>
     <div className="flex-1 h-[1px] bg-white/[0.04]" />
   </div>
-);
+), (prev, next) => prev.label === next.label); // ⚡ BOLT OPTIMIZATION: Ignore changing 'icon' node prop
 
 const SpriteWithXRay: React.FC<{ state: GameState }> = ({ state }) => {
   const [xrayOn, setXrayOn] = useState(false);
