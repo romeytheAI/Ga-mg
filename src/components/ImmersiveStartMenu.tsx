@@ -448,6 +448,7 @@ export const ImmersiveStartMenu: React.FC<ImmersiveStartMenuProps> = ({ onStartG
                               <span>{save.location}</span>
                               <span>Day {save.day}</span>
                               <span className={save.trauma > 70 ? 'text-red-400/80' : ''}>Trauma: {save.trauma}%</span>
+                              {(save.epoch ?? 0) > 0 && <span className="text-primary-gold/80">Epoch {save.epoch}</span>}
                             </div>
                           </div>
                           <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">

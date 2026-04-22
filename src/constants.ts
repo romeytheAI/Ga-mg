@@ -1,6 +1,6 @@
 import { Anatomy } from './types';
 
-export const STABLE_API = "https://stablehorde.net/api/v2";
+export const STABLE_API = "https://aihorde.net/api/v2";
 export const DEFAULT_API_KEY = "0000000000";
 
 export const AGE_APPEARANCE: Record<number, string> = {
