@@ -25,10 +25,9 @@ describe('gameReducer – LOAD_GAME', () => {
       ...initialState,
       player: {
         ...initialState.player,
-        completed_story_arcs: undefined as any,
         lewdity_stats: { exhibitionism: 30, promiscuity: 20, deviancy: 10, masochism: 5 },
         traits: [{ id: 'brave', name: 'Brave', description: 'test', effects: {} }],
-        quests: [{ id: 'q1', title: 'Test Quest', description: 'test', status: 'active' }],
+        quests: [{ id: 'q1', title: 'Test Quest', description: 'test', status: 'active', type: 'side' }],
       },
       world: {
         ...initialState.world,
@@ -98,7 +97,7 @@ describe('gameReducer – START_NEW_GAME', () => {
       ...initialState,
       player: {
         ...initialState.player,
-        quests: [{ id: 'q1', title: 'Done Quest', description: 'done', status: 'completed' }],
+        quests: [{ id: 'q1', title: 'Done Quest', description: 'done', status: 'completed', type: 'main' }],
       },
     };
     const next = gameReducer(withQuests, { type: 'START_NEW_GAME', payload: {} });
