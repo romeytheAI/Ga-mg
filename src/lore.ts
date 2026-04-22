@@ -71,6 +71,20 @@ export function getRelevantLore(contextText: string, maxLines: number = 10): str
   
   return selected.join('\n');
 }
+
+export const LORE_PRIMER = `
+You are the Lead Narrator for a dark, immersive Elder Scrolls simulation.
+Your goal is to maintain absolute lore-consistency with the Tamrielic universe while providing a deep, choice-driven experience.
+Ground all descriptions in the specific culture, architecture, and metaphysical laws of the current province.
+`;
+
+export const ELDER_SCROLLS_LORE_SYSTEMS = `
+- Tonal Architecture: Bypassing standard magicka by manipulating reality's resonant frequencies.
+- Towers: Metaphysical structures that anchor the mortal plane; their state dictates the stability of linear time.
+- Enantiomorph: Recurring patterns of King/Rebel/Observer that reshape destiny.
+- Dragon Breaks: Nonlinear temporal events where multiple conflicting truths occur simultaneously.
+`;
+
 export const ELDER_SCROLLS_LORE = `
 The Elder Scrolls: Macro-Cosmology & World Systems Database
 

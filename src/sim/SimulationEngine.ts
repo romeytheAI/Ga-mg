@@ -38,6 +38,7 @@ import { tickTrade } from './TradeSystem';
 import { tickKnowledge } from './KnowledgeSystem';
 import { tickDaedricPower } from './DaedricSystem';
 import { tickDeceptions } from './DeceptionSystem';
+import { getRelevantLore, LORE_PRIMER, ELDER_SCROLLS_LORE_SYSTEMS } from '../lore';
 
 const HOURS_PER_TICK = 1;
 const EVENT_CHANCE_PER_DAY = 0.15; // 15% chance of a world event per day
@@ -500,16 +501,23 @@ async function pollHordeJob(jobId: string, apiKey: string): Promise<string | nul
 // ── Prompt builders ────────────────────────────────────────────────────────
 
 function buildBackstoryPrompt(npc: SimNpc): string {
+  const lore = getRelevantLore(`${npc.race} ${npc.job} ${npc.location_id}`, 5);
   return (
+    `${LORE_PRIMER}\n\n` +
+    `SYSTEMS CONTEXT:\n${ELDER_SCROLLS_LORE_SYSTEMS}\n\n` +
+    `WORLD LORE:\n${lore}\n\n` +
     `Write a short (3-sentence) backstory for ${npc.name}, ` +
-    `a ${npc.age}-year-old ${npc.race} ${npc.gender} who works as a ${npc.job}. ` +
+    `a ${npc.age}-year-old ${npc.race} ${npc.gender} who works as a ${npc.job} in ${npc.location_id}. ` +
     `Their personality traits are: ${npc.traits.join(', ')}. ` +
     `The setting is a gritty dark-fantasy world.`
   );
 }
 
 function buildDialoguePrompt(npc: SimNpc, context: string): string {
+  const lore = getRelevantLore(`${npc.location_id} ${context}`, 3);
   return (
+    `${LORE_PRIMER}\n\n` +
+    `WORLD LORE:\n${lore}\n\n` +
     `You are ${npc.name}, a ${npc.race} ${npc.job} with traits: ${npc.traits.join(', ')}. ` +
     `Context: ${context}. ` +
     `Respond in character in 1-2 sentences.`
