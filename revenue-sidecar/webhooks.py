@@ -151,7 +151,9 @@ async def ad_revenue_webhook(request: Request, authorization: Optional[str] = He
     """
     try:
         # Verify authorization token
-        api_key = os.getenv("SIDE_CAR_API_KEY", "default_secret_key")
+        api_key = os.getenv("SIDE_CAR_API_KEY")
+        if not api_key:
+            raise HTTPException(status_code=500, detail="Server misconfiguration")
         if not authorization or not hmac.compare_digest(authorization, f"Bearer {api_key}"):
             raise HTTPException(status_code=401, detail="Unauthorized")
 
@@ -185,7 +187,9 @@ async def affiliate_webhook(request: Request, authorization: Optional[str] = Hea
     """
     try:
         # Verify authorization token
-        api_key = os.getenv("SIDE_CAR_API_KEY", "default_secret_key")
+        api_key = os.getenv("SIDE_CAR_API_KEY")
+        if not api_key:
+            raise HTTPException(status_code=500, detail="Server misconfiguration")
         if not authorization or not hmac.compare_digest(authorization, f"Bearer {api_key}"):
             raise HTTPException(status_code=401, detail="Unauthorized")
 
