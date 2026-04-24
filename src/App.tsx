@@ -1,4 +1,4 @@
-import React, { useState, useEffect, Suspense, useRef } from 'react';
+import React, { useState, useEffect, Suspense, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
   Heart, Wind, Moon, Settings, X, BookOpen, User, Map as MapIcon, 
@@ -58,6 +58,15 @@ export default function App() {
   // ── Pre-Cog Synthesis Buffer (Zero-Latency) ──
   const synthesisBuffer = useEncounterBuffer(state!);
 
+  // ⚡ Bolt: Refs to hold latest state for callbacks
+  const stateRef = useRef<GameState | null>(null);
+  const synthesisBufferRef = useRef<any[]>([]);
+
+  useEffect(() => {
+    stateRef.current = state;
+    synthesisBufferRef.current = synthesisBuffer;
+  }, [state, synthesisBuffer]);
+
   // ── Periodic Autosave ──
   useAutosave(state);
 
@@ -66,29 +75,32 @@ export default function App() {
     import('./state/initialState').then(m => setState(m.initialState));
   }, []);
 
-  const dispatch = (action: any) => {
+  // ⚡ Bolt: Stable dispatch to prevent unnecessary re-renders in child components
+  const dispatch = useCallback((action: any) => {
     import('./reducers/gameReducer').then(m => {
       setState(prevState => prevState ? m.gameReducer(prevState, action) : null);
     });
-  };
+  }, []);
 
-  const handleAction = async (text: string, intent: string = 'neutral', id?: string) => {
-    if (!state) return;
+  // ⚡ Bolt: Stabilized handleAction to prevent breaking React.memo in NarrativePanel
+  const handleAction = useCallback(async (text: string, intent: string = 'neutral', id?: string) => {
+    const currentState = stateRef.current;
+    if (!currentState) return;
 
     let finalParsedText: any = null;
-    let nextStoryEvent = state.world.active_story_event;
+    let nextStoryEvent = currentState.world.active_story_event;
 
     // 1. Resolve Narrative Progression synchronously
-    if (state.world.active_story_event) {
-      const res = resolveStoryEventStep(state.world.active_story_event, id);
+    if (currentState.world.active_story_event) {
+      const res = resolveStoryEventStep(currentState.world.active_story_event, id);
       if (res) {
         finalParsedText = res.parsedText;
         nextStoryEvent = res.nextStoryEvent;
       }
     } else {
-      const actionDef = state.world.current_location.actions?.find((a: any) => a.id === id);
+      const actionDef = currentState.world.current_location.actions?.find((a: any) => a.id === id);
       if (actionDef) {
-        const res = resolveLocationAction(state, actionDef);
+        const res = resolveLocationAction(currentState, actionDef);
         if (res.kind === 'story_event') {
           const startRes = startStoryEvent(res.eventId);
           if (startRes) {
@@ -102,8 +114,8 @@ export default function App() {
     }
 
     // 2. Fallback to Local Generation or Pre-Cog Buffer
-    const bufferedResponse = synthesisBuffer.find(b => b.action === text);
-    const localNarrative = generateLocalProse(state, text);
+    const bufferedResponse = synthesisBufferRef.current.find(b => b.action === text);
+    const localNarrative = generateLocalProse(currentState, text);
 
     if (!finalParsedText) {
       finalParsedText = {
@@ -127,26 +139,26 @@ export default function App() {
     });
 
     // 2. Background Synthesis (Fill the buffer for NEXT turns)
-    if (state && !state.ui.isPollingText) {
+    if (currentState && !currentState.ui.isPollingText) {
       // Predict likely next actions and send to background worker
       // This happens while the player is reading the current local text
       import('./services/api').then(api => {
-         api.generateText(`Predict 3 likely actions and cinematic descriptions after: ${text}`, state.ui.apiKey, state.ui.hordeApiKey, state.ui.selectedTextModel, dispatch, true, state);
+         api.generateText(`Predict 3 likely actions and cinematic descriptions after: ${text}`, currentState.ui.apiKey, currentState.ui.hordeApiKey, currentState.ui.selectedTextModel, dispatch, true, currentState);
       });
     }
 
     // 3. Epoch advancement on story arc completion
-    const storyJustEnded = state.world.active_story_event && nextStoryEvent === null;
+    const storyJustEnded = currentState.world.active_story_event && nextStoryEvent === null;
     if (storyJustEnded) {
-      const completedCount = (state.world.completed_story_arcs.length || 0) + 1;
+      const completedCount = (currentState.world.completed_story_arcs.length || 0) + 1;
       // Every 5 completed arcs advances the world epoch
       if (completedCount % 5 === 0) {
         dispatch({ type: 'ADVANCE_EPOCH', payload: { milestone: `epoch_${Math.floor(completedCount / 5)}` } });
       }
       // Immediate autosave on arc completion
-      triggerAutosave(state);
+      triggerAutosave(currentState);
     }
-  };
+  }, [dispatch]);
 
   if (!state) return <div className="bg-black w-screen h-screen flex items-center justify-center font-serif uppercase tracking-[0.5em] text-white/20">Loading Reality...</div>;
 
