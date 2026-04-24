@@ -153,7 +153,8 @@ async def ad_revenue_webhook(request: Request, authorization: Optional[str] = He
         # Verify authorization token
         api_key = os.getenv("SIDE_CAR_API_KEY")
         if not api_key:
-            raise HTTPException(status_code=500, detail="Server misconfiguration: SIDE_CAR_API_KEY not set")
+            logger.error("SIDE_CAR_API_KEY environment variable is not set")
+            raise HTTPException(status_code=500, detail="Internal server error")
         if not authorization or not hmac.compare_digest(authorization, f"Bearer {api_key}"):
             raise HTTPException(status_code=401, detail="Unauthorized")
 
