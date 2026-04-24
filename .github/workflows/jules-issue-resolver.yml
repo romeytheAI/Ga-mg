@@ -1,7 +1,7 @@
 name: Jules Universal Issue Resolver
 on:
   issues:
-    types: [opened, reopened, labeled]
+    types: [opened, reopened, labeled, unlabeled]
 
 jobs:
   resolve-with-jules:
