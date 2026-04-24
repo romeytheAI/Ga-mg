@@ -1,6 +1,7 @@
 import { STABLE_API, DEFAULT_API_KEY } from '../constants';
 import { getRelevantLore } from '../lore';
 import { imageWorker } from '../utils/workers';
+import { generateSecureRandomNumber } from '../utils/crypto';
 const costTracker = { trackAPICall: (...args: any[]) => {} };
 const SemanticAudit = { 
   auditPrompt: (p: string) => ({ optimized: p, audit: { tokensSaved: 0, optimizations: [] } }),

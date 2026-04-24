@@ -1,0 +1,29 @@
+name: "🤖 Jules Task"
+description: "Submit a task for Jules to complete automatically."
+title: "[Jules Task]: "
+labels: ["jules"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for submitting a task for Jules! 🤖
+        Fill out the details below and label the issue with `jules` to trigger the autonomous agent.
+  - type: textarea
+    id: goal
+    attributes:
+      label: "What is the goal?"
+      description: "Describe what you want Jules to accomplish."
+      placeholder: "e.g. Fix the accessibility issues in the Sidebar component."
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance-criteria
+    attributes:
+      label: "Acceptance Criteria"
+      description: "How will we know the task is complete?"
+      placeholder: "- [ ] ARIA labels added to all buttons\n- [ ] Tests pass\n- [ ] ..."
+  - type: textarea
+    id: additional-context
+    attributes:
+      label: "Additional Context"
+      description: "Any extra information Jules should know."

@@ -20,7 +20,7 @@ on:
 permissions:
   contents: read
   issues: write
-  projects: write
+  repository-projects: write
 
 jobs:
   sync:
@@ -53,68 +53,82 @@ jobs:
             const { owner, repo } = context.repo;
             const repoInfo = await github.rest.repos.get({ owner, repo });
             const ownerLogin = repoInfo.data.owner.login;
-            const ownerType = repoInfo.data.owner.type; // User or Organization
+            const ownerType = repoInfo.data.owner.type;
 
             const dryRun = core.getBooleanInput('dry-run');
             const projectInput = core.getInput('project-number');
             const projectNumber = projectInput ? parseInt(projectInput, 10) : null;
             const baseLabels = ['roadmap', 'foundation'];
 
+            const normalize = str => (str || '').replace(/\r\n/g, '\n').trim();
+
             const desiredIssues = items.map(item => ({
-              title: item.title,
-              body: Array.isArray(item.body_lines) ? item.body_lines.join('\n') : '',
+              title: normalize(item.title),
+              body: normalize(Array.isArray(item.body_lines) ? item.body_lines.join('\n') : ''),
               labels: Array.from(new Set([...(item.labels || []), ...baseLabels])),
               assignees: item.assignees || []
             }));
 
-            const openIssues = await github.paginate(github.rest.issues.listForRepo, {
+            // Search all issues (open and closed) to avoid duplicates
+            const allIssues = await github.paginate(github.rest.issues.listForRepo, {
               owner,
               repo,
-              state: 'open',
+              state: 'all',
               per_page: 100
             });
 
+            // Filter out Pull Requests
+            const existingIssues = allIssues.filter(i => !i.pull_request);
+
             let projectId = null;
             if (projectNumber) {
-              const query =
-                ownerType === 'Organization'
-                  ? `query($login:String!, $number:Int!) { organization(login:$login) { projectV2(number:$number) { id } } }`
-                  : `query($login:String!, $number:Int!) { user(login:$login) { projectV2(number:$number) { id } } }`;
+              try {
+                const query =
+                  ownerType === 'Organization'
+                    ? `query($login:String!, $number:Int!) { organization(login:$login) { projectV2(number:$number) { id } } }`
+                    : `query($login:String!, $number:Int!) { user(login:$login) { projectV2(number:$number) { id } } }`;
 
-              const projectData = await github.graphql(query, { login: ownerLogin, number: projectNumber });
-              const projectNode = ownerType === 'Organization'
-                ? projectData.organization?.projectV2
-                : projectData.user?.projectV2;
+                const projectData = await github.graphql(query, { login: ownerLogin, number: projectNumber });
+                const projectNode = ownerType === 'Organization'
+                  ? projectData.organization?.projectV2
+                  : projectData.user?.projectV2;
 
-              if (!projectNode?.id) {
-                throw new Error(`Project number ${projectNumber} not found for ${ownerType} ${ownerLogin}`);
+                if (!projectNode?.id) {
+                  core.warning(`Project number ${projectNumber} not found for ${ownerType} ${ownerLogin}. Skipping project link.`);
+                } else {
+                  projectId = projectNode.id;
+                  core.info(`Resolved project ${projectNumber} to node ${projectId}`);
+                }
+              } catch (err) {
+                core.warning(`Failed to resolve project: ${err.message}. Ensure GITHUB_TOKEN has project scopes or use a PAT.`);
               }
-              projectId = projectNode.id;
-              core.info(`Resolved project ${projectNumber} to node ${projectId}`);
             }
 
             const addedIssues = [];
             const updatedIssues = [];
 
             const labelNames = labels => labels.map(l => (typeof l === 'string' ? l : l.name));
-            const hasLabelDelta = (current, desired) => {
-              const curr = new Set(labelNames(current));
-              const want = new Set(desired);
-              if (curr.size !== want.size) return true;
-              for (const label of want) {
-                if (!curr.has(label)) return true;
-              }
-              return false;
-            };
-
+            
             for (const item of desiredIssues) {
-              const existing = openIssues.find(i => i.title === item.title);
+              const existing = existingIssues.find(i => normalize(i.title) === item.title);
 
               if (existing) {
-                const needsBodyUpdate = (existing.body || '').trim() !== item.body.trim();
-                const needsLabelUpdate = hasLabelDelta(existing.labels || [], item.labels);
+                // Skip closed issues
+                if (existing.state === 'closed') {
+                  core.info(`Issue #${existing.number} (${item.title}) exists but is closed. Skipping.`);
+                  continue;
+                }
+
+                const currentBody = normalize(existing.body);
+                const currentLabels = labelNames(existing.labels || []);
+                
+                const needsBodyUpdate = currentBody !== item.body;
+                // Additive label sync: only update if missing desired labels
+                const needsLabelUpdate = item.labels.some(l => !currentLabels.includes(l));
 
                 if (needsBodyUpdate || needsLabelUpdate) {
+                  const finalLabels = Array.from(new Set([...currentLabels, ...item.labels]));
+                  
                   if (dryRun) {
                     core.info(`[dry-run] Would update issue #${existing.number} (${item.title})`);
                   } else {
@@ -123,7 +137,7 @@ jobs:
                       repo,
                       issue_number: existing.number,
                       body: item.body,
-                      labels: item.labels
+                      labels: finalLabels
                     });
                     updatedIssues.push(existing.number);
                     core.info(`Updated issue #${existing.number} (${item.title})`);
@@ -142,14 +156,8 @@ jobs:
                       }`,
                       { projectId, contentId: existing.node_id }
                     );
-                    core.info(`Linked issue #${existing.number} to project ${projectNumber}`);
                   } catch (error) {
-                    const msg = error?.message || '';
-                    if (msg.includes('already exists')) {
-                      core.info(`Issue #${existing.number} already linked to project`);
-                    } else {
-                      throw error;
-                    }
+                    if (!error.message.includes('already exists')) throw error;
                   }
                 }
                 continue;
@@ -182,14 +190,8 @@ jobs:
                     }`,
                     { projectId, contentId: created.data.node_id }
                   );
-                  core.info(`Linked issue #${created.data.number} to project ${projectNumber}`);
                 } catch (error) {
-                  const msg = error?.message || '';
-                  if (msg.includes('already exists')) {
-                    core.info(`Issue #${created.data.number} already linked to project`);
-                  } else {
-                    throw error;
-                  }
+                  if (!error.message.includes('already exists')) throw error;
                 }
               }
             }

@@ -1,0 +1,7 @@
+{
+    "antigravityTelegram.botToken": "8711755946:AAE7GLWaVaxg1tb_uFBFuDOvWBJ3ZGYCw5g",
+    "antigravityTelegram.chatId": "@googleantibot",
+    "github-actions.workflows.pinned.workflows": [
+        ".github/workflows/sync-agentic-roadmap.yml"
+    ]
+}
