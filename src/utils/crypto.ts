@@ -32,5 +32,5 @@ export function generateSecureRandomNumber(max: number): number {
     crypto.getRandomValues(randomBuffer);
     return Math.floor((randomBuffer[0] / 0x100000000) * max);
   }
-  return Math.floor(Math.random() * max);
+  throw new Error("Secure random number generation is not supported in this environment.");
 }
