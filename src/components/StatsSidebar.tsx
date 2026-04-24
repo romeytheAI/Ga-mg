@@ -230,4 +230,40 @@ export const StatsSidebar: React.FC<StatsSidebarProps> = React.memo(({
       </div>
     </div>
   );
+}, (prev, next) => {
+  // ⚡ BOLT OPTIMIZATION: Custom comparator to prevent massive re-renders.
+  // The global 'state' object changes reference on every single tick/action.
+  // By only checking the nested properties that StatsSidebar actually uses,
+  // we eliminate re-rendering when unrelated state (like specific quests, NPCs, map state) changes.
+  return (
+    prev.state.player.identity.name === next.state.player.identity.name &&
+    prev.state.player.identity.race === next.state.player.identity.race &&
+    prev.state.player.level === next.state.player.level &&
+    prev.state.world.day === next.state.world.day &&
+    prev.state.world.week_day === next.state.world.week_day &&
+    prev.state.world.hour === next.state.world.hour &&
+    prev.state.world.weather === next.state.world.weather &&
+    prev.state.player.gold === next.state.player.gold &&
+    prev.state.player.stats.health === next.state.player.stats.health &&
+    prev.state.player.stats.max_health === next.state.player.stats.max_health &&
+    prev.state.player.stats.stamina === next.state.player.stats.stamina &&
+    prev.state.player.stats.max_stamina === next.state.player.stats.max_stamina &&
+    prev.state.player.stats.willpower === next.state.player.stats.willpower &&
+    prev.state.player.stats.max_willpower === next.state.player.stats.max_willpower &&
+    prev.state.player.stats.purity === next.state.player.stats.purity &&
+    prev.state.player.stats.corruption === next.state.player.stats.corruption &&
+    prev.state.player.stats.trauma === next.state.player.stats.trauma &&
+    prev.state.player.stats.stress === next.state.player.stats.stress &&
+    prev.state.player.stats.devotion === next.state.player.stats.devotion &&
+    prev.state.player.life_sim.needs.hunger === next.state.player.life_sim.needs.hunger &&
+    prev.state.player.life_sim.needs.thirst === next.state.player.life_sim.needs.thirst &&
+    prev.state.player.life_sim.needs.energy === next.state.player.life_sim.needs.energy &&
+    prev.state.player.life_sim.needs.hygiene === next.state.player.life_sim.needs.hygiene &&
+    // Shallow check of clothing is sufficient since the objects themselves change if modified
+    prev.state.player.clothing === next.state.player.clothing &&
+    // Check view settings that affect rendering
+    prev.state.ui.combat_animation === next.state.ui.combat_animation &&
+    prev.state.player.biology === next.state.player.biology &&
+    prev.state.player.cosmetics === next.state.player.cosmetics
+  );
 });
