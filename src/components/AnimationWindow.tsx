@@ -1,6 +1,7 @@
 import React from 'react';
 import { useGameStore, ClothingLayer } from '../store/gameStore';
 import { SvgPlayerModel } from './model/SvgBodyLayers';
+import { XRayPiP } from './XRayPiP';
 
 export const AnimationWindow: React.FC = () => {
   const { stats, clothing, xrayMode, toggleXray } = useGameStore();
@@ -67,6 +68,15 @@ export const AnimationWindow: React.FC = () => {
        )}
        {isCorrupted && (
          <div className="absolute bottom-10 left-2 text-indigo-500 animate-pulse text-2xl z-30 pointer-events-none">👁️</div>
+       )}
+
+       {/* Tiered PiP x-ray window – visible whenever x-ray mode is active */}
+       {xrayMode && (
+         <XRayPiP
+           stats={stats}
+           isFemale={stats.gender === 'Female'}
+           hasEncounter={false}
+         />
        )}
     </div>
   );
