@@ -15,7 +15,10 @@ interface NarrativePanelProps {
   NarrativeLog: any; // Passed from App for consistency
 }
 
-export const NarrativePanel: React.FC<NarrativePanelProps> = ({ 
+// ⚡ Bolt: Wrapped NarrativePanel in React.memo to prevent unnecessary re-renders when other parts of the application update.
+// A custom comparator function prevents re-renders when irrelevant properties of `state` change.
+// To avoid fragile logic and runtime crashes, it uses shallow state checks.
+export const NarrativePanel: React.FC<NarrativePanelProps> = React.memo(({
   state, handleAction, customAction, setCustomAction 
 }) => {
   const logRef = useRef<HTMLDivElement>(null);
@@ -133,4 +136,17 @@ export const NarrativePanel: React.FC<NarrativePanelProps> = ({
       </div>
     </div>
   );
-};
+}, (prevProps, nextProps) => {
+  return (
+    prevProps.customAction === nextProps.customAction &&
+    prevProps.handleAction === nextProps.handleAction &&
+    prevProps.setCustomAction === nextProps.setCustomAction &&
+    (prevProps.state === nextProps.state || (
+      prevProps.state != null && nextProps.state != null &&
+      prevProps.state.ui === nextProps.state.ui &&
+      prevProps.state.player.stats === nextProps.state.player.stats &&
+      prevProps.state.player.life_sim === nextProps.state.player.life_sim &&
+      prevProps.state.sim_world === nextProps.state.sim_world
+    ))
+  );
+});

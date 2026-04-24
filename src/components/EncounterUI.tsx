@@ -83,7 +83,9 @@ function RestraintPanel({ restraints }: { restraints: PlayerRestraints }) {
   );
 }
 
-export const EncounterUI: React.FC<EncounterUIProps> = ({ encounter, playerStats, onAction, state }) => {
+// ⚡ Bolt: Wrapped EncounterUI in React.memo and implemented a custom comparator
+// to prevent unnecessary re-renders when irrelevant properties of `state` change.
+export const EncounterUI: React.FC<EncounterUIProps> = React.memo(({ encounter, playerStats, onAction, state }) => {
   const [targetedPart, setTargetedPart] = React.useState<string | null>(null);
   const [show3D, setShow3D] = React.useState(false);
   const bodyParts = ['head', 'torso', 'arms', 'legs'];
@@ -341,4 +343,16 @@ export const EncounterUI: React.FC<EncounterUIProps> = ({ encounter, playerStats
       </div>
     </motion.div>
   );
-};
+}, (prevProps, nextProps) => {
+  return (
+    prevProps.encounter === nextProps.encounter &&
+    prevProps.playerStats === nextProps.playerStats &&
+    prevProps.onAction === nextProps.onAction &&
+    // Shallow comparison for relevant top-level state objects if state exists
+    (prevProps.state === nextProps.state || (
+      prevProps.state != null && nextProps.state != null &&
+      prevProps.state.player === nextProps.state.player &&
+      prevProps.state.ui === nextProps.state.ui
+    ))
+  );
+});
