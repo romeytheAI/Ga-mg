@@ -31,8 +31,13 @@ async def stripe_webhook(
         event = json.loads(payload)
 
         # Verify signature (in production, use actual secret)
-        # if stripe_signature:
-        #     verify_stripe_signature(payload, stripe_signature)
+        secret = os.getenv("STRIPE_WEBHOOK_SECRET")
+        if not secret:
+            logger.error("Missing STRIPE_WEBHOOK_SECRET")
+            raise HTTPException(status_code=500, detail="Server misconfiguration")
+        if not stripe_signature:
+            raise HTTPException(status_code=401, detail="Unauthorized")
+        verify_stripe_signature(payload, stripe_signature, secret)
 
         event_type = event.get("type")
         logger.info(f"Stripe event received: {event_type}")
@@ -112,8 +117,13 @@ async def github_sponsors_webhook(
         event = json.loads(payload)
 
         # Verify signature (in production)
-        # if x_hub_signature_256:
-        #     verify_github_signature(payload, x_hub_signature_256)
+        secret = os.getenv("GITHUB_WEBHOOK_SECRET")
+        if not secret:
+            logger.error("Missing GITHUB_WEBHOOK_SECRET")
+            raise HTTPException(status_code=500, detail="Server misconfiguration")
+        if not x_hub_signature_256:
+            raise HTTPException(status_code=401, detail="Unauthorized")
+        verify_github_signature(payload, x_hub_signature_256, secret)
 
         action = event.get("action")
         logger.info(f"GitHub Sponsors event: {action}")
@@ -154,7 +164,7 @@ async def ad_revenue_webhook(request: Request, authorization: Optional[str] = He
         api_key = os.getenv("SIDE_CAR_API_KEY")
         if not api_key:
             raise HTTPException(status_code=500, detail="Server misconfiguration")
-        if not authorization or not hmac.compare_digest(authorization, f"Bearer {api_key}"):
+        if not authorization or not hmac.compare_digest(authorization.encode('utf-8'), f"Bearer {api_key}".encode('utf-8')):
             raise HTTPException(status_code=401, detail="Unauthorized")
 
         payload = await request.json()
@@ -190,7 +200,7 @@ async def affiliate_webhook(request: Request, authorization: Optional[str] = Hea
         api_key = os.getenv("SIDE_CAR_API_KEY")
         if not api_key:
             raise HTTPException(status_code=500, detail="Server misconfiguration")
-        if not authorization or not hmac.compare_digest(authorization, f"Bearer {api_key}"):
+        if not authorization or not hmac.compare_digest(authorization.encode('utf-8'), f"Bearer {api_key}".encode('utf-8')):
             raise HTTPException(status_code=401, detail="Unauthorized")
 
         payload = await request.json()
@@ -228,9 +238,8 @@ def verify_stripe_signature(payload: bytes, signature: str, secret: str):
     for part in sig_parts:
         if part.startswith("v1="):
             received_sig = part[3:]
-            if not hmac.compare_digest(expected_sig, received_sig):
-                raise HTTPException(status_code=400, detail="Invalid signature")
-            return
+            if hmac.compare_digest(expected_sig.encode('utf-8'), received_sig.encode('utf-8')):
+                return
 
     raise HTTPException(status_code=400, detail="No valid signature found")
 
@@ -242,5 +251,5 @@ def verify_github_signature(payload: bytes, signature: str, secret: str):
         hashlib.sha256
     ).hexdigest()
 
-    if not hmac.compare_digest(expected_sig, signature):
+    if not hmac.compare_digest(expected_sig.encode('utf-8'), signature.encode('utf-8')):
         raise HTTPException(status_code=400, detail="Invalid signature")
