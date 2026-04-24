@@ -1,3 +1,4 @@
+import { generateSecureRandomNumber } from '../utils/crypto';
 import { STABLE_API, DEFAULT_API_KEY } from '../constants';
 import { getRelevantLore } from '../lore';
 import { imageWorker } from '../utils/workers';
