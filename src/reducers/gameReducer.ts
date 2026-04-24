@@ -1,4 +1,5 @@
 import { GameState, StatKey } from '../types';
+import { generateId } from '../utils/crypto';
 import { LOCATIONS } from '../data/locations';
 import { initialState } from '../state/initialState';
 import { advanceWeekDay } from '../utils/scheduleEngine';
@@ -171,7 +172,7 @@ export function gameReducer(state: GameState, action: any): GameState {
       if (n.hunger <= 20) { ns.health = clamp(ns.health - 2 * h); ns.stamina = clamp(ns.stamina - 3 * h); }
       if (n.thirst <= 20) { ns.health = clamp(ns.health - 5 * h); }
       let ni = [...state.player.inventory]; let g = state.player.gold;
-      if (parsedText.new_items) { parsedText.new_items.forEach((item: any) => { if (item.name === 'Gold Coin') g += item.value || 1; else ni.push({ ...item, id: item.id || `i_${Date.now()}_${Math.random()}`, type: item.type || 'misc', weight: item.weight ?? 0.1, value: item.value ?? 1, integrity: item.integrity ?? 100 }); }); }
+      if (parsedText.new_items) { parsedText.new_items.forEach((item: any) => { if (item.name === 'Gold Coin') g += item.value || 1; else ni.push({ ...item, id: item.id || generateId(), type: item.type || 'misc', weight: item.weight ?? 0.1, value: item.value ?? 1, integrity: item.integrity ?? 100 }); }); }
       if (typeof parsedText.equipment_integrity_delta === 'number') { ni = ni.map(i => i.is_equipped ? { ...i, integrity: clamp((i.integrity ?? 100) + parsedText.equipment_integrity_delta) } : i); }
       let na = { ...state.player.anatomy }; if (parsedText.combat_injury) { na.injuries = [...na.injuries, parsedText.combat_injury]; ns.health = clamp(ns.health - (parsedText.combat_injury.health_penalty || 0)); ns.stamina = clamp(ns.stamina - (parsedText.combat_injury.stamina_penalty || 0)); }
       let af = [...state.player.afflictions]; if (parsedText.new_affliction) { if (!af.includes(parsedText.new_affliction)) af.push(parsedText.new_affliction); }

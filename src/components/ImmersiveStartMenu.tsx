@@ -12,7 +12,9 @@ interface ImmersiveStartMenuProps {
   onLoadGame: (saveData: any) => void;
 }
 
-export const ImmersiveStartMenu: React.FC<ImmersiveStartMenuProps> = ({ onStartGame, onLoadGame }) => {
+// ⚡ Bolt: Wrapped ImmersiveStartMenu in React.memo to prevent unnecessary re-renders
+// when its parent component (App) updates state unrelated to the start menu.
+export const ImmersiveStartMenu: React.FC<ImmersiveStartMenuProps> = React.memo(({ onStartGame, onLoadGame }) => {
   const [hordeStatus, setHordeStatus] = useState({ text: 'checking', image: 'checking', queue: 0 });
   const [activeView, setActiveView] = useState('main'); // main, load, scenarios, extras, settings, diagnostics
   const [showWarning, setShowWarning] = useState(true);
@@ -647,7 +649,7 @@ export const ImmersiveStartMenu: React.FC<ImmersiveStartMenuProps> = ({ onStartG
       </div>
     </div>
   );
-};
+});
 
 // Sub-components
 const MenuButton = ({ icon, label, active, onClick, onMouseEnter }: { icon: React.ReactNode, label: string, active: boolean, onClick: () => void, onMouseEnter: () => void }) => (

@@ -1,0 +1,25 @@
+{
+  "name": "Node.js 22",
+  "image": "mcr.microsoft.com/devcontainers/javascript-node:22",
+
+  // Configure tool-specific properties.
+  "customizations": {
+    "vscode": {
+      "settings": {},
+      "extensions": [
+        "dbaeumer.vscode-eslint"
+      ]
+    }
+  },
+
+  // Use 'forwardPorts' to make a list of ports inside the container available locally.
+  "forwardPorts": [3000],
+
+  // Use 'updateContentCommand' or 'postCreateCommand' to run commands after the container is created.
+  "postCreateCommand": "npm i -g pnpm && pnpm install",
+
+  // Expose environment variables to the container
+  "containerEnv": {
+    "GEMINI_API_KEY": "${localEnv:GEMINI_API_KEY}"
+  }
+}
