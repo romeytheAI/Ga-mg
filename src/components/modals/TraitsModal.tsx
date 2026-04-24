@@ -61,7 +61,7 @@ export const TraitsModal: React.FC<TraitsModalProps> = ({ state, dispatch }) => 
           aria-label="Close Traits"
           onClick={() => dispatch({ type: 'TOGGLE_UI_SETTING', payload: { key: 'show_traits', value: false } })}
           className="absolute top-6 right-6 text-white/40 hover:text-white"
-         aria-label="Close modal">
+         >
               <X className="w-6 h-6" />
         </button>
 

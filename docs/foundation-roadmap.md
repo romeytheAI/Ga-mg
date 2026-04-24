@@ -14,7 +14,7 @@ This roadmap breaks the repository foundation work into actionable issues. These
 
 | Title | Priority | Focus | Status |
 | --- | --- | --- | --- |
-| [Foundation][P0] Restructure repository for app code, assets, and docs | P0 | Repository organization | 📋 Planned |
+| [Foundation][P0] Restructure repository for app code, assets, and docs | P0 | Repository organization | ✅ Completed |
 | [Foundation][P0] Enforce strict domain typing across simulation, rendering, and persistence | P0 | Type safety | 📋 Planned |
 | [Foundation][P1] Profile and optimize simulation loop and canvas rendering | P1 | Performance | 📋 Planned |
 | [Foundation][P1] Harden Firebase auth, Firestore schema, and save/load flows | P1 | Persistence | 📋 Planned |

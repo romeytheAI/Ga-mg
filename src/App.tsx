@@ -63,6 +63,12 @@ const HordeNetworkContext = createContext<any>(null);
 const GameStateContext = createContext<any>(null);
 const SensoryUIContext = createContext<any>(null);
 
+
+function shouldCensorImage(state: GameState): boolean {
+  // Add a simple check here, e.g. based on game state setting if it exists, otherwise false.
+  return false; // Assuming we want false as default since no setting was found
+}
+
 export default function AppWrapper() {
   const [state, dispatch] = useReducer(gameReducer, initialState);
 
@@ -1879,7 +1885,7 @@ Example: { "health": 50, "allure": 20 }`;
                 aria-label="Close Companion Roster"
                 onClick={() => setShowCompanions(false)}
                 className="absolute top-6 right-6 text-white/40 hover:text-white transition-colors"
-               aria-label="Close modal">
+               >
               <X className="w-5 h-5" />
               </button>
               

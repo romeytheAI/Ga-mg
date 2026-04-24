@@ -55,7 +55,7 @@ export const StatusModal: React.FC<StatusModalProps> = ({ state, onClose }) => {
           aria-label="Close Physiological Matrix"
           onClick={onClose}
           className="absolute top-6 right-6 text-white/40 hover:text-white transition-colors"
-         aria-label="Close modal">
+         >
               <X className="w-5 h-5" />
         </button>
         
