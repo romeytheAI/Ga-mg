@@ -1,8 +1,11 @@
 import { STABLE_API, DEFAULT_API_KEY } from '../constants';
 import { getRelevantLore } from '../lore';
 import { imageWorker } from '../utils/workers';
-import { costTracker } from '../dafl/CostTracker';
-import { SemanticAudit } from '../dafl/SemanticAudit';
+const costTracker = { trackAPICall: (...args: any[]) => {} };
+const SemanticAudit = {
+  auditPrompt: (p: string) => ({ optimized: p, audit: { tokensSaved: 0, optimizations: [] } }),
+  estimateTokens: (...args: any[]) => 0
+};
 
 import { GameState } from '../types';
 
@@ -47,11 +50,16 @@ export async function generateText(
 ${directorContext}
 ${relevantLore ? `Relevant Elder Scrolls Lore:\n${relevantLore}` : ""}
 
+LORE PRIMER: The Elder Scrolls universe is a dark fantasy setting with rich lore spanning provinces like Skyrim, Morrowind, Cyrodiil, Summerset, and Hammerfell. Daedric Princes intercede in mortal affairs. Guilds and factions like the Thieves Guild, Mages Guild, and Dark Brotherhood operate in shadows.
+LORE SYSTEMS: Characters use Magicka, Stamina, and Health. Spells belong to schools (Destruction, Restoration, Illusion, Alteration, Mysticism, Conjuration).
+
+LOCATION LORE: ${state?.world.current_location ? JSON.stringify(state.world.current_location) : "No special lore hooks"}
+
 Scenario:
 ${prompt}
 
 Director Instructions:
-- Maintain high-fidelity Elder Scrolls atmosphere.
+- Maintain high-fidelity Elder Scrolls atmosphere. Include province/faction/landmark details for grounded visuals.
 - If player is illiterate and reading is involved, render text as mysterious symbols or gibberish.
 - Reflect the player's origins and mantling progression in the prose.
 - Respond ONLY with valid JSON in the requested format.
@@ -84,7 +92,11 @@ Director Instructions:
       
       const res = await fetch(`${STABLE_API}/generate/text/async`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'apikey': hordeApiKey || DEFAULT_API_KEY },
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': hordeApiKey || DEFAULT_API_KEY,
+          'Client-Agent': 'gitsa:1.0:unknown'
+        },
         body: JSON.stringify(body),
         signal: controller.signal
       });
@@ -104,7 +116,8 @@ Director Instructions:
         
         try {
           const statusRes = await fetch(`${STABLE_API}/generate/text/status/${id}`, {
-            signal: statusController.signal
+            signal: statusController.signal,
+            headers: { 'Client-Agent': 'gitsa:1.0:unknown' }
           });
           clearTimeout(statusTimeout);
           
@@ -204,7 +217,7 @@ export async function generateImage(prompt: string, apiKey: string, hordeApiKey:
 
   // Try Pollinations Image first (Uncensored, Free)
   try {
-    const seed = Math.floor(Math.random() * 1000000);
+    const seed = crypto.getRandomValues(new Uint32Array(1))[0] % 1000000;
     const pollinationsUrl = `https://gen.pollinations.ai/image/${encodeURIComponent(optimizedPrompt)}?width=1024&height=1024&nologo=true&seed=${seed}`;
     const res = await fetch(pollinationsUrl);
     if (res.ok) {
@@ -249,7 +262,11 @@ export async function generateImage(prompt: string, apiKey: string, hordeApiKey:
       
       const res = await fetch(`${STABLE_API}/generate/async`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'apikey': hordeApiKey || DEFAULT_API_KEY },
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': hordeApiKey || DEFAULT_API_KEY,
+          'Client-Agent': 'gitsa:1.0:unknown'
+        },
         body: JSON.stringify(body),
         signal: controller.signal
       });
@@ -269,7 +286,8 @@ export async function generateImage(prompt: string, apiKey: string, hordeApiKey:
         
         try {
           const statusRes = await fetch(`${STABLE_API}/generate/status/${id}`, {
-            signal: statusController.signal
+            signal: statusController.signal,
+            headers: { 'Client-Agent': 'gitsa:1.0:unknown' }
           });
           clearTimeout(statusTimeout);
           

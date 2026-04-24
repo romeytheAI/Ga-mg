@@ -4,7 +4,7 @@
  * Manages triggering and applying effects of Elder Scrolls world events.
  */
 import { GameState } from '../types';
-import { ES_WORLD_EVENTS, WorldEvent } from '../data/esEvents';
+import { ES_WORLD_EVENTS, WorldEvent } from '../data/she';
 
 /**
  * Check for newly triggered world events based on current game state.

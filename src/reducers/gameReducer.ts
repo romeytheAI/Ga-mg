@@ -1,4 +1,5 @@
 import { GameState, StatKey } from '../types';
+import { generateId } from '../utils/crypto';
 import { LOCATIONS } from '../data/locations';
 import { initialState } from '../state/initialState';
 import { advanceWeekDay } from '../utils/scheduleEngine';
@@ -171,7 +172,7 @@ export function gameReducer(state: GameState, action: any): GameState {
       if (n.hunger <= 20) { ns.health = clamp(ns.health - 2 * h); ns.stamina = clamp(ns.stamina - 3 * h); }
       if (n.thirst <= 20) { ns.health = clamp(ns.health - 5 * h); }
       let ni = [...state.player.inventory]; let g = state.player.gold;
-      if (parsedText.new_items) { parsedText.new_items.forEach((item: any) => { if (item.name === 'Gold Coin') g += item.value || 1; else ni.push({ ...item, id: item.id || `i_${Date.now()}_${Math.random()}`, type: item.type || 'misc', weight: item.weight ?? 0.1, value: item.value ?? 1, integrity: item.integrity ?? 100 }); }); }
+      if (parsedText.new_items) { parsedText.new_items.forEach((item: any) => { if (item.name === 'Gold Coin') g += item.value || 1; else ni.push({ ...item, id: item.id || generateId(), type: item.type || 'misc', weight: item.weight ?? 0.1, value: item.value ?? 1, integrity: item.integrity ?? 100 }); }); }
       if (typeof parsedText.equipment_integrity_delta === 'number') { ni = ni.map(i => i.is_equipped ? { ...i, integrity: clamp((i.integrity ?? 100) + parsedText.equipment_integrity_delta) } : i); }
       let na = { ...state.player.anatomy }; if (parsedText.combat_injury) { na.injuries = [...na.injuries, parsedText.combat_injury]; ns.health = clamp(ns.health - (parsedText.combat_injury.health_penalty || 0)); ns.stamina = clamp(ns.stamina - (parsedText.combat_injury.stamina_penalty || 0)); }
       let af = [...state.player.afflictions]; if (parsedText.new_affliction) { if (!af.includes(parsedText.new_affliction)) af.push(parsedText.new_affliction); }
@@ -181,7 +182,14 @@ export function gameReducer(state: GameState, action: any): GameState {
       let tp = { ...state.player.temperature }; if (state.world.weather === 'Blizzard') { ns.stamina = clamp(ns.stamina - 10 * h); tp.ambient_temp = -15; } if (state.world.weather === 'Thunderstorm' || state.world.weather === 'Scorching') ns.stress = clamp(ns.stress + 10 * h); if (state.world.weather === 'Scorching') tp.ambient_temp = 38;
       let mg = [...state.memory_graph]; if (parsedText.memory_entry) mg.push(parsedText.memory_entry); else if (parsedText.narrative_text) mg.push(`Day ${state.world.day}: ${actionText}`);
       const nextP = { ...state.player, gold: g, stats: ns, skills: nsk, life_sim: { ...state.player.life_sim, needs: n }, inventory: ni, anatomy: na, afflictions: af, quests: q, lewdity_stats: ls, temperature: tp };
-      return { ...state, memory_graph: mg, world: { ...state.world, hour: nh, day: nd, turn_count: state.world.turn_count + 1, current_location: LOCATIONS[parsedText.new_location] || state.world.current_location }, player: withClothingState(nextP), ui: { ...state.ui, currentLog: nl, isPollingText: false, last_stat_deltas: parsedText.stat_deltas, choices: parsedText.follow_up_choices || state.world.current_location.actions || [] } };
+      const nextStoryEvent = action.payload.nextStoryEvent !== undefined ? action.payload.nextStoryEvent : state.world.active_story_event;
+      // Track completed story arcs when a story event resolves to null
+      let completedArcs = [...state.world.completed_story_arcs];
+      if (state.world.active_story_event && nextStoryEvent === null) {
+        const arcId = state.world.active_story_event.id;
+        if (!completedArcs.includes(arcId)) completedArcs.push(arcId);
+      }
+      return { ...state, memory_graph: mg, world: { ...state.world, hour: nh, day: nd, turn_count: state.world.turn_count + 1, active_story_event: nextStoryEvent, completed_story_arcs: completedArcs, current_location: LOCATIONS[parsedText.new_location] || state.world.current_location }, player: withClothingState(nextP), ui: { ...state.ui, currentLog: nl, isPollingText: false, last_stat_deltas: parsedText.stat_deltas, choices: parsedText.follow_up_choices || state.world.current_location.actions || [] } };
     }
     case 'UPDATE_ACTIVE_ENCOUNTER': {
       if (!state.world.active_encounter) return state;
@@ -200,6 +208,23 @@ export function gameReducer(state: GameState, action: any): GameState {
       return { ...state, ui: { ...state.ui, [action.payload.key]: action.payload.value } };
     }
     case 'HORDE_REQUEST_START': return { ...state, ui: { ...state.ui, horde_monitor: { ...state.ui.horde_monitor, active: true, text_requests: action.payload.type === 'text' ? state.ui.horde_monitor.text_requests + 1 : state.ui.horde_monitor.text_requests, image_requests: action.payload.type === 'image' ? state.ui.horde_monitor.image_requests + 1 : state.ui.horde_monitor.image_requests } } };
+    case 'ADVANCE_EPOCH': {
+      const milestone = action.payload?.milestone;
+      const milestones = milestone && !state.world.narrative_milestones.includes(milestone)
+        ? [...state.world.narrative_milestones, milestone]
+        : state.world.narrative_milestones;
+      return { ...state, world: { ...state.world, world_epoch: state.world.world_epoch + 1, narrative_milestones: milestones } };
+    }
+    case 'COMPLETE_STORY_ARC': {
+      const arcId = action.payload.arcId;
+      if (state.world.completed_story_arcs.includes(arcId)) return state;
+      return { ...state, world: { ...state.world, completed_story_arcs: [...state.world.completed_story_arcs, arcId] } };
+    }
+    case 'ADD_NARRATIVE_MILESTONE': {
+      const ms = action.payload.milestone;
+      if (state.world.narrative_milestones.includes(ms)) return state;
+      return { ...state, world: { ...state.world, narrative_milestones: [...state.world.narrative_milestones, ms] } };
+    }
     default: return state;
   }
 }

@@ -15,6 +15,9 @@ interface NarrativePanelProps {
   NarrativeLog: any; // Passed from App for consistency
 }
 
+// ⚡ Bolt: Wrapped NarrativePanel in React.memo to prevent unnecessary re-renders when other parts of the application update.
+// A custom comparator function prevents re-renders when irrelevant properties of `state` change.
+// To avoid fragile logic and runtime crashes, it uses shallow state checks.
 export const NarrativePanel: React.FC<NarrativePanelProps> = React.memo(({
   state, handleAction, customAction, setCustomAction 
 }) => {
@@ -29,10 +32,10 @@ export const NarrativePanel: React.FC<NarrativePanelProps> = React.memo(({
   const needs = state.player.life_sim.needs;
 
   return (
-    <div className="flex-1 flex flex-col h-full bg-black/10">
+    <div className="flex-1 min-h-0 flex flex-col h-full bg-black/10">
       
       {/* Narrative Feed */}
-      <div className="flex-1 overflow-y-auto scrollbar-hide relative" ref={logRef}>
+      <div className="flex-1 min-h-0 overflow-y-auto scrollbar-hide relative" ref={logRef}>
         <div className="absolute inset-0 pointer-events-none bg-gradient-to-b from-black/40 via-transparent to-black/60 z-10" />
         <NarrativeLog 
           logs={state.ui.currentLog} 
@@ -60,37 +63,37 @@ export const NarrativePanel: React.FC<NarrativePanelProps> = React.memo(({
       </div>
 
       {/* Action Interaction Deck */}
-      <div className="p-6 border-t border-white/[0.06] bg-black/40 backdrop-blur-3xl space-y-4">
+      <div className="p-2.5 border-t border-white/[0.06] bg-black/40 backdrop-blur-3xl space-y-2 flex-shrink-0">
         
         {/* Choice Matrix */}
         <div className="grid grid-cols-2 gap-2">
-          {state.ui.choices.map((choice) => (
+          {state.ui.choices.slice(0, 4).map((choice) => (
             <motion.button
               key={choice.id}
               whileHover={{ scale: 1.02, backgroundColor: "rgba(255,255,255,0.05)" }}
               whileTap={{ scale: 0.98 }}
-              onClick={() => handleAction(choice.label, choice.intent)}
-              className="aaa-button-ghost py-3 px-4 flex items-center justify-between group"
+              onClick={() => handleAction(choice.label, choice.intent, choice.id)}
+              className="aaa-button-ghost py-1.5 px-2.5 flex items-center justify-between group"
             >
-              <span className="text-[10px] tracking-[0.2em] uppercase font-bold text-white/60 group-hover:text-white/90">{choice.label}</span>
-              <div className="w-1 h-1 rounded-full bg-sky-500/40 group-hover:bg-sky-400 shadow-[0_0_8px_rgba(14,165,233,0.5)] transition-all" />
+              <span className="text-[10px] tracking-[0.2em] uppercase font-bold text-white/60 group-hover:text-white/90 truncate mr-2">{choice.label}</span>
+              <div className="w-1 h-1 rounded-full bg-sky-500/40 group-hover:bg-sky-400 shadow-[0_0_8px_rgba(14,165,233,0.5)] transition-all shrink-0" />
             </motion.button>
           ))}
 
           {/* Core Fixed Actions */}
           <motion.button 
-            whileHover={{ scale: 1.02, backgroundColor: "rgba(56, 189, 248, 0.1)" }}
+            whileHover={{ scale: 1.02, backgroundColor: "rgba(56, 189, 248, 0.1)", boxShadow: "0 0 15px rgba(14,165,233,0.3)" }}
             onClick={() => handleAction("Observe surroundings", "neutral")}
-            className="aaa-button bg-sky-950/20 border border-sky-500/20 text-sky-400/60 hover:text-sky-400 py-3 rounded-sm flex items-center justify-center gap-2"
+            className="aaa-button bg-sky-950/20 border border-sky-500/20 text-sky-400/60 hover:text-sky-400 py-1.5 rounded-lg flex items-center justify-center gap-2"
           >
             <Search className="w-3.5 h-3.5" />
             <span className="text-[10px] tracking-widest uppercase font-bold">Observe</span>
           </motion.button>
 
           <motion.button 
-            whileHover={{ scale: 1.02, backgroundColor: "rgba(168, 85, 247, 0.1)" }}
+            whileHover={{ scale: 1.02, backgroundColor: "rgba(168, 85, 247, 0.1)", boxShadow: "0 0 15px rgba(168,85,247,0.3)" }}
             onClick={() => handleAction("Attend Academy class", "neutral")}
-            className="aaa-button bg-purple-950/20 border border-purple-500/20 text-purple-400/60 hover:text-purple-400 py-3 rounded-sm flex items-center justify-center gap-2"
+            className="aaa-button bg-purple-950/20 border border-purple-500/20 text-purple-400/60 hover:text-purple-400 py-1.5 rounded-lg flex items-center justify-center gap-2"
           >
             <Book className="w-3.5 h-3.5" />
             <span className="text-[10px] tracking-widest uppercase font-bold">Academy</span>
@@ -99,14 +102,14 @@ export const NarrativePanel: React.FC<NarrativePanelProps> = React.memo(({
 
         {/* Custom Input Deck */}
         <div className="relative group">
-          <div className="absolute inset-0 bg-sky-500/5 rounded-sm blur-xl opacity-0 group-focus-within:opacity-100 transition-opacity" />
+          <div className="absolute inset-0 bg-sky-500/5 rounded-lg blur-xl opacity-0 group-focus-within:opacity-100 transition-opacity" />
           <div className="relative flex items-center">
             <input 
               type="text"
               value={customAction}
               onChange={(e) => setCustomAction(e.target.value)}
               placeholder="DIRECTIVE TO FATE..."
-              className="flex-1 bg-black/60 border border-white/10 p-4 pr-12 rounded-sm text-[11px] tracking-[0.3em] uppercase text-white/80 focus:outline-none focus:border-sky-500/50 focus:bg-black/80 transition-all font-mono"
+              className="flex-1 bg-black/60 border border-white/10 p-2 pr-10 rounded-lg text-[11px] tracking-[0.3em] uppercase text-white/80 focus:outline-none focus:border-sky-500/50 focus:bg-black/80 focus:shadow-[0_0_15px_rgba(14,165,233,0.3)] transition-all font-mono"
               onKeyDown={(e) => e.key === 'Enter' && customAction && handleAction(customAction, 'custom')}
             />
             <button 

@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { convertSvgToGltf, SvgToGltfOptions } from './svgToGltf';
-import { BodyGeom, SpriteState } from '../components/dol/sprite/utils';
+import { BodyGeom, SpriteState } from '../components/sprite/utils';
 
 /**
  * Minimal BodyGeom and SpriteState for a female human at default proportions.

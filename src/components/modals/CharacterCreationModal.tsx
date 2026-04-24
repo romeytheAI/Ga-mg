@@ -7,7 +7,7 @@ import {
 } from 'lucide-react';
 import { GameState } from '../../types';
 import { ELDER_SCROLLS_RACES, resolveRace } from '../../data/races';
-import { DoLCharacterSprite } from '../DoLCharacterSprite';
+import { CharacterSprite2D } from '../CharacterSprite2D';
 
 interface CharacterCreationModalProps {
   onComplete: (config: any) => void;
@@ -62,15 +62,36 @@ export const CharacterCreationModal: React.FC<CharacterCreationModalProps> = ({ 
         eye_color: eyeColor,
         tattoos: [], piercings: [], scars: []
       },
-      biology: { lactation_level: 0 },
+      biology: { lactation_level: 0, incubations: [], parasites: [] },
       body_fluids: { arousal_wetness: 0, sweat: 0, milk: 0 },
       stats: { health: 100, corruption: 0, purity: 100, arousal: 0 },
-      life_sim: { needs: { hygiene: 100 } },
+      life_sim: { needs: { hygiene: 100, energy: 100, hunger: 100, thirst: 100 } },
       afflictions: [],
       clothing: {
         chest: { id: 'preview-rags', name: 'Rags', type: 'clothing', slot: 'chest', is_equipped: true, integrity: 100, max_integrity: 100 }
       },
-      clothing_damage: []
+      clothing_damage: [],
+      anatomy: { organs: {}, bones_integrity: {}, body_parts: {} },
+      restraints: { entries: [] }
+    },
+    ui: {
+      graphics_quality: {
+        sprite_quality: {
+          gradient_shading: true,
+          cosmetic_details: true,
+          muscle_detail_level: 1,
+          fluid_effects: true,
+          xray_overlay: false
+        }
+      },
+      currentLog: [],
+      combat_animation: '',
+      targeted_part: 'none'
+    },
+    world: {
+      active_encounter: null,
+      last_intent: 'idle',
+      weather: 'Clear'
     }
   } as any), [name, race, gender, skinTone, hairColor, hairLength, eyeColor]);
 
@@ -337,7 +358,7 @@ export const CharacterCreationModal: React.FC<CharacterCreationModalProps> = ({ 
         <div className="lg:w-[40%] bg-black/60 border-r border-white/5 flex flex-col items-center justify-center p-12 relative overflow-hidden group/vessel">
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(14,165,233,0.05),transparent)] opacity-60 group-hover/vessel:opacity-100 transition-opacity duration-1000" />
           <div className="relative z-10 w-full aspect-[2/3] flex items-center justify-center filter drop-shadow-[0_0_30px_rgba(0,0,0,0.8)]">
-            <DoLCharacterSprite state={previewState} />
+            <CharacterSprite2D state={previewState} />
           </div>
           <div className="mt-12 text-center relative z-10">
             <h3 className="text-[10px] tracking-[0.6em] uppercase text-white/30 font-black mb-3">Vessel Stabilization</h3>
@@ -351,7 +372,7 @@ export const CharacterCreationModal: React.FC<CharacterCreationModalProps> = ({ 
               <h2 className="text-4xl font-serif text-white/95 tracking-[0.1em] uppercase">Vessel Synthesis</h2>
               <span className="text-[10px] text-sky-400/80 tracking-[0.5em] uppercase block mt-3 font-black">Step 0{step + 1} // {STEP_TITLES[step]}</span>
             </div>
-            <button onClick={onCancel} className="w-12 h-12 flex items-center justify-center rounded-sm bg-white/5 hover:bg-red-500/20 text-white/20 hover:text-red-400 transition-all border border-white/5"><X className="w-6 h-6" /></button>
+            <button aria-label="Cancel Character Creation" onClick={onCancel} className="w-12 h-12 flex items-center justify-center rounded-sm bg-white/5 hover:bg-red-500/20 text-white/20 hover:text-red-400 transition-all border border-white/5"><X className="w-6 h-6" /></button>
           </div>
           <div className="flex-1 relative">
             <AnimatePresence mode="wait">
