@@ -5,3 +5,7 @@
 ## 2024-05-18 - Custom UI Toggle Switches WAI-ARIA Compliance
 **Learning:** When implementing custom UI toggle switches (e.g., using `div` or `button` elements instead of `<input type="checkbox">`), they must be marked up with WAI-ARIA attributes (`role="switch"`, `aria-checked={active}`) to ensure screen readers can understand and interact with them properly.
 **Action:** Always add appropriate roles and aria-checked attributes when creating custom toggles to maintain accessibility.
+
+## 2024-05-18 - Missing ARIA Labels on Icon-Only Buttons
+**Learning:** In the project's modals, icon-only buttons (like those using the Lucide `<X>` icon for closing) frequently lack accessible names. This creates barriers for screen reader users who cannot visually determine the button's purpose.
+**Action:** Always verify that `<button>` tags containing only `<svg>` or icon components have a descriptive `aria-label` attribute (e.g., `aria-label="Close Modal"`).
