@@ -1087,7 +1087,13 @@ export interface GameState {
     ascension_state: 'none' | 'divine_spark' | 'daedric_champion' | 'hist_devoted' | 'sheogorath_touched',
     director_cut: boolean,
     active_encounter: ActiveEncounter | null,
-    active_story_event: ActiveStoryEvent | null
+    active_story_event: ActiveStoryEvent | null,
+    /** Major narrative epoch counter — increments when milestone arcs complete */
+    world_epoch: number,
+    /** IDs of completed story arcs (dialogue trees seen to completion) */
+    completed_story_arcs: string[],
+    /** Named narrative milestones for gating content (e.g. 'escaped_orphanage') */
+    narrative_milestones: string[]
   },
   memory_graph: string[],
   /** UI/presentation layer state - polling, display, settings (not persisted in saves) */

@@ -2,7 +2,7 @@ import React, { useRef, useEffect, useCallback } from 'react';
 import * as THREE from 'three';
 import { GameState } from '../types';
 import { resolveRace } from '../data/races';
-import { buildBodyGeom, resolveSkinColor, SpriteState } from './dol/sprite/utils';
+import { buildBodyGeom, resolveSkinColor, SpriteState } from './sprite/utils';
 import { convertSvgToGltf } from '../utils/svgToGltf';
 import { ANIMATION_LIBRARY, convertToAnimationClip } from '../utils/animationLibrary';
 

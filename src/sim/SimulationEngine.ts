@@ -461,7 +461,7 @@ export async function processHordeRequest(
 
 // ── Horde API helpers (non-blocking) ─────────────────────────────────────
 
-const HORDE_API = 'https://stablehorde.net/api/v2';
+const HORDE_API = 'https://aihorde.net/api/v2';
 
 async function submitHordeJob(prompt: string, apiKey: string): Promise<string> {
   const resp = await fetch(`${HORDE_API}/generate/text/async`, {
@@ -469,6 +469,7 @@ async function submitHordeJob(prompt: string, apiKey: string): Promise<string> {
     headers: {
       'Content-Type': 'application/json',
       'apikey': apiKey || '0000000000',
+      'Client-Agent': 'gitsa:1.0:unknown'
     },
     body: JSON.stringify({
       prompt,
@@ -483,7 +484,10 @@ async function submitHordeJob(prompt: string, apiKey: string): Promise<string> {
 
 async function pollHordeJob(jobId: string, apiKey: string): Promise<string | null> {
   const resp = await fetch(`${HORDE_API}/generate/text/status/${jobId}`, {
-    headers: { 'apikey': apiKey || '0000000000' },
+    headers: {
+      'apikey': apiKey || '0000000000',
+      'Client-Agent': 'gitsa:1.0:unknown'
+    },
   });
   if (!resp.ok) throw new Error(`Horde poll failed: ${resp.status}`);
   const data = await resp.json();
