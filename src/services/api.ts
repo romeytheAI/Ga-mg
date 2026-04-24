@@ -1,6 +1,7 @@
 import { STABLE_API, DEFAULT_API_KEY } from '../constants';
 import { getRelevantLore } from '../lore';
 import { imageWorker } from '../utils/workers';
+import { generateSecureRandomNumber } from '../utils/crypto';
 import { costTracker } from '../dafl/CostTracker';
 import { SemanticAudit } from '../dafl/SemanticAudit';
 
@@ -204,7 +205,7 @@ export async function generateImage(prompt: string, apiKey: string, hordeApiKey:
 
   // Try Pollinations Image first (Uncensored, Free)
   try {
-    const seed = Math.floor(Math.random() * 1000000);
+    const seed = generateSecureRandomNumber(1000000);
     const pollinationsUrl = `https://gen.pollinations.ai/image/${encodeURIComponent(optimizedPrompt)}?width=1024&height=1024&nologo=true&seed=${seed}`;
     const res = await fetch(pollinationsUrl);
     if (res.ok) {

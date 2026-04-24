@@ -21,3 +21,16 @@ export function generateId(): string {
 
   throw new Error("Secure random number generation is not supported in this environment. Cannot generate secure UUIDs.");
 }
+
+/**
+ * Generates a cryptographically secure random integer between 0 (inclusive) and max (exclusive).
+ * Falls back to Math.random() if crypto is unavailable.
+ */
+export function generateSecureRandomNumber(max: number): number {
+  if (typeof crypto !== 'undefined' && typeof crypto.getRandomValues === 'function') {
+    const randomBuffer = new Uint32Array(1);
+    crypto.getRandomValues(randomBuffer);
+    return randomBuffer[0] % max;
+  }
+  return Math.floor(Math.random() * max);
+}
