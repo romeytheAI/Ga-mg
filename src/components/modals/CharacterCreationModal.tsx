@@ -372,7 +372,7 @@ export const CharacterCreationModal: React.FC<CharacterCreationModalProps> = ({ 
               <h2 className="text-4xl font-serif text-white/95 tracking-[0.1em] uppercase">Vessel Synthesis</h2>
               <span className="text-[10px] text-sky-400/80 tracking-[0.5em] uppercase block mt-3 font-black">Step 0{step + 1} // {STEP_TITLES[step]}</span>
             </div>
-            <button onClick={onCancel} className="w-12 h-12 flex items-center justify-center rounded-sm bg-white/5 hover:bg-red-500/20 text-white/20 hover:text-red-400 transition-all border border-white/5"><X className="w-6 h-6" /></button>
+            <button onClick={onCancel} className="w-12 h-12 flex items-center justify-center rounded-sm bg-white/5 hover:bg-red-500/20 text-white/20 hover:text-red-400 transition-all border border-white/5" aria-label="Close"><X className="w-6 h-6" /></button>
           </div>
           <div className="flex-1 relative">
             <AnimatePresence mode="wait">

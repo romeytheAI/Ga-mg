@@ -245,7 +245,7 @@ export const LifeSimDashboardModal: React.FC<LifeSimDashboardModalProps> = ({ st
           </div>
           <button 
             onClick={() => dispatch({ type: 'TOGGLE_UI_SETTING', payload: { key: 'show_life_sim_dashboard', value: false } })} 
-            className="w-12 h-12 flex items-center justify-center rounded-sm bg-white/5 hover:bg-red-500/20 text-white/20 hover:text-red-400 transition-all duration-500 border border-white/5 hover:border-red-500/40"
+            className="w-12 h-12 flex items-center justify-center rounded-sm bg-white/5 hover:bg-red-500/20 text-white/20 hover:text-red-400 transition-all duration-500 border border-white/5 hover:border-red-500/40" aria-label="Close"
           >
             <X className="w-6 h-6" />
           </button>

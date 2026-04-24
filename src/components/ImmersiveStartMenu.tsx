@@ -597,19 +597,19 @@ export const ImmersiveStartMenu: React.FC<ImmersiveStartMenuProps> = ({ onStartG
                   <h2 className="text-xl tracking-widest uppercase text-white/80 border-b border-white/10 pb-4">Meta-Progression</h2>
                   
                   <div className="grid grid-cols-2 gap-4">
-                    <button className="p-6 bg-white/5 hover:bg-white/10 border border-white/10 flex flex-col items-center justify-center gap-3 transition-colors group">
+                    <button aria-label="Gallery" className="p-6 bg-white/5 hover:bg-white/10 border border-white/10 flex flex-col items-center justify-center gap-3 transition-colors group">
                       <ImageIcon className="w-8 h-8 text-white/40 group-hover:text-white/80 transition-colors" />
                       <span className="text-xs tracking-widest uppercase text-white/60">Gallery</span>
                     </button>
-                    <button className="p-6 bg-white/5 hover:bg-white/10 border border-white/10 flex flex-col items-center justify-center gap-3 transition-colors group">
+                    <button aria-label="Compendium" className="p-6 bg-white/5 hover:bg-white/10 border border-white/10 flex flex-col items-center justify-center gap-3 transition-colors group">
                       <BookOpen className="w-8 h-8 text-white/40 group-hover:text-white/80 transition-colors" />
                       <span className="text-xs tracking-widest uppercase text-white/60">Compendium</span>
                     </button>
-                    <button className="p-6 bg-white/5 hover:bg-white/10 border border-white/10 flex flex-col items-center justify-center gap-3 transition-colors group">
+                    <button aria-label="Achievements" className="p-6 bg-white/5 hover:bg-white/10 border border-white/10 flex flex-col items-center justify-center gap-3 transition-colors group">
                       <Trophy className="w-8 h-8 text-white/40 group-hover:text-white/80 transition-colors" />
                       <span className="text-xs tracking-widest uppercase text-white/60">Achievements</span>
                     </button>
-                    <button className="p-6 bg-white/5 hover:bg-white/10 border border-white/10 flex flex-col items-center justify-center gap-3 transition-colors group">
+                    <button aria-label="Statistics" className="p-6 bg-white/5 hover:bg-white/10 border border-white/10 flex flex-col items-center justify-center gap-3 transition-colors group">
                       <BarChart2 className="w-8 h-8 text-white/40 group-hover:text-white/80 transition-colors" />
                       <span className="text-xs tracking-widest uppercase text-white/60">Statistics</span>
                     </button>

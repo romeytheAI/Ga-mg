@@ -51,7 +51,7 @@ export const MemoriesModal: React.FC<MemoriesModalProps> = ({ state, onClose }) 
         <button 
           onClick={onClose}
           className="absolute top-6 right-6 text-white/40 hover:text-white transition-colors"
-        >
+         aria-label="Close">
           <X className="w-5 h-5" />
         </button>
         
