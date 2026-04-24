@@ -18,7 +18,7 @@ jobs:
             const pr = await github.rest.pulls.get({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              pull_number: context.issue.number
+              pull_number: context.payload.pull_request.number
             });
             
             // Note: mergeable_state can be null while GitHub is calculating
@@ -33,7 +33,7 @@ jobs:
         with:
           script: |
             github.rest.issues.createComment({
-              issue_number: context.issue.number,
+              issue_number: context.payload.pull_request.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
               body: "🚨 Merge conflicts detected! Jules is jumping in to resolve them. 🛠️"
@@ -56,6 +56,6 @@ jobs:
             Instructions:
             1. Analyze the conflicts between the head branch and the base branch.
             2. Resolve the conflicts by merging the latest changes from the base branch into the head branch.
-            3. Ensure the code remains functional, follows project patterns in `.jules/`, and passes all tests.
+            3. Ensure the code remains functional, follows project patterns in `.jules/` and `.Jules/`, and passes all tests.
             4. Submit the resolved code. If possible, update the existing PR or provide the resolution as a new Pull Request.
             5. In your response, clearly state which conflicts were resolved and how.
