@@ -76,7 +76,7 @@ describe('canAccessFactionService', () => {
     // Default rep is 0; 'champion' requires very high reputation threshold
     // We verify the function delegates correctly to meetsStanding
     const neutral = canAccessFactionService(factions, 'thieves_guild', 'neutral');
-    const champion = canAccessFactionService(factions, 'thieves_guild', 'champion');
+    const champion = canAccessFactionService(factions, 'thieves_guild', 'exalted');
     // neutral should be at least as permissive as champion
     // (if champion is true, neutral must be true too)
     if (champion) {
@@ -99,7 +99,7 @@ describe('buildFactionSummary', () => {
   it('sorts by reputation descending', () => {
     const factions = freshFactions();
     // Boost one faction's rep
-    const boosted = applyRepWithRivalSpillover(factions, 'mages_guild', 80);
+    const boosted = applyRepWithRivalSpillover(factions, 'academia', 80);
     const summary = buildFactionSummary(boosted);
     for (let i = 1; i < summary.length; i++) {
       expect(summary[i - 1].reputation).toBeGreaterThanOrEqual(summary[i].reputation);
