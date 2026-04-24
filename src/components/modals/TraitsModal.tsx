@@ -227,7 +227,7 @@ export const TraitsModal: React.FC<TraitsModalProps> = ({ state, dispatch }) => 
                     )}
                   </div>
                   <button
-                    aria-label="Remove trait"
+                    aria-label={"Remove trait: " + trait.name}
                     onClick={() => dispatch({ type: 'REMOVE_TRAIT', payload: trait.id })}
                     className="text-white/20 hover:text-red-400 transition-colors shrink-0 ml-2"
                     title="Remove trait"
