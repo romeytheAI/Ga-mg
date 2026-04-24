@@ -1,1 +1,21 @@
+# DAFL Revenue Sidecar – Auto Deploy
+# -----------------------------------------------------------------
+# This workflow is a placeholder. The DAFL revenue-sidecar service
+# was removed from the repository. If the sidecar is re-added in
+# the future, replace this with a proper Docker build + deploy
+# workflow.
+#
+# Keeping a valid (but no-op) YAML here avoids actionlint errors
+# and GitHub UI noise from an empty file.
 
+name: "DAFL Revenue Sidecar – Auto Deploy"
+
+on:
+  workflow_dispatch:
+
+jobs:
+  noop:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Placeholder
+        run: echo "DAFL sidecar deployment is currently disabled. No action taken."

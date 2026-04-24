@@ -55,8 +55,12 @@ jobs:
             const ownerLogin = repoInfo.data.owner.login;
             const ownerType = repoInfo.data.owner.type;
 
-            const dryRun = core.getBooleanInput('dry-run');
-            const projectInput = core.getInput('project-number');
+            // getBooleanInput / getInput throw when the workflow is triggered by
+            // push (no inputs object). Fall back to safe defaults.
+            let dryRun = false;
+            let projectInput = '';
+            try { dryRun = core.getBooleanInput('dry-run'); } catch (_) { /* push trigger */ }
+            try { projectInput = core.getInput('project-number'); } catch (_) { /* push trigger */ }
             const projectNumber = projectInput ? parseInt(projectInput, 10) : null;
             const baseLabels = ['roadmap', 'foundation'];
 

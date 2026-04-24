@@ -1,4 +1,3 @@
-import { generateSecureRandomNumber } from '../utils/crypto';
 import { STABLE_API, DEFAULT_API_KEY } from '../constants';
 import { getRelevantLore } from '../lore';
 import { imageWorker } from '../utils/workers';
@@ -72,7 +71,7 @@ Director Instructions:
   enhancedPrompt = optimized;
 
   if (audit.tokensSaved > 0 && dispatch) {
-    console.log(`[DAFL] Semantic audit saved ${audit.tokensSaved} tokens:`, audit.optimizations);
+    console.log(`[Audit] Semantic audit saved ${audit.tokensSaved} tokens:`, audit.optimizations);
   }
 
   const startTime = Date.now();
