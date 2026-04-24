@@ -238,9 +238,8 @@ def verify_stripe_signature(payload: bytes, signature: str, secret: str):
     for part in sig_parts:
         if part.startswith("v1="):
             received_sig = part[3:]
-            if not hmac.compare_digest(expected_sig.encode('utf-8'), received_sig.encode('utf-8')):
-                raise HTTPException(status_code=400, detail="Invalid signature")
-            return
+            if hmac.compare_digest(expected_sig.encode('utf-8'), received_sig.encode('utf-8')):
+                return
 
     raise HTTPException(status_code=400, detail="No valid signature found")
 
