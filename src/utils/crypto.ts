@@ -30,7 +30,7 @@ export function generateSecureRandomNumber(max: number): number {
   if (typeof crypto !== 'undefined' && typeof crypto.getRandomValues === 'function') {
     const randomBuffer = new Uint32Array(1);
     crypto.getRandomValues(randomBuffer);
-    return randomBuffer[0] % max;
+    return Math.floor((randomBuffer[0] / 0x100000000) * max);
   }
   return Math.floor(Math.random() * max);
 }
