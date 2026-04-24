@@ -1066,7 +1066,88 @@ export const LOCATIONS: Record<string, any> = {
       { id: "travel_lillandril", label: "Travel to Lillandril", intent: "travel", outcome: "A transport takes you to the learned city of Lillandril.", stat_deltas: { stamina: -20 }, new_location: "loc_es_lillandril" },
       { id: "travel_cloudrest", label: "Travel to Cloudrest", intent: "travel", outcome: "You endure a grueling journey culminating in a steep climb to the aerie of Cloudrest.", stat_deltas: { stamina: -30 }, new_location: "loc_es_cloudrest" }
     ]
+  },
+
+  loc_es_whiterun: {
+    id: 'loc_es_whiterun',
+    name: 'Whiterun',
+    danger: 15,
+    atmosphere: 'hearty, bustling, nord tradition',
+    npcs: ['npc_es_aela', 'npc_es_farengar'],
+    actions: [
+      { id: 'visit_bannered_mare', intent: 'social', label: 'Rest at The Bannered Mare', skill: 'social', difficulty: 20, reward: { xp: 15 } },
+      { id: 'train_companions', intent: 'work', label: 'Train with the Companions', skill: 'athletics', difficulty: 50, reward: { xp: 50, skills: { athletics: 3 } } }
+    ],
+    lore: {
+      province: 'Skyrim',
+      faction_presence: ['Companions'],
+      landmarks: ['Dragonsreach', 'Jorrvaskr', 'Skyforge']
+    }
+  },
+  loc_es_college_winterhold: {
+    id: 'loc_es_college_winterhold',
+    name: 'College of Winterhold',
+    danger: 30,
+    atmosphere: 'scholarly, magical, freezing, isolated',
+    npcs: ['npc_es_savos_aren', 'npc_es_faralda'],
+    actions: [
+      { id: 'study_arcanaeum', intent: 'study', label: 'Study in the Arcanaeum', skill: 'magic', difficulty: 40, reward: { xp: 40, skills: { magic: 3 } } },
+      { id: 'explore_midden', intent: 'explore', label: 'Explore the Midden', skill: 'skulduggery', difficulty: 60, reward: { xp: 60, items: ['soul_gem'] } }
+    ],
+    lore: {
+      province: 'Skyrim',
+      faction_presence: ['College of Winterhold'],
+      landmarks: ['Hall of the Elements', 'Arcanaeum', 'The Midden']
+    }
+  },
+  loc_es_blackreach: {
+    id: 'loc_es_blackreach',
+    name: 'Blackreach',
+    danger: 80,
+    atmosphere: 'alien, glowing, dangerous, silent',
+    npcs: ['npc_es_falmer_skulker', 'npc_es_dwemer_centurion'],
+    actions: [
+      { id: 'harvest_crimson_nirnroot', intent: 'work', label: 'Harvest Crimson Nirnroot', skill: 'foraging', difficulty: 70, reward: { items: ['crimson_nirnroot'], xp: 50 } },
+      { id: 'sneak_falmer', intent: 'stealth', label: 'Sneak past Falmer camps', skill: 'skulduggery', difficulty: 75, reward: { xp: 60 } }
+    ],
+    lore: {
+      province: 'Skyrim',
+      faction_presence: [],
+      landmarks: ['Silent City', 'Dwemer Sun']
+    }
+  },
+  loc_es_imperial_city: {
+    id: 'loc_es_imperial_city',
+    name: 'The Imperial City',
+    danger: 20,
+    atmosphere: 'cosmopolitan, grandiose, imperial',
+    npcs: ['npc_es_maiq'],
+    actions: [
+      { id: 'trade_market', intent: 'social', label: 'Trade in the Market District', skill: 'persuasion', difficulty: 30, reward: { gold: 30, xp: 20 } },
+      { id: 'visit_arena', intent: 'explore', label: 'Watch the Arena matches', skill: 'social', difficulty: 10, reward: { xp: 15 } }
+    ],
+    lore: {
+      province: 'Cyrodiil',
+      faction_presence: ['Imperial Legion'],
+      landmarks: ['White-Gold Tower', 'Arcane University']
+    }
+  },
+  loc_es_vivec_foreign_quarter: {
+    id: 'loc_es_vivec_foreign_quarter',
+    name: 'Vivec Foreign Quarter',
+    danger: 25,
+    atmosphere: 'alien, structured, religious, xenophobic',
+    npcs: ['npc_es_ordinator'],
+    actions: [
+      { id: 'visit_canton', intent: 'social', label: 'Visit the Canton Plazas', skill: 'social', difficulty: 40, reward: { xp: 20 } }
+    ],
+    lore: {
+      province: 'Morrowind',
+      faction_presence: ['Tribunal Temple'],
+      landmarks: ['Vivec City Cantons']
+    }
   }
+
 };
 
 export const STORY_EVENTS: Record<string, any> = {
