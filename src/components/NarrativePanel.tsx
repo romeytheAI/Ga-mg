@@ -15,7 +15,7 @@ interface NarrativePanelProps {
   NarrativeLog: any; // Passed from App for consistency
 }
 
-export const NarrativePanel: React.FC<NarrativePanelProps> = ({ 
+export const NarrativePanel: React.FC<NarrativePanelProps> = React.memo(({
   state, handleAction, customAction, setCustomAction 
 }) => {
   const logRef = useRef<HTMLDivElement>(null);
@@ -133,4 +133,18 @@ export const NarrativePanel: React.FC<NarrativePanelProps> = ({
       </div>
     </div>
   );
-};
+}, (prev, next) => (
+  // ⚡ BOLT OPTIMIZATION: Custom comparator prevents expensive re-renders of the main interaction deck.
+  // The global 'state' object reference changes constantly.
+  // We ignore handleAction and setCustomAction prop changes because we rely on stateRefs in App.tsx
+  // to avoid stale closures, allowing NarrativePanel to safely bypass re-renders on unrelated state changes.
+  prev.customAction === next.customAction &&
+  prev.state.ui.currentLog === next.state.ui.currentLog &&
+  prev.state.ui.choices === next.state.ui.choices &&
+  prev.state.player.life_sim.needs.hunger === next.state.player.life_sim.needs.hunger &&
+  prev.state.player.life_sim.needs.thirst === next.state.player.life_sim.needs.thirst &&
+  prev.state.player.life_sim.needs.energy === next.state.player.life_sim.needs.energy &&
+  prev.state.sim_world === next.state.sim_world &&
+  prev.state.ui.accessibility_mode === next.state.ui.accessibility_mode &&
+  prev.state.player.stats.trauma === next.state.player.stats.trauma
+));

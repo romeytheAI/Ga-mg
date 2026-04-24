@@ -1,4 +1,4 @@
-import React, { useState, useEffect, Suspense, useRef } from 'react';
+import React, { useState, useEffect, Suspense, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
   Heart, Wind, Moon, Settings, X, BookOpen, User, Map as MapIcon, 
@@ -42,6 +42,12 @@ const ChunkFallback = () => <div className="animate-pulse bg-white/5 w-full h-fu
 
 export default function App() {
   const [state, setState] = useState<GameState | null>(null);
+  const stateRef = useRef<GameState | null>(null);
+
+  useEffect(() => {
+    stateRef.current = state;
+  }, [state]);
+
   const [hasStarted, setHasStarted] = useState(false);
   
   // AAA UI State
@@ -54,6 +60,11 @@ export default function App() {
 
   // ── Pre-Cog Synthesis Buffer (Zero-Latency) ──
   const synthesisBuffer = useEncounterBuffer(state!);
+  const synthesisBufferRef = useRef(synthesisBuffer);
+
+  useEffect(() => {
+    synthesisBufferRef.current = synthesisBuffer;
+  }, [synthesisBuffer]);
 
   useEffect(() => {
     // Load initial state
@@ -66,12 +77,13 @@ export default function App() {
     });
   };
 
-  const handleAction = async (text: string, intent: string = 'neutral', id?: string) => {
+  const handleAction = useCallback(async (text: string, intent: string = 'neutral', id?: string) => {
     // 1. Instant Local Resolution (Zero Wait)
-    const localNarrative = generateLocalProse(state!, text);
+    const currentState = stateRef.current!;
+    const localNarrative = generateLocalProse(currentState, text);
     
     // Check if we have a pre-generated cinematic narrative for this action in the buffer
-    const bufferedResponse = synthesisBuffer.find(b => b.action === text);
+    const bufferedResponse = synthesisBufferRef.current.find(b => b.action === text);
 
     dispatch({ 
       type: 'RESOLVE_TEXT', 
@@ -87,14 +99,14 @@ export default function App() {
     });
 
     // 2. Background Synthesis (Fill the buffer for NEXT turns)
-    if (state && !state.ui.isPollingText) {
+    if (currentState && !currentState.ui.isPollingText) {
       // Predict likely next actions and send to background worker
       // This happens while the player is reading the current local text
       import('./services/api').then(api => {
-         api.generateText(`Predict 3 likely actions and cinematic descriptions after: ${text}`, state.ui.apiKey, state.ui.hordeApiKey, state.ui.selectedTextModel, dispatch, true, state);
+         api.generateText(`Predict 3 likely actions and cinematic descriptions after: ${text}`, currentState.ui.apiKey, currentState.ui.hordeApiKey, currentState.ui.selectedTextModel, dispatch, true, currentState);
       });
     }
-  };
+  }, []);
 
   if (!state) return <div className="bg-black w-screen h-screen flex items-center justify-center font-serif uppercase tracking-[0.5em] text-white/20">Loading Reality...</div>;
 
