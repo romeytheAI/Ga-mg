@@ -54,4 +54,38 @@ export const BASIC_ITEMS: Record<string, any> = {
   'venison_stew': { id: 'venison_stew', name: "Venison Stew", type: 'consumable', rarity: 'uncommon', description: "A rich, slow-cooked stew of venison, root vegetables, and wild herbs. Proper Nord fare — hearty and restorative.", value: 12, weight: 0.6, stats: { health: 20, stamina: 30, stress: -10, pain: -5 } },
   'foraged_salad': { id: 'foraged_salad', name: "Foraged Salad", type: 'consumable', rarity: 'common', description: "A simple mix of wild greens, berries, and flowers. Light and fresh — not filling, but nutritious and clean.", value: 3, weight: 0.2, stats: { health: 6, stamina: 6, purity: 3 } },
   'healing_potion': { id: 'healing_potion', name: "Healing Potion", type: 'consumable', rarity: 'rare', description: "A refined distillation of healing salve into a clear, faintly glowing liquid. One vial dramatically accelerates the body's natural healing.", value: 40, weight: 0.15, stats: { health: 40, pain: -20, stamina: 10 } },
+
+  sweetroll: {
+    id: 'sweetroll',
+    name: 'Sweetroll',
+    description: 'A delicious pastry with sweet white icing. A favorite across Tamriel.',
+    value: 5,
+    type: 'consumable',
+    stats: { health: 10, stress: -5 }
+  },
+  soul_gem: {
+    id: 'soul_gem',
+    name: 'Filled Soul Gem',
+    description: 'A crystalline stone pulsating with the trapped energy of a living soul. Essential for enchanting.',
+    value: 150,
+    type: 'material',
+    stats: { willpower: 5 }
+  },
+  welkynd_stone: {
+    id: 'welkynd_stone',
+    name: 'Welkynd Stone',
+    description: 'A glowing meteoric glass stone created by the Ayleids. It hums with latent magicka.',
+    value: 200,
+    type: 'consumable',
+    stats: { willpower: 25, stress: -10 }
+  },
+  skooma: {
+    id: 'skooma',
+    name: 'Skooma',
+    description: 'An illegal, highly addictive narcotic refined from Moon Sugar. Grants a burst of energy followed by lethargy.',
+    value: 50,
+    type: 'consumable',
+    stats: { stress: -20, health: -10, corruption: 5 }
+  },
+
 };

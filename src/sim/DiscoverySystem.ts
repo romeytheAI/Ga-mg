@@ -54,24 +54,25 @@ export function filterNarrativeByIgnorance(state: GameState, text: string): stri
 
   // Procedural masking for low awareness
   let filtered = text;
-  const masks: Record<string, string> = {
-    'orgasm': 'strange overwhelming feeling',
-    'sex': 'wrestling or playing',
-    'lust': 'funny stomach ache',
-    'seduction': 'being very friendly',
-    'rape': 'mean person trying to grab you',
-    'prostitution': 'helping strangers for gold',
-  };
-
   if (awareness < 10) {
-    Object.entries(masks).forEach(([word, mask]) => {
-      const regex = new RegExp(word, 'gi');
+    // ⚡ BOLT OPTIMIZATION: Use pre-compiled static regex definitions.
+    // Impact: Avoids instantiating new RegExp() inside a loop on every render of NarrativeLog.
+    IGNORANCE_MASKS.forEach(({ regex, mask }) => {
       filtered = filtered.replace(regex, mask);
     });
   }
 
   return filtered;
 }
+
+const IGNORANCE_MASKS = [
+  { regex: /orgasm/gi, mask: 'strange overwhelming feeling' },
+  { regex: /sex/gi, mask: 'wrestling or playing' },
+  { regex: /lust/gi, mask: 'funny stomach ache' },
+  { regex: /seduction/gi, mask: 'being very friendly' },
+  { regex: /rape/gi, mask: 'mean person trying to grab you' },
+  { regex: /prostitution/gi, mask: 'helping strangers for gold' }
+];
 
 /**
  * Process a "Forceful Exposure" to a concept or entity.

@@ -243,7 +243,8 @@ export const LifeSimDashboardModal: React.FC<LifeSimDashboardModalProps> = ({ st
               <span className="text-[10px] text-sky-400/60 tracking-[0.4em] uppercase block mt-2 font-black">Subsystem Data Interface // v5.1</span>
             </div>
           </div>
-          <button aria-label="Close Life Sim Dashboard"
+          <button
+            aria-label="Close Dashboard"
             onClick={() => dispatch({ type: 'TOGGLE_UI_SETTING', payload: { key: 'show_life_sim_dashboard', value: false } })} 
             className="w-12 h-12 flex items-center justify-center rounded-sm bg-white/5 hover:bg-red-500/20 text-white/20 hover:text-red-400 transition-all duration-500 border border-white/5 hover:border-red-500/40"
           >

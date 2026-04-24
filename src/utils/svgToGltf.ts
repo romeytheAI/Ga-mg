@@ -13,7 +13,7 @@
  * Coordinate convention: SVG (x-right, y-down) → glTF (x-right, y-up, z-out).
  */
 
-import { BodyGeom, SpriteState } from '../components/dol/sprite/utils';
+import { BodyGeom, SpriteState } from '../components/sprite/utils';
 import { GraphicsQuality, getMeshSegmentCounts } from './graphicsQuality';
 
 /* ── constants ───────────────────────────────────────────────────────── */
@@ -147,6 +147,46 @@ function assignRigging(raw: RawMesh, boneIndex: number, falloffBoneIndex?: numbe
   return raw;
 }
 
+/**
+ * Assign skeletal weights by blending along the Y-axis.
+ * Useful for single continuous limb meshes (e.g., upper arm to wrist).
+ */
+function assignRiggingGradient(raw: RawMesh, joints: { y: number, boneIdx: number }[]): RawMesh {
+  joints.sort((a, b) => a.y - b.y); // Sort bottom-to-top
+
+  const vCount = raw.positions.length / 3;
+  for (let i = 0; i < vCount; i++) {
+    const y = raw.positions[i * 3 + 1];
+
+    let bone1 = joints[0].boneIdx;
+    let bone2 = 0;
+    let weight1 = 1.0;
+
+    if (y <= joints[0].y) {
+      bone1 = joints[0].boneIdx;
+      weight1 = 1.0;
+    } else if (y >= joints[joints.length - 1].y) {
+      bone1 = joints[joints.length - 1].boneIdx;
+      weight1 = 1.0;
+    } else {
+      for (let j = 0; j < joints.length - 1; j++) {
+        if (y >= joints[j].y && y <= joints[j + 1].y) {
+          const t = (y - joints[j].y) / (joints[j + 1].y - joints[j].y);
+          const w2 = t * t * (3 - 2 * t); // Smoothstep blending
+          bone1 = joints[j].boneIdx;
+          bone2 = joints[j + 1].boneIdx;
+          weight1 = 1.0 - w2;
+          break;
+        }
+      }
+    }
+
+    raw.joints.push(bone1, bone2, 0, 0);
+    raw.weights.push(weight1, 1.0 - weight1, 0, 0);
+  }
+  return raw;
+}
+
 /* ── 3-D primitive: UV sphere (ellipsoid) ────────────────────────────── */
 
 function ellipsoid(
@@ -196,6 +236,10 @@ interface RingDef {
   cy: number;        // glTF y centre
   rx: number;        // SVG-unit half-width (X radius)
   rz: number;        // SVG-unit depth   (Z radius)
+  rzFront?: number;  // Optional distinct front Z radius
+  rzBack?: number;   // Optional distinct back Z radius
+  offsetZ?: number;  // Optional Z translation
+  shapeModifier?: (theta: number) => number; // Advanced: radial multiplier based on angle
 }
 
 function profiledTube(
@@ -217,6 +261,12 @@ function profiledTube(
         cy: lerp(a.cy, b.cy, t),
         rx: smoothstep(a.rx, b.rx, t),
         rz: smoothstep(a.rz, b.rz, t),
+        rzFront: smoothstep(a.rzFront ?? a.rz, b.rzFront ?? b.rz, t),
+        rzBack: smoothstep(a.rzBack ?? a.rz, b.rzBack ?? b.rz, t),
+        offsetZ: smoothstep(a.offsetZ ?? 0, b.offsetZ ?? 0, t),
+        shapeModifier: a.shapeModifier && b.shapeModifier
+          ? (theta: number) => lerp(a.shapeModifier!(theta), b.shapeModifier!(theta), t)
+          : (a.shapeModifier || b.shapeModifier),
       });
     }
   }
@@ -242,12 +292,21 @@ function profiledTube(
       const theta = 2 * Math.PI * u;
       const ca = Math.cos(theta), sa = Math.sin(theta);
 
-      r.positions.push(ring.cx + rxS * ca, ring.cy, rzS * sa);
+      const currentRz = sa > 0 ? (ring.rzFront ?? ring.rz) : (ring.rzBack ?? ring.rz);
+      const modifier = ring.shapeModifier ? ring.shapeModifier(theta) : 1.0;
+
+      const currentRzS = currentRz * S * modifier;
+      const currentRxS = rxS * modifier;
+      const offsetZS = (ring.offsetZ ?? 0) * S;
+
+      r.positions.push(ring.cx + currentRxS * ca, ring.cy, offsetZS + currentRzS * sa);
 
       // Normal: outward radial + slope correction
-      const nx = ca * (ring.rz || 1);
+      // We don't perfectly compute analytical normal of the modifier curve for performance,
+      // but we approximate the base tube normal and it looks good enough for smooth modifiers.
+      const nx = ca * (currentRz || 1);
       const nz = sa * (ring.rx || 1);
-      const ny = -drxN * (ring.rz || 1);  // slope tilt
+      const ny = -drxN * (currentRz || 1);  // slope tilt
       r.normals.push(...norm([nx, ny, nz]));
       r.uvs.push(u, v);
     }
@@ -268,15 +327,19 @@ function profiledTube(
     const ring = allRings[ringIdx];
     const rxS = ring.rx * S;
     const rzS = ring.rz * S;
+    const offsetZS = (ring.offsetZ ?? 0) * S;
     const ci = r.positions.length / 3;
-    r.positions.push(ring.cx, ring.cy, 0);
+    r.positions.push(ring.cx, ring.cy, offsetZS);
     r.normals.push(0, nDir, 0);
     r.uvs.push(0.5, 0.5);
     for (let si = 0; si <= segs; si++) {
       const theta = (2 * Math.PI * si) / segs;
-      r.positions.push(ring.cx + rxS * Math.cos(theta), ring.cy, rzS * Math.sin(theta));
+      const ca = Math.cos(theta), sa = Math.sin(theta);
+      const modifier = ring.shapeModifier ? ring.shapeModifier(theta) : 1.0;
+      const currentRzS = (sa > 0 ? (ring.rzFront ?? ring.rz) : (ring.rzBack ?? ring.rz)) * S * modifier;
+      r.positions.push(ring.cx + rxS * ca * modifier, ring.cy, offsetZS + currentRzS * sa);
       r.normals.push(0, nDir, 0);
-      r.uvs.push(0.5 + 0.5 * Math.cos(theta), 0.5 + 0.5 * Math.sin(theta));
+      r.uvs.push(0.5 + 0.5 * ca, 0.5 + 0.5 * sa);
     }
     for (let si = 0; si < segs; si++) {
       if (nDir > 0) r.indices.push(ci, ci + 1 + si, ci + 2 + si);
@@ -327,21 +390,21 @@ function buildHeadMesh(
   const [cx, cy] = svgToGl(s.cx, s.headCY);
   const depthR = geom.headRX * 0.82;      // skull front-to-back
 
-  // Main cranium with quality-based detail
+  // Main cranium (shifted up slightly for better skull volume)
   const headSphere = ellipsoid(
-    cx, cy, 0,
+    cx, cy + geom.headRY * 0.2 * S, 0,
     geom.headRX * S, geom.headRY * S, depthR * S,
     qualityConfig.RING_HIGH, qualityConfig.SEG_HIGH,
   );
 
-  // Chin/jaw extension
-  const chinCy = cy - geom.headRY * 0.92 * S;
-  const jawWidth = geom.jawW > 0 ? 1.0 + (geom.jawW * 0.08) : 1.0;
+  // Chin/jaw extension (more prominent and defined)
+  const chinCy = cy - geom.headRY * 0.6 * S;
+  const jawWidth = geom.jawW > 0 ? 1.0 + (geom.jawW * 0.08) : 0.9;
   const chin = ellipsoid(
-    cx, chinCy, 0,
+    cx, chinCy, depthR * 0.1 * S,
     geom.headRX * 0.55 * jawWidth * S,
-    geom.headRY * 0.18 * S,
-    depthR * 0.5 * S,
+    geom.headRY * 0.35 * S,
+    depthR * 0.45 * S,
     Math.max(6, Math.round(qualityConfig.RING_MED * 0.5)),
     qualityConfig.SEG_LOW,
   );
@@ -366,7 +429,9 @@ function buildNeckMesh(
 
   const rings: RingDef[] = [
     { cx: topCx, cy: topCy, rx: nwTop, rz: depthTop },
-    { cx: botCx, cy: botCy, rx: nwBot, rz: depthBot },
+    { cx: botCx, cy: botCy, rx: nwBot, rz: depthBot,
+      shapeModifier: (theta) => 1.0 + 0.15 * Math.pow(Math.cos(theta), 2) // Trapezius flare at the base
+    },
   ];
 
   const raw = profiledTube(rings, qualityConfig.SEG_LOW, 3);
@@ -384,10 +449,46 @@ function buildTorsoMesh(
   const waY = s.waistY;
   const crY = s.crotchY;
 
+  // Add more control rings for anatomical precision
+  const chestY = (shY * 0.6 + waY * 0.4);
+  const abdomenY = (waY * 0.6 + crY * 0.4);
+  const hipsY = (abdomenY * 0.4 + crY * 0.6); // Widest part of the pelvis
+
   const rings: RingDef[] = [
-    { cx: 0, cy: (VIEW_H / 2 - shY) * S, rx: geom.shoulderHW, rz: geom.shoulderHW * 0.48 },
-    { cx: 0, cy: (VIEW_H / 2 - waY) * S, rx: geom.waistHW, rz: geom.waistHW * 0.55 },
-    { cx: 0, cy: (VIEW_H / 2 - crY) * S, rx: geom.hipHW * 0.55, rz: geom.hipHW * 0.36 },
+    // Clavicle / Shoulders - slightly flattened front/back, dip in the middle
+    {
+      cx: 0, cy: (VIEW_H / 2 - shY) * S,
+      rx: geom.shoulderHW, rz: geom.shoulderHW * 0.4, rzFront: geom.shoulderHW * 0.45, rzBack: geom.shoulderHW * 0.4,
+      shapeModifier: (theta) => 1.0 - 0.1 * Math.pow(Math.sin(theta * 2), 2) // Flatten sides
+    },
+    // Chest / Pectorals
+    {
+      cx: 0, cy: (VIEW_H / 2 - chestY) * S,
+      rx: geom.shoulderHW * 0.9, rz: geom.shoulderHW * 0.45, rzFront: geom.shoulderHW * (geom.showPecs ? 0.65 : 0.5), rzBack: geom.shoulderHW * 0.45, offsetZ: geom.showPecs ? 1 * S : 0,
+      shapeModifier: (theta) => geom.showPecs ? (1.0 + 0.1 * Math.max(0, Math.sin(theta)) * Math.pow(Math.cos(theta), 2)) : 1.0 // Pectoral bulge
+    },
+    // Waist / Core
+    {
+      cx: 0, cy: (VIEW_H / 2 - waY) * S,
+      rx: geom.waistHW, rz: geom.waistHW * 0.5, rzFront: geom.waistHW * (geom.showMuscleDef ? 0.6 : 0.55), rzBack: geom.waistHW * 0.5, offsetZ: geom.showMuscleDef ? 0.5 * S : 0,
+      shapeModifier: (theta) => geom.showMuscleDef ? (1.0 - 0.05 * Math.abs(Math.cos(theta * 3))) : 1.0 // Abdominal grooves
+    },
+    // Lower Abdomen
+    {
+      cx: 0, cy: (VIEW_H / 2 - abdomenY) * S,
+      rx: geom.waistHW * 1.1, rz: geom.waistHW * 0.55, rzFront: geom.waistHW * 0.6, rzBack: geom.waistHW * 0.55
+    },
+    // Hips (widest part)
+    {
+      cx: 0, cy: (VIEW_H / 2 - hipsY) * S,
+      rx: geom.hipHW, rz: geom.hipHW * 0.6, rzFront: geom.hipHW * 0.5, rzBack: geom.hipHW * 0.7, offsetZ: -0.5 * S,
+      shapeModifier: (theta) => 1.0 + 0.1 * Math.pow(Math.cos(theta), 4) // Wider flare at the sides
+    },
+    // Pelvis / Crotch taper
+    {
+      cx: 0, cy: (VIEW_H / 2 - crY) * S,
+      rx: geom.hipHW * 0.55, rz: geom.hipHW * 0.5, rzFront: geom.hipHW * 0.4, rzBack: geom.hipHW * 0.6, offsetZ: -1 * S
+    },
   ];
 
   const raw = profiledTube(rings, qualityConfig.SEG_HIGH, 4);
@@ -423,20 +524,22 @@ function buildArmMesh(
     { cx: shGx, cy: shGy, rx: hw * 1.1,  rz: hw * 0.95 },
     // Deltoid bulge (more prominent if muscular)
     { cx: lerp(shGx, elGx, 0.12), cy: lerp(shGy, elGy, 0.12),
-      rx: hw * (geom.showMuscleDef ? 1.18 : 1.15),
-      rz: hw * (geom.showMuscleDef ? 1.02 : 0.98) },
+      rx: hw * (geom.showMuscleDef ? 1.25 : 1.15),
+      rz: hw * 1.0, rzFront: hw * 1.05, rzBack: hw * 0.95, offsetZ: hw * 0.1 * S },
     // Bicep peak (belly)
-    { cx: lerp(shGx, elGx, 0.3),  cy: lerp(shGy, elGy, 0.3),
-      rx: hw * (geom.showMuscleDef ? 1.12 : 1.08),
-      rz: hw * (geom.showMuscleDef ? 0.95 : 0.92) },
+    { cx: lerp(shGx, elGx, 0.35),  cy: lerp(shGy, elGy, 0.35),
+      rx: hw * (geom.showMuscleDef ? 1.15 : 1.08),
+      rz: hw * 1.1, rzFront: hw * (geom.showMuscleDef ? 1.2 : 1.0), rzBack: hw * (geom.showMuscleDef ? 1.0 : 0.9), offsetZ: hw * (geom.showMuscleDef ? 0.2 : 0) * S,
+      shapeModifier: (theta) => geom.showMuscleDef ? (1.0 + 0.1 * Math.max(0, Math.sin(theta))) : 1.0 // Bicep bulge
+    },
     // Mid-arm transition
-    { cx: lerp(shGx, elGx, 0.55), cy: lerp(shGy, elGy, 0.55),
+    { cx: lerp(shGx, elGx, 0.6), cy: lerp(shGy, elGy, 0.6),
       rx: hw * 1.0,  rz: hw * 0.88 },
     // Distal taper
-    { cx: lerp(shGx, elGx, 0.8),  cy: lerp(shGy, elGy, 0.8),
+    { cx: lerp(shGx, elGx, 0.85),  cy: lerp(shGy, elGy, 0.85),
       rx: hw * 0.92, rz: hw * 0.82 },
     // Elbow joint
-    { cx: elGx, cy: elGy, rx: hw * 0.9,  rz: hw * 0.78 },
+    { cx: elGx, cy: elGy, rx: hw * 0.95, rz: hw * 0.9, rzFront: hw * 0.8, rzBack: hw * 1.0, offsetZ: hw * -0.1 * S },
   ];
 
   // Enhanced forearm: elbow → muscle belly → wrist (5 rings)
@@ -446,7 +549,9 @@ function buildArmMesh(
     // Forearm muscle belly (extensor/flexor group)
     { cx: lerp(elGx, wrGx, 0.2),  cy: lerp(elGy, wrGy, 0.2),
       rx: fw * (geom.showMuscleDef ? 1.14 : 1.1),
-      rz: fw * (geom.showMuscleDef ? 0.98 : 0.95) },
+      rz: fw * (geom.showMuscleDef ? 0.98 : 0.95),
+      shapeModifier: (theta) => geom.showMuscleDef ? (1.0 + 0.08 * Math.pow(Math.cos(theta), 2)) : 1.0 // Brachioradialis
+    },
     { cx: lerp(elGx, wrGx, 0.45), cy: lerp(elGy, wrGy, 0.45),
       rx: fw * 1.0,  rz: fw * 0.88 },
     // Wrist taper
@@ -455,8 +560,14 @@ function buildArmMesh(
     { cx: wrGx, cy: wrGy, rx: fw * 0.78, rz: fw * 0.7 },
   ];
 
-  const upper = profiledTube(upperRings, qualityConfig.SEG_MED, qualityConfig.limbSubdiv, 'top');
-  const fore  = profiledTube(foreRings, qualityConfig.SEG_MED, qualityConfig.limbSubdiv, 'none');
+  const armRings = [...upperRings, ...foreRings]; // Seamless continuous tube
+  const arm = profiledTube(armRings, qualityConfig.SEG_MED, qualityConfig.limbSubdiv, 'top');
+
+  assignRiggingGradient(arm, [
+    { y: shGy, boneIdx: side === 'left' ? 5 : 6 }, // Shoulder / Arm bone
+    { y: elGy, boneIdx: side === 'left' ? 9 : 11 }, // Elbow
+    { y: wrGy, boneIdx: side === 'left' ? 10 : 12 } // Wrist
+  ]);
 
   // Hand: ellipsoid with quality-based detail
   const hand = ellipsoid(
@@ -464,9 +575,9 @@ function buildArmMesh(
     geom.handW / 2 * S, geom.handH / 2 * S, geom.handW * 0.32 * S,
     qualityConfig.RING_MED, qualityConfig.SEG_LOW,
   );
+  assignRigging(hand, side === 'left' ? 10 : 12); // Wrist controls hand fully
 
-  const raw = merge(upper, fore, hand);
-  assignRigging(raw, side === 'left' ? 5 : 6); // Bone_Arm_L or Bone_Arm_R
+  const raw = merge(arm, hand);
   return toMeshData(`Arm_${side}`, raw, skinHex);
 }
 
@@ -488,17 +599,30 @@ function buildLegMesh(
 
   // Thigh
   const thighRings: RingDef[] = [
-    { cx: crGx, cy: crGy, rx: tw, rz: tw },
-    { cx: knGx, cy: knGy, rx: tw * 0.8, rz: tw * 0.7 },
+    { cx: crGx, cy: crGy, rx: tw, rz: tw * 1.1, rzFront: tw * 1.05, rzBack: tw * 1.15, offsetZ: tw * -0.05 * S }, // Gluteal fullness
+    { cx: lerp(crGx, knGx, 0.4), cy: lerp(crGy, knGy, 0.4), rx: tw * 0.95, rz: tw * 1.0, rzFront: tw * 1.0, rzBack: tw * 1.0 }, // Mid-thigh
+    { cx: knGx, cy: knGy, rx: tw * 0.85, rz: tw * 0.75, rzFront: tw * 0.8, rzBack: tw * 0.7, offsetZ: tw * 0.05 * S }, // Knee cap protrusion
   ];
   // Calf
   const calfRings: RingDef[] = [
-    { cx: knGx, cy: knGy, rx: cw, rz: cw },
+    { cx: knGx, cy: knGy, rx: cw, rz: cw * 0.75, rzFront: cw * 0.8, rzBack: cw * 0.7, offsetZ: cw * 0.05 * S },
+    {
+      cx: lerp(knGx, anGx, 0.3), cy: lerp(knGy, anGy, 0.3),
+      rx: cw * 1.1, rz: cw * 1.0, rzFront: cw * 0.9, rzBack: cw * 1.25, offsetZ: cw * -0.15 * S,
+      shapeModifier: (theta) => geom.showMuscleDef ? (1.0 + 0.15 * Math.max(0, -Math.sin(theta)) * Math.pow(Math.cos(theta), 2)) : 1.0 // Calf muscle popping out the back
+    }, // Calf muscle belly backwards
+    { cx: lerp(knGx, anGx, 0.7), cy: lerp(knGy, anGy, 0.7), rx: cw * 0.8, rz: cw * 0.75, rzFront: cw * 0.75, rzBack: cw * 0.8 },
     { cx: anGx, cy: anGy, rx: cw * 0.7, rz: cw * 0.6 },
   ];
 
-  const thigh = profiledTube(thighRings, qualityConfig.SEG_MED, qualityConfig.limbSubdiv, 'top');
-  const calf  = profiledTube(calfRings, qualityConfig.SEG_MED, qualityConfig.limbSubdiv, 'none');
+  const legRings = [...thighRings, ...calfRings]; // Seamless continuous tube
+  const leg = profiledTube(legRings, qualityConfig.SEG_MED, qualityConfig.limbSubdiv, 'top');
+
+  assignRiggingGradient(leg, [
+    { y: crGy, boneIdx: side === 'left' ? 7 : 8 }, // Hip / Leg bone
+    { y: knGy, boneIdx: side === 'left' ? 13 : 15 }, // Knee
+    { y: anGy, boneIdx: side === 'left' ? 14 : 16 } // Ankle
+  ]);
 
   // Foot: elongated ellipsoid (deeper front-to-back than side-to-side)
   const foot = ellipsoid(
@@ -506,9 +630,9 @@ function buildLegMesh(
     geom.footW / 2 * S, geom.footH / 2 * S, geom.footW * 0.42 * S,
     qualityConfig.RING_MED, qualityConfig.SEG_LOW,
   );
+  assignRigging(foot, side === 'left' ? 14 : 16); // Ankle controls foot fully
 
-  const raw = merge(thigh, calf, foot);
-  assignRigging(raw, side === 'left' ? 7 : 8); // Bone_Leg_L or Bone_Leg_R
+  const raw = merge(leg, foot);
   return toMeshData(`Leg_${side}`, raw, skinHex);
 }
 
@@ -522,22 +646,55 @@ interface GltfNode {
 }
 
 function buildSkeletonNodes(s: SpriteState): GltfNode[] {
+  const hips = svgToGl(s.cx, s.crotchY);
+  const spine = svgToGl(s.cx, s.waistY);
+  const chest = svgToGl(s.cx, s.shldY);
+  const head = svgToGl(s.cx, s.headCY);
+
+  const shL = svgToGl(s.shLX, s.shldY);
+  const elL = svgToGl(s.elLX, s.elY);
+  const wrL = svgToGl(s.wrLX, s.wrY);
+
+  const shR = svgToGl(s.shRX, s.shldY);
+  const elR = svgToGl(s.elRX, s.elY);
+  const wrR = svgToGl(s.wrRX, s.wrY);
+
+  const hipL = svgToGl(s.legLX, s.crotchY);
+  const knL = svgToGl(s.legLX, s.kneeY);
+  const anL = svgToGl(s.legLX, s.ankleY);
+
+  const hipR = svgToGl(s.legRX, s.crotchY);
+  const knR = svgToGl(s.legRX, s.kneeY);
+  const anR = svgToGl(s.legRX, s.ankleY);
+
+  const sub = (a: [number,number,number], b: [number,number,number]): [number,number,number] => [a[0]-b[0], a[1]-b[1], a[2]-b[2]];
+
   return [
-    { name: 'Armature', translation: [0, 0, 0], children: [1] },
-    { name: 'Bone_Hips', translation: svgToGl(s.cx, s.crotchY), children: [2, 7, 8] },
-    { name: 'Bone_Spine', translation: svgToGl(s.cx, s.waistY), children: [3] },
-    { name: 'Bone_Chest', translation: svgToGl(s.cx, s.shldY), children: [4, 5, 6] },
-    { name: 'Bone_Head', translation: svgToGl(s.cx, s.headCY) },
-    { name: 'Bone_Arm_L', translation: svgToGl(s.shLX, s.shldY) },
-    { name: 'Bone_Arm_R', translation: svgToGl(s.shRX, s.shldY) },
-    { name: 'Bone_Leg_L', translation: svgToGl(s.legLX, s.crotchY) },
-    { name: 'Bone_Leg_R', translation: svgToGl(s.legRX, s.crotchY) },
+    { name: 'Armature', translation: [0, 0, 0], children: [1] }, // 0
+    { name: 'Bone_Hips', translation: hips, children: [2, 7, 8] }, // 1 (child of Armature)
+    { name: 'Bone_Spine', translation: sub(spine, hips), children: [3] }, // 2
+    { name: 'Bone_Chest', translation: sub(chest, spine), children: [4, 5, 6] }, // 3
+    { name: 'Bone_Head', translation: sub(head, chest) }, // 4
+    { name: 'Bone_Arm_L', translation: sub(shL, chest), children: [9] }, // 5 -> Elbow_L
+    { name: 'Bone_Arm_R', translation: sub(shR, chest), children: [11] }, // 6 -> Elbow_R
+    { name: 'Bone_Leg_L', translation: sub(hipL, hips), children: [13] }, // 7 -> Knee_L
+    { name: 'Bone_Leg_R', translation: sub(hipR, hips), children: [15] }, // 8 -> Knee_R
+
+    // Expanded IK joints (added to the end to preserve indices of the first 9)
+    { name: 'Bone_Elbow_L', translation: sub(elL, shL), children: [10] }, // 9 -> Wrist_L
+    { name: 'Bone_Hand_L', translation: sub(wrL, elL) }, // 10
+    { name: 'Bone_Elbow_R', translation: sub(elR, shR), children: [12] }, // 11 -> Wrist_R
+    { name: 'Bone_Hand_R', translation: sub(wrR, elR) }, // 12
+    { name: 'Bone_Knee_L', translation: sub(knL, hipL), children: [14] }, // 13 -> Ankle_L
+    { name: 'Bone_Foot_L', translation: sub(anL, knL) }, // 14
+    { name: 'Bone_Knee_R', translation: sub(knR, hipR), children: [16] }, // 15 -> Ankle_R
+    { name: 'Bone_Foot_R', translation: sub(anR, knR) }, // 16
   ];
 }
 
 /* ── glTF assembly ───────────────────────────────────────────────────── */
 
-function toBase64(arr: ArrayBuffer): string {
+function toBase64(arr: ArrayBufferLike): string {
   const bytes = new Uint8Array(arr);
   const chunks: string[] = [];
   for (let i = 0; i < bytes.length; i += 8192) {
@@ -547,7 +704,7 @@ function toBase64(arr: ArrayBuffer): string {
 }
 
 function addBuf(
-  data: ArrayBuffer,
+  data: ArrayBufferLike,
   buffers: { uri: string; byteLength: number }[],
   bufferViews: object[],
   target: number,
@@ -581,13 +738,38 @@ function buildGltfJson(meshes: MeshData[], skeletonNodes: GltfNode[]): object {
     });
   }
 
+  // Global positions for each bone so we can compute correct Inverse Bind Matrices
+  const globalPositions: [number, number, number][] = new Array(skeletonNodes.length);
+
+  const computeGlobal = (nodeIdx: number, parentGlobal: [number, number, number]) => {
+    const node = skeletonNodes[nodeIdx];
+    const loc = node.translation || [0, 0, 0];
+    const glob: [number, number, number] = [
+      parentGlobal[0] + loc[0],
+      parentGlobal[1] + loc[1],
+      parentGlobal[2] + loc[2]
+    ];
+    globalPositions[nodeIdx] = glob;
+    if (node.children) {
+      for (const childIdx of node.children) {
+        computeGlobal(childIdx, glob);
+      }
+    }
+  };
+  computeGlobal(0, [0, 0, 0]);
+
   const skinIdx = 0;
   const jointIndices = skeletonNodes.map((_, i) => i);
   
-  // Inverse Bind Matrices (Identity for now)
+  // Inverse Bind Matrices (Inverse of global translation matrix)
   const ibmArr = new Float32Array(skeletonNodes.length * 16);
   for(let i=0; i<skeletonNodes.length; i++) {
+    // Identity diagonal
     ibmArr[i*16] = 1; ibmArr[i*16+5] = 1; ibmArr[i*16+10] = 1; ibmArr[i*16+15] = 1;
+    // Translation column (negated global position)
+    ibmArr[i*16+12] = -globalPositions[i][0];
+    ibmArr[i*16+13] = -globalPositions[i][1];
+    ibmArr[i*16+14] = -globalPositions[i][2];
   }
   const ibmData = ibmArr.buffer;
   const ibmBv = addBuf(ibmData, buffers, bufferViews, 0, bi, bvi);

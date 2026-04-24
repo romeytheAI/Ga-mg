@@ -57,8 +57,6 @@ export function tickDaedricPower(world: SimWorld): SimWorld {
  */
 function applyGodlikeWill(world: SimWorld, influence: DaedricInfluence) {
   const { current_intent, prince_id } = influence;
-  
-  console.log(`[DAEDRIC] ${prince_id} exerts godlike will with intent: ${current_intent}`);
 
   switch (current_intent) {
     case 'domination':

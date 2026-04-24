@@ -12,7 +12,9 @@ interface ImmersiveStartMenuProps {
   onLoadGame: (saveData: any) => void;
 }
 
-export const ImmersiveStartMenu: React.FC<ImmersiveStartMenuProps> = ({ onStartGame, onLoadGame }) => {
+// ⚡ Bolt: Wrapped ImmersiveStartMenu in React.memo to prevent unnecessary re-renders
+// when its parent component (App) updates state unrelated to the start menu.
+export const ImmersiveStartMenu: React.FC<ImmersiveStartMenuProps> = React.memo(({ onStartGame, onLoadGame }) => {
   const [hordeStatus, setHordeStatus] = useState({ text: 'checking', image: 'checking', queue: 0 });
   const [activeView, setActiveView] = useState('main'); // main, load, scenarios, extras, settings, diagnostics
   const [showWarning, setShowWarning] = useState(true);
@@ -448,6 +450,7 @@ export const ImmersiveStartMenu: React.FC<ImmersiveStartMenuProps> = ({ onStartG
                               <span>{save.location}</span>
                               <span>Day {save.day}</span>
                               <span className={save.trauma > 70 ? 'text-red-400/80' : ''}>Trauma: {save.trauma}%</span>
+                              {(save.epoch ?? 0) > 0 && <span className="text-primary-gold/80">Epoch {save.epoch}</span>}
                             </div>
                           </div>
                           <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -596,19 +599,19 @@ export const ImmersiveStartMenu: React.FC<ImmersiveStartMenuProps> = ({ onStartG
                   <h2 className="text-xl tracking-widest uppercase text-white/80 border-b border-white/10 pb-4">Meta-Progression</h2>
                   
                   <div className="grid grid-cols-2 gap-4">
-                    <button className="p-6 bg-white/5 hover:bg-white/10 border border-white/10 flex flex-col items-center justify-center gap-3 transition-colors group">
+                    <button aria-label="Open Gallery" className="p-6 bg-white/5 hover:bg-white/10 border border-white/10 flex flex-col items-center justify-center gap-3 transition-colors group">
                       <ImageIcon className="w-8 h-8 text-white/40 group-hover:text-white/80 transition-colors" />
                       <span className="text-xs tracking-widest uppercase text-white/60">Gallery</span>
                     </button>
-                    <button className="p-6 bg-white/5 hover:bg-white/10 border border-white/10 flex flex-col items-center justify-center gap-3 transition-colors group">
+                    <button aria-label="Open Compendium" className="p-6 bg-white/5 hover:bg-white/10 border border-white/10 flex flex-col items-center justify-center gap-3 transition-colors group">
                       <BookOpen className="w-8 h-8 text-white/40 group-hover:text-white/80 transition-colors" />
                       <span className="text-xs tracking-widest uppercase text-white/60">Compendium</span>
                     </button>
-                    <button className="p-6 bg-white/5 hover:bg-white/10 border border-white/10 flex flex-col items-center justify-center gap-3 transition-colors group">
+                    <button aria-label="Open Achievements" className="p-6 bg-white/5 hover:bg-white/10 border border-white/10 flex flex-col items-center justify-center gap-3 transition-colors group">
                       <Trophy className="w-8 h-8 text-white/40 group-hover:text-white/80 transition-colors" />
                       <span className="text-xs tracking-widest uppercase text-white/60">Achievements</span>
                     </button>
-                    <button className="p-6 bg-white/5 hover:bg-white/10 border border-white/10 flex flex-col items-center justify-center gap-3 transition-colors group">
+                    <button aria-label="Open Statistics" className="p-6 bg-white/5 hover:bg-white/10 border border-white/10 flex flex-col items-center justify-center gap-3 transition-colors group">
                       <BarChart2 className="w-8 h-8 text-white/40 group-hover:text-white/80 transition-colors" />
                       <span className="text-xs tracking-widest uppercase text-white/60">Statistics</span>
                     </button>
@@ -646,7 +649,7 @@ export const ImmersiveStartMenu: React.FC<ImmersiveStartMenuProps> = ({ onStartG
       </div>
     </div>
   );
-};
+});
 
 // Sub-components
 const MenuButton = ({ icon, label, active, onClick, onMouseEnter }: { icon: React.ReactNode, label: string, active: boolean, onClick: () => void, onMouseEnter: () => void }) => (
