@@ -1,4 +1,4 @@
-import { ES_LOCATIONS } from "./esLocations";
+import { ES_LOCATIONS } from "./they";
 export const LOCATIONS: Record<string, any> = {
   ...ES_LOCATIONS,
 

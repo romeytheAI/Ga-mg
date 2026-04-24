@@ -10,6 +10,7 @@ export interface SaveSlot {
   location: string;
   day: number;
   trauma: number;
+  epoch: number;
   timestamp: number;
   schemaVersion: number;
   state: GameState;
@@ -30,11 +31,12 @@ const DB_VERSION = 1;
  * - v5: Jobs system (player_job, life_sim.schedule.work) + addiction_state (Milestone 9)
  * - v6: transformation, disease_state, parasite_state, companion_state (Milestone 10)
  * - v7: fame_record (PlayerFameRecord) + allure_state (PlayerAllureState) (Milestone 11); legacy ES enum migration
+ * - v8: world_epoch, completed_story_arcs, narrative_milestones (Narrative Progression)
  *
  * @see docs/STATE-SCHEMA.md for complete state documentation
  * @see migrateGameState() for backward compatibility logic
  */
-export const SAVE_SCHEMA_VERSION = 7;
+export const SAVE_SCHEMA_VERSION = 8;
 const LEGACY_STORY_ID_MAP: Record<string, string> = {
   academy_bully_story: 'school_bully_story',
 };
@@ -337,6 +339,10 @@ export function migrateGameState(rawState: unknown): GameState {
       arcane: { ...initialState.world.arcane, ...((world as any).arcane || {}) },
       justice: { ...initialState.world.justice, ...((world as any).justice || {}) },
       dreamscape: { ...initialState.world.dreamscape, ...((world as any).dreamscape || {}) },
+      // v8: narrative progression
+      world_epoch: (world as any).world_epoch ?? 0,
+      completed_story_arcs: (world as any).completed_story_arcs ?? [],
+      narrative_milestones: (world as any).narrative_milestones ?? [],
     },
     ui: {
       ...initialState.ui,
@@ -380,6 +386,7 @@ export async function saveGame(id: string, state: GameState): Promise<void> {
       location: state.world?.current_location?.name || 'Unknown',
       day: state.world?.day || 1,
       trauma: state.player?.stats?.trauma || 0,
+      epoch: state.world?.world_epoch || 0,
       timestamp: Date.now(),
       schemaVersion: SAVE_SCHEMA_VERSION,
       state,

@@ -1,7 +1,7 @@
 import React, { useCallback } from 'react';
 import { GameState } from '../types';
 import { resolveRace } from '../data/races';
-import { buildBodyGeom, resolveSkinColor, SpriteState } from './dol/sprite/utils';
+import { buildBodyGeom, resolveSkinColor, SpriteState } from './sprite/utils';
 import { convertSvgToGltf, downloadGltf } from '../utils/svgToGltf';
 import { getQualityPreset } from '../utils/graphicsQuality';
 
@@ -11,7 +11,7 @@ interface GltfExportButtonProps {
 
 /**
  * Small button that exports the current character sprite as a glTF 2.0 file.
- * Reads the same BodyGeom/SpriteState that DoLCharacterSprite uses, runs
+ * Reads the same BodyGeom/SpriteState that CharacterSprite2D uses, runs
  * the SVG→glTF converter, and triggers a browser download.
  */
 export const GltfExportButton: React.FC<GltfExportButtonProps> = ({ state }) => {
@@ -22,7 +22,7 @@ export const GltfExportButton: React.FC<GltfExportButtonProps> = ({ state }) => 
     const geom    = buildBodyGeom(gender, raceDef);
     const skinColor = resolveSkinColor(raceDef, cosmetics?.skin_tone || '');
 
-    // Replicate the sprite-state constants from DoLCharacterSprite
+    // Replicate the sprite-state constants from CharacterSprite2D
     const cx = 50;
     const headCY   = 21;
     const neckTopY = headCY + geom.headRY;

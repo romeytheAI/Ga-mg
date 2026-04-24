@@ -50,7 +50,6 @@ export function attemptSoulTrap(state: GameState, targetTier: string): GameState
   if (emptyGem) {
     emptyGem.filled = true;
     emptyGem.soul_type = targetTier;
-    console.log(`[ARCANE] Trapped ${targetTier} soul in ${emptyGem.size} soul gem.`);
   }
 
   return { ...state, player: { ...state.player, arcane } };

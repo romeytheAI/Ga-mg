@@ -10,7 +10,7 @@ class Settings(BaseSettings):
     database_url: str = "sqlite+aiosqlite:///./game.db"
 
     # App
-    secret_key: str = "change_me"
+    secret_key: str
     debug: bool = False
 
     model_config = SettingsConfigDict(env_file=".env")

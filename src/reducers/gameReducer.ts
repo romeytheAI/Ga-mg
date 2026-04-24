@@ -56,37 +56,91 @@ export function gameReducer(state: GameState, action: any): GameState {
       let nc = { ...state.player.clothing }; if (i.slot) { const s = i.slot as keyof typeof nc; if (nc[s]?.id === i.id) nc[s] = u as any; }
       return { ...state, player: withClothingState({ ...state.player, inventory: ni, clothing: nc }) };
     }
-    case 'ADD_GOLD': return { ...state, player: { ...state.player, gold: state.player.gold + action.payload } };
-    case 'ADD_FAME': return { ...state, player: { ...state.player, fame: clamp(state.player.fame + (action.payload.fame || 0)), notoriety: clamp(state.player.notoriety + (action.payload.notoriety || 0)) } };
-    case 'SET_ATTITUDE': return { ...state, player: { ...state.player, attitudes: { ...state.player.attitudes, [action.payload.type]: action.payload.value } } };
-    case 'UPDATE_ATTITUDES': return { ...state, player: { ...state.player, attitudes: { ...state.player.attitudes, ...action.payload } } };
+    case 'ADD_GOLD': {
+      if (action.payload === 0) return state;
+      return { ...state, player: { ...state.player, gold: state.player.gold + action.payload } };
+    }
+    case 'ADD_FAME': {
+      const { fame = 0, notoriety = 0 } = action.payload;
+      const nextFame = clamp(state.player.fame + fame);
+      const nextNotoriety = clamp(state.player.notoriety + notoriety);
+      if (nextFame === state.player.fame && nextNotoriety === state.player.notoriety) return state;
+      return { ...state, player: { ...state.player, fame: nextFame, notoriety: nextNotoriety } };
+    }
+    case 'SET_ATTITUDE': {
+      if (state.player.attitudes[action.payload.type as keyof typeof state.player.attitudes] === action.payload.value) return state;
+      return { ...state, player: { ...state.player, attitudes: { ...state.player.attitudes, [action.payload.type]: action.payload.value } } };
+    }
+    case 'UPDATE_ATTITUDES': {
+      const next = { ...state.player.attitudes, ...action.payload };
+      if (Object.keys(action.payload).every(k => (state.player.attitudes as any)[k] === (next as any)[k])) return state;
+      return { ...state, player: { ...state.player, attitudes: next } };
+    }
     case 'ADD_TRAIT': return state.player.traits.some(t => t.id === action.payload.id) ? state : { ...state, player: { ...state.player, traits: [...state.player.traits, action.payload] } };
     case 'REMOVE_TRAIT': return { ...state, player: { ...state.player, traits: state.player.traits.filter(t => t.id !== action.payload) } };
     case 'LOSE_VIRGINITY': return state.player.virginities[action.payload.type as keyof typeof state.player.virginities] ? state : { ...state, player: { ...state.player, virginities: { ...state.player.virginities, [action.payload.type]: action.payload.description } } };
     case 'PAY_BAILEY': return state.player.gold < action.payload ? state : { ...state, player: { ...state.player, gold: state.player.gold - action.payload, bailey_payment: { ...state.player.bailey_payment, debt: 0, missed_payments: 0, punishment_level: 0 } } };
     case 'UNLOCK_FEAT': return state.player.feats.find(f => f.id === action.payload)?.unlocked ? state : { ...state, player: { ...state.player, feats: state.player.feats.map(f => f.id === action.payload ? { ...f, unlocked: true, unlocked_on_day: state.world.day } : f) } };
-    case 'SET_EVENT_FLAG': return { ...state, world: { ...state.world, event_flags: { ...state.world.event_flags, [action.payload.flag]: action.payload.value ?? true } } };
+    case 'SET_EVENT_FLAG': {
+      const val = action.payload.value ?? true;
+      if (state.world.event_flags[action.payload.flag] === val) return state;
+      return { ...state, world: { ...state.world, event_flags: { ...state.world.event_flags, [action.payload.flag]: val } } };
+    }
     case 'CLEAR_EVENT_FLAG': { const f = { ...state.world.event_flags }; delete f[action.payload.flag]; return { ...state, world: { ...state.world, event_flags: f } }; }
     case 'UPDATE_NPC_RELATIONSHIP': {
-      const c = state.world.npc_relationships[action.payload.npc_id] || { trust: 0, love: 0, fear: 0, dom: 0, scene_flags: {} };
-      const u = { ...c, trust: clamp(c.trust + (action.payload.deltas.trust || 0)), love: clamp(c.love + (action.payload.deltas.love || 0)), fear: clamp(c.fear + (action.payload.deltas.fear || 0)), dom: clamp(c.dom + (action.payload.deltas.dom || 0)) };
+      const { npc_id, deltas } = action.payload;
+      const c = state.world.npc_relationships[npc_id] || { trust: 0, love: 0, fear: 0, dom: 0, scene_flags: {} };
+      const u = { ...c, trust: clamp(c.trust + (deltas.trust || 0)), love: clamp(c.love + (deltas.love || 0)), fear: clamp(c.fear + (deltas.fear || 0)), dom: clamp(c.dom + (deltas.dom || 0)) };
       if (!u.milestone && u.trust >= 20) u.milestone = 'acquaintance';
       if (u.trust >= 80) u.milestone = 'bonded';
-      return { ...state, world: { ...state.world, npc_relationships: { ...state.world.npc_relationships, [action.payload.npc_id]: u } } };
+      if (u.trust === c.trust && u.love === c.love && u.fear === c.fear && u.dom === c.dom && u.milestone === c.milestone) return state;
+      return { ...state, world: { ...state.world, npc_relationships: { ...state.world.npc_relationships, [npc_id]: u } } };
     }
     case 'SET_NPC_SCENE_FLAG': {
-      const c = state.world.npc_relationships[action.payload.npc_id] || { trust: 0, love: 0, fear: 0, dom: 0, scene_flags: {} };
-      return { ...state, world: { ...state.world, npc_relationships: { ...state.world.npc_relationships, [action.payload.npc_id]: { ...c, scene_flags: { ...c.scene_flags, [action.payload.flag]: action.payload.value } } } } };
+      const { npc_id, flag, value } = action.payload;
+      const c = state.world.npc_relationships[npc_id] || { trust: 0, love: 0, fear: 0, dom: 0, scene_flags: {} };
+      if (c.scene_flags[flag] === value) return state;
+      return { ...state, world: { ...state.world, npc_relationships: { ...state.world.npc_relationships, [npc_id]: { ...c, scene_flags: { ...c.scene_flags, [flag]: value } } } } };
     }
-    case 'UPDATE_SEXUAL_SKILL': return { ...state, player: { ...state.player, sexual_skills: { ...state.player.sexual_skills, [action.payload.skill]: clamp(state.player.sexual_skills[action.payload.skill as keyof typeof state.player.sexual_skills] + action.payload.amount) } } };
-    case 'UPDATE_INSECURITY': return { ...state, player: { ...state.player, insecurity: { ...state.player.insecurity, [action.payload.part]: clamp(state.player.insecurity[action.payload.part as keyof typeof state.player.insecurity] + action.payload.amount) } } };
+    case 'UPDATE_SEXUAL_SKILL': {
+      const { skill, amount } = action.payload;
+      const current = state.player.sexual_skills[skill as keyof typeof state.player.sexual_skills];
+      const next = clamp(current + amount);
+      if (current === next) return state;
+      return { ...state, player: { ...state.player, sexual_skills: { ...state.player.sexual_skills, [skill]: next } } };
+    }
+    case 'UPDATE_INSECURITY': {
+      const { part, amount } = action.payload;
+      const current = state.player.insecurity[part as keyof typeof state.player.insecurity];
+      const next = clamp(current + amount);
+      if (current === next) return state;
+      return { ...state, player: { ...state.player, insecurity: { ...state.player.insecurity, [part]: next } } };
+    }
     case 'UPDATE_LEWDITY_STATS': {
-       const u = action.payload; const c = state.player.lewdity_stats;
-       return { ...state, player: { ...state.player, lewdity_stats: { exhibitionism: clamp(c.exhibitionism + (u.exhibitionism || 0)), promiscuity: clamp(c.promiscuity + (u.promiscuity || 0)), deviancy: clamp(c.deviancy + (u.deviancy || 0)), masochism: clamp(c.masochism + (u.masochism || 0)) } } };
+      const u = action.payload; const c = state.player.lewdity_stats;
+      const next = {
+        exhibitionism: clamp(c.exhibitionism + (u.exhibitionism || 0)),
+        promiscuity: clamp(c.promiscuity + (u.promiscuity || 0)),
+        deviancy: clamp(c.deviancy + (u.deviancy || 0)),
+        masochism: clamp(c.masochism + (u.masochism || 0))
+      };
+      if (next.exhibitionism === c.exhibitionism && next.promiscuity === c.promiscuity && next.deviancy === c.deviancy && next.masochism === c.masochism) return state;
+      return { ...state, player: { ...state.player, lewdity_stats: next } };
     }
     case 'UPDATE_SENSITIVITY': {
-       const s2 = { ...state.player.sensitivity }; for (const [k, v] of Object.entries(action.payload)) { if (k in s2) (s2 as any)[k] = clamp((s2 as any)[k] + (v as number)); }
-       return { ...state, player: { ...state.player, sensitivity: s2 } };
+      let changed = false;
+      const s2 = { ...state.player.sensitivity };
+      for (const [k, v] of Object.entries(action.payload)) {
+        if (k in s2) {
+          const current = (s2 as any)[k];
+          const next = clamp(current + (v as number));
+          if (current !== next) {
+            (s2 as any)[k] = next;
+            changed = true;
+          }
+        }
+      }
+      return changed ? { ...state, player: { ...state.player, sensitivity: s2 } } : state;
     }
     case 'UPDATE_TEMPERATURE': {
       const { ambient_temp, clothing_warmth, body_temp } = action.payload;
@@ -98,7 +152,12 @@ export function gameReducer(state: GameState, action: any): GameState {
       let bp = { ...state.player.bailey_payment }; if (nd > state.world.day) bp.debt += (nd - state.world.day) * 10;
       return { ...state, world: { ...state.world, hour: nh, day: nd, week_day: advanceWeekDay(state.world.week_day, nd - state.world.day) }, player: withClothingState({ ...state.player, stats: ns, life_sim: { ...state.player.life_sim, needs: n }, bailey_payment: bp }) };
     }
-    case 'ADD_JUSTICE_BOUNTY': return { ...state, player: { ...state.player, justice: { ...state.player.justice, bounty: state.player.justice.bounty + action.payload.amount, suspicion: clamp(state.player.justice.suspicion + action.payload.suspicion) } } };
+    case 'ADD_JUSTICE_BOUNTY': {
+      const { amount, suspicion } = action.payload;
+      const nextSuspicion = clamp(state.player.justice.suspicion + suspicion);
+      if (amount === 0 && nextSuspicion === state.player.justice.suspicion) return state;
+      return { ...state, player: { ...state.player, justice: { ...state.player.justice, bounty: state.player.justice.bounty + amount, suspicion: nextSuspicion } } };
+    }
     case 'CLEAR_JUSTICE_BOUNTY': return { ...state, player: { ...state.player, justice: { ...state.player.justice, bounty: 0, suspicion: 0, jail_sentence: 0 } } };
     case 'RESOLVE_TEXT': {
       const { parsedText, actionText } = action.payload; if (!parsedText) return { ...state, ui: { ...state.ui, isPollingText: false } };
@@ -123,17 +182,49 @@ export function gameReducer(state: GameState, action: any): GameState {
       let tp = { ...state.player.temperature }; if (state.world.weather === 'Blizzard') { ns.stamina = clamp(ns.stamina - 10 * h); tp.ambient_temp = -15; } if (state.world.weather === 'Thunderstorm' || state.world.weather === 'Scorching') ns.stress = clamp(ns.stress + 10 * h); if (state.world.weather === 'Scorching') tp.ambient_temp = 38;
       let mg = [...state.memory_graph]; if (parsedText.memory_entry) mg.push(parsedText.memory_entry); else if (parsedText.narrative_text) mg.push(`Day ${state.world.day}: ${actionText}`);
       const nextP = { ...state.player, gold: g, stats: ns, skills: nsk, life_sim: { ...state.player.life_sim, needs: n }, inventory: ni, anatomy: na, afflictions: af, quests: q, lewdity_stats: ls, temperature: tp };
-      return { ...state, memory_graph: mg, world: { ...state.world, hour: nh, day: nd, turn_count: state.world.turn_count + 1, current_location: LOCATIONS[parsedText.new_location] || state.world.current_location }, player: withClothingState(nextP), ui: { ...state.ui, currentLog: nl, isPollingText: false, last_stat_deltas: parsedText.stat_deltas, choices: parsedText.follow_up_choices || state.world.current_location.actions || [] } };
+      const nextStoryEvent = action.payload.nextStoryEvent !== undefined ? action.payload.nextStoryEvent : state.world.active_story_event;
+      // Track completed story arcs when a story event resolves to null
+      let completedArcs = [...state.world.completed_story_arcs];
+      if (state.world.active_story_event && nextStoryEvent === null) {
+        const arcId = state.world.active_story_event.id;
+        if (!completedArcs.includes(arcId)) completedArcs.push(arcId);
+      }
+      return { ...state, memory_graph: mg, world: { ...state.world, hour: nh, day: nd, turn_count: state.world.turn_count + 1, active_story_event: nextStoryEvent, completed_story_arcs: completedArcs, current_location: LOCATIONS[parsedText.new_location] || state.world.current_location }, player: withClothingState(nextP), ui: { ...state.ui, currentLog: nl, isPollingText: false, last_stat_deltas: parsedText.stat_deltas, choices: parsedText.follow_up_choices || state.world.current_location.actions || [] } };
     }
-    case 'UPDATE_ACTIVE_ENCOUNTER': return state.world.active_encounter ? { ...state, world: { ...state.world, active_encounter: { ...state.world.active_encounter, ...action.payload } } } : state;
+    case 'UPDATE_ACTIVE_ENCOUNTER': {
+      if (!state.world.active_encounter) return state;
+      const next = { ...state.world.active_encounter, ...action.payload };
+      if (Object.keys(action.payload).every(k => (state.world.active_encounter as any)[k] === (next as any)[k])) return state;
+      return { ...state, world: { ...state.world, active_encounter: next } };
+    }
     case 'SUMMARIZE_MEMORY': {
       if (action.payload?.summary === '[Summary]' || (Array.isArray(action.payload) && action.payload[0] === '[Summary]')) return { ...state, memory_graph: ['[Summary]'] };
       const sArr = Array.isArray(action.payload) ? action.payload : (action.payload.summary ? [action.payload.summary] : ['[Distant Memory]: A lot happened.']);
       const last = state.memory_graph[state.memory_graph.length - 1];
       return { ...state, memory_graph: [...sArr, last] };
     }
-    case 'TOGGLE_UI_SETTING': return { ...state, ui: { ...state.ui, [action.payload.key]: action.payload.value } };
+    case 'TOGGLE_UI_SETTING': {
+      if ((state.ui as any)[action.payload.key] === action.payload.value) return state;
+      return { ...state, ui: { ...state.ui, [action.payload.key]: action.payload.value } };
+    }
     case 'HORDE_REQUEST_START': return { ...state, ui: { ...state.ui, horde_monitor: { ...state.ui.horde_monitor, active: true, text_requests: action.payload.type === 'text' ? state.ui.horde_monitor.text_requests + 1 : state.ui.horde_monitor.text_requests, image_requests: action.payload.type === 'image' ? state.ui.horde_monitor.image_requests + 1 : state.ui.horde_monitor.image_requests } } };
+    case 'ADVANCE_EPOCH': {
+      const milestone = action.payload?.milestone;
+      const milestones = milestone && !state.world.narrative_milestones.includes(milestone)
+        ? [...state.world.narrative_milestones, milestone]
+        : state.world.narrative_milestones;
+      return { ...state, world: { ...state.world, world_epoch: state.world.world_epoch + 1, narrative_milestones: milestones } };
+    }
+    case 'COMPLETE_STORY_ARC': {
+      const arcId = action.payload.arcId;
+      if (state.world.completed_story_arcs.includes(arcId)) return state;
+      return { ...state, world: { ...state.world, completed_story_arcs: [...state.world.completed_story_arcs, arcId] } };
+    }
+    case 'ADD_NARRATIVE_MILESTONE': {
+      const ms = action.payload.milestone;
+      if (state.world.narrative_milestones.includes(ms)) return state;
+      return { ...state, world: { ...state.world, narrative_milestones: [...state.world.narrative_milestones, ms] } };
+    }
     default: return state;
   }
 }

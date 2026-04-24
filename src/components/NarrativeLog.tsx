@@ -49,4 +49,15 @@ export const NarrativeLog = React.memo(({ logs, trauma, accessibilityMode, state
       })}
     </div>
   );
+}, (prev, next) => {
+  // ⚡ BOLT OPTIMIZATION: Custom comparator prevents expensive re-renders.
+  // The global 'state' object reference changes constantly.
+  // We only care about the specific nested property used by filterNarrativeByIgnorance.
+  // Impact: Eliminates O(N) re-renders of the log feed on unrelated state changes.
+  return (
+    prev.logs === next.logs &&
+    prev.trauma === next.trauma &&
+    prev.accessibilityMode === next.accessibilityMode &&
+    prev.state.player.knowledge.sexual_awareness === next.state.player.knowledge.sexual_awareness
+  );
 });
