@@ -6,6 +6,7 @@ Listens for revenue events from Stripe, PayPal, GitHub Sponsors
 from fastapi import APIRouter, Header, HTTPException, Request
 from typing import Optional
 import hmac
+import os
 import hashlib
 import json
 import logging
@@ -150,7 +151,10 @@ async def ad_revenue_webhook(request: Request, authorization: Optional[str] = He
     """
     try:
         # Verify authorization token
-        if not authorization or not authorization.startswith("Bearer "):
+        api_key = os.getenv("SIDE_CAR_API_KEY")
+        if not api_key:
+            raise HTTPException(status_code=500, detail="Server misconfiguration")
+        if not authorization or not hmac.compare_digest(authorization, f"Bearer {api_key}"):
             raise HTTPException(status_code=401, detail="Unauthorized")
 
         payload = await request.json()
@@ -176,12 +180,19 @@ async def ad_revenue_webhook(request: Request, authorization: Optional[str] = He
 # ==================== Affiliate Revenue Webhook ====================
 
 @router.post("/affiliate")
-async def affiliate_webhook(request: Request):
+async def affiliate_webhook(request: Request, authorization: Optional[str] = Header(None)):
     """
     Track affiliate commission from links in content
     Amazon Associates, game affiliate programs, etc.
     """
     try:
+        # Verify authorization token
+        api_key = os.getenv("SIDE_CAR_API_KEY")
+        if not api_key:
+            raise HTTPException(status_code=500, detail="Server misconfiguration")
+        if not authorization or not hmac.compare_digest(authorization, f"Bearer {api_key}"):
+            raise HTTPException(status_code=401, detail="Unauthorized")
+
         payload = await request.json()
 
         program = payload.get("program")  # amazon, steam, epic_games
@@ -196,6 +207,8 @@ async def affiliate_webhook(request: Request):
 
         return {"status": "success", "message": "Commission tracked"}
 
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"Affiliate webhook error: {str(e)}")
         raise HTTPException(status_code=400, detail=str(e))
