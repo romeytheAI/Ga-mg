@@ -930,12 +930,12 @@ Example: { "health": 50, "allure": 20 }`;
                 <motion.img
                   key={state.ui.currentImage}
                   src={state.ui.currentImage}
-                  className={`w-[110%] h-[110%] -left-[5%] -top-[5%] absolute object-cover will-change-transform ${shouldCensorImage(state) ? 'blur-3xl' : ''}`}
+                  className={`w-[110%] h-[110%] -left-[5%] -top-[5%] absolute object-cover will-change-transform ${!state.ui.settings.enable_extreme_content ? 'blur-3xl' : ''}`}
                   style={{ transform: 'translateZ(0)' }}
                   animate={{ x: mousePos.x, y: mousePos.y }}
                   transition={{ type: 'spring', stiffness: 40, damping: 30 }}
                 />
-                {shouldCensorImage(state) && (
+                {!state.ui.settings.enable_extreme_content && (
                   <div className="absolute inset-0 bg-black/70 flex items-center justify-center">
                     <div className="text-center">
                       <EyeOff className="w-16 h-16 text-white/40 mx-auto mb-4" />
@@ -1879,7 +1879,7 @@ Example: { "health": 50, "allure": 20 }`;
                 aria-label="Close Companion Roster"
                 onClick={() => setShowCompanions(false)}
                 className="absolute top-6 right-6 text-white/40 hover:text-white transition-colors"
-               aria-label="Close modal">
+               >
               <X className="w-5 h-5" />
               </button>
               
