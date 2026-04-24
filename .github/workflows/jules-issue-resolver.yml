@@ -1,0 +1,69 @@
+name: Jules Universal Issue Resolver
+on:
+  issues:
+    types: [opened, reopened, labeled]
+
+jobs:
+  resolve-with-jules:
+    if: |
+      (github.event_name == 'issues') && 
+      (!contains(github.event.issue.labels.*.name, 'blocked')) && 
+      (!contains(github.event.issue.labels.*.name, 'blocker'))
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
+      pull-requests: write
+    steps:
+      - name: Acknowledge Issue
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: "🤖 Jules has been summoned to resolve this issue. Please wait while the autonomous agent analyzes the task and prepares a solution."
+            })
+
+      - name: Invoke Jules
+        uses: google-labs-code/jules-invoke@v1
+        with:
+          jules_api_key: ${{ secrets.JULES_API_KEY }}
+          prompt: |
+            Task: Resolve Issue #${{ github.event.issue.number }}
+            Title: ${{ github.event.issue.title }}
+            Description:
+            ${{ github.event.issue.body }}
+
+            Instructions:
+            - Please resolve the issue described above.
+            - Follow the project's established patterns and "learnings" found in the `.jules/` and `.Jules/` directories.
+            - Ensure all changes are covered by tests if applicable.
+            - Create a Pull Request with your changes.
+            - In the PR description, include "Closes #${{ github.event.issue.number }}".
+            - Reference any relevant learnings you applied from the `.jules/` directory.
+
+      - name: Update Status on Success
+        if: success()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: "✅ Jules has successfully completed the task and created a Pull Request. Please review the changes."
+            })
+
+      - name: Update Status on Failure
+        if: failure()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: "❌ Jules encountered an error while trying to resolve this issue. Please check the Action logs for details."
+            })

@@ -1,0 +1,61 @@
+name: Jules Merge Conflict Resolver
+on:
+  pull_request:
+    types: [synchronize, opened, reopened]
+
+jobs:
+  check-and-resolve-conflicts:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - name: Check for Conflicts
+        id: conflict-check
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const pr = await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.issue.number
+            });
+            
+            // Note: mergeable_state can be null while GitHub is calculating
+            // We might need to wait or re-trigger, but for this workflow
+            // we will proceed if it's explicitly 'dirty'
+            console.log(`PR Mergeable State: ${pr.data.mergeable_state}`);
+            core.setOutput('has_conflicts', pr.data.mergeable_state === 'dirty');
+
+      - name: Acknowledge Conflict
+        if: steps.conflict-check.outputs.has_conflicts == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: "🚨 Merge conflicts detected! Jules is jumping in to resolve them. 🛠️"
+            })
+
+      - name: Invoke Jules for Resolution
+        if: steps.conflict-check.outputs.has_conflicts == 'true'
+        uses: google-labs-code/jules-invoke@v1
+        with:
+          jules_api_key: ${{ secrets.JULES_API_KEY }}
+          prompt: |
+            Task: Resolve Merge Conflicts in PR #${{ github.event.number }}
+            PR Title: ${{ github.event.pull_request.title }}
+            Base Branch: ${{ github.event.pull_request.base.ref }}
+            Head Branch: ${{ github.event.pull_request.head.ref }}
+
+            Context:
+            The PR currently has merge conflicts with the base branch.
+
+            Instructions:
+            1. Analyze the conflicts between the head branch and the base branch.
+            2. Resolve the conflicts by merging the latest changes from the base branch into the head branch.
+            3. Ensure the code remains functional, follows project patterns in `.jules/`, and passes all tests.
+            4. Submit the resolved code. If possible, update the existing PR or provide the resolution as a new Pull Request.
+            5. In your response, clearly state which conflicts were resolved and how.
