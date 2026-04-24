@@ -10,14 +10,25 @@ View your app in AI Studio: https://ai.studio/apps/c27ece4c-b654-4b65-a8ce-77dae
 
 ## Run Locally
 
-**Prerequisites:**  Node.js
+**Prerequisites:** Node.js 22
 
+The repository uses `pnpm` exclusively. Never use `npm` or `yarn`.
 
 1. Install dependencies:
-   `npm install`
+   `pnpm install`
 2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
 3. Run the app:
-   `npm run dev`
+   `pnpm run dev`
+
+## GitHub Codespaces / Devcontainer
+
+This repository supports GitHub Codespaces and devcontainers out of the box, providing a standardized Node.js 22 environment with `pnpm` pre-installed.
+
+1. **Launch a Codespace**: Click the "Code" button on GitHub and select "Create codespace on main".
+2. **Environment Variables**: To use the Gemini features, you need to expose your API key. In your GitHub Settings -> Codespaces -> Codespaces secrets, add a new secret named `GEMINI_API_KEY` with your API key, and assign it to this repository. The devcontainer will automatically pick this up.
+3. Once the Codespace starts, all dependencies will be automatically installed via `pnpm install`, and you can start the development server by running:
+   `pnpm run dev`
+   (Port 3000 will be automatically forwarded).
 
 ## Foundation roadmap
 
