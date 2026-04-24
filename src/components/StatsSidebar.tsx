@@ -230,4 +230,17 @@ export const StatsSidebar: React.FC<StatsSidebarProps> = React.memo(({
       </div>
     </div>
   );
+}, (prev, next) => {
+  // ⚡ BOLT OPTIMIZATION: Custom comparator prevents expensive re-renders.
+  // The global 'state' object reference changes constantly (e.g., text logs).
+  // We only care about the specific nested properties used by StatsSidebar and its children.
+  // Impact: Eliminates O(N) re-renders of the sidebar and all StatBars on unrelated state changes.
+  return (
+    prev.state.player === next.state.player &&
+    prev.state.world.day === next.state.world.day &&
+    prev.state.world.week_day === next.state.world.week_day &&
+    prev.state.world.hour === next.state.world.hour &&
+    prev.state.world.weather === next.state.world.weather &&
+    prev.state.ui.combat_animation === next.state.ui.combat_animation
+  );
 });
