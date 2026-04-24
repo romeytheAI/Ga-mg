@@ -14,7 +14,9 @@ interface MapModalProps {
   onClose?: () => void;
 }
 
-export const MapModal: React.FC<MapModalProps> = ({ state, dispatch, handleAction, onClose }) => {
+// ⚡ Bolt: Wrapped MapModal in React.memo with a custom comparator to prevent unnecessary
+// re-renders when irrelevant properties of the `state` prop change.
+export const MapModal: React.FC<MapModalProps> = React.memo(({ state, dispatch, handleAction, onClose }) => {
   const handleClose = () => {
     if (onClose) {
       onClose();
@@ -192,4 +194,15 @@ export const MapModal: React.FC<MapModalProps> = ({ state, dispatch, handleActio
       </motion.div>
     </motion.div>
   );
-};
+}, (prevProps, nextProps) => {
+  return (
+    prevProps.dispatch === nextProps.dispatch &&
+    prevProps.handleAction === nextProps.handleAction &&
+    prevProps.onClose === nextProps.onClose &&
+    (prevProps.state === nextProps.state || (
+      prevProps.state != null && nextProps.state != null &&
+      prevProps.state.world === nextProps.state.world &&
+      prevProps.state.player.knowledge === nextProps.state.player.knowledge
+    ))
+  );
+});
