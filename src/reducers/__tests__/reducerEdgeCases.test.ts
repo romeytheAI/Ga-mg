@@ -25,14 +25,12 @@ describe('gameReducer – LOAD_GAME', () => {
       ...initialState,
       player: {
         ...initialState.player,
-
         lewdity_stats: { exhibitionism: 30, promiscuity: 20, deviancy: 10, masochism: 5 },
         traits: [{ id: 'brave', name: 'Brave', description: 'test', effects: {} }],
-        quests: [{ id: 'q1', title: 'Test Quest', description: 'test', status: 'active', type: 'main' as const }],
+        quests: [{ id: 'q1', title: 'Test Quest', description: 'test', status: 'active', type: 'side' }],
       },
       world: {
         ...initialState.world,
-
         narrative_milestones: ['escaped_orphanage'],
         event_flags: { bailey_intro_done: true },
       },
@@ -41,7 +39,6 @@ describe('gameReducer – LOAD_GAME', () => {
     expect(next.player.lewdity_stats.exhibitionism).toBe(30);
     expect(next.player.traits).toHaveLength(1);
     expect(next.player.quests[0].id).toBe('q1');
-
     expect(next.world.narrative_milestones).toContain('escaped_orphanage');
     expect(next.world.event_flags.bailey_intro_done).toBe(true);
   });
@@ -57,13 +54,11 @@ describe('gameReducer – START_NEW_GAME', () => {
       world: {
         ...initialState.world,
         world_epoch: 5,
-
         narrative_milestones: ['milestone_1'],
       },
     };
     const next = gameReducer(advancedState, { type: 'START_NEW_GAME', payload: { directorCut: false } });
     expect(next.world.world_epoch).toBe(0);
-
     expect(next.world.narrative_milestones).toEqual([]);
   });
 
@@ -98,7 +93,7 @@ describe('gameReducer – START_NEW_GAME', () => {
       ...initialState,
       player: {
         ...initialState.player,
-        quests: [{ id: 'q1', title: 'Done Quest', description: 'done', status: 'completed', type: 'main' as const }],
+        quests: [{ id: 'q1', title: 'Done Quest', description: 'done', status: 'completed', type: 'main' }],
       },
     };
     const next = gameReducer(withQuests, { type: 'START_NEW_GAME', payload: {} });

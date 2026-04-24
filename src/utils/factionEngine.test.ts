@@ -73,7 +73,7 @@ describe('canAccessFactionService', () => {
 
   it('returns false for a standing that requires high rep (champion)', () => {
     const factions = freshFactions();
-    // Default rep is 0; 'champion' requires very high reputation threshold
+    // Default rep is 0; 'exalted' requires very high reputation threshold
     // We verify the function delegates correctly to meetsStanding
     const neutral = canAccessFactionService(factions, 'thieves_guild', 'neutral');
     const champion = canAccessFactionService(factions, 'thieves_guild', 'exalted');

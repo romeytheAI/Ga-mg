@@ -47,6 +47,7 @@ export const FeatsModal: React.FC<FeatsModalProps> = ({ state, dispatch }) => {
         className="bg-[#0a0a0a] border border-white/10 p-8 rounded-sm max-w-lg w-full relative shadow-2xl overflow-y-auto max-h-[90vh] z-10"
       >
         <button
+          aria-label="Close Feats"
           onClick={() => dispatch({ type: 'TOGGLE_UI_SETTING', payload: { key: 'show_feats', value: false } })}
           className="absolute top-6 right-6 text-white/40 hover:text-white"
         >
