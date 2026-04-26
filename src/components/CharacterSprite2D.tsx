@@ -378,4 +378,18 @@ export const CharacterSprite2D: React.FC<CharacterSprite2DProps> = React.memo(({
       )}
     </div>
   );
+}, (prevProps, nextProps) => {
+  // ⚡ BOLT OPTIMIZATION: Custom comparator to prevent expensive SVG re-renders.
+  // We only compare the specific nested properties in the global state object that CharacterSprite2D uses.
+  return (
+    prevProps.compact === nextProps.compact &&
+    prevProps.showXRay === nextProps.showXRay &&
+    prevProps.state.player === nextProps.state.player &&
+    prevProps.state.world.active_encounter === nextProps.state.world.active_encounter &&
+    prevProps.state.ui.combat_animation === nextProps.state.ui.combat_animation &&
+    prevProps.state.ui.targeted_part === nextProps.state.ui.targeted_part &&
+    prevProps.state.world.last_intent === nextProps.state.world.last_intent &&
+    prevProps.state.ui.currentLog === nextProps.state.ui.currentLog &&
+    prevProps.state.world.weather === nextProps.state.world.weather
+  );
 });
