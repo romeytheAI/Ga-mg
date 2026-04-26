@@ -220,6 +220,8 @@ export const StatsSidebar: React.FC<StatsSidebarProps> = React.memo(({
         ].map(btn => (
           <button
             key={btn.label}
+            aria-label={btn.label}
+            title={btn.label}
             onClick={() => dispatch({ type: 'TOGGLE_UI_SETTING', payload: { key: btn.action as any, value: true } })}
             className="py-2 flex items-center justify-center gap-2 aaa-button-ghost rounded-sm group"
           >
