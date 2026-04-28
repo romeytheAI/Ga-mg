@@ -194,9 +194,9 @@ Player Status:
 Health: \${state.player.stats.health}/\${state.player.stats.max_health}, Stamina: \${state.player.stats.stamina}/\${state.player.stats.max_stamina}, Willpower: \${state.player.stats.willpower}/\${state.player.stats.max_willpower}
 Trauma: \${state.player.stats.trauma}, Lust: \${state.player.stats.lust}, Corruption: \${state.player.stats.corruption}, Purity: \${state.player.stats.purity}%
 Arousal: \${state.player.stats.arousal}, Pain: \${state.player.stats.pain}, Control: \${state.player.stats.control}, Stress: \${state.player.stats.stress}, Hallucination: \${state.player.stats.hallucination}
-Active Quests: \${state.player.quests ? state.player.quests.filter(q => q.status === 'active').map(q => q.title).join(', ') : 'None'}
+Active Quests: \${state.player.quests ? state.player.quests.reduce((acc, q) => q.status === 'active' ? (acc ? acc + ', ' + q.title : q.title) : acc, '') || 'None' : 'None'}
 \${translateLust(state.player.stats.lust)}
-  Clothing: \${state.player.inventory.filter(i => i.is_equipped).map(i => \`\${i.name} (\${i.integrity}%)\`).join(', ') || 'Naked'}
+  Clothing: \${state.player.inventory.reduce((acc, i) => i.is_equipped ? (acc ? acc + ', ' + i.name + ' (' + i.integrity + '%)' : i.name + ' (' + i.integrity + '%)') : acc, '') || 'Naked'}
 Afflictions: \${topAfflictions.join(', ') || 'None'}
 \${hallucinationTag}
 \${biologyTag}
