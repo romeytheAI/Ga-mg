@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { X, User, Skull, Bug, Users } from 'lucide-react';
 import { GameState } from '../../types';
@@ -12,6 +12,13 @@ interface StatusModalProps {
 }
 
 export const StatusModal: React.FC<StatusModalProps> = ({ state, onClose }) => {
+  const equippedItems = useMemo(() => state.player.inventory.filter(i => i.is_equipped), [state.player.inventory]);
+  const equippedString = useMemo(() => equippedItems.length > 0 ? equippedItems.map(i => i.name).join(', ') : 'Naked', [equippedItems]);
+  const integrityAvg = useMemo(() => {
+    if (equippedItems.length === 0) return 0;
+    return Math.round(equippedItems.reduce((acc, i) => acc + (i.integrity || 0), 0) / equippedItems.length);
+  }, [equippedItems]);
+
   return (
     <motion.div 
       initial={{ opacity: 0 }}
@@ -95,10 +102,10 @@ export const StatusModal: React.FC<StatusModalProps> = ({ state, onClose }) => {
 
         <div className="mt-8 pt-6 border-t border-white/10">
           <h3 className="text-xs tracking-widest uppercase text-white/50 mb-4">Current Equipment</h3>
-          <p className="text-sm text-white/80 font-serif italic">{state.player.inventory.filter(i => i.is_equipped).map(i => i.name).join(', ') || 'Naked'}</p>
+          <p className="text-sm text-white/80 font-serif italic">{equippedString}</p>
           <div className="mt-2 flex items-center justify-between">
             <span className="text-[10px] tracking-widest uppercase text-white/40">Integrity</span>
-            <span className="text-[10px] font-mono text-white/60">{Math.round(state.player.inventory.filter(i => i.is_equipped).reduce((acc, i) => acc + (i.integrity || 0), 0) / (state.player.inventory.filter(i => i.is_equipped).length || 1))}%</span>
+            <span className="text-[10px] font-mono text-white/60">{integrityAvg}%</span>
           </div>
         </div>
 
