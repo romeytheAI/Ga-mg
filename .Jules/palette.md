@@ -9,3 +9,7 @@
 ## 2024-05-18 - Missing ARIA Labels on Icon-Only Buttons
 **Learning:** In the project's modals, icon-only buttons (like those using the Lucide `<X>` icon for closing) frequently lack accessible names. This creates barriers for screen reader users who cannot visually determine the button's purpose.
 **Action:** Always verify that `<button>` tags containing only `<svg>` or icon components have a descriptive `aria-label` attribute (e.g., `aria-label="Close Modal"`).
+
+## 2024-05-18 - Missing ARIA labels in custom components
+**Learning:** Found multiple instances where we rely heavily on UI colors instead of explicitly adding `aria-label` or `title` attributes on `<button>` elements representing choices (e.g., color selection for character customization). This was prevalent in CharacterCreationModal.tsx. Additionally, some UI elements like custom icons were used without ARIA properties in ImmersiveStartMenu.tsx.
+**Action:** When implementing color swatches (e.g., skin, eye, or hair color selection) as empty `<button>` tags relying on CSS `backgroundColor`, always provide explicit `aria-label` and `title` attributes (e.g., `aria-label="Select skin tone [color]"`) for accessibility.
