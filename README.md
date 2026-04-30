@@ -30,6 +30,26 @@ This repository supports GitHub Codespaces and devcontainers out of the box, pro
    `pnpm run dev`
    (Port 3000 will be automatically forwarded).
 
+## Repository Architecture and Folders
+
+This repository follows a strict separation of concerns to keep app code, assets, and documentation organized:
+
+- **`src/`**: The core application code.
+  - **`src/sim/`**: The simulation layer (logic and game loop).
+  - **`src/rendering/`**: The rendering layer (canvas and components).
+  - **`src/services/` & `src/reducers/`**: The persistence and state management layer.
+- **`public/`**: The authoritative game assets (sprites, SVGs, static files) loaded at runtime.
+- **`assets/`**: Developer reference assets, diagrams, and external references (not loaded at runtime).
+- **`docs/`**: Architecture diagrams, roadmaps, and reference documentation.
+- **`project/`**: Experimental scripts and scratchpad code.
+
+### Asset Loading Strategy
+
+- **Runtime assets**: All graphics and game assets consumed by the application live strictly in `public/`.
+- **Reference assets**: Concept art or non-runtime assets live in `assets/`.
+
+*Note: Loose legacy sprites and directories (e.g. Hikari_Female_Sideview_And_Doll_Files) have been removed.*
+
 ## Foundation roadmap
 
 - **Start here**: `docs/foundation-roadmap.md` - prerequisite issues for repository structure, type safety, performance, persistence, and CI/CD.
