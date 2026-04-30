@@ -1,30 +1,38 @@
 import fs from 'fs';
-
-const file = 'src/data/esLocations.ts';
+const file = 'src/components/modals/StatusModal.tsx';
 let content = fs.readFileSync(file, 'utf8');
 
-// Clean up duplicate 'danger'
-content = content.replace(/danger: \d+,\n\s*danger: /g, 'danger: ');
+const search = `<div className="mt-8 pt-6 border-t border-white/10">
+          <h3 className="text-xs tracking-widest uppercase text-white/50 mb-4">Current Equipment</h3>
+          <p className="text-sm text-white/80 font-serif italic">{state.player.inventory.filter(i => i.is_equipped).map(i => i.name).join(', ') || 'Naked'}</p>
+          <div className="mt-2 flex items-center justify-between">
+            <span className="text-[10px] tracking-widest uppercase text-white/40">Integrity</span>
+            <span className="text-[10px] font-mono text-white/60">{Math.round(state.player.inventory.filter(i => i.is_equipped).reduce((acc, i) => acc + (i.integrity || 0), 0) / (state.player.inventory.filter(i => i.is_equipped).length || 1))}%</span>
+          </div>
+        </div>`;
 
-// Find where brackets are missing and fix them properly.
-// The error is `Expected "]" but found ":"` in `loc_es_vivec_city: {` because the previous `loc_es_cloudrest` actions array was not closed.
+const replace = `<div className="mt-8 pt-6 border-t border-white/10">
+          <h3 className="text-xs tracking-widest uppercase text-white/50 mb-4">Current Equipment</h3>
+          <p className="text-sm text-white/80 font-serif italic">{state.player.inventory.reduce((acc: string[], i) => { if (i.is_equipped) acc.push(i.name); return acc; }, []).join(', ') || 'Naked'}</p>
+          <div className="mt-2 flex items-center justify-between">
+            <span className="text-[10px] tracking-widest uppercase text-white/40">Integrity</span>
+            <span className="text-[10px] font-mono text-white/60">{(() => {
+              const equipped = state.player.inventory.reduce((acc, i) => {
+                if (i.is_equipped) {
+                  acc.sum += (i.integrity || 0);
+                  acc.count++;
+                }
+                return acc;
+              }, { sum: 0, count: 0 });
+              return Math.round(equipped.sum / (equipped.count || 1));
+            })()}%</span>
+          </div>
+        </div>`;
 
-content = content.replace(
-  /reward: \{ gold: 35, items: \['cloudrest_crystal'\], xp: 40 \} \},\n\n  loc_es_vivec_city: \{/g,
-  "reward: { gold: 35, items: ['cloudrest_crystal'], xp: 40 } },\n    ],\n  },\n\n  loc_es_vivec_city: {"
-);
-
-content = content.replace(
-  /reward: \{ xp: 150, items: \['daedric_crescent'\] \} \},\n\n  loc_es_wayrest: \{/g,
-  "reward: { xp: 150, items: ['daedric_crescent'] } },\n    ],\n  },\n\n  loc_es_wayrest: {"
-);
-
-// loc_es_camlorn missing closing bracket? Let's check Sentinel
-content = content.replace(
-  /reward: \{ xp: 30 \} \},\n  loc_es_sentinel: \{/g,
-  "reward: { xp: 30 } },\n    ],\n  },\n\n  loc_es_sentinel: {"
-);
-
-// We still have duplicate loc_es_sentinel, loc_es_sunforge, loc_es_rihad, loc_es_stros_m_kai from the original file
-// Let's remove everything after the first `loc_es_sentinel` definition up to the next export or end of file if they are duplicates.
-// The easiest is just finding where the duplicate starts.
+if (content.includes(search)) {
+    content = content.replace(search, replace);
+    fs.writeFileSync(file, content);
+    console.log("StatusModal updated.");
+} else {
+    console.log("Could not find block in StatusModal.");
+}
