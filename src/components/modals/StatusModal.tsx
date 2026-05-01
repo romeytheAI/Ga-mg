@@ -95,10 +95,11 @@ export const StatusModal: React.FC<StatusModalProps> = ({ state, onClose }) => {
 
         <div className="mt-8 pt-6 border-t border-white/10">
           <h3 className="text-xs tracking-widest uppercase text-white/50 mb-4">Current Equipment</h3>
-          <p className="text-sm text-white/80 font-serif italic">{state.player.inventory.filter(i => i.is_equipped).map(i => i.name).join(', ') || 'Naked'}</p>
+           {/* ⚡ Bolt: Replaced .filter().map() chains with .reduce() to prevent intermediate array allocations */}
+          <p className="text-sm text-white/80 font-serif italic">{state.player.inventory.reduce<string[]>((acc, i) => i.is_equipped ? (acc.push(i.name), acc) : acc, []).join(', ') || 'Naked'}</p>
           <div className="mt-2 flex items-center justify-between">
             <span className="text-[10px] tracking-widest uppercase text-white/40">Integrity</span>
-            <span className="text-[10px] font-mono text-white/60">{Math.round(state.player.inventory.filter(i => i.is_equipped).reduce((acc, i) => acc + (i.integrity || 0), 0) / (state.player.inventory.filter(i => i.is_equipped).length || 1))}%</span>
+            <span className="text-[10px] font-mono text-white/60">{Math.round(state.player.inventory.reduce((acc, i) => i.is_equipped ? acc + (i.integrity || 0) : acc, 0) / (state.player.inventory.reduce((acc, i) => i.is_equipped ? acc + 1 : acc, 0) || 1))}%</span>
           </div>
         </div>
 
