@@ -137,7 +137,8 @@ export const StatsSidebar: React.FC<StatsSidebarProps> = React.memo(({
   const { stats, skills, life_sim, clothing, biology, psych_profile, temperature, bailey_payment, lewdity_stats, attitudes } = state.player;
 
   const clothingSlots = ['head', 'neck', 'shoulders', 'chest', 'underwear', 'legs', 'feet', 'hands', 'waist'] as const;
-  const equippedClothing = clothingSlots.map(slot => ({ slot, item: clothing[slot] })).filter(({ item }) => item !== null);
+  // ⚡ Bolt: Replaced .filter().map() chains with .reduce() to prevent intermediate array allocations
+  const equippedClothing = clothingSlots.reduce<{slot: string, item: any}[]>((acc, slot) => { const item = clothing[slot]; if (item !== null) acc.push({ slot, item }); return acc; }, []);
   const hasExposure = !clothing.chest || !clothing.underwear;
 
   const { dayName, monthName, dayOfMonth } = getTamrielDate(state.world.day, state.world.week_day);
