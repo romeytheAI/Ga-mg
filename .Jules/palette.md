@@ -9,3 +9,7 @@
 ## 2024-05-18 - Missing ARIA Labels on Icon-Only Buttons
 **Learning:** In the project's modals, icon-only buttons (like those using the Lucide `<X>` icon for closing) frequently lack accessible names. This creates barriers for screen reader users who cannot visually determine the button's purpose.
 **Action:** Always verify that `<button>` tags containing only `<svg>` or icon components have a descriptive `aria-label` attribute (e.g., `aria-label="Close Modal"`).
+
+## 2024-05-18 - Missing ARIA Labels on Color Swatches
+**Learning:** When implementing color swatches (e.g., skin, eye, or hair color selection) as empty `<button>` tags relying on CSS `backgroundColor` for visual representation, they are invisible to screen readers without an explicit name.
+**Action:** Always provide explicit `aria-label` and `title` attributes (e.g., `aria-label="Select skin tone [color]"`) to empty color swatch buttons to maintain accessibility for screen readers and provide tooltip context.
