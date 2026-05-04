@@ -12,3 +12,8 @@
 **Vulnerability:** Monetization webhooks (Stripe, GitHub Sponsors) had their payload signature verification logic commented out, exposing endpoints to spoofed payloads that could fraudulently skew revenue metrics. Furthermore, missing encoding caused TypeErrors when `hmac.compare_digest` was run.
 **Learning:** External webhook handling modules need to ensure production secrets are strictly enforced (`os.getenv` without fallback) and that cryptographic digest comparisons properly encode both arguments.
 **Prevention:** Implement automated security scanning to detect commented-out authentication/verification logic and enforce strict typing/byte encoding for Python `hmac` operations.
+
+## 2025-05-04 - DOM-based XSS via innerHTML +=
+**Vulnerability:** The global error handler in `index.html` used `document.body.innerHTML +=` to display error messages. This opens up the application to DOM-based Cross-Site Scripting (XSS) if error messages contain unsanitized user input, and it forces the browser to expensively re-parse the entire DOM body.
+**Learning:** Appending to `innerHTML` is inherently unsafe and inefficient. Even for seemingly innocuous data like error messages, the content should never be treated as raw HTML unless explicitly intended and strictly sanitized.
+**Prevention:** Always use safe, isolated DOM manipulation methods such as `document.createElement` combined with `textContent` for dynamic content insertion.
