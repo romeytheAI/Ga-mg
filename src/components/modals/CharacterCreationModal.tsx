@@ -168,6 +168,8 @@ export const CharacterCreationModal: React.FC<CharacterCreationModalProps> = ({ 
             {raceDef.skin_colors.map(color => (
               <button 
                 key={color}
+                aria-label={`Select skin tone ${color}`}
+                title={`Select skin tone ${color}`}
                 onClick={() => setSkinTone(color)}
                 style={{ backgroundColor: color }}
                 className={`w-10 h-10 rounded-sm border-2 transition-all ${skinTone === color ? 'border-sky-400 scale-110 shadow-[0_0_15px_rgba(14,165,233,0.5)]' : 'border-transparent opacity-40 hover:opacity-100'}`}
@@ -181,6 +183,8 @@ export const CharacterCreationModal: React.FC<CharacterCreationModalProps> = ({ 
             {raceDef.eye_colors.map(color => (
               <button 
                 key={color}
+                aria-label={`Select eye color ${color}`}
+                title={`Select eye color ${color}`}
                 onClick={() => setEyeColor(color)}
                 style={{ backgroundColor: color }}
                 className={`w-10 h-10 rounded-full border-2 transition-all ${eyeColor === color ? 'border-sky-400 scale-110 shadow-[0_0_15px_rgba(14,165,233,0.5)]' : 'border-transparent opacity-40 hover:opacity-100'}`}
@@ -196,6 +200,8 @@ export const CharacterCreationModal: React.FC<CharacterCreationModalProps> = ({ 
             {raceDef.hair_colors.map(color => (
               <button 
                 key={color}
+                aria-label={`Select hair color ${color}`}
+                title={`Select hair color ${color}`}
                 onClick={() => setHairColor(color)}
                 style={{ backgroundColor: color }}
                 className={`w-8 h-8 rounded-sm border-2 transition-all ${hairColor === color ? 'border-sky-400 scale-110' : 'border-transparent opacity-40 hover:opacity-100'}`}
