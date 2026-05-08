@@ -38,7 +38,14 @@ self.onmessage = function(e) {
 
   const cleanObject = (obj) => {
     if (Array.isArray(obj)) {
-      const arr = obj.map(cleanObject).filter(v => v !== null && v !== undefined && v !== '' && (Array.isArray(v) ? v.length > 0 : true));
+      // ⚡ Bolt: Using reduce to avoid multiple array allocations
+      const arr = obj.reduce((acc, item) => {
+        const v = cleanObject(item);
+        if (v !== null && v !== undefined && v !== '' && (Array.isArray(v) ? v.length > 0 : true)) {
+          acc.push(v);
+        }
+        return acc;
+      }, []);
       return arr.length > 0 ? arr : undefined;
     } else if (obj !== null && typeof obj === 'object') {
       const newObj = {};
@@ -194,9 +201,9 @@ Player Status:
 Health: \${state.player.stats.health}/\${state.player.stats.max_health}, Stamina: \${state.player.stats.stamina}/\${state.player.stats.max_stamina}, Willpower: \${state.player.stats.willpower}/\${state.player.stats.max_willpower}
 Trauma: \${state.player.stats.trauma}, Lust: \${state.player.stats.lust}, Corruption: \${state.player.stats.corruption}, Purity: \${state.player.stats.purity}%
 Arousal: \${state.player.stats.arousal}, Pain: \${state.player.stats.pain}, Control: \${state.player.stats.control}, Stress: \${state.player.stats.stress}, Hallucination: \${state.player.stats.hallucination}
-Active Quests: \${state.player.quests ? state.player.quests.filter(q => q.status === 'active').map(q => q.title).join(', ') : 'None'}
+Active Quests: \${state.player.quests ? /* ⚡ Bolt: Using reduce to avoid multiple array allocations */ state.player.quests.reduce((acc, q) => q.status === 'active' ? (acc ? acc + ', ' + q.title : q.title) : acc, '') || 'None' : 'None'}
 \${translateLust(state.player.stats.lust)}
-  Clothing: \${state.player.inventory.filter(i => i.is_equipped).map(i => \`\${i.name} (\${i.integrity}%)\`).join(', ') || 'Naked'}
+  Clothing: \${/* ⚡ Bolt: Using reduce to avoid multiple array allocations */ state.player.inventory.reduce((acc, i) => i.is_equipped ? (acc ? acc + ', ' + \`\${i.name} (\${i.integrity}%)\` : \`\${i.name} (\${i.integrity}%)\`) : acc, '') || 'Naked'}
 Afflictions: \${topAfflictions.join(', ') || 'None'}
 \${hallucinationTag}
 \${biologyTag}
@@ -253,7 +260,12 @@ export function buildTextPromptAsync(state: GameState, actionText: string): Prom
     
     // Resolve local NPCs before sending to worker
     const localNPCIds = state.world.current_location.npcs || [];
-    const localNPCs = localNPCIds.map((id: string) => NPCS[id]).filter(Boolean);
+    // ⚡ Bolt: Using reduce to avoid multiple array allocations
+    const localNPCs = localNPCIds.reduce((acc, id) => {
+      const npc = NPCS[id];
+      if (npc) acc.push(npc);
+      return acc;
+    }, []);
     const localCharacterReferences = getCharacterReferenceContext(localNPCIds);
     
     const synergies = getSynergies(state.player.skills);
@@ -276,11 +288,14 @@ export function buildImagePrompt(state: GameState) {
     return "pristine";
   };
 
-  const equippedClothing = state.player.inventory
-    .filter(i => i.is_equipped && i.type === 'clothing')
-    .map(i => `${describeIntegrity(i.integrity)} ${i.name}`);
-
-  const clothingTags = equippedClothing.length > 0 ? equippedClothing.join(", ") : "naked, exposed skin";
+  // ⚡ Bolt: Using reduce to avoid multiple array allocations
+  const clothingTags = state.player.inventory.reduce((acc, i) => {
+    if (i.is_equipped && i.type === 'clothing') {
+      const tag = `${describeIntegrity(i.integrity)} ${i.name}`;
+      return acc ? acc + ", " + tag : tag;
+    }
+    return acc;
+  }, "") || "naked, exposed skin";
 
   const hygiene = state.player.stats.hygiene;
   const hygieneTag = hygiene < 25
