@@ -170,6 +170,8 @@ export const CharacterCreationModal: React.FC<CharacterCreationModalProps> = ({ 
                 key={color}
                 onClick={() => setSkinTone(color)}
                 style={{ backgroundColor: color }}
+                aria-label={`Select skin tone ${color}`}
+                title={`Skin tone ${color}`}
                 className={`w-10 h-10 rounded-sm border-2 transition-all ${skinTone === color ? 'border-sky-400 scale-110 shadow-[0_0_15px_rgba(14,165,233,0.5)]' : 'border-transparent opacity-40 hover:opacity-100'}`}
               />
             ))}
@@ -183,6 +185,8 @@ export const CharacterCreationModal: React.FC<CharacterCreationModalProps> = ({ 
                 key={color}
                 onClick={() => setEyeColor(color)}
                 style={{ backgroundColor: color }}
+                aria-label={`Select eye color ${color}`}
+                title={`Eye color ${color}`}
                 className={`w-10 h-10 rounded-full border-2 transition-all ${eyeColor === color ? 'border-sky-400 scale-110 shadow-[0_0_15px_rgba(14,165,233,0.5)]' : 'border-transparent opacity-40 hover:opacity-100'}`}
               />
             ))}
@@ -198,6 +202,8 @@ export const CharacterCreationModal: React.FC<CharacterCreationModalProps> = ({ 
                 key={color}
                 onClick={() => setHairColor(color)}
                 style={{ backgroundColor: color }}
+                aria-label={`Select hair color ${color}`}
+                title={`Hair color ${color}`}
                 className={`w-8 h-8 rounded-sm border-2 transition-all ${hairColor === color ? 'border-sky-400 scale-110' : 'border-transparent opacity-40 hover:opacity-100'}`}
               />
             ))}
@@ -244,11 +250,13 @@ export const CharacterCreationModal: React.FC<CharacterCreationModalProps> = ({ 
             <div className="flex items-center gap-6">
               <button 
                 onClick={() => { if(val > 1) { setAttributes({...attributes, [attr]: val - 1}); setAttrPoints(p => p + 1); }}}
+                aria-label={`Decrease ${attr}`}
                 className="w-10 h-10 rounded-full border border-white/10 flex items-center justify-center text-white/20 hover:text-white hover:border-white/40 transition-all text-xl"
               >-</button>
               <span className="text-2xl font-mono text-sky-400 w-8 text-center font-black">{val}</span>
               <button 
                 onClick={() => { if(attrPoints > 0 && val < 10) { setAttributes({...attributes, [attr]: val + 1}); setAttrPoints(p => p - 1); }}}
+                aria-label={`Increase ${attr}`}
                 className="w-10 h-10 rounded-full border border-white/10 flex items-center justify-center text-white/20 hover:text-white hover:border-white/40 transition-all text-xl"
               >+</button>
             </div>
