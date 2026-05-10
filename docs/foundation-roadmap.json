@@ -3,7 +3,7 @@
   "owner": "codex[agent]",
   "issues": [
     {
-      "title": "[Foundation][P0] Restructure repository for app code, assets, and docs",
+      "title": "[RESOLVED] [Foundation][P0] Restructure repository for app code, assets, and docs",
       "body_lines": [
         "The top level currently mixes source, configs, docs, shell scripts, Docker, Firebase config, and many sprite/image files (86 loose image assets at repo root).",
         "That makes it harder for any single agent to reason about ownership, build inputs, and rendering assets.",

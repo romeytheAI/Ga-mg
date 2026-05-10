@@ -30,6 +30,20 @@ This repository supports GitHub Codespaces and devcontainers out of the box, pro
    `pnpm run dev`
    (Port 3000 will be automatically forwarded).
 
+## Repository Architecture
+
+This repository follows clear folder ownership conventions to separate concerns:
+
+- **`public/`**: The authoritative directory for runtime game assets (e.g., sprites, SVGs).
+- **`assets/`**: Dedicated for developer reference files.
+- **`project/`**: Designated for experimental code and scratchpad scripts.
+- **`src/`**: Contains the core application code, organized by function:
+  - **`src/sim/`**: Simulation logic and rules.
+  - **`src/rendering/`**: Canvas and UI components.
+  - **`src/services/`**: External integrations and persistence.
+  - **`src/reducers/`**: State management and business logic.
+- *(Note: The `revenue-sidecar/` service has been decommissioned.)*
+
 ## Foundation roadmap
 
 - **Start here**: `docs/foundation-roadmap.md` - prerequisite issues for repository structure, type safety, performance, persistence, and CI/CD.
