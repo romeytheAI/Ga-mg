@@ -36,7 +36,7 @@ jobs:
           script: |
             const fs = require('fs');
             const path = require('path');
-            const core = require('@actions/core');
+            // const core = require('@actions/core');
 
             const roadmapPath = path.join(process.cwd(), 'docs', 'agentic-roadmap.json');
             if (!fs.existsSync(roadmapPath)) {
