@@ -25,12 +25,13 @@ export class ErrorBoundary extends Component<Props, State> {
 
   public render() {
     if (this.state.hasError) {
+      // 🛡️ Sentinel: Removed error.toString() to prevent leaking stack traces or sensitive internal error details
       return (
         <div className="p-4 bg-red-900/50 border border-red-500 rounded-lg text-red-200">
           <h2 className="text-xl font-bold mb-2">Something went wrong.</h2>
-          <details className="whitespace-pre-wrap">
-            {this.state.error && this.state.error.toString()}
-          </details>
+          <p className="whitespace-pre-wrap">
+            An unexpected error occurred. Please refresh the page or try again later.
+          </p>
         </div>
       );
     }
