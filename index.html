@@ -6,7 +6,11 @@
     <title>My Google AI Studio App</title>
     <script>
       window.addEventListener('error', function(e) {
-        document.body.innerHTML += '<div style="color:red; font-size:20px; padding:20px; background:black; position:fixed; top:0; left:0; z-index:9999;">' + e.message + '<br>' + e.filename + ':' + e.lineno + ':' + e.colno + '</div>';
+        var div = document.createElement('div');
+        div.style.cssText = 'color:red; font-size:20px; padding:20px; background:black; position:fixed; top:0; left:0; z-index:9999; white-space:pre-wrap;';
+        var errorMsg = (e.message || 'Unknown error') + '\n' + (e.filename || 'unknown file') + ':' + (e.lineno || '0') + ':' + (e.colno || '0');
+        div.textContent = errorMsg;
+        document.body.appendChild(div);
       });
     </script>
   </head>
