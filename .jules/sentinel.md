@@ -12,8 +12,3 @@
 **Vulnerability:** Monetization webhooks (Stripe, GitHub Sponsors) had their payload signature verification logic commented out, exposing endpoints to spoofed payloads that could fraudulently skew revenue metrics. Furthermore, missing encoding caused TypeErrors when `hmac.compare_digest` was run.
 **Learning:** External webhook handling modules need to ensure production secrets are strictly enforced (`os.getenv` without fallback) and that cryptographic digest comparisons properly encode both arguments.
 **Prevention:** Implement automated security scanning to detect commented-out authentication/verification logic and enforce strict typing/byte encoding for Python `hmac` operations.
-
-## 2025-04-23 - Prevent DOM-based XSS and Information Leakage
-**Vulnerability:** Global error handler used `document.body.innerHTML +=` causing DOM-based XSS vulnerability. `ErrorBoundary.tsx` and `firebase.ts` leaked PII and stack traces in error messages/objects.
-**Learning:** Raw error strings and objects often contain sensitive information (PII, stack traces, auth tokens) and must never be rendered to the DOM or logged in production environments. Using `innerHTML +=` for error reporting is inherently dangerous and forces the browser to re-parse the DOM.
-**Prevention:** Always use safe DOM manipulation methods like `document.createElement` and `textContent`. Sanitize all error objects before logging or returning them to the client to ensure PII and stack traces are stripped.
