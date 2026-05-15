@@ -36,24 +36,7 @@ export interface FirestoreErrorInfo {
 }
 
 export function handleFirestoreError(error: unknown, operationType: OperationType, path: string | null) {
-  const errInfo: FirestoreErrorInfo = {
-    error: error instanceof Error ? error.message : String(error),
-    authInfo: {
-      userId: auth.currentUser?.uid || '',
-      email: auth.currentUser?.email || '',
-      emailVerified: auth.currentUser?.emailVerified || false,
-      isAnonymous: auth.currentUser?.isAnonymous || false,
-      tenantId: auth.currentUser?.tenantId || '',
-      providerInfo: auth.currentUser?.providerData.map(provider => ({
-        providerId: provider.providerId,
-        displayName: provider.displayName || '',
-        email: provider.email || '',
-        photoUrl: provider.photoURL || ''
-      })) || []
-    },
-    operationType,
-    path
-  }
-  console.error('Firestore Error: ', JSON.stringify(errInfo));
-  throw new Error(JSON.stringify(errInfo));
+  // Pass the raw error object for debugging purposes, but do not leak PII in the UI.
+  console.error('An error occurred during Firestore operation:', error);
+  throw new Error('An error occurred during Firestore operation.');
 }
