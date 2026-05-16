@@ -14,7 +14,7 @@ interface StatsModalProps {
   dispatch: React.Dispatch<any>;
 }
 
-export const StatsModal: React.FC<StatsModalProps> = ({ state, dispatch }) => {
+export const StatsModal: React.FC<StatsModalProps> = React.memo(({ state, dispatch }) => {
   return (
     <motion.div 
       initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
@@ -394,4 +394,22 @@ export const StatsModal: React.FC<StatsModalProps> = ({ state, dispatch }) => {
       </motion.div>
     </motion.div>
   );
-};
+}, (prev, next) => {
+  // ⚡ Bolt: Custom comparator to prevent massive re-renders.
+  // The global 'state' object changes reference on every single tick/action.
+  return (
+    prev.state.ui.show_stats === next.state.ui.show_stats &&
+    prev.state.player.anatomy === next.state.player.anatomy &&
+    prev.state.player.stats === next.state.player.stats &&
+    prev.state.player.biology === next.state.player.biology &&
+    prev.state.player.body_fluids === next.state.player.body_fluids &&
+    prev.state.player.status_effects === next.state.player.status_effects &&
+    prev.state.player.player_job === next.state.player.player_job &&
+    prev.state.player.addiction_state === next.state.player.addiction_state &&
+    prev.state.player.transformation === next.state.player.transformation &&
+    prev.state.player.fame_record === next.state.player.fame_record &&
+    prev.state.player.skills === next.state.player.skills &&
+    prev.state.player.cosmetics === next.state.player.cosmetics &&
+    prev.state.player.clothing === next.state.player.clothing
+  );
+});
