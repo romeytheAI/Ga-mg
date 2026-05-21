@@ -6,7 +6,17 @@
     <title>My Google AI Studio App</title>
     <script>
       window.addEventListener('error', function(e) {
-        document.body.innerHTML += '<div style="color:red; font-size:20px; padding:20px; background:black; position:fixed; top:0; left:0; z-index:9999;">' + e.message + '<br>' + e.filename + ':' + e.lineno + ':' + e.colno + '</div>';
+        var div = document.createElement('div');
+        div.style.color = 'red';
+        div.style.fontSize = '20px';
+        div.style.padding = '20px';
+        div.style.background = 'black';
+        div.style.position = 'fixed';
+        div.style.top = '0';
+        div.style.left = '0';
+        div.style.zIndex = '9999';
+        div.textContent = e.message + '\n' + e.filename + ':' + e.lineno + ':' + e.colno;
+        document.body.appendChild(div);
       });
     </script>
   </head>
