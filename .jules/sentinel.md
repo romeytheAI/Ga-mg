@@ -12,3 +12,17 @@
 **Vulnerability:** Monetization webhooks (Stripe, GitHub Sponsors) had their payload signature verification logic commented out, exposing endpoints to spoofed payloads that could fraudulently skew revenue metrics. Furthermore, missing encoding caused TypeErrors when `hmac.compare_digest` was run.
 **Learning:** External webhook handling modules need to ensure production secrets are strictly enforced (`os.getenv` without fallback) and that cryptographic digest comparisons properly encode both arguments.
 **Prevention:** Implement automated security scanning to detect commented-out authentication/verification logic and enforce strict typing/byte encoding for Python `hmac` operations.
+## 2024-06-25 - Prevent DOM-based XSS via innerHTML +=
+**Vulnerability:** Global error handler in index.html used `document.body.innerHTML +=` to render error messages, allowing execution of potentially malicious payload contained in the error string.
+**Learning:** `innerHTML +=` is not only an XSS risk but forces the browser to expensively re-parse all body content.
+**Prevention:** Always use `document.createElement` combined with `textContent` for safe DOM appending.
+
+## 2024-06-25 - Prevent Stack Trace Leakage to UI
+**Vulnerability:** ErrorBoundary component blindly rendered `error.toString()` to the DOM.
+**Learning:** Never expose raw error objects or stack traces to end users as they can leak path structures, dependencies, or secrets.
+**Prevention:** Catch errors for logging, but only present generic "Something went wrong" messages to the user UI.
+
+## 2024-06-25 - Prevent Sensitive Data Leakage from Error Objects
+**Vulnerability:** Firebase error handler embedded the full authenticated user object (including emails and provider tokens) into the error payload which was then stringified and thrown.
+**Learning:** Error objects that bubble up to the UI or monitoring services should never contain PII (Personally Identifiable Information).
+**Prevention:** Strip sensitive metadata from custom error objects before throwing them. Send complete error details securely to a logger (`console.error` as a subsequent argument), but not in the error string.
