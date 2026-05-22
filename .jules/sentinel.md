@@ -12,3 +12,8 @@
 **Vulnerability:** Monetization webhooks (Stripe, GitHub Sponsors) had their payload signature verification logic commented out, exposing endpoints to spoofed payloads that could fraudulently skew revenue metrics. Furthermore, missing encoding caused TypeErrors when `hmac.compare_digest` was run.
 **Learning:** External webhook handling modules need to ensure production secrets are strictly enforced (`os.getenv` without fallback) and that cryptographic digest comparisons properly encode both arguments.
 **Prevention:** Implement automated security scanning to detect commented-out authentication/verification logic and enforce strict typing/byte encoding for Python `hmac` operations.
+
+## 2025-05-18 - Client-Side Error PII Leakage
+**Vulnerability:** Raw error objects containing PII (auth info, emails) and stack traces were logged to the console and rendered to the DOM.
+**Learning:** When handling errors in client-side code, ensure raw error objects or strings containing sensitive data are not exposed to the UI.
+**Prevention:** Sanitize error objects before serialization and pass the raw error as a subsequent argument to console.error to preserve observability without exposing it to the UI.
