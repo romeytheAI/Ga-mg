@@ -131,13 +131,20 @@ const SpriteWithXRay: React.FC<{ state: GameState }> = ({ state }) => {
   );
 };
 
+const CLOTHING_SLOTS = ['head', 'neck', 'shoulders', 'chest', 'underwear', 'legs', 'feet', 'hands', 'waist'] as const;
+
 export const StatsSidebar: React.FC<StatsSidebarProps> = React.memo(({
   state, dispatch, onOpenStats, onOpenInventory
 }) => {
   const { stats, skills, life_sim, clothing, biology, psych_profile, temperature, bailey_payment, lewdity_stats, attitudes } = state.player;
 
-  const clothingSlots = ['head', 'neck', 'shoulders', 'chest', 'underwear', 'legs', 'feet', 'hands', 'waist'] as const;
-  const equippedClothing = clothingSlots.map(slot => ({ slot, item: clothing[slot] })).filter(({ item }) => item !== null);
+  // ⚡ Bolt: Using reduce to avoid multiple array allocations
+  const equippedClothing = React.useMemo(() => CLOTHING_SLOTS.reduce<{ slot: string, item: any }[]>((acc, slot) => {
+    if (clothing[slot] !== null) {
+      acc.push({ slot, item: clothing[slot] });
+    }
+    return acc;
+  }, []), [clothing]);
   const hasExposure = !clothing.chest || !clothing.underwear;
 
   const { dayName, monthName, dayOfMonth } = getTamrielDate(state.world.day, state.world.week_day);
