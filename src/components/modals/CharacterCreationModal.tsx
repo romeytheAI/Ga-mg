@@ -102,6 +102,7 @@ export const CharacterCreationModal: React.FC<CharacterCreationModalProps> = ({ 
         <div className="relative group">
            <div className="absolute inset-0 bg-sky-500/5 blur-xl group-focus-within:bg-sky-500/10 transition-colors" />
            <input 
+             aria-label="Character Name"
              type="text" 
              value={name} 
              onChange={e => setName(e.target.value)}

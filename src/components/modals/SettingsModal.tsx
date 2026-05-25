@@ -62,6 +62,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                <div className="space-y-2">
                  <label className="text-[10px] tracking-widest uppercase text-white/30 block">Text Synthesis API Key</label>
                  <input 
+                   aria-label="Text Synthesis API Key"
                    type="password" value={state.ui.apiKey} 
                    onChange={(e) => dispatch({ type: 'SET_UI_SETTING', payload: { key: 'apiKey', value: e.target.value } })}
                    className="w-full bg-white/5 border border-white/10 p-2 rounded-sm text-xs font-mono text-white/60 focus:border-sky-500/40 outline-none"
@@ -113,6 +114,7 @@ const Slider: React.FC<{ label: string; value: number; onChange: (v: number) => 
       <span className="text-sky-400 font-mono">{Math.round(value)}%</span>
     </div>
     <input 
+      aria-label={`${label} Percentage Range`}
       type="range" min="0" max="100" value={value} 
       onChange={(e) => onChange(Number(e.target.value))}
       className="w-full h-1 bg-white/10 rounded-sm appearance-none cursor-pointer accent-sky-500"

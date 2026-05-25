@@ -105,6 +105,7 @@ export const NarrativePanel: React.FC<NarrativePanelProps> = React.memo(({
           <div className="absolute inset-0 bg-sky-500/5 rounded-lg blur-xl opacity-0 group-focus-within:opacity-100 transition-opacity" />
           <div className="relative flex items-center">
             <input 
+              aria-label="Directive to fate"
               type="text"
               value={customAction}
               onChange={(e) => setCustomAction(e.target.value)}
