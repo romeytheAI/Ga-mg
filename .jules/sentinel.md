@@ -12,3 +12,8 @@
 **Vulnerability:** Monetization webhooks (Stripe, GitHub Sponsors) had their payload signature verification logic commented out, exposing endpoints to spoofed payloads that could fraudulently skew revenue metrics. Furthermore, missing encoding caused TypeErrors when `hmac.compare_digest` was run.
 **Learning:** External webhook handling modules need to ensure production secrets are strictly enforced (`os.getenv` without fallback) and that cryptographic digest comparisons properly encode both arguments.
 **Prevention:** Implement automated security scanning to detect commented-out authentication/verification logic and enforce strict typing/byte encoding for Python `hmac` operations.
+
+## 2025-04-26 - PII Leakage in Firestore Error Logging and UI
+**Vulnerability:** The Firestore error handler was embedding sensitive auth data (emails, user IDs, tenant IDs) directly into the stringified error objects (`FirestoreErrorInfo`), which were then thrown and subsequently caught by the React `ErrorBoundary`. The `ErrorBoundary` was rendering raw `error.toString()` directly to the DOM, exposing this PII and internal stack traces to end users.
+**Learning:** Error objects must never contain embedded PII or sensitive state. Furthermore, client-side error boundaries must always present generic, sanitized fallback messages to the user while preserving the raw error object purely for internal `console.error` observability.
+**Prevention:** Remove auth contexts from standard error handling interfaces. Replace raw `error.toString()` in UI components with generic "Something went wrong" messages. Always pass the raw error to `console.error` as a secondary argument (e.g., `console.error("Msg:", error)`) rather than stringifying it into a single message.
