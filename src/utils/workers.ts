@@ -276,9 +276,13 @@ export function buildImagePrompt(state: GameState) {
     return "pristine";
   };
 
-  const equippedClothing = state.player.inventory
-    .filter(i => i.is_equipped && i.type === 'clothing')
-    .map(i => `${describeIntegrity(i.integrity)} ${i.name}`);
+  // ⚡ Bolt: Using reduce to avoid multiple array allocations from filter then map
+  const equippedClothing = state.player.inventory.reduce<string[]>((acc, i) => {
+    if (i.is_equipped && i.type === 'clothing') {
+      acc.push(`${describeIntegrity(i.integrity)} ${i.name}`);
+    }
+    return acc;
+  }, []);
 
   const clothingTags = equippedClothing.length > 0 ? equippedClothing.join(", ") : "naked, exposed skin";
 
