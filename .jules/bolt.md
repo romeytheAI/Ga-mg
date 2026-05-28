@@ -18,3 +18,7 @@
 ## 2024-11-20 - Memoizing array reductions in React render cycles
 **Learning:** Multiple identical array filter operations in JSX cause redundant intermediate array allocations and O(N) operations per render. Using `.reduce()` in a single pass is efficient, but without caching, it still recalculates every render.
 **Action:** When extracting array logic like `.filter().map()` into a single `.reduce()`, always wrap it in `React.useMemo` to prevent the O(N) processing from executing repeatedly during render cycles.
+
+## 2024-11-20 - Memoizing array reductions in React render cycles
+**Learning:** Multiple identical array filter operations in JSX cause redundant intermediate array allocations and O(N) operations per render. Using `.reduce()` in a single pass is efficient, but without caching, it still recalculates every render.
+**Action:** When extracting array logic like `.filter().map()` into a single `.reduce()`, always wrap it in `React.useMemo` to prevent the O(N) processing from executing repeatedly during render cycles.
