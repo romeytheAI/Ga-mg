@@ -14,3 +14,7 @@
 ## 2024-05-20 - React.memo with Unstable Callbacks
 **Learning:** `React.memo` wrappers around expensive child components (like `NarrativePanel`) were failing on every tick because the `handleAction` callback passed down as a prop was being recreated on every global state update. Trying to wrap `handleAction` in `useCallback(..., [state])` did not help because `state` updates constantly, meaning the function reference still changed. This caused massive rendering cascades throughout the app UI.
 **Action:** Implemented the `stateRef` stabilization pattern. Store the latest global state in a mutable ref (`stateRef.current = state`) inside a `useEffect`. Then, wrap callbacks like `handleAction` in `useCallback` with an empty (or stable) dependency array, referencing `stateRef.current` internally to always access the latest state without triggering closure staleness or reference regeneration.
+
+## 2024-11-20 - Memoizing array reductions in React render cycles
+**Learning:** Multiple identical array filter operations in JSX cause redundant intermediate array allocations and O(N) operations per render. Using `.reduce()` in a single pass is efficient, but without caching, it still recalculates every render.
+**Action:** When extracting array logic like `.filter().map()` into a single `.reduce()`, always wrap it in `React.useMemo` to prevent the O(N) processing from executing repeatedly during render cycles.
