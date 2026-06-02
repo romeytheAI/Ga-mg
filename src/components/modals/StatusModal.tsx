@@ -12,6 +12,25 @@ interface StatusModalProps {
 }
 
 export const StatusModal: React.FC<StatusModalProps> = ({ state, onClose }) => {
+  // ⚡ Bolt: Using reduce inside useMemo to avoid multiple array allocations per render
+  const equipmentSummary = React.useMemo(() => {
+    let totalIntegrity = 0;
+    let equippedCount = 0;
+    const names = state.player.inventory.reduce<string[]>((acc, item) => {
+      if (item.is_equipped) {
+        acc.push(item.name);
+        totalIntegrity += (item.integrity || 0);
+        equippedCount++;
+      }
+      return acc;
+    }, []);
+
+    return {
+      namesStr: names.join(', ') || 'Naked',
+      avgIntegrity: equippedCount > 0 ? Math.round(totalIntegrity / equippedCount) : 0
+    };
+  }, [state.player.inventory]);
+
   return (
     <motion.div 
       initial={{ opacity: 0 }}
@@ -95,10 +114,10 @@ export const StatusModal: React.FC<StatusModalProps> = ({ state, onClose }) => {
 
         <div className="mt-8 pt-6 border-t border-white/10">
           <h3 className="text-xs tracking-widest uppercase text-white/50 mb-4">Current Equipment</h3>
-          <p className="text-sm text-white/80 font-serif italic">{state.player.inventory.filter(i => i.is_equipped).map(i => i.name).join(', ') || 'Naked'}</p>
+          <p className="text-sm text-white/80 font-serif italic">{equipmentSummary.namesStr}</p>
           <div className="mt-2 flex items-center justify-between">
             <span className="text-[10px] tracking-widest uppercase text-white/40">Integrity</span>
-            <span className="text-[10px] font-mono text-white/60">{Math.round(state.player.inventory.filter(i => i.is_equipped).reduce((acc, i) => acc + (i.integrity || 0), 0) / (state.player.inventory.filter(i => i.is_equipped).length || 1))}%</span>
+            <span className="text-[10px] font-mono text-white/60">{equipmentSummary.avgIntegrity}%</span>
           </div>
         </div>
 

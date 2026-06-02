@@ -38,7 +38,13 @@ self.onmessage = function(e) {
 
   const cleanObject = (obj) => {
     if (Array.isArray(obj)) {
-      const arr = obj.map(cleanObject).filter(v => v !== null && v !== undefined && v !== '' && (Array.isArray(v) ? v.length > 0 : true));
+      const arr = obj.reduce((acc, item) => {
+        const v = cleanObject(item);
+        if (v !== null && v !== undefined && v !== '' && (Array.isArray(v) ? v.length > 0 : true)) {
+          acc.push(v);
+        }
+        return acc;
+      }, []);
       return arr.length > 0 ? arr : undefined;
     } else if (obj !== null && typeof obj === 'object') {
       const newObj = {};
