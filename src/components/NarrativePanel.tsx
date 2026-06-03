@@ -113,6 +113,8 @@ export const NarrativePanel: React.FC<NarrativePanelProps> = React.memo(({
               onKeyDown={(e) => e.key === 'Enter' && customAction && handleAction(customAction, 'custom')}
             />
             <button 
+              aria-label="Send custom action"
+              title="Send custom action"
               onClick={() => customAction && handleAction(customAction, 'custom')}
               className="absolute right-4 text-white/20 hover:text-sky-400 transition-colors"
             >
