@@ -12,3 +12,8 @@
 **Vulnerability:** Monetization webhooks (Stripe, GitHub Sponsors) had their payload signature verification logic commented out, exposing endpoints to spoofed payloads that could fraudulently skew revenue metrics. Furthermore, missing encoding caused TypeErrors when `hmac.compare_digest` was run.
 **Learning:** External webhook handling modules need to ensure production secrets are strictly enforced (`os.getenv` without fallback) and that cryptographic digest comparisons properly encode both arguments.
 **Prevention:** Implement automated security scanning to detect commented-out authentication/verification logic and enforce strict typing/byte encoding for Python `hmac` operations.
+
+## 2025-05-24 - Unsanitized Error Handling Leaking PII
+**Vulnerability:** Firebase error handlers explicitly collected `authInfo` (including user emails, display names, and IDs) and embedded them into thrown errors. Concurrently, `ErrorBoundary.tsx` rendered `error.toString()` directly to the DOM, potentially exposing this internal PII and system stack traces to the user interface.
+**Learning:** Error boundaries and centralized error logging endpoints must assume that raw error objects may contain sensitive system or user data (PII) that should never be presented directly to the user or globally stringified.
+**Prevention:** Sanitize error context objects to omit sensitive properties before they are thrown. Ensure UI error boundaries use static, generic fallback messages rather than stringifying raw error objects to the DOM. When logging errors to the console, pass the raw error as a subsequent argument rather than serializing it within a JSON string to retain system observability without permanently locking the data format.
