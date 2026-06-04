@@ -38,7 +38,14 @@ self.onmessage = function(e) {
 
   const cleanObject = (obj) => {
     if (Array.isArray(obj)) {
-      const arr = obj.map(cleanObject).filter(v => v !== null && v !== undefined && v !== '' && (Array.isArray(v) ? v.length > 0 : true));
+      // ⚡ Bolt: Using reduce to avoid intermediate array allocations
+      const arr = obj.reduce((acc, val) => {
+        const cleaned = cleanObject(val);
+        if (cleaned !== null && cleaned !== undefined && cleaned !== '' && (Array.isArray(cleaned) ? cleaned.length > 0 : true)) {
+          acc.push(cleaned);
+        }
+        return acc;
+      }, [] as any[]);
       return arr.length > 0 ? arr : undefined;
     } else if (obj !== null && typeof obj === 'object') {
       const newObj = {};
