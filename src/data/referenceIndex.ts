@@ -101,9 +101,13 @@ function buildNpcMetadata(npcId: string, npc: any, index: ReferenceIndex): NpcMe
     }
   }
 
-  // Related quests: not yet supported — quest metadata does not currently track involved NPCs.
-  // TODO: Implement involvedNpcs extraction in buildQuestMetadata (e.g., parse quest objectives).
+  // Related quests
   const relatedQuests: QuestId[] = [];
+  for (const questMetadata of index.questMetadata.values()) {
+    if (questMetadata.involvedNpcs.includes(npcId as NpcId)) {
+      relatedQuests.push(questMetadata.id);
+    }
+  }
 
   return {
     id: npcId as NpcId,
@@ -147,7 +151,28 @@ function buildQuestMetadata(questId: string, quest: any, index: ReferenceIndex):
 
   // Find involved NPCs by scanning quest objectives and descriptions
   const involvedNpcs: NpcId[] = [];
-  // This could be expanded to parse quest text for NPC references
+
+  // Create a blob of text to search for NPC references
+  const searchableText = [
+    quest.title,
+    quest.description,
+    ...(quest.objectives || []).map((obj: any) => obj.description),
+  ].join(' ');
+
+  // Scan for NPC IDs and names
+  for (const [npcId, npc] of Object.entries(NPCS)) {
+    const npcName = npc.name || npcId;
+    // Pattern to match full word only, case-insensitive
+    // We escape special characters in the name/id and use word boundaries
+    const escapedName = npcName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const escapedId = npcId.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+    const pattern = new RegExp(`\\b(${escapedName}|${escapedId})\\b`, 'i');
+
+    if (pattern.test(searchableText)) {
+      involvedNpcs.push(npcId as NpcId);
+    }
+  }
 
   return {
     id: questId as QuestId,
