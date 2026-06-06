@@ -672,7 +672,7 @@ const Toggle = ({ label, description, checked, onChange }: { label: string, desc
     type="button"
     role="switch"
     aria-checked={checked}
-    aria-label={label}
+    aria-label={`${label} — ${description}`}
     onClick={() => onChange(!checked)}
     className="w-full flex items-center justify-between p-3 bg-white/5 border border-white/5 hover:border-white/10 transition-colors text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
   >
