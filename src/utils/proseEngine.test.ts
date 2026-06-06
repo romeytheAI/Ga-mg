@@ -104,7 +104,7 @@ describe('generateLocalProse – prefix consistency', () => {
     expect(b.startsWith('Your senses sharpen')).toBe(true);
   });
 
-  it('always contains shadow feedback for wait actions', () => {
+  it('always contains wait feedback for wait actions', () => {
     const a = generateLocalProse(initialState, 'wait here for an hour');
     const b = generateLocalProse(initialState, 'wait silently');
     expect(a).toContain('Time slips past');
@@ -112,12 +112,12 @@ describe('generateLocalProse – prefix consistency', () => {
   });
 
   it('always contains divine feedback for pray actions', () => {
-    expect(generateLocalProse(initialState, 'pray at the shrine')).toContain('divine');
+    expect(generateLocalProse(initialState, 'pray at the shrine')).toContain('silence of the divine');
   });
 
   it('observe output does not contain pray feedback', () => {
     const result = generateLocalProse(initialState, 'observe the market');
-    expect(result).not.toContain('divine');
+    expect(result).not.toContain('silence of the divine');
     expect(result).not.toContain('Time slips past');
   });
 });
