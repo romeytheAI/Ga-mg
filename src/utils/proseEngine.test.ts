@@ -117,7 +117,7 @@ describe('generateLocalProse – prefix consistency', () => {
 
   it('observe output does not contain pray feedback', () => {
     const result = generateLocalProse(initialState, 'observe the market');
-    expect(result).not.toContain('silence of the divine');
+    expect(result).not.toContain('The silence of the divine');
     expect(result).not.toContain('Time slips past');
   });
 });
