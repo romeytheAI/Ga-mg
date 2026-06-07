@@ -20,6 +20,13 @@ The repository uses `pnpm` exclusively. Never use `npm` or `yarn`.
 3. Run the app:
    `pnpm run dev`
 
+## Architecture and Folder Ownership
+
+*   `public/`: Authoritative directory for runtime game assets (sprites, SVGs).
+*   `assets/`: Developer reference files.
+*   `project/`: Experimental code and scratchpad scripts.
+*   `src/`: Core application code (`src/sim/` for logic, `src/rendering/` for canvas/components, `src/services/` & `src/reducers/` for persistence/state).
+
 ## GitHub Codespaces / Devcontainer
 
 This repository supports GitHub Codespaces and devcontainers out of the box, providing a standardized Node.js 22 environment with `pnpm` pre-installed.
