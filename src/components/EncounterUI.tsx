@@ -203,6 +203,8 @@ export const EncounterUI: React.FC<EncounterUIProps> = React.memo(({ encounter, 
           <button
             key={part}
             onClick={() => setTargetedPart(part === targetedPart ? null : part)}
+            aria-label={"Target " + part}
+            title={"Target " + part}
             className={`text-[9px] uppercase tracking-widest p-1 border ${part === targetedPart ? 'bg-red-900 text-white' : 'border-red-900/30 text-red-500/50'}`}
           >
             {part}
