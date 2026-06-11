@@ -374,6 +374,37 @@ describe('Reference Index System', () => {
         expect(metadata?.isLoveInterest).toBe(true);
       }
     });
+
+    it('should identify involved NPCs in quests', () => {
+      // "The Orphan's Cage" mentions "Matron Grelod" in description
+      const questMeta = getQuestMetadata(asQuestId('q_ch1_orphans_cage'));
+      expect(questMeta).not.toBeNull();
+      if (questMeta) {
+        // Grelod's ID is grelod_the_kind
+        expect(questMeta.involvedNpcs).toContain('grelod_the_kind');
+      }
+
+      // "The Thieves Guild" mentions "Brynjolf" in description and objectives
+      const thievesMeta = getQuestMetadata(asQuestId('q_ch4_thieves_guild'));
+      expect(thievesMeta).not.toBeNull();
+      if (thievesMeta) {
+        expect(thievesMeta.involvedNpcs).toContain('brynjolf');
+      }
+    });
+
+    it('should link related quests to NPC metadata', () => {
+      const npcMeta = getNpcMetadata(asNpcId('brynjolf'));
+      expect(npcMeta).not.toBeNull();
+      if (npcMeta) {
+        expect(npcMeta.relatedQuests).toContain('q_ch4_thieves_guild');
+      }
+
+      const grelodMeta = getNpcMetadata(asNpcId('grelod_the_kind'));
+      expect(grelodMeta).not.toBeNull();
+      if (grelodMeta) {
+        expect(grelodMeta.relatedQuests).toContain('q_ch1_orphans_cage');
+      }
+    });
   });
 
   describe('Edge Cases', () => {
