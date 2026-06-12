@@ -93,14 +93,31 @@ export const StatusModal: React.FC<StatusModalProps> = ({ state, onClose }) => {
           </div>
         </div>
 
-        <div className="mt-8 pt-6 border-t border-white/10">
-          <h3 className="text-xs tracking-widest uppercase text-white/50 mb-4">Current Equipment</h3>
-          <p className="text-sm text-white/80 font-serif italic">{state.player.inventory.filter(i => i.is_equipped).map(i => i.name).join(', ') || 'Naked'}</p>
-          <div className="mt-2 flex items-center justify-between">
-            <span className="text-[10px] tracking-widest uppercase text-white/40">Integrity</span>
-            <span className="text-[10px] font-mono text-white/60">{Math.round(state.player.inventory.filter(i => i.is_equipped).reduce((acc, i) => acc + (i.integrity || 0), 0) / (state.player.inventory.filter(i => i.is_equipped).length || 1))}%</span>
-          </div>
-        </div>
+        {(() => {
+          // ⚡ Bolt: Single pass reduce to derive names, integrity sum, and count of equipped items,
+          // avoiding multiple .filter() calls over the inventory on every render
+          const equipped = state.player.inventory.reduce((acc, i) => {
+            if (i.is_equipped) {
+              acc.names.push(i.name);
+              acc.integritySum += (i.integrity || 0);
+              acc.count++;
+            }
+            return acc;
+          }, { names: [] as string[], integritySum: 0, count: 0 });
+
+          return (
+            <div className="mt-8 pt-6 border-t border-white/10">
+              <h3 className="text-xs tracking-widest uppercase text-white/50 mb-4">Current Equipment</h3>
+              <p className="text-sm text-white/80 font-serif italic">{equipped.names.join(', ') || 'Naked'}</p>
+              <div className="mt-2 flex items-center justify-between">
+                <span className="text-[10px] tracking-widest uppercase text-white/40">Integrity</span>
+                <span className="text-[10px] font-mono text-white/60">
+                  {Math.round(equipped.count > 0 ? equipped.integritySum / equipped.count : 0)}%
+                </span>
+              </div>
+            </div>
+          );
+        })()}
 
         {/* ── Milestone 10: Disease panel ─────────────────────────────────── */}
         {(() => {

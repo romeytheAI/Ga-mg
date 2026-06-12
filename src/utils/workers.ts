@@ -38,7 +38,14 @@ self.onmessage = function(e) {
 
   const cleanObject = (obj) => {
     if (Array.isArray(obj)) {
-      const arr = obj.map(cleanObject).filter(v => v !== null && v !== undefined && v !== '' && (Array.isArray(v) ? v.length > 0 : true));
+      // ⚡ Bolt: Using reduce to avoid multiple array allocations from map + filter
+      const arr = obj.reduce((acc, current) => {
+        const v = cleanObject(current);
+        if (v !== null && v !== undefined && v !== '' && (Array.isArray(v) ? v.length > 0 : true)) {
+          acc.push(v);
+        }
+        return acc;
+      }, []);
       return arr.length > 0 ? arr : undefined;
     } else if (obj !== null && typeof obj === 'object') {
       const newObj = {};
@@ -253,7 +260,12 @@ export function buildTextPromptAsync(state: GameState, actionText: string): Prom
     
     // Resolve local NPCs before sending to worker
     const localNPCIds = state.world.current_location.npcs || [];
-    const localNPCs = localNPCIds.map((id: string) => NPCS[id]).filter(Boolean);
+    // ⚡ Bolt: Using reduce to avoid multiple array allocations
+    const localNPCs = localNPCIds.reduce<any[]>((acc, id: string) => {
+      const npc = NPCS[id];
+      if (npc) acc.push(npc);
+      return acc;
+    }, []);
     const localCharacterReferences = getCharacterReferenceContext(localNPCIds);
     
     const synergies = getSynergies(state.player.skills);
@@ -276,9 +288,13 @@ export function buildImagePrompt(state: GameState) {
     return "pristine";
   };
 
-  const equippedClothing = state.player.inventory
-    .filter(i => i.is_equipped && i.type === 'clothing')
-    .map(i => `${describeIntegrity(i.integrity)} ${i.name}`);
+  // ⚡ Bolt: Using reduce to avoid multiple array allocations from map + filter
+  const equippedClothing = state.player.inventory.reduce<string[]>((acc, i) => {
+    if (i.is_equipped && i.type === 'clothing') {
+      acc.push(`${describeIntegrity(i.integrity)} ${i.name}`);
+    }
+    return acc;
+  }, []);
 
   const clothingTags = equippedClothing.length > 0 ? equippedClothing.join(", ") : "naked, exposed skin";
 
