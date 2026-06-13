@@ -11,7 +11,8 @@ interface StatusModalProps {
   onClose: () => void;
 }
 
-export const StatusModal: React.FC<StatusModalProps> = ({ state, onClose }) => {
+// ⚡ Bolt: Wrapped StatusModal in React.memo and implemented a custom comparator to prevent unnecessary re-renders
+export const StatusModal: React.FC<StatusModalProps> = React.memo(({ state, onClose }) => {
   return (
     <motion.div 
       initial={{ opacity: 0 }}
@@ -207,4 +208,17 @@ export const StatusModal: React.FC<StatusModalProps> = ({ state, onClose }) => {
       </motion.div>
     </motion.div>
   );
-};
+}, (prevProps, nextProps) => {
+  return (
+    prevProps.onClose === nextProps.onClose &&
+    (prevProps.state === nextProps.state || (
+      prevProps.state != null && nextProps.state != null &&
+      // StatusModal only renders these specific state domains:
+      prevProps.state.player.stats === nextProps.state.player.stats &&
+      prevProps.state.player.inventory === nextProps.state.player.inventory &&
+      prevProps.state.player.disease_state === nextProps.state.player.disease_state &&
+      prevProps.state.player.parasite_state === nextProps.state.player.parasite_state &&
+      prevProps.state.player.companion_state === nextProps.state.player.companion_state
+    ))
+  );
+});
