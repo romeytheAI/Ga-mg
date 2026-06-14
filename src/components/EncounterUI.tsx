@@ -158,6 +158,7 @@ export const EncounterUI: React.FC<EncounterUIProps> = React.memo(({ encounter, 
         <button
           onClick={() => setShow3D(!show3D)}
           aria-label={show3D ? 'Switch to 2D view' : 'Switch to 3D view'}
+          title={show3D ? 'Switch to 2D view' : 'Switch to 3D view'}
           className={`text-[7px] tracking-widest uppercase px-1.5 py-0.5 rounded-sm border transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400/50 ${
             show3D
               ? 'bg-cyan-500/20 border-cyan-400/50 text-cyan-300'
@@ -202,6 +203,7 @@ export const EncounterUI: React.FC<EncounterUIProps> = React.memo(({ encounter, 
         {bodyParts.map(part => (
           <button
             key={part}
+            aria-label={"Target " + part}
             onClick={() => setTargetedPart(part === targetedPart ? null : part)}
             className={`text-[9px] uppercase tracking-widest p-1 border ${part === targetedPart ? 'bg-red-900 text-white' : 'border-red-900/30 text-red-500/50'}`}
           >

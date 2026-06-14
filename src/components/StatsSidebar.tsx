@@ -111,6 +111,8 @@ const SpriteWithXRay: React.FC<{ state: GameState }> = ({ state }) => {
       
       <div className="absolute top-2 left-2 flex flex-col gap-1 opacity-0 group-hover/sprite:opacity-100 transition-opacity">
         <button
+          aria-label="Toggle X-Ray View"
+          title="Toggle X-Ray View"
           onClick={() => setXrayOn(!xrayOn)}
           className={`text-[7px] tracking-widest uppercase px-2 py-1 rounded-sm border transition-all ${
             xrayOn ? 'bg-cyan-500/20 border-cyan-400/50 text-cyan-300' : 'bg-black/60 border-white/10 text-white/40'
@@ -119,6 +121,8 @@ const SpriteWithXRay: React.FC<{ state: GameState }> = ({ state }) => {
           X-RAY
         </button>
         <button
+          aria-label="Toggle 3D View"
+          title="Toggle 3D View"
           onClick={() => setView3D(!view3D)}
           className={`text-[7px] tracking-widest uppercase px-2 py-1 rounded-sm border transition-all ${
             view3D ? 'bg-amber-500/20 border-amber-400/50 text-amber-300' : 'bg-black/60 border-white/10 text-white/40'
