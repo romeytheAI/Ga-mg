@@ -12,6 +12,10 @@ interface StatusModalProps {
 }
 
 export const StatusModal: React.FC<StatusModalProps> = ({ state, onClose }) => {
+  // ⚡ Bolt: Compute equipped items once to avoid multiple iterations
+  const equippedItems = state.player.inventory.filter(i => i.is_equipped);
+  const equippedNames = equippedItems.map(i => i.name).join(', ');
+
   return (
     <motion.div 
       initial={{ opacity: 0 }}
@@ -95,10 +99,10 @@ export const StatusModal: React.FC<StatusModalProps> = ({ state, onClose }) => {
 
         <div className="mt-8 pt-6 border-t border-white/10">
           <h3 className="text-xs tracking-widest uppercase text-white/50 mb-4">Current Equipment</h3>
-          <p className="text-sm text-white/80 font-serif italic">{state.player.inventory.filter(i => i.is_equipped).map(i => i.name).join(', ') || 'Naked'}</p>
+          <p className="text-sm text-white/80 font-serif italic">{equippedNames || 'Naked'}</p>
           <div className="mt-2 flex items-center justify-between">
             <span className="text-[10px] tracking-widest uppercase text-white/40">Integrity</span>
-            <span className="text-[10px] font-mono text-white/60">{Math.round(state.player.inventory.filter(i => i.is_equipped).reduce((acc, i) => acc + (i.integrity || 0), 0) / (state.player.inventory.filter(i => i.is_equipped).length || 1))}%</span>
+            <span className="text-[10px] font-mono text-white/60">{Math.round(equippedItems.reduce((acc, i) => acc + (i.integrity || 0), 0) / (equippedItems.length || 1))}%</span>
           </div>
         </div>
 
