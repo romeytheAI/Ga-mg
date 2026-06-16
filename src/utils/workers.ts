@@ -109,6 +109,17 @@ self.onmessage = function(e) {
     biologyTag += \` [The player is incubating: \${state.player.biology.incubations.length} entities]\`;
   }
 
+  // ⚡ Bolt: Using reduce instead of filter().map() for string building
+  const activeQuestsStr = state.player.quests ? state.player.quests.reduce<string[]>((acc, q) => {
+    if (q.status === 'active') acc.push(q.title);
+    return acc;
+  }, []).join(', ') : 'None';
+
+  const clothingStr = state.player.inventory.reduce<string[]>((acc, i) => {
+    if (i.is_equipped) acc.push(i.name + " (" + i.integrity + "%)");
+    return acc;
+  }, []).join(', ');
+
   let dreamscapeTag = "";
   if (state.world.dreamscape.active) {
     dreamscapeTag = "[The player is currently asleep and navigating the Dreamscape. Combat uses Willpower instead of Health. Stamina is infinite.]";
@@ -194,9 +205,9 @@ Player Status:
 Health: \${state.player.stats.health}/\${state.player.stats.max_health}, Stamina: \${state.player.stats.stamina}/\${state.player.stats.max_stamina}, Willpower: \${state.player.stats.willpower}/\${state.player.stats.max_willpower}
 Trauma: \${state.player.stats.trauma}, Lust: \${state.player.stats.lust}, Corruption: \${state.player.stats.corruption}, Purity: \${state.player.stats.purity}%
 Arousal: \${state.player.stats.arousal}, Pain: \${state.player.stats.pain}, Control: \${state.player.stats.control}, Stress: \${state.player.stats.stress}, Hallucination: \${state.player.stats.hallucination}
-Active Quests: \${state.player.quests ? state.player.quests.filter(q => q.status === 'active').map(q => q.title).join(', ') : 'None'}
+Active Quests: \${activeQuestsStr || 'None'}
 \${translateLust(state.player.stats.lust)}
-  Clothing: \${state.player.inventory.filter(i => i.is_equipped).map(i => \`\${i.name} (\${i.integrity}%)\`).join(', ') || 'Naked'}
+  Clothing: \${clothingStr || 'Naked'}
 Afflictions: \${topAfflictions.join(', ') || 'None'}
 \${hallucinationTag}
 \${biologyTag}
