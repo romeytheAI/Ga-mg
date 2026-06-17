@@ -243,11 +243,13 @@ export const CharacterCreationModal: React.FC<CharacterCreationModalProps> = ({ 
             </div>
             <div className="flex items-center gap-6">
               <button 
+                aria-label={`Decrease ${attr}`}
                 onClick={() => { if(val > 1) { setAttributes({...attributes, [attr]: val - 1}); setAttrPoints(p => p + 1); }}}
                 className="w-10 h-10 rounded-full border border-white/10 flex items-center justify-center text-white/20 hover:text-white hover:border-white/40 transition-all text-xl"
               >-</button>
               <span className="text-2xl font-mono text-sky-400 w-8 text-center font-black">{val}</span>
               <button 
+                aria-label={`Increase ${attr}`}
                 onClick={() => { if(attrPoints > 0 && val < 10) { setAttributes({...attributes, [attr]: val + 1}); setAttrPoints(p => p - 1); }}}
                 className="w-10 h-10 rounded-full border border-white/10 flex items-center justify-center text-white/20 hover:text-white hover:border-white/40 transition-all text-xl"
               >+</button>
