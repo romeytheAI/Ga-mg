@@ -95,11 +95,34 @@ export const StatusModal: React.FC<StatusModalProps> = ({ state, onClose }) => {
 
         <div className="mt-8 pt-6 border-t border-white/10">
           <h3 className="text-xs tracking-widest uppercase text-white/50 mb-4">Current Equipment</h3>
-          <p className="text-sm text-white/80 font-serif italic">{state.player.inventory.filter(i => i.is_equipped).map(i => i.name).join(', ') || 'Naked'}</p>
-          <div className="mt-2 flex items-center justify-between">
-            <span className="text-[10px] tracking-widest uppercase text-white/40">Integrity</span>
-            <span className="text-[10px] font-mono text-white/60">{Math.round(state.player.inventory.filter(i => i.is_equipped).reduce((acc, i) => acc + (i.integrity || 0), 0) / (state.player.inventory.filter(i => i.is_equipped).length || 1))}%</span>
-          </div>
+          {(() => {
+            // ⚡ Bolt: Using a single reduce pass to compute equipped item names, total integrity, and count.
+            // Avoids 3 separate O(n) array allocations from filter() and map() chains.
+            const equippedItemsData = state.player.inventory.reduce(
+              (acc, item) => {
+                if (item.is_equipped) {
+                  acc.names.push(item.name);
+                  acc.totalIntegrity += item.integrity || 0;
+                  acc.count++;
+                }
+                return acc;
+              },
+              { names: [] as string[], totalIntegrity: 0, count: 0 }
+            );
+
+            const equipmentStr = equippedItemsData.names.join(', ') || 'Naked';
+            const avgIntegrity = equippedItemsData.count > 0 ? Math.round(equippedItemsData.totalIntegrity / equippedItemsData.count) : 0;
+
+            return (
+              <>
+                <p className="text-sm text-white/80 font-serif italic">{equipmentStr}</p>
+                <div className="mt-2 flex items-center justify-between">
+                  <span className="text-[10px] tracking-widest uppercase text-white/40">Integrity</span>
+                  <span className="text-[10px] font-mono text-white/60">{avgIntegrity}%</span>
+                </div>
+              </>
+            );
+          })()}
         </div>
 
         {/* ── Milestone 10: Disease panel ─────────────────────────────────── */}
