@@ -169,6 +169,8 @@ export const CharacterCreationModal: React.FC<CharacterCreationModalProps> = ({ 
               <button 
                 key={color}
                 onClick={() => setSkinTone(color)}
+                aria-label={`Select skin tone ${color}`}
+                title={`Skin tone ${color}`}
                 style={{ backgroundColor: color }}
                 className={`w-10 h-10 rounded-sm border-2 transition-all ${skinTone === color ? 'border-sky-400 scale-110 shadow-[0_0_15px_rgba(14,165,233,0.5)]' : 'border-transparent opacity-40 hover:opacity-100'}`}
               />
@@ -182,6 +184,8 @@ export const CharacterCreationModal: React.FC<CharacterCreationModalProps> = ({ 
               <button 
                 key={color}
                 onClick={() => setEyeColor(color)}
+                aria-label={`Select eye color ${color}`}
+                title={`Eye color ${color}`}
                 style={{ backgroundColor: color }}
                 className={`w-10 h-10 rounded-full border-2 transition-all ${eyeColor === color ? 'border-sky-400 scale-110 shadow-[0_0_15px_rgba(14,165,233,0.5)]' : 'border-transparent opacity-40 hover:opacity-100'}`}
               />
@@ -197,6 +201,8 @@ export const CharacterCreationModal: React.FC<CharacterCreationModalProps> = ({ 
               <button 
                 key={color}
                 onClick={() => setHairColor(color)}
+                aria-label={`Select hair color ${color}`}
+                title={`Hair color ${color}`}
                 style={{ backgroundColor: color }}
                 className={`w-8 h-8 rounded-sm border-2 transition-all ${hairColor === color ? 'border-sky-400 scale-110' : 'border-transparent opacity-40 hover:opacity-100'}`}
               />
