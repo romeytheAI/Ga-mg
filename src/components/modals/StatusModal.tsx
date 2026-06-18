@@ -93,14 +93,28 @@ export const StatusModal: React.FC<StatusModalProps> = ({ state, onClose }) => {
           </div>
         </div>
 
-        <div className="mt-8 pt-6 border-t border-white/10">
-          <h3 className="text-xs tracking-widest uppercase text-white/50 mb-4">Current Equipment</h3>
-          <p className="text-sm text-white/80 font-serif italic">{state.player.inventory.filter(i => i.is_equipped).map(i => i.name).join(', ') || 'Naked'}</p>
-          <div className="mt-2 flex items-center justify-between">
-            <span className="text-[10px] tracking-widest uppercase text-white/40">Integrity</span>
-            <span className="text-[10px] font-mono text-white/60">{Math.round(state.player.inventory.filter(i => i.is_equipped).reduce((acc, i) => acc + (i.integrity || 0), 0) / (state.player.inventory.filter(i => i.is_equipped).length || 1))}%</span>
-          </div>
-        </div>
+        {(() => {
+          // ⚡ Bolt: Using a single reduce pass over the inventory array to gather equipped items info instead of 3 filter and map loops
+          const { names, totalIntegrity, count } = state.player.inventory.reduce((acc, i) => {
+            if (i.is_equipped) {
+              acc.names.push(i.name);
+              acc.totalIntegrity += (i.integrity || 0);
+              acc.count += 1;
+            }
+            return acc;
+          }, { names: [] as string[], totalIntegrity: 0, count: 0 });
+
+          return (
+            <div className="mt-8 pt-6 border-t border-white/10">
+              <h3 className="text-xs tracking-widest uppercase text-white/50 mb-4">Current Equipment</h3>
+              <p className="text-sm text-white/80 font-serif italic">{names.join(', ') || 'Naked'}</p>
+              <div className="mt-2 flex items-center justify-between">
+                <span className="text-[10px] tracking-widest uppercase text-white/40">Integrity</span>
+                <span className="text-[10px] font-mono text-white/60">{Math.round(totalIntegrity / (count || 1))}%</span>
+              </div>
+            </div>
+          );
+        })()}
 
         {/* ── Milestone 10: Disease panel ─────────────────────────────────── */}
         {(() => {
