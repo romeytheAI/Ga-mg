@@ -404,6 +404,7 @@ export const ImmersiveStartMenu: React.FC<ImmersiveStartMenuProps> = React.memo(
                   <div className="mt-4">
                     <label className="text-xs tracking-widest uppercase text-white/40 block mb-2">World Seed (Optional)</label>
                     <input 
+                      aria-label="World Seed"
                       type="text" 
                       value={seedString}
                       onChange={(e) => setSeedString(e.target.value)}
@@ -521,6 +522,7 @@ export const ImmersiveStartMenu: React.FC<ImmersiveStartMenuProps> = React.memo(
                       <h3 className="text-xs tracking-widest uppercase text-white/40 mb-4">API Configuration</h3>
                       <div className="flex gap-2 mb-2">
                         <input 
+                          aria-label="API Key"
                           type="password" 
                           value={apiKey}
                           onChange={(e) => setApiKey(e.target.value)}
@@ -541,6 +543,7 @@ export const ImmersiveStartMenu: React.FC<ImmersiveStartMenuProps> = React.memo(
                     <div className="p-4 bg-white/5 border border-white/10">
                       <h3 className="text-xs tracking-widest uppercase text-white/40 mb-4">Model Sandbox Tester</h3>
                       <textarea 
+                        aria-label="Sandbox Prompt"
                         value={sandboxPrompt}
                         onChange={(e) => setSandboxPrompt(e.target.value)}
                         placeholder="Enter a test prompt..."
